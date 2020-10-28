@@ -1,0 +1,4 @@
+app: dp-quizshow-api
+namespace: teamdagpenger
+team: teamdagpenger
+alerts_slack_channel: "#team-dagpenger-alert-non-prod"
