@@ -24,10 +24,6 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-val kotlinLoggingVersion = "1.6.22"
-val fuelVersion = "2.1.0"
-val confluentVersion = "4.1.2"
-val kafkaVersion = "2.0.0"
 
 dependencies {
     implementation(kotlin("stdlib"))
@@ -36,18 +32,18 @@ dependencies {
     testImplementation(Junit5.api)
     testRuntimeOnly(Junit5.engine)
 
-    implementation(Ktor.server)
     implementation(Ktor.serverNetty)
-    implementation(Ktor.auth)
-    implementation(Ktor.authJwt) {
-        exclude(group = "junit")
-    }
+    implementation(Ktor.library("jackson"))
+
+    implementation("com.github.navikt:rapids-and-rivers:1.74ae9cb")
 
     implementation(Log4j2.api)
     implementation(Log4j2.core)
     implementation(Log4j2.slf4j)
     implementation(Log4j2.Logstash.logstashLayout)
     implementation(Kotlin.Logging.kotlinLogging)
+
+    testImplementation(Ktor.ktorTest)
 }
 
 spotless {
