@@ -27,6 +27,7 @@ java {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation(Konfig.konfig)
 
     testImplementation(kotlin("test-junit5"))
     testImplementation(Junit5.api)
