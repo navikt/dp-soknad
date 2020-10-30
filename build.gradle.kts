@@ -16,7 +16,7 @@ repositories {
 
 application {
     applicationName = "dp-quizshow-api"
-    mainClassName = "no.nav.dagpenger.kalkulator.KalkulatorAppKt"
+    mainClassName = "no.nav.dagpenger.quizshow.api.AppKt"
 }
 
 java {

@@ -4,4 +4,4 @@ team: teamdagpenger
 alerts_slack_channel: "#team-dagpenger-alert-non-prod"
 ingresses: |
   ingresses:
-    - https://arbeid.dev.nav.no/arbeid/dagpenger/quizshow
+    - https://arbeid.dev.nav.no/arbeid/dagpenger/quizshow-api
