@@ -16,7 +16,7 @@ internal fun Application.søknadApi() {
 
     routing {
         trace { logger.info { it.buildText() } }
-        webSocket("/chat") {
+        webSocket("/arbeid/dagpenger/websockets/chat") {
             while (true) {
                 val frame = incoming.receive() // suspend
                 when (frame) {
