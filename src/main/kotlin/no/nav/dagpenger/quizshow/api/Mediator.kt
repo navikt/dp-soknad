@@ -1,28 +1,20 @@
 package no.nav.dagpenger.quizshow.api
 
+import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 
-internal class Mediator() : River.PacketListener {
-    private lateinit var rapidsConnection: RapidsConnection
+internal class Mediator(private val rapidsConnection: RapidsConnection) : River.PacketListener {
     private val observers = mutableListOf<MeldingObserver>()
 
     init {
         River(rapidsConnection).apply {
             validate { it.demandKey("@behov") }
             validate { it.rejectKey("@løsning") }
-            validate { it.requireKey("seksjon", "fakta", "fødselsnummer") }
-            validate { it.requireValue("seksjon.rolle", "søker") }
+            validate { it.requireKey("root", "fakta", "fødselsnummer") }
+            /*validate { it.requireValue("seksjon", "søker") }*/
         }.register(this)
-    }
-
-    internal constructor(rapidsConnection: RapidsConnection) : this() {
-        this.rapidsConnection = rapidsConnection
-    }
-
-    fun register(rapidsConnection: RapidsConnection) {
-        this.rapidsConnection = rapidsConnection
     }
 
     fun register(observer: MeldingObserver) = observers.add(observer)
@@ -32,9 +24,11 @@ internal class Mediator() : River.PacketListener {
     }
 
     override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) =
-        observers.forEach { it.meldingMottatt(packet.toJson()) }
+        runBlocking {
+            observers.forEach { it.meldingMottatt(packet.toJson()) }
+        }
 }
 
 interface MeldingObserver {
-    fun meldingMottatt(melding: String)
+    suspend fun meldingMottatt(melding: String)
 }

@@ -5,6 +5,7 @@ import io.ktor.http.cio.websocket.readText
 import io.ktor.server.testing.withTestApplication
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -19,10 +20,11 @@ internal class SøknadApiTest {
 
     @Test
     fun `tar imot seksjon-behov og pusher på websocket`() {
-        withTestApplication({ søknadApi(mediator) }) {
+        withTestApplication({ søknadApi { meldingObserver -> mediator.register(meldingObserver) } }) {
             handleWebSocketConversation("/ws") { incoming, _ ->
                 rapid.sendTestMessage(seksjonMessage)
-                assertEquals(seksjonMessage, (incoming.receive() as Frame.Text).readText())
+                val incoming = (incoming.receive() as Frame.Text).readText()
+                assertTrue(incoming.contains("fødselsnummer"))
             }
         }
     }
@@ -60,5 +62,5 @@ internal class SøknadApiTest {
     ]
   },
   "system_read_count": 0
-}"""
+}""".trimIndent()
 }
