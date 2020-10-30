@@ -25,18 +25,16 @@ java {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
     implementation(Konfig.konfig)
 
     testImplementation(kotlin("test-junit5"))
     testImplementation(Junit5.api)
     testRuntimeOnly(Junit5.engine)
 
-    implementation(Ktor.serverNetty)
     implementation(Ktor.library("jackson"))
     implementation(Ktor.library("websockets"))
 
-    implementation("com.github.navikt:rapids-and-rivers:1.74ae9cb")
+    implementation("com.github.navikt:rapids-and-rivers:1.20a7b92")
 
     implementation(Kotlin.Logging.kotlinLogging)
 
