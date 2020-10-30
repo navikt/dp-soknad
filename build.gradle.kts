@@ -38,10 +38,6 @@ dependencies {
 
     implementation("com.github.navikt:rapids-and-rivers:1.74ae9cb")
 
-    implementation(Log4j2.api)
-    implementation(Log4j2.core)
-    implementation(Log4j2.slf4j)
-    implementation(Log4j2.Logstash.logstashLayout)
     implementation(Kotlin.Logging.kotlinLogging)
 
     testImplementation(Ktor.ktorTest)
