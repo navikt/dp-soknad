@@ -6,5 +6,4 @@ internal class Mediator(private val rapidsConnection: RapidsConnection) {
     fun nySøknad(fødselsnummer: String) {
         rapidsConnection.publish(ØnskerRettighetsavklaringMelding(fødselsnummer).toJson())
     }
-
 }

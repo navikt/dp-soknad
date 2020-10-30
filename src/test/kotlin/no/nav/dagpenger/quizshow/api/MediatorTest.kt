@@ -21,15 +21,14 @@ class MediatorTest {
         }
     }
 
-
-
     @Test
     fun `reagerer på mottak av kafkamelding`() {
 
         rapid.sendTestMessage(seksjonMessage)
     }
 
-    val seksjonMessage = """{
+    val seksjonMessage =
+        """{
   "@event_name": "behov",
   "@opprettet": "2020-10-28T12:50:36.349916",
   "@id": "e685a88d-02e6-4683-b417-fd8a750162fe",

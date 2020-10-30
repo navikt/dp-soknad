@@ -24,7 +24,6 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(Konfig.konfig)
@@ -35,6 +34,7 @@ dependencies {
 
     implementation(Ktor.serverNetty)
     implementation(Ktor.library("jackson"))
+    implementation(Ktor.library("websockets"))
 
     implementation("com.github.navikt:rapids-and-rivers:1.74ae9cb")
 

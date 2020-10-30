@@ -2,7 +2,7 @@ package no.nav.dagpenger.quizshow.api
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 internal class ØnskerRettighetsavklaringMelding(private val fødselsnummer: String) {
     private val navn = "ønsker_rettighetsavklaring"
@@ -11,12 +11,12 @@ internal class ØnskerRettighetsavklaringMelding(private val fødselsnummer: Str
     private val avklaringsId = UUID.randomUUID()
 
     fun toJson() = JsonMessage.newMessage(
-            mutableMapOf(
-                    "@event_name" to navn,
-                    "@opprettet" to opprettet,
-                    "@id" to id,
-                    "avklaringsId" to avklaringsId,
-                    "fødselsnummer" to fødselsnummer,
-            )
+        mutableMapOf(
+            "@event_name" to navn,
+            "@opprettet" to opprettet,
+            "@id" to id,
+            "avklaringsId" to avklaringsId,
+            "fødselsnummer" to fødselsnummer,
+        )
     ).toJson()
 }

@@ -10,12 +10,12 @@ spec:
   image: {{image}}
   port: 8080
   liveness:
-    path: /isAlive
+    path: /isalive
     timeout: 1
     periodSeconds: 5
     failureThreshold: 10
   readiness:
-    path: /isReady
+    path: /isready
     timeout: 1
   prometheus:
     enabled: false
@@ -30,6 +30,7 @@ spec:
     requests:
       cpu: 300m
       memory: 512Mi
+  {{ ingresses }}
   env:
     - name: PORT
       value: "8080"
