@@ -8,8 +8,6 @@ import io.ktor.http.cio.websocket.readText
 import io.ktor.routing.routing
 import io.ktor.websocket.WebSockets
 import io.ktor.websocket.webSocket
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import mu.KotlinLogging
 import java.util.Collections
 

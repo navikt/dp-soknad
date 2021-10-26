@@ -4,7 +4,6 @@ import io.ktor.http.cio.websocket.Frame
 import io.ktor.http.cio.websocket.readText
 import io.ktor.server.testing.withTestApplication
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -62,5 +61,6 @@ internal class SøknadApiTest {
     ]
   },
   "system_read_count": 0
-}""".trimIndent()
+}
+        """.trimIndent()
 }
