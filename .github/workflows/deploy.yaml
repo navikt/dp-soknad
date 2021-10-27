@@ -48,7 +48,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
-          context: mediator
+          context: .
           builder: ${{ steps.buildx.outputs.name }}
           tags: ${{ env.IMAGE }},${{ env.LATEST_IMAGE }}
           push: true
