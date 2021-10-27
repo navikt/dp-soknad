@@ -6,7 +6,6 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 internal class SøknadApiTest {
@@ -22,46 +21,54 @@ internal class SøknadApiTest {
     fun `tar imot seksjon-behov og pusher på websocket`() {
         withTestApplication({ søknadApi { meldingObserver -> mediator.register(meldingObserver) } }) {
             handleWebSocketConversation("/ws") { incoming, _ ->
-                rapid.sendTestMessage(seksjonMessage)
+                rapid.sendTestMessage(søkerJson)
                 val resultat = (incoming.receive() as Frame.Text).readText()
-                assertTrue(resultat.contains("fødselsnummer"))
+                assertTrue(resultat.contains("søker_oppgave"))
             }
         }
     }
 
-    val seksjonMessage =
-        """
-{
-  "@event_name": "behov",
-  "@opprettet": "2020-10-28T12:50:36.349916",
-  "@id": "e685a88d-02e6-4683-b417-fd8a750162fe",
-  "@behov": [
-    "Ønsker dagpenger fra dato"
-  ],
-  "fødselsnummer": "12345678910",
-  "fakta": [
-    {
-      "type": "GrunnleggendeFaktum",
-      "navn": "Ønsker dagpenger fra dato",
-      "id": "1",
-      "avhengigFakta": [],
-      "avhengerAvFakta": [],
-      "clazz": "localdate",
-      "rootId": 1,
-      "indeks": 0,
-      "roller": [
-        "søker"
-      ]
-    }
-  ],
-  "root": {
-    "rolle": "søker",
-    "navn": "Datoer",
-    "fakta": [
-      "1"
-    ]
-  },
-  "system_read_count": 0
+    //language=JSON
+    val søkerJson = """
+        {
+          "@event_name": "søker_oppgave",
+          "@id": "900b273c-d1e2-4037-b2ae-0ff252c61896",
+          "@opprettet": "2021-10-27T09:49:05.081590",
+          "søknad_uuid": "35cfb1bd-4dc9-4057-b51d-1b5acff75248",
+          "seksjon_navn": "søker",
+          "identer": [
+            {
+              "id": "12020052345",
+              "type": "folkeregisterident",
+              "historisk": false
+            },
+            {
+              "id": "aktørId",
+              "type": "aktørid",
+              "historisk": false
+            }
+          ],
+          "fakta": [
+            {
+              "navn": "Oversatt tekst",
+              "id": "1",
+              "roller": [
+                "søker"
+              ],
+              "type": "boolean",
+              "godkjenner": []
+            },
+            {
+              "navn": "Oversatt tekst",
+              "id": "3",
+              "roller": [
+                "søker"
+              ],
+              "type": "boolean",
+              "godkjenner": []
+            }
+          ]
+        }
+    """.trimIndent()
 }
-        """.trimIndent()
-}
+

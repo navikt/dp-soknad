@@ -11,10 +11,9 @@ internal class Mediator(private val rapidsConnection: RapidsConnection) : River.
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandKey("@behov") }
+            validate { it.demandValue("@event_name", "søker_oppgave") }
             validate { it.rejectKey("@løsning") }
-            validate { it.requireKey("root", "fakta", "fødselsnummer") }
-            /*validate { it.requireValue("seksjon", "søker") }*/
+            validate { it.requireKey("fakta", "identer") }
         }.register(this)
     }
 
