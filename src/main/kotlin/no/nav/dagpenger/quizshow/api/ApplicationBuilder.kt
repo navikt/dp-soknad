@@ -9,7 +9,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         RapidApplication.RapidApplicationConfig.fromEnv(config)
     ).withKtorModule {
         søknadApi(::subscribe)
-        demoApi(::publiser)
+        demoApi(::publiser, System.getenv())
     }.build()
 
     private val mediator = Mediator(rapidsConnection)
@@ -20,6 +20,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
 
     fun start() = rapidsConnection.start()
     fun stop() = rapidsConnection.stop()
+
     override fun onStartup(rapidsConnection: RapidsConnection) {
     }
 
