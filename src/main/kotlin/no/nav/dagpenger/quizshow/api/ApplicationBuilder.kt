@@ -3,9 +3,9 @@ package no.nav.dagpenger.quizshow.api
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 
-internal class ApplicationBuilder(configuration: Configuration) : RapidsConnection.StatusListener {
+internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnection.StatusListener {
     private val rapidsConnection = RapidApplication.Builder(
-        RapidApplication.RapidApplicationConfig.fromEnv(configuration.rapidApplication)
+        RapidApplication.RapidApplicationConfig.fromEnv(config)
     ).withKtorModule {
         søknadApi(::subscribe)
     }.build()
