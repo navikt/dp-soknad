@@ -12,10 +12,6 @@ dependencies {
     implementation("com.diffplug.spotless:spotless-plugin-gradle:5.11.0")
 }
 
-kotlinDslPluginOptions {
-    experimentalWarning.set(false)
-}
-
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions.jvmTarget = JavaVersion.VERSION_16.toString()
 }
