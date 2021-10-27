@@ -4,10 +4,12 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 
 internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnection.StatusListener {
+
     private val rapidsConnection = RapidApplication.Builder(
         RapidApplication.RapidApplicationConfig.fromEnv(config)
     ).withKtorModule {
         søknadApi(::subscribe)
+        demoApi(::publiser)
     }.build()
 
     private val mediator = Mediator(rapidsConnection)
@@ -23,5 +25,9 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
 
     private fun subscribe(meldingObserver: MeldingObserver) {
         mediator.register(meldingObserver)
+    }
+
+    private fun publiser(fnr: String) {
+        mediator.nySøknad(fnr)
     }
 }
