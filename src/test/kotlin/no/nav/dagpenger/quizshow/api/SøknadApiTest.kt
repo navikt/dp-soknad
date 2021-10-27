@@ -6,6 +6,7 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 internal class SøknadApiTest {
@@ -18,6 +19,7 @@ internal class SøknadApiTest {
     }
 
     @Test
+    @Disabled
     fun `tar imot seksjon-behov og pusher på websocket`() {
         withTestApplication({ søknadApi { meldingObserver -> mediator.register(meldingObserver) } }) {
             handleWebSocketConversation("/ws") { incoming, _ ->
