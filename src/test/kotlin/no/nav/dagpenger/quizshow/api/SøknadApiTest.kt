@@ -71,4 +71,3 @@ internal class SøknadApiTest {
         }
     """.trimIndent()
 }
-
