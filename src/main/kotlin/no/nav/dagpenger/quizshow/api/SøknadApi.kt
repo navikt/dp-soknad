@@ -23,8 +23,7 @@ internal fun Application.søknadApi(subscribe: (MeldingObserver) -> Unit) {
         webSocket("/ws") {
             wsConnections += WebSocketSession(this).also { subscribe(it) }
             try {
-                while (true) {
-                    val frame = incoming.receive() // suspend
+                for(frame in incoming) {
                     when (frame) {
                         is Frame.Text -> {
                             val text = frame.readText()

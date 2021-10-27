@@ -19,13 +19,12 @@ internal class SøknadApiTest {
     }
 
     @Test
-    @Disabled
     fun `tar imot seksjon-behov og pusher på websocket`() {
         withTestApplication({ søknadApi { meldingObserver -> mediator.register(meldingObserver) } }) {
             handleWebSocketConversation("/ws") { incoming, _ ->
                 rapid.sendTestMessage(seksjonMessage)
-                val incoming = (incoming.receive() as Frame.Text).readText()
-                assertTrue(incoming.contains("fødselsnummer"))
+                val resultat = (incoming.receive() as Frame.Text).readText()
+                assertTrue(resultat.contains("fødselsnummer"))
             }
         }
     }
