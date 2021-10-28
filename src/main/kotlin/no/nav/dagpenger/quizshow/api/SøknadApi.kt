@@ -2,6 +2,7 @@ package no.nav.dagpenger.quizshow.api
 
 import io.ktor.application.Application
 import io.ktor.application.install
+import io.ktor.application.log
 import io.ktor.http.cio.websocket.DefaultWebSocketSession
 import io.ktor.http.cio.websocket.Frame
 import io.ktor.http.cio.websocket.readText
@@ -47,6 +48,8 @@ internal fun Application.søknadApi(subscribe: (MeldingObserver) -> Unit) {
                         }
                     }
                 }
+            } catch (e : Throwable) {
+                logger.error(e) { "Websocket kastet følgende feil: "}
             } finally {
                 wsConnections -= this
             }
