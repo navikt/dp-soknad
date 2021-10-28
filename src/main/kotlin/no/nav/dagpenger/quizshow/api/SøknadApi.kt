@@ -5,6 +5,7 @@ import io.ktor.application.install
 import io.ktor.application.log
 import io.ktor.http.cio.websocket.DefaultWebSocketSession
 import io.ktor.http.cio.websocket.Frame
+import io.ktor.http.cio.websocket.pingPeriod
 import io.ktor.http.cio.websocket.readText
 import io.ktor.http.cio.websocket.timeout
 import io.ktor.routing.routing
@@ -19,12 +20,16 @@ private val logger = KotlinLogging.logger {}
 internal fun Application.søknadApi(subscribe: (MeldingObserver) -> Unit) {
 
     install(WebSockets) {
-        this.timeout = Duration.ofSeconds(10)
+        pingPeriod = Duration.ofSeconds(60)
+        timeout = Duration.ofSeconds(15)
+        maxFrameSize = Long.MAX_VALUE
+        masking = false
     }
 
     routing {
         val wsConnections = Collections.synchronizedSet(LinkedHashSet<DefaultWebSocketSession>())
         webSocket("${Configuration.basePath}/ws") {
+            logger.info("WebSocket er åpent for bisniss.")
             wsConnections += WebSocketSession(this).also { subscribe(it) }
             try {
                 while (true) {
