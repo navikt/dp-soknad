@@ -30,6 +30,6 @@ internal fun Application.demoApi(publiser: (String) -> Unit, env: Map<String, St
 }
 
 private fun assertNotProd(env: Map<String, String>) {
-    if (env["NAIS_CLUSTER"] != "dev-gcp")
+    if (env["NAIS_CLUSTER_NAME"] != "dev-gcp")
         throw IllegalArgumentException("Skal ikke publisere demo hendelser i prod")
 }
