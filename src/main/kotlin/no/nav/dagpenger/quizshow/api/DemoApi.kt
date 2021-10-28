@@ -4,6 +4,7 @@ import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.StatusPages
+import io.ktor.request.httpVersion
 import io.ktor.response.respond
 import io.ktor.routing.get
 import io.ktor.routing.put
@@ -23,7 +24,7 @@ internal fun Application.demoApi(publiser: (String) -> Unit, env: Map<String, St
                 call.respond("$fnr publisert til rapid")
             }
             get("ping") {
-                call.respond("pong!")
+                call.respond("HTTP version is ${call.request.httpVersion}")
             }
         }
     }
