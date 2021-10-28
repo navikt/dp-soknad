@@ -22,7 +22,7 @@ internal class SøknadApiTest {
     @Disabled
     fun `tar imot seksjon-behov og pusher på websocket`() {
         withTestApplication({ søknadApi { meldingObserver -> mediator.register(meldingObserver) } }) {
-            handleWebSocketConversation("/ws") { incoming, _ ->
+            handleWebSocketConversation("/arbeid/dagpenger/quizshow/api/ws") { incoming, _ ->
                 rapid.sendTestMessage(søkerJson)
                 val resultat = (incoming.receive() as Frame.Text).readText()
                 assertTrue(resultat.contains("søker_oppgave"))

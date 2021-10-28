@@ -15,7 +15,7 @@ internal fun Application.demoApi(publiser: (String) -> Unit, env: Map<String, St
     install(StatusPages)
 
     routing {
-        route("demo") {
+        route("${Configuration.basePath}/demo") {
             put(path = "{fnr}") {
                 assertNotProd(env)
                 val fnr = this.call.parameters["fnr"] ?: throw IllegalArgumentException("Må sette parameter til fnr")

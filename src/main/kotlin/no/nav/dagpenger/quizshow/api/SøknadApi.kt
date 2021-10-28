@@ -20,7 +20,7 @@ internal fun Application.søknadApi(subscribe: (MeldingObserver) -> Unit) {
         val wsConnections = Collections.synchronizedSet(LinkedHashSet<DefaultWebSocketSession>())
 
         trace { logger.info { it.buildText() } }
-        webSocket("/ws") {
+        webSocket("${Configuration.basePath}/ws") {
             wsConnections += WebSocketSession(this).also { subscribe(it) }
             try {
                 for (frame in incoming) {

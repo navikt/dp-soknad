@@ -20,4 +20,6 @@ internal object Configuration {
     val config: Map<String, String> = properties.list().reversed().fold(emptyMap()) { map, pair ->
         map + pair.second
     }
+
+    val basePath = "/arbeid/dagpenger/quizshow/api"
 }

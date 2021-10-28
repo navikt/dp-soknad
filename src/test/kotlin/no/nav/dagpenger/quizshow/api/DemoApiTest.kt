@@ -13,7 +13,7 @@ internal class DemoApiTest {
     fun `skal putte fnr`() {
         var expected = "ikke denne her i affal"
         withTestApplication({ demoApi(publiser = { demo -> expected = demo }, env = mapOf("NAIS_CLUSTER" to "dev-gcp")) }) {
-            handleRequest(HttpMethod.Put, "/demo/187689").apply {
+            handleRequest(HttpMethod.Put, "${Configuration.basePath}/demo/187689").apply {
                 assertEquals(HttpStatusCode.OK, this.response.status())
                 assertEquals(expected, "187689")
             }
