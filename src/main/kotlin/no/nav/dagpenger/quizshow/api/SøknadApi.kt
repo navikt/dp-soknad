@@ -4,7 +4,6 @@ import io.ktor.application.Application
 import io.ktor.application.install
 import io.ktor.http.cio.websocket.DefaultWebSocketSession
 import io.ktor.http.cio.websocket.Frame
-import io.ktor.http.cio.websocket.pingPeriod
 import io.ktor.http.cio.websocket.readText
 import io.ktor.http.cio.websocket.timeout
 import io.ktor.routing.routing
@@ -21,7 +20,6 @@ internal fun Application.søknadApi(subscribe: (MeldingObserver) -> Unit) {
     install(WebSockets) {
         this.timeout = Duration.ofSeconds(10)
     }
-
 
     routing {
         val wsConnections = Collections.synchronizedSet(LinkedHashSet<DefaultWebSocketSession>())
