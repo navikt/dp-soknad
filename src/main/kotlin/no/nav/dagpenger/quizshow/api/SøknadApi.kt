@@ -83,7 +83,7 @@ private val søkerOppgave =
         "godkjenner": []
       }
     ],
-    "subsumsjon": [
+    "subsumsjoner": [
       {
         "lokalt_resultat": null,
         "navn": "regel",
