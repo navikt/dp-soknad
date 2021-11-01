@@ -10,6 +10,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     ).withKtorModule {
         søknadWebsocketApi(::subscribe)
         demoApi(::publiser, System.getenv())
+        søknadApi()
     }.build()
 
     private val mediator = Mediator(rapidsConnection)
