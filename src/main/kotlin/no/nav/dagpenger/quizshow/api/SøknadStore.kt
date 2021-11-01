@@ -9,7 +9,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import java.time.Duration
 
-internal class SøknadStore(private val rapidsConnection: RapidsConnection) : River.PacketListener {
+internal class SøknadStore(rapidsConnection: RapidsConnection) : River.PacketListener {
     private val cache: Cache<String, JsonMessage> = Caffeine.newBuilder()
         .maximumSize(1000L)
         .expireAfterWrite(Duration.ofHours(24))
@@ -35,5 +35,4 @@ internal class SøknadStore(private val rapidsConnection: RapidsConnection) : Ri
     }
 
     fun hent(fnr: String): JsonMessage? = cache.getIfPresent(fnr)
-
 }

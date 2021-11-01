@@ -1,68 +1,87 @@
 package no.nav.dagpenger.quizshow.api
 
 import io.ktor.application.Application
+import io.ktor.application.call
 import io.ktor.application.install
-import io.ktor.http.cio.websocket.DefaultWebSocketSession
-import io.ktor.http.cio.websocket.Frame
-import io.ktor.http.cio.websocket.pingPeriod
-import io.ktor.http.cio.websocket.readText
-import io.ktor.http.cio.websocket.timeout
+import io.ktor.features.ContentNegotiation
+import io.ktor.features.DefaultHeaders
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.jackson.jackson
+import io.ktor.request.receiveText
+import io.ktor.response.respondText
+import io.ktor.routing.get
+import io.ktor.routing.put
+import io.ktor.routing.route
 import io.ktor.routing.routing
-import io.ktor.websocket.WebSockets
-import io.ktor.websocket.webSocket
 import mu.KotlinLogging
-import java.time.Duration
-import java.util.Collections
 
 private val logger = KotlinLogging.logger {}
 
-internal fun Application.søknadApi(subscribe: (MeldingObserver) -> Unit) {
+internal fun Application.søknadApi() {
 
-    install(WebSockets) {
-        pingPeriod = Duration.ofSeconds(60)
-        timeout = Duration.ofSeconds(15)
-        maxFrameSize = Long.MAX_VALUE
-        masking = false
+    install(DefaultHeaders)
+    install(ContentNegotiation) {
+        jackson {}
     }
 
     routing {
-        val wsConnections = Collections.synchronizedSet(LinkedHashSet<DefaultWebSocketSession>())
-        webSocket("${Configuration.basePath}/ws") {
-            logger.info("WebSocket er åpent for bisniss.")
-            wsConnections += WebSocketSession(this).also { subscribe(it) }
-            try {
-                while (true) {
-                    val frame = incoming.receive()
-                    when (frame) {
-                        is Frame.Text -> {
-                            val text = frame.readText()
-                            logger.info { "received text=$text" }
-                        }
-                        is Frame.Binary -> {
-                            logger.info { "received binary" }
-                        }
-                        is Frame.Close -> {
-                            logger.info { "received close" }
-                        }
-                        is Frame.Ping -> {
-                            logger.info { "received ping" }
-                        }
-                        is Frame.Pong -> {
-                            logger.info { "received pong" }
-                        }
-                    }
-                }
-            } catch (e: Throwable) {
-                logger.error(e) { "Websocket kastet følgende feil: " }
-            } finally {
-                wsConnections -= this
+        route("${Configuration.basePath}/soknad") {
+            get("/{id}/neste-seksjon") {
+                call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { søkerOppgave }
+            }
+            get("/{id}/subsumsjoner") {
+                call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { søkerOppgave }
+            }
+            put("/{id}/faktum/{faktumid}") {
+                val input = call.receiveText()
+                logger.info { "Fikk \n$input" }
+                call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { søkerOppgave }
             }
         }
     }
 }
 
-class WebSocketSession(val session: DefaultWebSocketSession) : MeldingObserver, DefaultWebSocketSession by session {
-    override suspend fun meldingMottatt(melding: String) {
-        outgoing.send(Frame.Text(melding))
-    }
-}
+//language=JSON
+private val søkerOppgave =
+    """
+        {
+          "@event_name": "søker_oppgave",
+          "@id": "900b273c-d1e2-4037-b2ae-0ff252c61896",
+          "@opprettet": "2021-10-27T09:49:05.081590",
+          "søknad_uuid": "35cfb1bd-4dc9-4057-b51d-1b5acff75248",
+          "seksjon_navn": "søker",
+          "identer": [
+            {
+              "id": "12020052345",
+              "type": "folkeregisterident",
+              "historisk": false
+            },
+            {
+              "id": "aktørId",
+              "type": "aktørid",
+              "historisk": false
+            }
+          ],
+          "fakta": [
+            {
+              "navn": "Oversatt tekst",
+              "id": "1",
+              "roller": [
+                "søker"
+              ],
+              "type": "boolean",
+              "godkjenner": []
+            },
+            {
+              "navn": "Oversatt tekst",
+              "id": "3",
+              "roller": [
+                "søker"
+              ],
+              "type": "boolean",
+              "godkjenner": []
+            }
+          ]
+        }
+    """.trimIndent()

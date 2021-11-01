@@ -1,23 +1,37 @@
 package no.nav.dagpenger.quizshow.api
 
-import junit.framework.Assert.assertNotNull
-import kotlinx.coroutines.runBlocking
+import io.ktor.http.cio.websocket.Frame
+import io.ktor.http.cio.websocket.readText
+import io.ktor.server.testing.withTestApplication
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 
-internal class SøknadStoreTest {
+internal class SøknadWebsocketApiTest {
+    private val rapid = TestRapid()
+    private val mediator = Mediator(rapid)
 
-    private val testRapid = TestRapid()
+    @BeforeEach
+    fun reset() {
+        rapid.reset()
+    }
 
     @Test
-    fun `Skal lagre meldinger basert på fnr`() = runBlocking {
-        val store = SøknadStore(testRapid)
-        testRapid.sendTestMessage(søkerOppgave())
-        assertNotNull(store.hent("12020052345"))
+    @Disabled
+    fun `tar imot seksjon-behov og pusher på websocket`() {
+        withTestApplication({ søknadWebsocketApi { meldingObserver -> mediator.register(meldingObserver) } }) {
+            handleWebSocketConversation("/arbeid/dagpenger/quizshow/api/ws") { incoming, _ ->
+                rapid.sendTestMessage(søkerJson)
+                val resultat = (incoming.receive() as Frame.Text).readText()
+                assertTrue(resultat.contains("søker_oppgave"))
+            }
+        }
     }
+
     //language=JSON
-    private fun søkerOppgave() =
-        """
+    val søkerJson = """
         {
           "@event_name": "søker_oppgave",
           "@id": "900b273c-d1e2-4037-b2ae-0ff252c61896",
@@ -57,5 +71,5 @@ internal class SøknadStoreTest {
             }
           ]
         }
-        """.trimIndent()
+    """.trimIndent()
 }

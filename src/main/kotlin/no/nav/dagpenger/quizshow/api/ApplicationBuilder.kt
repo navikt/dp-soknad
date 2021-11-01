@@ -8,7 +8,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     private val rapidsConnection = RapidApplication.Builder(
         RapidApplication.RapidApplicationConfig.fromEnv(config)
     ).withKtorModule {
-        søknadApi(::subscribe)
+        søknadWebsocketApi(::subscribe)
         demoApi(::publiser, System.getenv())
     }.build()
 

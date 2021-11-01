@@ -7,6 +7,7 @@ plugins {
 
 dependencies {
     implementation(Ktor.library("websockets"))
+    implementation(Ktor.library("jackson"))
 
     implementation("com.github.ben-manes.caffeine:caffeine:3.0.4")
 
