@@ -45,43 +45,79 @@ internal fun Application.søknadApi() {
 //language=JSON
 private val søkerOppgave =
     """
-        {
-          "@event_name": "søker_oppgave",
-          "@id": "900b273c-d1e2-4037-b2ae-0ff252c61896",
-          "@opprettet": "2021-10-27T09:49:05.081590",
-          "søknad_uuid": "35cfb1bd-4dc9-4057-b51d-1b5acff75248",
-          "seksjon_navn": "søker",
-          "identer": [
-            {
-              "id": "12020052345",
-              "type": "folkeregisterident",
-              "historisk": false
-            },
-            {
-              "id": "aktørId",
-              "type": "aktørid",
-              "historisk": false
-            }
-          ],
-          "fakta": [
-            {
-              "navn": "Oversatt tekst",
-              "id": "1",
-              "roller": [
-                "søker"
-              ],
-              "type": "boolean",
-              "godkjenner": []
-            },
-            {
-              "navn": "Oversatt tekst",
-              "id": "3",
-              "roller": [
-                "søker"
-              ],
-              "type": "boolean",
-              "godkjenner": []
-            }
-          ]
-        }
+  {
+    "@event_name": "søker_oppgave",
+    "@id": "900b273c-d1e2-4037-b2ae-0ff252c61896",
+    "@opprettet": "2021-10-27T09:49:05.081590",
+    "søknad_uuid": "35cfb1bd-4dc9-4057-b51d-1b5acff75248",
+    "seksjon_navn": "søker",
+    "identer": [
+      {
+        "id": "12020052345",
+        "type": "folkeregisterident",
+        "historisk": false
+      },
+      {
+        "id": "aktørId",
+        "type": "aktørid",
+        "historisk": false
+      }
+    ],
+    "fakta": [
+      {
+        "navn": "Har du hatt dagpenger siste 52 uker?",
+        "id": "1",
+        "roller": [
+          "søker"
+        ],
+        "type": "boolean",
+        "godkjenner": []
+      },
+      {
+        "navn": "Et nytt spørsmål",
+        "id": "3",
+        "roller": [
+          "søker"
+        ],
+        "type": "boolean",
+        "godkjenner": []
+      }
+    ],
+    "subsumsjon": [
+      {
+        "lokalt_resultat": null,
+        "navn": "regel",
+        "type": "Deltre subsumsjon",
+        "forklaring": "saksbehandlerforklaring",
+        "subsumsjoner": [
+          {
+            "lokalt_resultat": null,
+            "navn": "alle",
+            "type": "Alle subsumsjon",
+            "forklaring": "saksbehandlerforklaring",
+            "subsumsjoner": [
+              {
+                "lokalt_resultat": true,
+                "navn": "Sjekk at `f1 med id 1` er lik true",
+                "forklaring": "saksbehandlerforklaring",
+                "type": "Enkel subsumsjon"
+              },
+              {
+                "lokalt_resultat": null,
+                "navn": "Sjekk at `f2 med id 2` er lik false",
+                "forklaring": "saksbehandlerforklaring",
+                "type": "Enkel subsumsjon"
+              },
+              {
+                "lokalt_resultat": null,
+                "navn": "Sjekk at `f3 med id 3` er lik true",
+                "forklaring": "saksbehandlerforklaring",
+                "type": "Enkel subsumsjon"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
     """.trimIndent()
