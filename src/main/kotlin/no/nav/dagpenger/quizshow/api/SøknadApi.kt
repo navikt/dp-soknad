@@ -5,16 +5,19 @@ import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.ContentNegotiation
 import io.ktor.features.DefaultHeaders
-import io.ktor.http.ContentType
+import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpStatusCode
 import io.ktor.jackson.jackson
 import io.ktor.request.receiveText
+import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.get
+import io.ktor.routing.post
 import io.ktor.routing.put
 import io.ktor.routing.route
 import io.ktor.routing.routing
 import mu.KotlinLogging
+import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
 
@@ -27,16 +30,21 @@ internal fun Application.søknadApi() {
 
     routing {
         route("${Configuration.basePath}/soknad") {
+            post {
+                val json = """{ "uuid" : "${UUID.randomUUID()}" }""".trimIndent()
+                call.respondText(contentType = Json, HttpStatusCode.Created) { json }
+
+            }
             get("/{id}/neste-seksjon") {
-                call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { søkerOppgave }
+                call.respondText(contentType = Json, HttpStatusCode.OK) { søkerOppgave }
             }
             get("/{id}/subsumsjoner") {
-                call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { søkerOppgave }
+                call.respondText(contentType = Json, HttpStatusCode.OK) { søkerOppgave }
             }
             put("/{id}/faktum/{faktumid}") {
                 val input = call.receiveText()
                 logger.info { "Fikk \n$input" }
-                call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { søkerOppgave }
+                call.respondText(contentType = Json, HttpStatusCode.OK) { søkerOppgave }
             }
         }
     }
