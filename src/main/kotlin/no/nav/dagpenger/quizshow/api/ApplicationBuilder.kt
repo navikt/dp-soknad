@@ -14,7 +14,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         }
     }.build()
 
-    private val mediator by lazy { Mediator(rapidsConnection) }
+    private val mediator = Mediator(rapidsConnection)
 
     init {
         rapidsConnection.register(this)
