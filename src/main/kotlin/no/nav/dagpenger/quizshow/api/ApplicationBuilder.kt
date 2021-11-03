@@ -9,11 +9,10 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         RapidApplication.RapidApplicationConfig.fromEnv(config)
     ).withKtorModule {
         søknadWebsocketApi(::subscribe)
-        demoApi(::publiser, System.getenv())
-        søknadApi()
+        søknadApi(store())
     }.build()
 
-    private val mediator = Mediator(rapidsConnection)
+    private val mediator by lazy { Mediator(rapidsConnection) }
 
     init {
         rapidsConnection.register(this)
@@ -25,11 +24,9 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     override fun onStartup(rapidsConnection: RapidsConnection) {
     }
 
+    private fun store(): SøknadStore = mediator
+
     private fun subscribe(meldingObserver: MeldingObserver) {
         mediator.register(meldingObserver)
-    }
-
-    private fun publiser(fnr: String) {
-        mediator.nySøknad(fnr)
     }
 }

@@ -10,7 +10,15 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import java.time.Duration
 
-internal class Mediator(private val rapidsConnection: RapidsConnection) : River.PacketListener {
+internal interface SøknadStore {
+    fun håndter(rettighetsavklaringMelding: ØnskerRettighetsavklaringMelding)
+    fun hent(søknadUuid: String): JsonMessage?
+}
+interface MeldingObserver {
+    suspend fun meldingMottatt(melding: String)
+}
+
+internal class Mediator(private val rapidsConnection: RapidsConnection) : River.PacketListener, SøknadStore {
     private val observers = mutableListOf<MeldingObserver>()
 
     private val cache: Cache<String, JsonMessage> = Caffeine.newBuilder()
@@ -32,12 +40,12 @@ internal class Mediator(private val rapidsConnection: RapidsConnection) : River.
 
     fun register(observer: MeldingObserver) = observers.add(observer)
 
-    fun nySøknad(fødselsnummer: String) {
-        rapidsConnection.publish(ØnskerRettighetsavklaringMelding(fødselsnummer).toJson())
+    override fun håndter(rettighetsavklaringMelding: ØnskerRettighetsavklaringMelding) {
+        rapidsConnection.publish(rettighetsavklaringMelding.toJson())
         logger.info { "Sender pakke ønsker_rettighetsavklaring" }
     }
 
-    fun hent(søknadUuid: String): JsonMessage? = cache.getIfPresent(søknadUuid)
+    override fun hent(søknadUuid: String): JsonMessage? = cache.getIfPresent(søknadUuid)
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info { "Mottat pakke ${packet["@event_name"].asText()}" }
@@ -48,8 +56,4 @@ internal class Mediator(private val rapidsConnection: RapidsConnection) : River.
             observers.forEach { it.meldingMottatt(packet.toJson()) }
         }
     }
-}
-
-interface MeldingObserver {
-    suspend fun meldingMottatt(melding: String)
 }

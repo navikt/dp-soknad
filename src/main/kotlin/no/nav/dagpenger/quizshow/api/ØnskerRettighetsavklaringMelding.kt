@@ -11,6 +11,8 @@ internal class ØnskerRettighetsavklaringMelding(private val fødselsnummer: Str
     private val avklaringsId = UUID.randomUUID()
     private val søknadUuid = UUID.randomUUID()
 
+    fun søknadUuid() = søknadUuid
+
     fun toJson() = JsonMessage.newMessage(
         mutableMapOf(
             "@event_name" to navn,

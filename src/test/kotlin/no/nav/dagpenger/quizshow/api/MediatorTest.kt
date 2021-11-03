@@ -14,7 +14,7 @@ class MediatorTest {
     @Test
     fun `publiserer ny-søknadsmelding på kafka`() {
         val fnr = "12345678910"
-        mediator.nySøknad(fnr)
+        mediator.håndter(ØnskerRettighetsavklaringMelding(fnr))
         testRapid.inspektør.message(0).also {
             assertEquals(fnr, it["fødselsnummer"].asText())
             assertTrue(it.has("avklaringsId"))
