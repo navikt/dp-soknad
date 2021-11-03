@@ -9,7 +9,9 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         RapidApplication.RapidApplicationConfig.fromEnv(config)
     ).withKtorModule {
         søknadWebsocketApi(::subscribe)
-        søknadApi(store())
+        if (System.getenv()["NAIS_CLUSTER_NAME"] == "dev-gcp") {
+            søknadApi(store())
+        }
     }.build()
 
     private val mediator by lazy { Mediator(rapidsConnection) }
