@@ -50,13 +50,13 @@ internal fun Application.søknadApi(store: SøknadStore) {
         exception<IllegalArgumentException> { cause ->
             call.respond(
                 BadRequest,
-                HttpProblem(title = "Klient feil", detail = cause.message)
+                HttpProblem(title = "Klient feil", status = 400, detail = cause.message)
             )
         }
         exception<NotFoundException> { cause ->
             call.respond(
                 NotFound,
-                HttpProblem(title = "Ikke funnet", detail = cause.message)
+                HttpProblem(title = "Ikke funnet", status = 404, detail = cause.message)
             )
         }
     }
@@ -69,18 +69,18 @@ internal fun Application.søknadApi(store: SøknadStore) {
             post {
                 val ønskerRettighetsavklaringMelding = ØnskerRettighetsavklaringMelding("12345678901")
                 store.håndter(ønskerRettighetsavklaringMelding)
-                val json = """{ "uuid" : "${ønskerRettighetsavklaringMelding.søknadUuid()}" }""".trimIndent()
-                call.respondText(contentType = Json, HttpStatusCode.Created) { json }
+                val svar = """{ "søknad_uuid" : "${ønskerRettighetsavklaringMelding.søknadUuid()}" }""".trimIndent()
+                call.respondText(contentType = Json, HttpStatusCode.Created) { svar }
             }
             get("/{id}/neste-seksjon") {
                 val id = søknadId()
                 val søknad = hent(store, id)
-                call.respondText(contentType = Json, HttpStatusCode.OK) { søknad.toJson() }
+                call.respondText(contentType = Json, HttpStatusCode.OK) { søknad }
             }
             get("/{id}/subsumsjoner") {
                 val id = søknadId()
                 val søknad = hent(store, id)
-                call.respondText(contentType = Json, HttpStatusCode.OK) { søknad.toJson() }
+                call.respondText(contentType = Json, HttpStatusCode.OK) { søknad }
             }
             put("/{id}/faktum/{faktumid}") {
                 val input = call.receiveText()

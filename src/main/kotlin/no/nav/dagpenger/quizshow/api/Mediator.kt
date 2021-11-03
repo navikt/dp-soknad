@@ -12,7 +12,7 @@ import java.time.Duration
 
 internal interface SøknadStore {
     fun håndter(rettighetsavklaringMelding: ØnskerRettighetsavklaringMelding)
-    fun hent(søknadUuid: String): JsonMessage?
+    fun hent(søknadUuid: String): String?
 }
 interface MeldingObserver {
     suspend fun meldingMottatt(melding: String)
@@ -21,7 +21,7 @@ interface MeldingObserver {
 internal class Mediator(private val rapidsConnection: RapidsConnection) : River.PacketListener, SøknadStore {
     private val observers = mutableListOf<MeldingObserver>()
 
-    private val cache: Cache<String, JsonMessage> = Caffeine.newBuilder()
+    private val cache: Cache<String, String> = Caffeine.newBuilder()
         .maximumSize(1000L)
         .expireAfterWrite(Duration.ofHours(24))
         .build()
@@ -42,16 +42,17 @@ internal class Mediator(private val rapidsConnection: RapidsConnection) : River.
 
     override fun håndter(rettighetsavklaringMelding: ØnskerRettighetsavklaringMelding) {
         rapidsConnection.publish(rettighetsavklaringMelding.toJson())
-        logger.info { "Sender pakke ønsker_rettighetsavklaring" }
+        cache.put(rettighetsavklaringMelding.søknadUuid().toString(), """{"status":"pending"}""")
+        logger.info { "Sendte pakke ønsker_rettighetsavklaring" }
     }
 
-    override fun hent(søknadUuid: String): JsonMessage? = cache.getIfPresent(søknadUuid)
+    override fun hent(søknadUuid: String): String? = cache.getIfPresent(søknadUuid)
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info { "Mottat pakke ${packet["@event_name"].asText()}" }
         val søknadUuid =
             packet["søknad_uuid"].asText()
-        cache.put(søknadUuid, packet)
+        cache.put(søknadUuid, packet.toJson())
         runBlocking {
             observers.forEach { it.meldingMottatt(packet.toJson()) }
         }

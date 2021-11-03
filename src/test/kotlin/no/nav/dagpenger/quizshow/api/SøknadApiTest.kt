@@ -6,8 +6,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageProblems
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -64,9 +62,8 @@ internal class SøknadApiTest {
         override fun håndter(rettighetsavklaringMelding: ØnskerRettighetsavklaringMelding) {
         }
 
-        override fun hent(søknadUuid: String): JsonMessage? {
-            return JsonMessage(søkerOppgave, MessageProblems(søkerOppgave))
-        }
+        override fun hent(søknadUuid: String): String? =
+            if (søknadUuid == "d172a832-4f52-4e1f-ab5f-8be8348d9280") søkerOppgave else null
     }
 
     @Test
@@ -77,7 +74,7 @@ internal class SøknadApiTest {
                 assertEquals(HttpStatusCode.Created, this.response.status())
                 assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
                 val content = jackson.readTree(this.response.content)
-                assertDoesNotThrow { content["uuid"].asText().also { UUID.fromString(it) } }
+                assertDoesNotThrow { content["søknad_uuid"].asText().also { UUID.fromString(it) } }
             }
         }
     }
@@ -86,8 +83,22 @@ internal class SøknadApiTest {
     fun `Skal hente søknad seksjoner`() {
 
         withTestApplication({ søknadApi(store) }) {
-            handleRequest(HttpMethod.Get, "${Configuration.basePath}/soknad/187689/neste-seksjon").apply {
+            handleRequest(
+                HttpMethod.Get,
+                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/neste-seksjon"
+            ).apply {
                 assertEquals(HttpStatusCode.OK, this.response.status())
+                assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
+            }
+        }
+    }
+
+    @Test
+    fun `404 på ting som ikke finnes`() {
+
+        withTestApplication({ søknadApi(store) }) {
+            handleRequest(HttpMethod.Get, "${Configuration.basePath}/soknad/12121/neste-seksjon").apply {
+                assertEquals(HttpStatusCode.NotFound, this.response.status())
                 assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
             }
         }
@@ -97,7 +108,10 @@ internal class SøknadApiTest {
     fun `Skal hente søknad subsumsjoner`() {
 
         withTestApplication({ søknadApi(store) }) {
-            handleRequest(HttpMethod.Get, "${Configuration.basePath}/soknad/187689/subsumsjoner").apply {
+            handleRequest(
+                HttpMethod.Get,
+                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/subsumsjoner"
+            ).apply {
                 assertEquals(HttpStatusCode.OK, this.response.status())
                 assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
             }
@@ -108,7 +122,10 @@ internal class SøknadApiTest {
     fun `Skal kunne lagre faktum`() {
 
         withTestApplication({ søknadApi(store) }) {
-            handleRequest(HttpMethod.Put, "${Configuration.basePath}/soknad/187689/faktum/1245") {
+            handleRequest(
+                HttpMethod.Put,
+                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/faktum/1245"
+            ) {
                 setBody("""{"id":1, "svar": true}""")
             }
 
