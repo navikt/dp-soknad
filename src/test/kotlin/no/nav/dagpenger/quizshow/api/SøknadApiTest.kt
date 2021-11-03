@@ -24,7 +24,6 @@ internal class SøknadApiTest {
                 assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
                 val content = jackson.readTree(this.response.content)
                 assertDoesNotThrow { content["uuid"].asText().also { UUID.fromString(it) } }
-
             }
         }
     }

@@ -9,6 +9,7 @@ internal class ØnskerRettighetsavklaringMelding(private val fødselsnummer: Str
     private val opprettet = LocalDateTime.now()
     private val id = UUID.randomUUID()
     private val avklaringsId = UUID.randomUUID()
+    private val søknadUuid = UUID.randomUUID()
 
     fun toJson() = JsonMessage.newMessage(
         mutableMapOf(
@@ -17,6 +18,7 @@ internal class ØnskerRettighetsavklaringMelding(private val fødselsnummer: Str
             "@id" to id,
             "avklaringsId" to avklaringsId,
             "fødselsnummer" to fødselsnummer,
+            "søknad_uuid" to søknadUuid,
         )
     ).toJson()
 }

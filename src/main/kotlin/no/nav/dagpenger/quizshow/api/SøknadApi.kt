@@ -9,7 +9,6 @@ import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpStatusCode
 import io.ktor.jackson.jackson
 import io.ktor.request.receiveText
-import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.post
@@ -33,7 +32,6 @@ internal fun Application.søknadApi() {
             post {
                 val json = """{ "uuid" : "${UUID.randomUUID()}" }""".trimIndent()
                 call.respondText(contentType = Json, HttpStatusCode.Created) { json }
-
             }
             get("/{id}/neste-seksjon") {
                 call.respondText(contentType = Json, HttpStatusCode.OK) { søkerOppgave }
