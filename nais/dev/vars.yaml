@@ -5,4 +5,4 @@ alerts_slack_channel: "#team-dagpenger-alert-non-prod"
 kafka_pool: nav-dev
 ingresses: |
   ingresses:
-    - https://arbeid.dev.nav.no/arbeid/dagpenger/quizshow/api
+    - https://arbeid.dev.nav.no/arbeid/dagpenger/soknadapi

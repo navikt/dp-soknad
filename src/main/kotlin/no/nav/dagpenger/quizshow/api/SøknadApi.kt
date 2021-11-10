@@ -72,17 +72,17 @@ internal fun Application.søknadApi(store: SøknadStore) {
                 val svar = """{ "søknad_uuid" : "${ønskerRettighetsavklaringMelding.søknadUuid()}" }""".trimIndent()
                 call.respondText(contentType = Json, HttpStatusCode.Created) { svar }
             }
-            get("/{id}/neste-seksjon") {
+            get("/{søknad_uuid}/neste-seksjon") {
                 val id = søknadId()
                 val søknad = hent(store, id)
                 call.respondText(contentType = Json, HttpStatusCode.OK) { søknad }
             }
-            get("/{id}/subsumsjoner") {
+            get("/{søknad_uuid}/subsumsjoner") {
                 val id = søknadId()
                 val søknad = hent(store, id)
                 call.respondText(contentType = Json, HttpStatusCode.OK) { søknad }
             }
-            put("/{id}/faktum/{faktumid}") {
+            put("/{søknad_uuid}/faktum/{faktumid}") {
                 val input = call.receiveText()
                 logger.info { "Fikk \n$input" }
                 call.respondText(contentType = Json, HttpStatusCode.OK) { """{"vet-ikke": "hvilket svar vi skal lage her"}""" }
@@ -97,4 +97,4 @@ private fun hent(
 ) = store.hent(id) ?: throw NotFoundException("Fant ikke søknad med id $id")
 
 private fun PipelineContext<Unit, ApplicationCall>.søknadId() =
-    call.parameters["id"] ?: throw IllegalArgumentException("Må ha med id i parameter")
+    call.parameters["søknad_uuid"] ?: throw IllegalArgumentException("Må ha med id i parameter")

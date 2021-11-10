@@ -21,5 +21,5 @@ internal object Configuration {
         map + pair.second
     }
 
-    val basePath = "/arbeid/dagpenger/quizshow/api"
+    val basePath = "/arbeid/dagpenger/soknadapi"
 }
