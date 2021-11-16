@@ -1,9 +1,15 @@
 package no.nav.dagpenger.quizshow.api
 
+import com.auth0.jwk.JwkProvider
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.application.install
+import io.ktor.auth.Authentication
+import io.ktor.auth.authenticate
+import io.ktor.auth.authentication
+import io.ktor.auth.jwt.JWTPrincipal
+import io.ktor.auth.jwt.jwt
 import io.ktor.features.ContentNegotiation
 import io.ktor.features.DefaultHeaders
 import io.ktor.features.NotFoundException
@@ -24,13 +30,19 @@ import io.ktor.routing.route
 import io.ktor.routing.routing
 import io.ktor.util.pipeline.PipelineContext
 import mu.KotlinLogging
+import no.nav.dagpenger.quizshow.api.Configuration.appName
 import java.net.URI
 
 private val logger = KotlinLogging.logger {}
 
-internal fun Application.søknadApi(store: SøknadStore) {
+internal fun Application.søknadApi(
+    jwkProvider: JwkProvider,
+    issuer: String,
+    clientId: String,
+    store: SøknadStore
+) {
 
-    // As https://tools.ietf.org/html/rfc7807
+    // As of https://tools.ietf.org/html/rfc7807
     data class HttpProblem(
         val type: URI = URI.create("about:blank"),
         val title: String,
@@ -64,32 +76,57 @@ internal fun Application.søknadApi(store: SøknadStore) {
         jackson {}
     }
 
+    install(Authentication) {
+        jwt {
+            verifier(jwkProvider, issuer) {
+                withAudience(clientId)
+            }
+            realm = appName
+            validate { credentials ->
+                requireNotNull(credentials.payload.claims["pid"]) {
+                    "Token må inneholde fødselsnummer for personen"
+                }
+
+                JWTPrincipal(credentials.payload)
+            }
+        }
+    }
+
     routing {
-        route("${Configuration.basePath}/soknad") {
-            post {
-                val ønskerRettighetsavklaringMelding = ØnskerRettighetsavklaringMelding("12345678901")
-                store.håndter(ønskerRettighetsavklaringMelding)
-                val svar = """{ "søknad_uuid" : "${ønskerRettighetsavklaringMelding.søknadUuid()}" }""".trimIndent()
-                call.respondText(contentType = Json, HttpStatusCode.Created) { svar }
-            }
-            get("/{søknad_uuid}/neste-seksjon") {
-                val id = søknadId()
-                val søknad = hent(store, id)
-                call.respondText(contentType = Json, HttpStatusCode.OK) { søknad }
-            }
-            get("/{søknad_uuid}/subsumsjoner") {
-                val id = søknadId()
-                val søknad = hent(store, id)
-                call.respondText(contentType = Json, HttpStatusCode.OK) { søknad }
-            }
-            put("/{søknad_uuid}/faktum/{faktumid}") {
-                val input = call.receiveText()
-                logger.info { "Fikk \n$input" }
-                call.respondText(contentType = Json, HttpStatusCode.OK) { """{"vet-ikke": "hvilket svar vi skal lage her"}""" }
+        authenticate {
+            route("${Configuration.basePath}/soknad") {
+                post {
+                    val jwtPrincipal = call.authentication.principal<JWTPrincipal>()
+                    val fnr = jwtPrincipal!!.fnr
+                    val ønskerRettighetsavklaringMelding = ØnskerRettighetsavklaringMelding(fnr)
+                    store.håndter(ønskerRettighetsavklaringMelding)
+                    val svar = """{ "søknad_uuid" : "${ønskerRettighetsavklaringMelding.søknadUuid()}" }""".trimIndent()
+                    call.respondText(contentType = Json, HttpStatusCode.Created) { svar }
+                }
+                get("/{søknad_uuid}/neste-seksjon") {
+                    val id = søknadId()
+                    val søknad = hent(store, id)
+                    call.respondText(contentType = Json, HttpStatusCode.OK) { søknad }
+                }
+                get("/{søknad_uuid}/subsumsjoner") {
+                    val id = søknadId()
+                    val søknad = hent(store, id)
+                    call.respondText(contentType = Json, HttpStatusCode.OK) { søknad }
+                }
+                put("/{søknad_uuid}/faktum/{faktumid}") {
+                    val input = call.receiveText()
+                    logger.info { "Fikk \n$input" }
+                    call.respondText(
+                        contentType = Json,
+                        HttpStatusCode.OK
+                    ) { """{"vet-ikke": "hvilket svar vi skal lage her"}""" }
+                }
             }
         }
     }
 }
+
+private val JWTPrincipal.fnr get() = this.payload.claims["pid"]!!.asString()
 
 private fun hent(
     store: SøknadStore,

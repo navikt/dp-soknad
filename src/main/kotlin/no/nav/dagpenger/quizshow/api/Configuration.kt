@@ -7,6 +7,8 @@ import com.natpryce.konfig.overriding
 
 internal object Configuration {
 
+    const val appName = "dp-quizshow-api"
+
     private val defaultProperties = ConfigurationMap(
         mapOf(
             "RAPID_APP_NAME" to "dp-quizshow-api",
@@ -15,7 +17,7 @@ internal object Configuration {
             "KAFKA_RESET_POLICY" to "latest",
         )
     )
-    private val properties = ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding defaultProperties
+    val properties = ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding defaultProperties
 
     val config: Map<String, String> = properties.list().reversed().fold(emptyMap()) { map, pair ->
         map + pair.second

@@ -37,3 +37,5 @@ spec:
     inbound:
       rules:
         - application: dp-quizshow
+  tokenx:
+    enabled: true

@@ -1,5 +1,6 @@
 package no.nav.dagpenger.quizshow.api
 
+import no.nav.dagpenger.quizshow.api.auth.AuthFactory
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 
@@ -10,7 +11,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     ).withKtorModule {
         søknadWebsocketApi(::subscribe)
         if (System.getenv()["NAIS_CLUSTER_NAME"] == "dev-gcp") {
-            søknadApi(store())
+            søknadApi(AuthFactory.jwkProvider, AuthFactory.issuer, AuthFactory.clientId, store())
         }
     }.build()
 
