@@ -1,4 +1,4 @@
-package no.nav.dagpenger.quizshow.api.auth
+package no.nav.dagpenger.quizshow.api
 
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
@@ -13,22 +13,21 @@ import io.ktor.client.features.json.JacksonSerializer
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.request.get
 import kotlinx.coroutines.runBlocking
-import no.nav.dagpenger.quizshow.api.Configuration
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
 object AuthFactory {
-    private object azure_app : PropertyGroup() {
+    private object token_x : PropertyGroup() {
         val well_known_url by stringType
         val client_id by stringType
     }
 
     private val openIdConfiguration: AzureAdOpenIdConfiguration =
         runBlocking {
-            httpClient.get<AzureAdOpenIdConfiguration>(Configuration.properties[azure_app.well_known_url])
+            httpClient.get<AzureAdOpenIdConfiguration>(Configuration.properties[token_x.well_known_url])
         }
 
-    val clientId: String = Configuration.properties[azure_app.client_id]
+    val clientId: String = Configuration.properties[token_x.client_id]
     val issuer = openIdConfiguration.issuer
     val jwkProvider: JwkProvider
         get() = JwkProviderBuilder(URL(openIdConfiguration.jwksUri))
