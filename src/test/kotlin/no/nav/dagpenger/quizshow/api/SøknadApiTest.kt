@@ -21,6 +21,7 @@ internal class SøknadApiTest {
     private val clientId = "id"
     private val jackson = jacksonObjectMapper()
     private val rettighetsAvklaringer = mutableListOf<ØnskerRettighetsavklaringMelding>()
+    private val svar = mutableListOf<FaktumSvar>()
     private val store = testStore()
 
     @Test
@@ -122,10 +123,10 @@ internal class SøknadApiTest {
             autentisert(
                 "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/faktum/1245",
                 httpMethod = HttpMethod.Put,
-                body = """{"id":1, "svar": true}"""
+                body = """{"type": "boolean", "svar": true}"""
             ).apply {
                 assertEquals(HttpStatusCode.OK, this.response.status())
-                assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
+                assertEquals(1, svar.size)
             }
         }
     }
@@ -176,6 +177,10 @@ internal class SøknadApiTest {
 
         override fun håndter(rettighetsavklaringMelding: ØnskerRettighetsavklaringMelding) {
             rettighetsAvklaringer.add(rettighetsavklaringMelding)
+        }
+
+        override fun håndter(faktumSvar: FaktumSvar) {
+            svar.add(faktumSvar)
         }
 
         override fun hent(søknadUuid: String): String? =

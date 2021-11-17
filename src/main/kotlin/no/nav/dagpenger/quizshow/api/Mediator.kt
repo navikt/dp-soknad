@@ -12,6 +12,7 @@ import java.time.Duration
 
 internal interface SøknadStore {
     fun håndter(rettighetsavklaringMelding: ØnskerRettighetsavklaringMelding)
+    fun håndter(faktumSvar: FaktumSvar)
     fun hent(søknadUuid: String): String?
 }
 interface MeldingObserver {
@@ -42,8 +43,10 @@ internal class Mediator(private val rapidsConnection: RapidsConnection) : River.
 
     override fun håndter(rettighetsavklaringMelding: ØnskerRettighetsavklaringMelding) {
         rapidsConnection.publish(rettighetsavklaringMelding.toJson())
-        cache.put(rettighetsavklaringMelding.søknadUuid().toString(), """{"status":"pending"}""")
         logger.info { "Sendte pakke ønsker_rettighetsavklaring" }
+    }
+
+    override fun håndter(faktumSvar: FaktumSvar) {
     }
 
     override fun hent(søknadUuid: String): String? = cache.getIfPresent(søknadUuid)

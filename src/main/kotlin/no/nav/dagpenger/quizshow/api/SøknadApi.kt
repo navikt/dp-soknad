@@ -20,9 +20,10 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
+import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.jackson.jackson
 import io.ktor.request.document
-import io.ktor.request.receiveText
+import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.get
@@ -36,6 +37,7 @@ import mu.KotlinLogging
 import no.nav.dagpenger.quizshow.api.Configuration.appName
 import org.slf4j.event.Level
 import java.net.URI
+import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
 
@@ -68,6 +70,7 @@ internal fun Application.søknadApi(
     install(DefaultHeaders)
     install(StatusPages) {
         exception<Throwable> { cause ->
+            logger.error(cause) { "Kunne ikke håndtere API kall" }
             call.respond(
                 InternalServerError,
                 HttpProblem(title = "Feilet", detail = cause.message)
@@ -128,17 +131,28 @@ internal fun Application.søknadApi(
                     call.respondText(contentType = Json, HttpStatusCode.OK) { søknad }
                 }
                 put("/{søknad_uuid}/faktum/{faktumid}") {
-                    val input = call.receiveText()
+                    val id = søknadId()
+                    val faktumId = faktumId()
+                    val input =
+                        call.receive<Svar>()
+
+                    val faktumSvar = FaktumSvar(
+                        søknadUuid = UUID.fromString(id),
+                        faktumId = faktumId,
+                        clazz = input.type,
+                        svar = input.svar
+                    )
+
                     logger.info { "Fikk \n$input" }
-                    call.respondText(
-                        contentType = Json,
-                        HttpStatusCode.OK
-                    ) { """{"vet-ikke": "hvilket svar vi skal lage her"}""" }
+                    store.håndter(faktumSvar)
+                    call.respond(OK)
                 }
             }
         }
     }
 }
+
+private data class Svar(val type: String, val svar: Any)
 
 private val JWTPrincipal.fnr get() = this.payload.claims["pid"]!!.asString()
 
@@ -149,6 +163,9 @@ private suspend fun hent(
 
 private fun PipelineContext<Unit, ApplicationCall>.søknadId() =
     call.parameters["søknad_uuid"] ?: throw IllegalArgumentException("Må ha med id i parameter")
+
+private fun PipelineContext<Unit, ApplicationCall>.faktumId() =
+    call.parameters["faktumid"] ?: throw IllegalArgumentException("Må ha med id i parameter")
 suspend fun <T> retryIO(
     times: Int = Int.MAX_VALUE,
     initialDelay: Long = 100, // 0.1 second
