@@ -126,6 +126,7 @@ internal class SøknadApiTest {
                 body = """{"type": "boolean", "svar": true}"""
             ).apply {
                 assertEquals(HttpStatusCode.OK, this.response.status())
+                assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
                 assertEquals(1, svar.size)
             }
         }

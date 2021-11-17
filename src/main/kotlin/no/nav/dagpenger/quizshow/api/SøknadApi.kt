@@ -123,12 +123,12 @@ internal fun Application.søknadApi(
                 get("/{søknad_uuid}/neste-seksjon") {
                     val id = søknadId()
                     val søknad = hent(store, id)
-                    call.respondText(contentType = Json, HttpStatusCode.OK) { søknad }
+                    call.respondText(contentType = Json, OK) { søknad }
                 }
                 get("/{søknad_uuid}/subsumsjoner") {
                     val id = søknadId()
                     val søknad = hent(store, id)
-                    call.respondText(contentType = Json, HttpStatusCode.OK) { søknad }
+                    call.respondText(contentType = Json, OK) { søknad }
                 }
                 put("/{søknad_uuid}/faktum/{faktumid}") {
                     val id = søknadId()
@@ -145,7 +145,7 @@ internal fun Application.søknadApi(
 
                     logger.info { "Fikk \n$input" }
                     store.håndter(faktumSvar)
-                    call.respond(OK)
+                    call.respondText(contentType = Json, OK) { """{"status": "ok}""" }
                 }
             }
         }
