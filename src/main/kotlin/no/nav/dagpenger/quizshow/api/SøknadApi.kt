@@ -10,6 +10,7 @@ import io.ktor.auth.authenticate
 import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.auth.jwt.jwt
+import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
 import io.ktor.features.DefaultHeaders
 import io.ktor.features.NotFoundException
@@ -20,6 +21,7 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.jackson.jackson
+import io.ktor.request.document
 import io.ktor.request.receiveText
 import io.ktor.response.respond
 import io.ktor.response.respondText
@@ -29,8 +31,10 @@ import io.ktor.routing.put
 import io.ktor.routing.route
 import io.ktor.routing.routing
 import io.ktor.util.pipeline.PipelineContext
+import kotlinx.coroutines.delay
 import mu.KotlinLogging
 import no.nav.dagpenger.quizshow.api.Configuration.appName
+import org.slf4j.event.Level
 import java.net.URI
 
 private val logger = KotlinLogging.logger {}
@@ -51,6 +55,16 @@ internal fun Application.søknadApi(
         val instance: URI = URI.create("about:blank")
     )
 
+    install(CallLogging) {
+        level = Level.DEBUG
+        filter { call ->
+            !setOf(
+                "isalive",
+                "isready",
+                "metrics"
+            ).contains(call.request.document())
+        }
+    }
     install(DefaultHeaders)
     install(StatusPages) {
         exception<Throwable> { cause ->
@@ -128,10 +142,30 @@ internal fun Application.søknadApi(
 
 private val JWTPrincipal.fnr get() = this.payload.claims["pid"]!!.asString()
 
-private fun hent(
+private suspend fun hent(
     store: SøknadStore,
     id: String
-) = store.hent(id) ?: throw NotFoundException("Fant ikke søknad med id $id")
+) = retryIO(times = 10) { store.hent(id) ?: throw NotFoundException("Fant ikke søknad med id $id") }
 
 private fun PipelineContext<Unit, ApplicationCall>.søknadId() =
     call.parameters["søknad_uuid"] ?: throw IllegalArgumentException("Må ha med id i parameter")
+suspend fun <T> retryIO(
+    times: Int = Int.MAX_VALUE,
+    initialDelay: Long = 100, // 0.1 second
+    maxDelay: Long = 1000, // 1 second
+    factor: Double = 2.0,
+    block: suspend () -> T
+): T {
+    var currentDelay = initialDelay
+    repeat(times - 1) {
+        try {
+            return block()
+        } catch (e: Exception) {
+            // you can log an error here and/or make a more finer-grained
+            // analysis of the cause to see if retry is needed
+        }
+        delay(currentDelay)
+        currentDelay = (currentDelay * factor).toLong().coerceAtMost(maxDelay)
+    }
+    return block() // last attempt
+}
