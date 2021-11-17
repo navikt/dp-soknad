@@ -15,6 +15,8 @@ internal class FaktumSvar(
     private val opprettet = LocalDateTime.now()
     private val id = UUID.randomUUID()
 
+    fun søknadUuid() = søknadUuid
+
     fun toJson() = JsonMessage.newMessage(
         mutableMapOf(
             "@event_name" to navn,

@@ -47,6 +47,8 @@ internal class Mediator(private val rapidsConnection: RapidsConnection) : River.
     }
 
     override fun håndter(faktumSvar: FaktumSvar) {
+        rapidsConnection.publish(faktumSvar.toJson())
+        logger.info { "Sendte faktum svar for ${faktumSvar.søknadUuid()} ønsker_rettighetsavklaring" }
     }
 
     override fun hent(søknadUuid: String): String? = cache.getIfPresent(søknadUuid)

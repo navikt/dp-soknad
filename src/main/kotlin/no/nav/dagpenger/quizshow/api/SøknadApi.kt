@@ -145,7 +145,7 @@ internal fun Application.søknadApi(
 
                     logger.info { "Fikk \n$input" }
                     store.håndter(faktumSvar)
-                    call.respondText(contentType = Json, OK) { """{"status": "ok}""" }
+                    call.respondText(contentType = Json, OK) { """{"status": "ok"}""" }
                 }
             }
         }
