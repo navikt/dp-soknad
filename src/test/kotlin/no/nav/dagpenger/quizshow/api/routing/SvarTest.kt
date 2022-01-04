@@ -15,7 +15,7 @@ class SvarTest {
     @Test
     fun `Skal kaste feil hvis svaret inneholder ugyldig verdi`() {
         val svar = Svar("valg", emptyList<String>())
-        assertThrows<BadRequestException> { svar.valider() }
+        assertThrows<IllegalArgumentException> { svar.valider() }
     }
 
     @Test

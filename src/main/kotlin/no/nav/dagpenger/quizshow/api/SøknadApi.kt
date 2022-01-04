@@ -24,7 +24,6 @@ import mu.KotlinLogging
 import no.nav.dagpenger.quizshow.api.Configuration.appName
 import no.nav.dagpenger.quizshow.api.routing.soknadApi
 import org.slf4j.event.Level
-import java.net.URI
 
 private val logger = KotlinLogging.logger {}
 
@@ -34,15 +33,6 @@ internal fun Application.søknadApi(
     clientId: String,
     store: SøknadStore
 ) {
-
-    // As of https://tools.ietf.org/html/rfc7807
-    data class HttpProblem(
-        val type: URI = URI.create("about:blank"),
-        val title: String,
-        val status: Int? = 500,
-        val detail: String? = null,
-        val instance: URI = URI.create("about:blank")
-    )
 
     install(CallLogging) {
         level = Level.DEBUG
@@ -55,27 +45,7 @@ internal fun Application.søknadApi(
         }
     }
     install(DefaultHeaders)
-    install(StatusPages) {
-        exception<Throwable> { cause ->
-            logger.error(cause) { "Kunne ikke håndtere API kall" }
-            call.respond(
-                InternalServerError,
-                HttpProblem(title = "Feilet", detail = cause.message)
-            )
-        }
-        exception<IllegalArgumentException> { cause ->
-            call.respond(
-                BadRequest,
-                HttpProblem(title = "Klient feil", status = 400, detail = cause.message)
-            )
-        }
-        exception<NotFoundException> { cause ->
-            call.respond(
-                NotFound,
-                HttpProblem(title = "Ikke funnet", status = 404, detail = cause.message)
-            )
-        }
-    }
+    configureStatusPages()
     install(ContentNegotiation) {
         jackson {}
     }
@@ -99,6 +69,31 @@ internal fun Application.søknadApi(
     routing {
         authenticate {
             soknadApi(store)
+        }
+    }
+}
+
+// TODO: Se på om det er bedre måter dele config mellom prod-instans og test-instans av Ktor.
+fun Application.configureStatusPages() {
+    install(StatusPages) {
+        exception<Throwable> { cause ->
+            logger.error(cause) { "Kunne ikke håndtere API kall" }
+            call.respond(
+                InternalServerError,
+                HttpProblem(title = "Feilet", detail = cause.message)
+            )
+        }
+        exception<IllegalArgumentException> { cause ->
+            call.respond(
+                BadRequest,
+                HttpProblem(title = "Klient feil", status = 400, detail = cause.message)
+            )
+        }
+        exception<NotFoundException> { cause ->
+            call.respond(
+                NotFound,
+                HttpProblem(title = "Ikke funnet", status = 404, detail = cause.message)
+            )
         }
     }
 }

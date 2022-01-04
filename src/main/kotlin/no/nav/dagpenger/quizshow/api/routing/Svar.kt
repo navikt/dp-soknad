@@ -5,7 +5,7 @@ data class Svar(val type: String, val svar: Any) {
         if (type == "valg") {
             val valgteSvaralternativer = svar as List<*>
             if (valgteSvaralternativer.isEmpty()) {
-                throw BadRequestException("Svar må alltid inneholde ett eller flere svaralternativer")
+                throw IllegalArgumentException("Svar må alltid inneholde ett eller flere svaralternativer")
             }
         }
     }

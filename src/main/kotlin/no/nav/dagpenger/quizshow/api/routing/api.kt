@@ -8,7 +8,6 @@ import io.ktor.features.NotFoundException
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
-import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.Route
 import io.ktor.routing.get
@@ -45,29 +44,21 @@ internal fun Route.soknadApi(store: SøknadStore) {
             call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { søknad }
         }
         put("/{søknad_uuid}/faktum/{faktumid}") {
-            try {
-                val id = søknadId()
-                val faktumId = faktumId()
-                val input = call.receive<Svar>()
-                logger.info { "Fikk \n$input" }
-                input.valider()
+            val id = søknadId()
+            val faktumId = faktumId()
+            val input = call.receive<Svar>()
+            logger.info { "Fikk \n$input" }
+            input.valider()
 
-                val faktumSvar = FaktumSvar(
-                    søknadUuid = java.util.UUID.fromString(id),
-                    faktumId = faktumId,
-                    clazz = input.type,
-                    svar = input.svar
-                )
+            val faktumSvar = FaktumSvar(
+                søknadUuid = java.util.UUID.fromString(id),
+                faktumId = faktumId,
+                clazz = input.type,
+                svar = input.svar
+            )
 
-                store.håndter(faktumSvar)
-                call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { """{"status": "ok"}""" }
-            } catch (e: BadRequestException) {
-                logger.warn("Klarte ikke å sende svar videre, returnerer feilkode til frontend. $e", e)
-                call.respond(HttpStatusCode.BadRequest)
-            } catch (e: Exception) {
-                logger.error("Uventet feil. Sender feilkode til frontend. $e", e)
-                call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.BadRequest) { """{"status": "error"}""" }
-            }
+            store.håndter(faktumSvar)
+            call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { """{"status": "ok"}""" }
         }
     }
 }
@@ -84,6 +75,7 @@ private fun PipelineContext<Unit, ApplicationCall>.søknadId() =
 
 private fun PipelineContext<Unit, ApplicationCall>.faktumId() =
     call.parameters["faktumid"] ?: throw IllegalArgumentException("Må ha med id i parameter")
+
 suspend fun <T> retryIO(
     times: Int = Int.MAX_VALUE,
     initialDelay: Long = 100, // 0.1 second
@@ -104,5 +96,3 @@ suspend fun <T> retryIO(
     }
     return block() // last attempt
 }
-
-class BadRequestException(msg: String) : RuntimeException(msg)

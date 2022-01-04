@@ -16,6 +16,7 @@ import io.ktor.server.testing.withTestApplication
 import io.mockk.mockk
 import no.nav.dagpenger.quizshow.api.Configuration
 import no.nav.dagpenger.quizshow.api.SøknadStore
+import no.nav.dagpenger.quizshow.api.configureStatusPages
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -56,6 +57,7 @@ fun Application.module() {
     install(ContentNegotiation) {
         jackson {}
     }
+    configureStatusPages()
     routing {
         soknadApi(store)
     }
