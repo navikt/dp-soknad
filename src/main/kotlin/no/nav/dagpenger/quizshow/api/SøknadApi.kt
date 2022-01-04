@@ -19,12 +19,11 @@ import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.jackson.jackson
 import io.ktor.request.document
 import io.ktor.response.respond
-import io.ktor.routing.get
 import io.ktor.routing.routing
 import mu.KotlinLogging
 import no.nav.dagpenger.quizshow.api.Configuration.appName
+import no.nav.dagpenger.quizshow.api.routing.soknadApi
 import org.slf4j.event.Level
-import soknadApi
 import java.net.URI
 
 private val logger = KotlinLogging.logger {}

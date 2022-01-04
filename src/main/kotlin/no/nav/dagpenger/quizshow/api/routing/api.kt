@@ -1,3 +1,5 @@
+package no.nav.dagpenger.quizshow.api.routing
+
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.auth.authentication
@@ -18,7 +20,6 @@ import kotlinx.coroutines.delay
 import mu.KotlinLogging
 import no.nav.dagpenger.quizshow.api.FaktumSvar
 import no.nav.dagpenger.quizshow.api.SøknadStore
-import no.nav.dagpenger.quizshow.api.routing.Svar
 import no.nav.dagpenger.quizshow.api.ØnskerRettighetsavklaringMelding
 
 private val logger = KotlinLogging.logger {}
@@ -31,24 +32,26 @@ internal fun Route.soknadApi(store: SøknadStore) {
             val ønskerRettighetsavklaringMelding = ØnskerRettighetsavklaringMelding(fnr)
             store.håndter(ønskerRettighetsavklaringMelding)
             val svar = """{ "søknad_uuid" : "${ønskerRettighetsavklaringMelding.søknadUuid()}" }""".trimIndent()
-            call.respondText(contentType = io.ktor.http.ContentType.Application.Json, io.ktor.http.HttpStatusCode.Created) { svar }
+            call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.Created) { svar }
         }
         get("/{søknad_uuid}/neste-seksjon") {
             val id = søknadId()
             val søknad = hent(store, id)
-            call.respondText(contentType = io.ktor.http.ContentType.Application.Json, io.ktor.http.HttpStatusCode.OK) { søknad }
+            call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { søknad }
         }
         get("/{søknad_uuid}/subsumsjoner") {
             val id = søknadId()
             val søknad = hent(store, id)
-            call.respondText(contentType = io.ktor.http.ContentType.Application.Json, io.ktor.http.HttpStatusCode.OK) { søknad }
+            call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { søknad }
         }
         put("/{søknad_uuid}/faktum/{faktumid}") {
             try {
                 val id = søknadId()
                 val faktumId = faktumId()
                 val input = call.receive<Svar>()
+                logger.info { "Fikk \n$input" }
                 input.valider()
+
                 val faktumSvar = FaktumSvar(
                     søknadUuid = java.util.UUID.fromString(id),
                     faktumId = faktumId,
@@ -56,7 +59,6 @@ internal fun Route.soknadApi(store: SøknadStore) {
                     svar = input.svar
                 )
 
-                logger.info { "Fikk \n$input" }
                 store.håndter(faktumSvar)
                 call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { """{"status": "ok"}""" }
             } catch (e: BadRequestException) {

@@ -1,6 +1,5 @@
 package no.nav.dagpenger.quizshow.api.routing
 
-import BadRequestException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -21,11 +20,10 @@ class SvarTest {
 
     @Test
     fun `Typen Valg er gyldig dersom det er minst ett svaralternativ`() {
+        val svarMedEttValg = Svar("valg", (listOf("valg1")))
+        assertDoesNotThrow { svarMedEttValg.valider() }
 
-        val svar = Svar("valg", (listOf("valg1")))
-        assertDoesNotThrow { svar.valider() }
-
-        val svarMedFlereAlternativer = Svar("valg", (listOf("valg1", "valg2")))
-        assertDoesNotThrow { svarMedFlereAlternativer.valider() }
+        val svarMedFlereValg = Svar("valg", (listOf("valg1", "valg2")))
+        assertDoesNotThrow { svarMedFlereValg.valider() }
     }
 }
