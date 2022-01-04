@@ -16,6 +16,7 @@ dependencies {
     implementation("com.github.ben-manes.caffeine:caffeine:3.0.4")
 
     testImplementation(Ktor.ktorTest)
+    testImplementation(Mockk.mockk)
 }
 
 application {
