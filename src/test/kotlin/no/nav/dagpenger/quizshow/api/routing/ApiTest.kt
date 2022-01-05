@@ -24,7 +24,7 @@ internal class ApiTest {
         withMockAuthServerAndTestApplication(
             mockedSøknadApi()
         ) {
-            handleRequest(HttpMethod.Get, "${Configuration.basePath}/soknad/{søknad_uuid}/subsumsjoner") {
+            handleRequest(HttpMethod.Get, "${Configuration.basePath}/soknad/$dummyUuid/subsumsjoner") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             }.apply {
                 assertEquals(HttpStatusCode.Unauthorized, response.status())
