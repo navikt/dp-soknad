@@ -13,10 +13,11 @@ dependencies {
     implementation(Ktor.library("client-cio"))
     implementation(Ktor.library("client-jackson"))
 
-    implementation("com.github.ben-manes.caffeine:caffeine:3.0.4")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.0.5")
 
     testImplementation(Ktor.ktorTest)
     testImplementation(Mockk.mockk)
+    testImplementation("no.nav.security:mock-oauth2-server:0.4.1")
 }
 
 application {

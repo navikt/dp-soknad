@@ -45,7 +45,27 @@ internal fun Application.søknadApi(
         }
     }
     install(DefaultHeaders)
-    configureStatusPages()
+    install(StatusPages) {
+        exception<Throwable> { cause ->
+            logger.error(cause) { "Kunne ikke håndtere API kall" }
+            call.respond(
+                InternalServerError,
+                HttpProblem(title = "Feilet", detail = cause.message)
+            )
+        }
+        exception<IllegalArgumentException> { cause ->
+            call.respond(
+                BadRequest,
+                HttpProblem(title = "Klient feil", status = 400, detail = cause.message)
+            )
+        }
+        exception<NotFoundException> { cause ->
+            call.respond(
+                NotFound,
+                HttpProblem(title = "Ikke funnet", status = 404, detail = cause.message)
+            )
+        }
+    }
     install(ContentNegotiation) {
         jackson {}
     }
@@ -69,31 +89,6 @@ internal fun Application.søknadApi(
     routing {
         authenticate {
             soknadApi(store)
-        }
-    }
-}
-
-// TODO: Se på om det er bedre måter dele config mellom prod-instans og test-instans av Ktor.
-fun Application.configureStatusPages() {
-    install(StatusPages) {
-        exception<Throwable> { cause ->
-            logger.error(cause) { "Kunne ikke håndtere API kall" }
-            call.respond(
-                InternalServerError,
-                HttpProblem(title = "Feilet", detail = cause.message)
-            )
-        }
-        exception<IllegalArgumentException> { cause ->
-            call.respond(
-                BadRequest,
-                HttpProblem(title = "Klient feil", status = 400, detail = cause.message)
-            )
-        }
-        exception<NotFoundException> { cause ->
-            call.respond(
-                NotFound,
-                HttpProblem(title = "Ikke funnet", status = 404, detail = cause.message)
-            )
         }
     }
 }
