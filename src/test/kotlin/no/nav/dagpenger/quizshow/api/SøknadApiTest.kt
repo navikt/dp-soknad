@@ -5,40 +5,31 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
-import no.nav.dagpenger.quizshow.api.helpers.JwtStub
+import no.nav.dagpenger.quizshow.api.TestApplication.autentisert
+import no.nav.dagpenger.quizshow.api.TestApplication.defaultDummyFodselsnummer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import java.util.UUID
 
 internal class SøknadApiTest {
-    private val testIssuer = "test-issuer"
-    private val jwtStub = JwtStub(testIssuer)
-    private val clientId = "id"
     private val jackson = jacksonObjectMapper()
     private val rettighetsAvklaringer = mutableListOf<ØnskerRettighetsavklaringMelding>()
     private val svar = mutableListOf<FaktumSvar>()
     private val store = testStore()
+    private val dummyUuid = UUID.randomUUID()
 
     @Test
     fun `Skal starte søknad`() {
-
-        withTestApplication({
-            søknadApi(
-                jwtStub.stubbedJwkProvider(),
-                testIssuer,
-                clientId,
-                store
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(
+                store = store
             )
-        }) {
+        ) {
             autentisert(
                 "${Configuration.basePath}/soknad",
                 httpMethod = HttpMethod.Post,
-                token = jwtStub.createTokenFor("12345678901", "id")
             ).apply {
                 assertEquals(HttpStatusCode.Created, this.response.status())
                 assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
@@ -47,7 +38,7 @@ internal class SøknadApiTest {
                 assertEquals(1, rettighetsAvklaringer.size)
                 assertEquals(content["søknad_uuid"].asText(), rettighetsAvklaringer.first().søknadUuid().toString())
                 val rettighetsavklaring = jackson.readTree(rettighetsAvklaringer.first().toJson())
-                assertEquals("12345678901", rettighetsavklaring["fødselsnummer"].asText())
+                assertEquals(defaultDummyFodselsnummer, rettighetsavklaring["fødselsnummer"].asText())
             }
         }
     }
@@ -55,14 +46,11 @@ internal class SøknadApiTest {
     @Test
     fun `Skal hente søknad seksjoner`() {
 
-        withTestApplication({
-            søknadApi(
-                jwtStub.stubbedJwkProvider(),
-                testIssuer,
-                clientId,
-                store
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(
+                store = store
             )
-        }) {
+        ) {
             autentisert(
                 "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/neste-seksjon",
             ).apply {
@@ -75,18 +63,15 @@ internal class SøknadApiTest {
     @Test
     fun `404 på ting som ikke finnes`() {
 
-        withTestApplication({
-            søknadApi(
-                jwtStub.stubbedJwkProvider(),
-                testIssuer,
-                clientId, store
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(
+                store = store
             )
-        }) {
+        ) {
             autentisert(
                 "${Configuration.basePath}/soknad/12121/neste-seksjon"
             ).apply {
                 assertEquals(HttpStatusCode.NotFound, this.response.status())
-                assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
             }
         }
     }
@@ -94,13 +79,11 @@ internal class SøknadApiTest {
     @Test
     fun `Skal hente søknad subsumsjoner`() {
 
-        withTestApplication({
-            søknadApi(
-                jwtStub.stubbedJwkProvider(),
-                testIssuer,
-                clientId, store
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(
+                store = store
             )
-        }) {
+        ) {
             autentisert(
                 "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/subsumsjoner"
             ).apply {
@@ -113,13 +96,11 @@ internal class SøknadApiTest {
     @Test
     fun `Skal kunne lagre faktum`() {
 
-        withTestApplication({
-            søknadApi(
-                jwtStub.stubbedJwkProvider(),
-                testIssuer,
-                clientId, store
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(
+                store = store
             )
-        }) {
+        ) {
             autentisert(
                 "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/faktum/1245",
                 httpMethod = HttpMethod.Put,
@@ -128,6 +109,51 @@ internal class SøknadApiTest {
                 assertEquals(HttpStatusCode.OK, this.response.status())
                 assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
                 assertEquals(1, svar.size)
+            }
+        }
+    }
+
+    @Test
+    fun `Skal avvise uautentiserte kall`() {
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi()
+        ) {
+            handleRequest(HttpMethod.Get, "${Configuration.basePath}/soknad/$dummyUuid/subsumsjoner") {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            }.apply {
+                assertEquals(HttpStatusCode.Unauthorized, response.status())
+            }
+        }
+    }
+
+    @Test
+    fun `Godta svar med gyldig input for Valg`() {
+        val gyldigSvar = Svar("boolean", true)
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi()
+        ) {
+            autentisert(
+                httpMethod = HttpMethod.Put,
+                endepunkt = "${Configuration.basePath}/soknad/$dummyUuid/faktum/456)",
+                body = jackson.writeValueAsString(gyldigSvar)
+            ).apply {
+                assertEquals(HttpStatusCode.OK, response.status())
+            }
+        }
+    }
+
+    @Test
+    fun `Avvis svar av typen Valg dersom ingen alternativer er valgt`() {
+        val ugyldigSvar = Svar("valg", emptyList<String>())
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi()
+        ) {
+            autentisert(
+                httpMethod = HttpMethod.Put,
+                endepunkt = "${Configuration.basePath}/soknad/$dummyUuid/faktum/456)",
+                body = jackson.writeValueAsString(ugyldigSvar)
+            ).apply {
+                assertEquals(HttpStatusCode.BadRequest, response.status())
             }
         }
     }
@@ -186,23 +212,5 @@ internal class SøknadApiTest {
 
         override fun hent(søknadUuid: String): String? =
             if (søknadUuid == "d172a832-4f52-4e1f-ab5f-8be8348d9280") søkerOppgave else null
-    }
-
-    private fun TestApplicationEngine.autentisert(
-        endepunkt: String,
-        token: String = jwtStub.createTokenFor("test@nav.no", "id"),
-        httpMethod: HttpMethod = HttpMethod.Get,
-        body: String? = null
-    ) = handleRequest(httpMethod, endepunkt) {
-        addHeader(
-            HttpHeaders.Accept,
-            ContentType.Application.Json.toString()
-        )
-        addHeader(
-            HttpHeaders.ContentType,
-            ContentType.Application.Json.toString()
-        )
-        addHeader(HttpHeaders.Authorization, "Bearer $token")
-        body?.also { setBody(it) }
     }
 }

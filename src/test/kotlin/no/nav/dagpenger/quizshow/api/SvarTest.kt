@@ -8,14 +8,14 @@ class SvarTest {
 
     @Test
     fun `Skal kunne opprette gyldig Svar objekt`() {
-        val svar = Svar("boolean", true)
-        assertDoesNotThrow { svar.valider() }
+        val gyldigSvar = Svar("boolean", true)
+        assertDoesNotThrow { gyldigSvar.valider() }
     }
 
     @Test
     fun `Skal kaste feil hvis svaret inneholder ugyldig verdi`() {
-        val svar = Svar("valg", emptyList<String>())
-        assertThrows<IllegalArgumentException> { svar.valider() }
+        val ugyldigSvar = Svar("valg", emptyList<String>())
+        assertThrows<IllegalArgumentException> { ugyldigSvar.valider() }
     }
 
     @Test

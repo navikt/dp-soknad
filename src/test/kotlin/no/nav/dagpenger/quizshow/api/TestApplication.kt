@@ -1,11 +1,12 @@
 package no.nav.dagpenger.quizshow.api
 
 import io.ktor.application.Application
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
-import io.ktor.server.testing.TestApplicationCall
 import io.ktor.server.testing.TestApplicationEngine
-import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
+import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import io.mockk.mockk
 import no.nav.security.mock.oauth2.MockOAuth2Server
@@ -55,14 +56,21 @@ object TestApplication {
         }
     }
 
-    internal fun TestApplicationEngine.handleAuthenticatedRequest(
-        method: HttpMethod,
-        uri: String,
-        test: TestApplicationRequest.() -> Unit = {}
-    ): TestApplicationCall {
-        return this.handleRequest(method, uri) {
-            addHeader("Authorization", "Bearer $testOAuthToken")
-            test()
-        }
+    internal fun TestApplicationEngine.autentisert(
+        endepunkt: String,
+        token: String = testOAuthToken,
+        httpMethod: HttpMethod = HttpMethod.Get,
+        body: String? = null
+    ) = handleRequest(httpMethod, endepunkt) {
+        addHeader(
+            HttpHeaders.Accept,
+            ContentType.Application.Json.toString()
+        )
+        addHeader(
+            HttpHeaders.ContentType,
+            ContentType.Application.Json.toString()
+        )
+        addHeader(HttpHeaders.Authorization, "Bearer $token")
+        body?.also { setBody(it) }
     }
 }
