@@ -1,4 +1,4 @@
-package no.nav.dagpenger.quizshow.api.routing
+package no.nav.dagpenger.quizshow.api
 
 data class Svar(val type: String, val svar: Any) {
     fun valider() {

@@ -1,4 +1,4 @@
-package no.nav.dagpenger.quizshow.api.routing
+package no.nav.dagpenger.quizshow.api
 
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
@@ -16,15 +16,10 @@ import io.ktor.routing.put
 import io.ktor.routing.route
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.delay
-import mu.KotlinLogging
-import no.nav.dagpenger.quizshow.api.FaktumSvar
-import no.nav.dagpenger.quizshow.api.SøknadStore
-import no.nav.dagpenger.quizshow.api.ØnskerRettighetsavklaringMelding
+import mu.KLogger
 
-private val logger = KotlinLogging.logger {}
-
-internal fun Route.soknadApi(store: SøknadStore) {
-    route("${no.nav.dagpenger.quizshow.api.Configuration.basePath}/soknad") {
+internal fun Route.api(logger: KLogger, store: SøknadStore) {
+    route("${Configuration.basePath}/soknad") {
         post {
             val jwtPrincipal = call.authentication.principal<JWTPrincipal>()
             val fnr = jwtPrincipal!!.fnr

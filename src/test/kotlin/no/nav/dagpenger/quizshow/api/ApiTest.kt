@@ -1,4 +1,4 @@
-package no.nav.dagpenger.quizshow.api.routing
+package no.nav.dagpenger.quizshow.api
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.http.ContentType
@@ -7,7 +7,6 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
-import no.nav.dagpenger.quizshow.api.Configuration
 import no.nav.dagpenger.quizshow.api.TestApplication.handleAuthenticatedRequest
 import no.nav.dagpenger.quizshow.api.TestApplication.mockedSøknadApi
 import no.nav.dagpenger.quizshow.api.TestApplication.withMockAuthServerAndTestApplication
