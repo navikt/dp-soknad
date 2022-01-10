@@ -11,9 +11,9 @@ import no.nav.helse.rapids_rivers.River
 import java.time.Duration
 
 internal interface SøknadStore {
-    fun håndter(rettighetsavklaringMelding: ØnskerRettighetsavklaringMelding)
     fun håndter(faktumSvar: FaktumSvar)
-    fun hent(søknadUuid: String): String?
+    fun håndter(faktaMelding: FaktaMelding)
+    fun hentFakta(søknadUuid: String): String?
 }
 interface MeldingObserver {
     suspend fun meldingMottatt(melding: String)
@@ -41,17 +41,18 @@ internal class Mediator(private val rapidsConnection: RapidsConnection) : River.
 
     fun register(observer: MeldingObserver) = observers.add(observer)
 
-    override fun håndter(rettighetsavklaringMelding: ØnskerRettighetsavklaringMelding) {
-        rapidsConnection.publish(rettighetsavklaringMelding.toJson())
-        logger.info { "Sendte pakke ønsker_rettighetsavklaring" }
-    }
-
     override fun håndter(faktumSvar: FaktumSvar) {
         rapidsConnection.publish(faktumSvar.toJson())
         logger.info { "Sendte faktum svar for ${faktumSvar.søknadUuid()} ønsker_rettighetsavklaring" }
     }
 
-    override fun hent(søknadUuid: String): String? = cache.getIfPresent(søknadUuid)
+    override fun håndter(faktaMelding: FaktaMelding) {
+        rapidsConnection.publish(faktaMelding.toJson())
+    }
+
+    override fun hentFakta(søknadUuid: String): String? {
+        TODO("Not yet implemented")
+    }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info { "Mottat pakke ${packet["@event_name"].asText()}" }

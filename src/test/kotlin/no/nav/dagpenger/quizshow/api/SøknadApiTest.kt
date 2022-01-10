@@ -7,15 +7,13 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
 import no.nav.dagpenger.quizshow.api.TestApplication.autentisert
-import no.nav.dagpenger.quizshow.api.TestApplication.defaultDummyFodselsnummer
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
 import java.util.UUID
 
 internal class SøknadApiTest {
     private val jackson = jacksonObjectMapper()
-    private val rettighetsAvklaringer = mutableListOf<ØnskerRettighetsavklaringMelding>()
     private val svar = mutableListOf<FaktumSvar>()
     private val store = testStore()
     private val dummyUuid = UUID.randomUUID()
@@ -32,19 +30,13 @@ internal class SøknadApiTest {
                 httpMethod = HttpMethod.Post,
             ).apply {
                 assertEquals(HttpStatusCode.Created, this.response.status())
-                assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
-                val content = jackson.readTree(this.response.content)
-                assertDoesNotThrow { content["søknad_uuid"].asText().also { UUID.fromString(it) } }
-                assertEquals(1, rettighetsAvklaringer.size)
-                assertEquals(content["søknad_uuid"].asText(), rettighetsAvklaringer.first().søknadUuid().toString())
-                val rettighetsavklaring = jackson.readTree(rettighetsAvklaringer.first().toJson())
-                assertEquals(defaultDummyFodselsnummer, rettighetsavklaring["fødselsnummer"].asText())
+                assertNotNull(this.response.headers[HttpHeaders.Location])
             }
         }
     }
 
     @Test
-    fun `Skal hente søknad seksjoner`() {
+    fun `Skal hente søknad fakta`() {
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -52,7 +44,7 @@ internal class SøknadApiTest {
             )
         ) {
             autentisert(
-                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/neste-seksjon",
+                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/fakta",
             ).apply {
                 assertEquals(HttpStatusCode.OK, this.response.status())
                 assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
@@ -72,23 +64,6 @@ internal class SøknadApiTest {
                 "${Configuration.basePath}/soknad/12121/neste-seksjon"
             ).apply {
                 assertEquals(HttpStatusCode.NotFound, this.response.status())
-            }
-        }
-    }
-
-    @Test
-    fun `Skal hente søknad subsumsjoner`() {
-
-        TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi(
-                store = store
-            )
-        ) {
-            autentisert(
-                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/subsumsjoner"
-            ).apply {
-                assertEquals(HttpStatusCode.OK, this.response.status())
-                assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
             }
         }
     }
@@ -118,7 +93,7 @@ internal class SøknadApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi()
         ) {
-            handleRequest(HttpMethod.Get, "${Configuration.basePath}/soknad/$dummyUuid/subsumsjoner") {
+            handleRequest(HttpMethod.Get, "${Configuration.basePath}/soknad/$dummyUuid/fakta") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             }.apply {
                 assertEquals(HttpStatusCode.Unauthorized, response.status())
@@ -202,15 +177,26 @@ internal class SøknadApiTest {
       }
             """.trimIndent()
 
-        override fun håndter(rettighetsavklaringMelding: ØnskerRettighetsavklaringMelding) {
-            rettighetsAvklaringer.add(rettighetsavklaringMelding)
-        }
-
         override fun håndter(faktumSvar: FaktumSvar) {
             svar.add(faktumSvar)
         }
 
-        override fun hent(søknadUuid: String): String? =
-            if (søknadUuid == "d172a832-4f52-4e1f-ab5f-8be8348d9280") søkerOppgave else null
+        override fun håndter(faktaMelding: FaktaMelding) {
+            // TODO("Not yet implemented")
+        }
+
+        override fun hentFakta(søknadUuid: String): String? {
+            //language=JSON
+            return """
+                [
+                {
+                "id": "1.1",
+                "beskrivendeId": "id",
+                "type": "boolean",
+                "svar" : true
+                }
+                ]
+            """.trimIndent()
+        }
     }
 }

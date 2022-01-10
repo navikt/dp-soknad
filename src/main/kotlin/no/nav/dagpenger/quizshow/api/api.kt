@@ -6,8 +6,11 @@ import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.features.NotFoundException
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
+import io.ktor.request.uri
+import io.ktor.response.header
 import io.ktor.response.respondText
 import io.ktor.routing.Route
 import io.ktor.routing.get
@@ -17,26 +20,27 @@ import io.ktor.routing.route
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.delay
 import mu.KLogger
+import no.nav.helse.rapids_rivers.JsonMessage
+import java.time.LocalDateTime
+import java.util.UUID
 
 internal fun Route.api(logger: KLogger, store: SøknadStore) {
     route("${Configuration.basePath}/soknad") {
         post {
             val jwtPrincipal = call.authentication.principal<JWTPrincipal>()
             val fnr = jwtPrincipal!!.fnr
-            val ønskerRettighetsavklaringMelding = ØnskerRettighetsavklaringMelding(fnr)
-            store.håndter(ønskerRettighetsavklaringMelding)
-            val svar = """{ "søknad_uuid" : "${ønskerRettighetsavklaringMelding.søknadUuid()}" }""".trimIndent()
-            call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.Created) { svar }
+            val faktaMelding = FaktaMelding(fnr)
+            store.håndter(faktaMelding)
+            val svar = faktaMelding.søknadUuid
+            call.response.header(HttpHeaders.Location, "${call.request.uri}/$svar/fakta")
+            call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.Created) {
+                svar.toString()
+            }
         }
-        get("/{søknad_uuid}/neste-seksjon") {
+        get("/{søknad_uuid}/fakta") {
             val id = søknadId()
-            val søknad = hent(store, id)
-            call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { søknad }
-        }
-        get("/{søknad_uuid}/subsumsjoner") {
-            val id = søknadId()
-            val søknad = hent(store, id)
-            call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { søknad }
+            val fakta = hentFakta(store, id)
+            call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { fakta }
         }
         put("/{søknad_uuid}/faktum/{faktumid}") {
             val id = søknadId()
@@ -58,12 +62,28 @@ internal fun Route.api(logger: KLogger, store: SøknadStore) {
     }
 }
 
+internal data class FaktaMelding(val fnr: String) {
+    private val navn = "NySøknad"
+    private val opprettet = LocalDateTime.now()
+    private val id = UUID.randomUUID()
+    internal val søknadUuid = UUID.randomUUID()
+
+    fun toJson() = JsonMessage.newMessage(
+        mutableMapOf(
+            "@event_name" to navn,
+            "@opprettet" to opprettet,
+            "@id" to id,
+            "søknad_uuid" to søknadUuid,
+        )
+    ).toJson()
+}
+
 private val JWTPrincipal.fnr get() = this.payload.claims["pid"]!!.asString()
 
-private suspend fun hent(
+private suspend fun hentFakta(
     store: SøknadStore,
     id: String
-) = retryIO(times = 10) { store.hent(id) ?: throw NotFoundException("Fant ikke søknad med id $id") }
+) = retryIO(times = 10) { store.hentFakta(id) ?: throw NotFoundException("Fant ikke søknad med id $id") }
 
 private fun PipelineContext<Unit, ApplicationCall>.søknadId() =
     call.parameters["søknad_uuid"] ?: throw IllegalArgumentException("Må ha med id i parameter")
