@@ -1,5 +1,8 @@
 package no.nav.dagpenger.quizshow.api
 
+import io.mockk.justRun
+import io.mockk.mockk
+import io.mockk.verify
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -24,5 +27,30 @@ class MediatorTest {
 
     @Test
     fun `lese svar fra kafka`() {
+        val testRapid = TestRapid()
+        val persistence = mockk<Persistence>().also {
+            justRun {
+                it.lagre(any(), any())
+            }
+        }
+
+        val mediator = Mediator(testRapid, persistence)
+
+        //language=JSON
+        val message = """{
+          "@event_name": "NySøknad",
+          "fakta": "{}",
+          "fødselsnummer": "12345678910",
+          "søknad_uuid": "123"
+        }
+        """.trimIndent()
+
+        testRapid.sendTestMessage(
+            message
+        )
+
+        verify(exactly = 1) {
+            persistence.lagre("123", any())
+        }
     }
 }
