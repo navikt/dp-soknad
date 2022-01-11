@@ -70,6 +70,7 @@ internal data class NySøknadMelding(val fnr: String) {
 
     fun toJson() = JsonMessage.newMessage(
         mutableMapOf(
+            "@behov" to listOf(navn),
             "@event_name" to navn,
             "@opprettet" to opprettet,
             "@id" to id,

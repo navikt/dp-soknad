@@ -19,21 +19,36 @@ interface MeldingObserver {
     suspend fun meldingMottatt(melding: String)
 }
 
-internal class Mediator(private val rapidsConnection: RapidsConnection) : River.PacketListener, SøknadStore {
-    private val observers = mutableListOf<MeldingObserver>()
+interface Persistence {
+    fun lagre(key: String, value: String)
+    fun hent(key: String): String?
+}
 
-    private val cache: Cache<String, String> = Caffeine.newBuilder()
-        .maximumSize(1000L)
-        .expireAfterWrite(Duration.ofHours(24))
-        .build()
+internal class Mediator(private val rapidsConnection: RapidsConnection, private val persistence: Persistence = cache) : River.PacketListener, SøknadStore {
+    private val observers = mutableListOf<MeldingObserver>()
 
     private companion object {
         val logger = KotlinLogging.logger {}
+
+        private val cache: Persistence = object : Persistence {
+            private val caffeineCache: Cache<String, String> = Caffeine.newBuilder()
+                .maximumSize(1000L)
+                .expireAfterWrite(Duration.ofHours(24))
+                .build()
+
+            override fun lagre(key: String, value: String) {
+                caffeineCache.put(key, value)
+            }
+
+            override fun hent(key: String): String? {
+                return caffeineCache.getIfPresent(key)
+            }
+        }
     }
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "søker_oppgave") }
+            validate { it.demandValue("@event_name", "ny_søknad") }
             validate { it.rejectKey("@løsning") }
             validate { it.requireKey("fakta", "identer", "søknad_uuid") }
         }.register(this)
@@ -50,15 +65,13 @@ internal class Mediator(private val rapidsConnection: RapidsConnection) : River.
         rapidsConnection.publish(nySøknadMelding.toJson())
     }
 
-    override fun hentFakta(søknadUuid: String): String? {
-        TODO("Not yet implemented")
-    }
+    override fun hentFakta(søknadUuid: String): String? = persistence.hent(søknadUuid)
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info { "Mottat pakke ${packet["@event_name"].asText()}" }
         val søknadUuid =
             packet["søknad_uuid"].asText()
-        cache.put(søknadUuid, packet.toJson())
+        persistence.lagre(søknadUuid, packet.toJson())
         runBlocking {
             observers.forEach { it.meldingMottatt(packet.toJson()) }
         }

@@ -17,7 +17,12 @@ class MediatorTest {
             assertTrue(it.has("@id"))
             assertTrue(it.has("@event_name"))
             assertTrue(it.has("søknad_uuid"))
+            assertEquals("NySøknad", testRapid.inspektør.field(0, "@behov").firstOrNull()?.asText())
             assertEquals("NySøknad", it["@event_name"].asText())
         }
+    }
+
+    @Test
+    fun `lese svar fra kafka`() {
     }
 }
