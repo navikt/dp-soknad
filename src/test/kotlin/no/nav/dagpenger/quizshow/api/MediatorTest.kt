@@ -17,7 +17,7 @@ class MediatorTest {
             assertTrue(it.has("@id"))
             assertTrue(it.has("@event_name"))
             assertTrue(it.has("søknad_uuid"))
-            assertEquals("NySøknad", testRapid.inspektør.field(0, "@behov").firstOrNull()?.asText())
+            assertEquals(fnr, it["fødselsnummer"].asText())
             assertEquals("NySøknad", it["@event_name"].asText())
         }
     }

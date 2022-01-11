@@ -62,7 +62,7 @@ internal fun Route.api(logger: KLogger, store: SøknadStore) {
     }
 }
 
-internal data class NySøknadMelding(val fnr: String) {
+internal data class NySøknadMelding(val fødselsnummer: String) {
     private val navn = "NySøknad"
     private val opprettet = LocalDateTime.now()
     private val id = UUID.randomUUID()
@@ -70,11 +70,11 @@ internal data class NySøknadMelding(val fnr: String) {
 
     fun toJson() = JsonMessage.newMessage(
         mutableMapOf(
-            "@behov" to listOf(navn),
             "@event_name" to navn,
             "@opprettet" to opprettet,
             "@id" to id,
             "søknad_uuid" to søknadUuid,
+            "fødselsnummer" to fødselsnummer,
         )
     ).toJson()
 }
