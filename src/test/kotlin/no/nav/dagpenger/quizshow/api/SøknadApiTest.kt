@@ -181,7 +181,7 @@ internal class SøknadApiTest {
             svar.add(faktumSvar)
         }
 
-        override fun håndter(faktaMelding: FaktaMelding) {
+        override fun håndter(nySøknadMelding: NySøknadMelding) {
             // TODO("Not yet implemented")
         }
 

@@ -29,9 +29,9 @@ internal fun Route.api(logger: KLogger, store: SøknadStore) {
         post {
             val jwtPrincipal = call.authentication.principal<JWTPrincipal>()
             val fnr = jwtPrincipal!!.fnr
-            val faktaMelding = FaktaMelding(fnr)
-            store.håndter(faktaMelding)
-            val svar = faktaMelding.søknadUuid
+            val nySøknadMelding = NySøknadMelding(fnr)
+            store.håndter(nySøknadMelding)
+            val svar = nySøknadMelding.søknadUuid
             call.response.header(HttpHeaders.Location, "${call.request.uri}/$svar/fakta")
             call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.Created) {
                 svar.toString()
@@ -62,7 +62,7 @@ internal fun Route.api(logger: KLogger, store: SøknadStore) {
     }
 }
 
-internal data class FaktaMelding(val fnr: String) {
+internal data class NySøknadMelding(val fnr: String) {
     private val navn = "NySøknad"
     private val opprettet = LocalDateTime.now()
     private val id = UUID.randomUUID()

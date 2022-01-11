@@ -12,7 +12,7 @@ import java.time.Duration
 
 internal interface SøknadStore {
     fun håndter(faktumSvar: FaktumSvar)
-    fun håndter(faktaMelding: FaktaMelding)
+    fun håndter(nySøknadMelding: NySøknadMelding)
     fun hentFakta(søknadUuid: String): String?
 }
 interface MeldingObserver {
@@ -46,8 +46,8 @@ internal class Mediator(private val rapidsConnection: RapidsConnection) : River.
         logger.info { "Sendte faktum svar for ${faktumSvar.søknadUuid()} ønsker_rettighetsavklaring" }
     }
 
-    override fun håndter(faktaMelding: FaktaMelding) {
-        rapidsConnection.publish(faktaMelding.toJson())
+    override fun håndter(nySøknadMelding: NySøknadMelding) {
+        rapidsConnection.publish(nySøknadMelding.toJson())
     }
 
     override fun hentFakta(søknadUuid: String): String? {
