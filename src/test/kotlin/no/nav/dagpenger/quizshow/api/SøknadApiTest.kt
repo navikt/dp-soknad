@@ -6,25 +6,31 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
+import io.mockk.every
+import io.mockk.justRun
+import io.mockk.mockk
+import io.mockk.verify
 import no.nav.dagpenger.quizshow.api.TestApplication.autentisert
-import no.nav.dagpenger.quizshow.api.TestApplication.defaultDummyFodselsnummer
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
 import java.util.UUID
 
 internal class SøknadApiTest {
     private val jackson = jacksonObjectMapper()
-    private val rettighetsAvklaringer = mutableListOf<ØnskerRettighetsavklaringMelding>()
-    private val svar = mutableListOf<FaktumSvar>()
-    private val store = testStore()
     private val dummyUuid = UUID.randomUUID()
 
     @Test
     fun `Skal starte søknad`() {
+        val mockStore = mockk<SøknadStore>().also {
+            justRun {
+                it.håndter(any<NySøknadMelding>())
+            }
+        }
+
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                store = store
+                store = mockStore
             )
         ) {
             autentisert(
@@ -32,30 +38,30 @@ internal class SøknadApiTest {
                 httpMethod = HttpMethod.Post,
             ).apply {
                 assertEquals(HttpStatusCode.Created, this.response.status())
-                assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
-                val content = jackson.readTree(this.response.content)
-                assertDoesNotThrow { content["søknad_uuid"].asText().also { UUID.fromString(it) } }
-                assertEquals(1, rettighetsAvklaringer.size)
-                assertEquals(content["søknad_uuid"].asText(), rettighetsAvklaringer.first().søknadUuid().toString())
-                val rettighetsavklaring = jackson.readTree(rettighetsAvklaringer.first().toJson())
-                assertEquals(defaultDummyFodselsnummer, rettighetsavklaring["fødselsnummer"].asText())
+                assertNotNull(this.response.headers[HttpHeaders.Location])
             }
         }
+
+        verify(exactly = 1) { mockStore.håndter(any<NySøknadMelding>()) }
     }
 
     @Test
-    fun `Skal hente søknad seksjoner`() {
-
+    fun `Skal hente søknad fakta`() {
+        val testJson = """{"key": "value"}"""
+        val mockStore = mockk<SøknadStore>().also { soknadStore ->
+            every { soknadStore.hentFakta("d172a832-4f52-4e1f-ab5f-8be8348d9280") } returns testJson
+        }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                store = store
+                store = mockStore
             )
         ) {
             autentisert(
-                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/neste-seksjon",
+                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/fakta",
             ).apply {
                 assertEquals(HttpStatusCode.OK, this.response.status())
                 assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
+                assertEquals(testJson, this.response.content)
             }
         }
     }
@@ -64,9 +70,7 @@ internal class SøknadApiTest {
     fun `404 på ting som ikke finnes`() {
 
         TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi(
-                store = store
-            )
+            TestApplication.mockedSøknadApi()
         ) {
             autentisert(
                 "${Configuration.basePath}/soknad/12121/neste-seksjon"
@@ -77,29 +81,15 @@ internal class SøknadApiTest {
     }
 
     @Test
-    fun `Skal hente søknad subsumsjoner`() {
-
-        TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi(
-                store = store
-            )
-        ) {
-            autentisert(
-                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/subsumsjoner"
-            ).apply {
-                assertEquals(HttpStatusCode.OK, this.response.status())
-                assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
+    fun `Skal kunne lagre faktum`() {
+        val mockStore = mockk<SøknadStore>().also {
+            justRun {
+                it.håndter(any<FaktumSvar>())
             }
         }
-    }
-
-    @Test
-    fun `Skal kunne lagre faktum`() {
 
         TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi(
-                store = store
-            )
+            TestApplication.mockedSøknadApi(mockStore)
         ) {
             autentisert(
                 "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/faktum/1245",
@@ -108,9 +98,10 @@ internal class SøknadApiTest {
             ).apply {
                 assertEquals(HttpStatusCode.OK, this.response.status())
                 assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
-                assertEquals(1, svar.size)
             }
         }
+
+        verify(exactly = 1) { mockStore.håndter(any<FaktumSvar>()) }
     }
 
     @Test
@@ -118,7 +109,7 @@ internal class SøknadApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi()
         ) {
-            handleRequest(HttpMethod.Get, "${Configuration.basePath}/soknad/$dummyUuid/subsumsjoner") {
+            handleRequest(HttpMethod.Get, "${Configuration.basePath}/soknad/$dummyUuid/fakta") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             }.apply {
                 assertEquals(HttpStatusCode.Unauthorized, response.status())
@@ -158,59 +149,70 @@ internal class SøknadApiTest {
         }
     }
 
-    private fun testStore() = object : SøknadStore {
-
-        //language=JSON
-        private val søkerOppgave =
-            """
-      {
-        "@event_name": "søker_oppgave",
-        "@id": "f1387052-1132-4692-be23-803817bdf214",
-        "@opprettet": "2021-11-01T14:18:34.039275",
-        "søknad_uuid": "d172a832-4f52-4e1f-ab5f-8be8348d9280",
-        "seksjon_navn": "gjenopptak",
-        "indeks": 0,
-        "identer": [
-          {
-            "id": "123456789",
-            "type": "folkeregisterident",
-            "historisk": false
-          }
-        ],
-        "fakta": [
-          {
-            "navn": "Har du hatt dagpenger siste 52 uker?",
-            "id": "1",
-            "roller": [
-              "søker"
-            ],
-            "type": "boolean",
-            "godkjenner": []
-          }
-        ],
-        "subsumsjoner": [
-          {
-            "lokalt_resultat": null,
-            "navn": "Sjekk at `Har du hatt dagpenger siste 52 uker med id 1` er lik true",
-            "forklaring": "saksbehandlerforklaring",
-            "type": "Enkel subsumsjon",
-            "fakta": [
-              "1"
-            ]
-          }
-        ]
-      }
-            """.trimIndent()
-
-        override fun håndter(rettighetsavklaringMelding: ØnskerRettighetsavklaringMelding) {
-            rettighetsAvklaringer.add(rettighetsavklaringMelding)
-        }
-
-        override fun håndter(faktumSvar: FaktumSvar) {
-            svar.add(faktumSvar)
-        }
-
-        override fun hent(søknadUuid: String): String? =
-            if (søknadUuid == "d172a832-4f52-4e1f-ab5f-8be8348d9280") søkerOppgave else null
-    }
+//    private fun testStore() = object : SøknadStore {
+//
+//        //language=JSON
+//        private val søkerOppgave =
+//            """
+//      {
+//        "@event_name": "søker_oppgave",
+//        "@id": "f1387052-1132-4692-be23-803817bdf214",
+//        "@opprettet": "2021-11-01T14:18:34.039275",
+//        "søknad_uuid": "d172a832-4f52-4e1f-ab5f-8be8348d9280",
+//        "seksjon_navn": "gjenopptak",
+//        "indeks": 0,
+//        "identer": [
+//          {
+//            "id": "123456789",
+//            "type": "folkeregisterident",
+//            "historisk": false
+//          }
+//        ],
+//        "fakta": [
+//          {
+//            "navn": "Har du hatt dagpenger siste 52 uker?",
+//            "id": "1",
+//            "roller": [
+//              "søker"
+//            ],
+//            "type": "boolean",
+//            "godkjenner": []
+//          }
+//        ],
+//        "subsumsjoner": [
+//          {
+//            "lokalt_resultat": null,
+//            "navn": "Sjekk at `Har du hatt dagpenger siste 52 uker med id 1` er lik true",
+//            "forklaring": "saksbehandlerforklaring",
+//            "type": "Enkel subsumsjon",
+//            "fakta": [
+//              "1"
+//            ]
+//          }
+//        ]
+//      }
+//            """.trimIndent()
+//
+//        override fun håndter(faktumSvar: FaktumSvar) {
+//            svar.add(faktumSvar)
+//        }
+//
+//        override fun håndter(nySøknadMelding: NySøknadMelding) {
+//            // TODO("Not yet implemented")
+//        }
+//
+//        override fun hentFakta(søknadUuid: String): String? {
+//            //language=JSON
+//            return """
+//                [
+//                {
+//                "id": "1.1",
+//                "beskrivendeId": "id",
+//                "type": "boolean",
+//                "svar" : true
+//                }
+//                ]
+//            """.trimIndent()
+//        }
+//    }
 }

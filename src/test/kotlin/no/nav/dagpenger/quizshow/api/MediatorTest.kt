@@ -1,9 +1,10 @@
 package no.nav.dagpenger.quizshow.api
 
-import kotlinx.coroutines.runBlocking
+import io.mockk.justRun
+import io.mockk.mockk
+import io.mockk.verify
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -12,64 +13,45 @@ class MediatorTest {
     private val mediator = Mediator(testRapid)
 
     @Test
-    fun `publiserer ny-søknadsmelding på kafka`() {
+    fun `publiserer ny-faktamelding på kafka`() {
         val fnr = "12345678910"
-        mediator.håndter(ØnskerRettighetsavklaringMelding(fnr))
+        mediator.håndter(NySøknadMelding(fnr))
         testRapid.inspektør.message(0).also {
-            assertEquals(fnr, it["fødselsnummer"].asText())
-            assertTrue(it.has("avklaringsId"))
+            assertTrue(it.has("@id"))
             assertTrue(it.has("@event_name"))
-            assertEquals("ønsker_rettighetsavklaring", it["@event_name"].asText())
+            assertTrue(it.has("søknad_uuid"))
+            assertEquals(fnr, it["fødselsnummer"].asText())
+            assertEquals("NySøknad", it["@event_name"].asText())
         }
     }
 
     @Test
-    fun `Skal lagre meldinger basert på fnr`() = runBlocking {
-        testRapid.sendTestMessage(søkerOppgave())
-        assertNotNull(mediator.hent("35cfb1bd-4dc9-4057-b51d-1b5acff75248"))
-    }
+    fun `lese svar fra kafka`() {
+        val testRapid = TestRapid()
+        val persistence = mockk<Persistence>().also {
+            justRun {
+                it.lagre(any(), any())
+            }
+        }
 
-    //language=JSON
-    private fun søkerOppgave() =
-        """
-        {
-          "@event_name": "søker_oppgave",
-          "@id": "900b273c-d1e2-4037-b2ae-0ff252c61896",
-          "@opprettet": "2021-10-27T09:49:05.081590",
-          "søknad_uuid": "35cfb1bd-4dc9-4057-b51d-1b5acff75248",
-          "seksjon_navn": "søker",
-          "identer": [
-            {
-              "id": "12020052345",
-              "type": "folkeregisterident",
-              "historisk": false
-            },
-            {
-              "id": "aktørId",
-              "type": "aktørid",
-              "historisk": false
-            }
-          ],
-          "fakta": [
-            {
-              "navn": "Oversatt tekst",
-              "id": "1",
-              "roller": [
-                "søker"
-              ],
-              "type": "boolean",
-              "godkjenner": []
-            },
-            {
-              "navn": "Oversatt tekst",
-              "id": "3",
-              "roller": [
-                "søker"
-              ],
-              "type": "boolean",
-              "godkjenner": []
-            }
-          ]
+        val mediator = Mediator(testRapid, persistence)
+
+        //language=JSON
+        val message = """{
+          "@event_name": "NySøknad",
+          "fakta": "{}",
+          "fødselsnummer": "12345678910",
+          "søknad_uuid": "123",
+          "opprettet": "2022-01-13T09:40:19.158310"
         }
         """.trimIndent()
+
+        testRapid.sendTestMessage(
+            message
+        )
+
+        verify(exactly = 1) {
+            persistence.lagre("123", any())
+        }
+    }
 }
