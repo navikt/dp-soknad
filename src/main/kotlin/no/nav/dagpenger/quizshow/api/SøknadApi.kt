@@ -76,10 +76,9 @@ internal fun Application.søknadApi(
             }
             realm = appName
             validate { credentials ->
-                requireNotNull(credentials.payload.claims["pid"]) {
+                requireNotNull(credentials.payload.claims["pid"] ?: credentials.payload.claims["sub"]) {
                     "Token må inneholde fødselsnummer for personen"
                 }
-
                 JWTPrincipal(credentials.payload)
             }
         }
