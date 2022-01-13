@@ -79,7 +79,7 @@ internal data class NySøknadMelding(val fødselsnummer: String) {
     ).toJson()
 }
 
-private val JWTPrincipal.fnr get() = this.payload.claims["pid"]!!.asString()
+private val JWTPrincipal.fnr get() = (this.payload.claims["pid"] ?: this.payload.claims["sub"])!!.asString()
 
 private suspend fun hentFakta(
     store: SøknadStore,
