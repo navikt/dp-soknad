@@ -15,6 +15,7 @@ internal interface SøknadStore {
     fun håndter(nySøknadMelding: NySøknadMelding)
     fun hentFakta(søknadUuid: String): String?
 }
+
 interface MeldingObserver {
     suspend fun meldingMottatt(melding: String)
 }
@@ -24,11 +25,13 @@ interface Persistence {
     fun hent(key: String): String?
 }
 
-internal class Mediator(private val rapidsConnection: RapidsConnection, private val persistence: Persistence = cache) : River.PacketListener, SøknadStore {
+internal class Mediator(private val rapidsConnection: RapidsConnection, private val persistence: Persistence = cache) :
+    River.PacketListener, SøknadStore {
     private val observers = mutableListOf<MeldingObserver>()
 
     private companion object {
         val logger = KotlinLogging.logger {}
+        val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
         private val cache: Persistence = object : Persistence {
             private val caffeineCache: Cache<String, String> = Caffeine.newBuilder()
@@ -62,7 +65,11 @@ internal class Mediator(private val rapidsConnection: RapidsConnection, private 
     }
 
     override fun håndter(nySøknadMelding: NySøknadMelding) {
-        rapidsConnection.publish(nySøknadMelding.toJson())
+        rapidsConnection.publish(
+            nySøknadMelding.toJson().also {
+                sikkerlogg.info { "Nysøknad: $it" }
+            }
+        )
     }
 
     override fun hentFakta(søknadUuid: String): String? = persistence.hent(søknadUuid)
