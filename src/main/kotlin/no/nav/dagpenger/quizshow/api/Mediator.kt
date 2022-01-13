@@ -50,7 +50,7 @@ internal class Mediator(private val rapidsConnection: RapidsConnection, private 
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "NySøknad") }
             validate { it.rejectKey("@løsning") }
-            validate { it.requireKey("fakta", "søknad_uuid", "fødselsnummer") }
+            validate { it.requireKey("fakta", "søknad_uuid", "fødselsnummer", "opprettet") }
         }.register(this)
     }
 
