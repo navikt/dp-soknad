@@ -42,7 +42,7 @@ class MediatorTest {
           "fakta": "{}",
           "fødselsnummer": "12345678910",
           "søknad_uuid": "123",
-          "opprettet": "2022-01-13T09:40:19.158310"
+          "@opprettet": "2022-01-13T09:40:19.158310"
         }
         """.trimIndent()
 
