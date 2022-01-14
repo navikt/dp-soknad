@@ -8,6 +8,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import java.io.Closeable
 import java.time.Duration
 
 internal interface SøknadStore {
@@ -20,9 +21,11 @@ interface MeldingObserver {
     suspend fun meldingMottatt(melding: String)
 }
 
-interface Persistence {
+interface Persistence : Closeable {
     fun lagre(key: String, value: String)
     fun hent(key: String): String?
+    override fun close() {
+    }
 }
 
 internal class Mediator(private val rapidsConnection: RapidsConnection, private val persistence: Persistence = cache) :

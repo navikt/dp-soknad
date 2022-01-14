@@ -14,10 +14,12 @@ dependencies {
     implementation(Ktor.library("client-jackson"))
 
     implementation("com.github.ben-manes.caffeine:caffeine:3.0.5")
+    implementation("io.lettuce:lettuce-core:6.1.6.RELEASE")
 
     testImplementation(Ktor.ktorTest)
     testImplementation(Mockk.mockk)
     testImplementation("no.nav.security:mock-oauth2-server:0.4.1")
+    testImplementation("org.testcontainers:testcontainers:${TestContainers.version}")
 }
 
 application {
