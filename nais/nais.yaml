@@ -76,8 +76,11 @@ spec:
     inbound:
       rules:
         - application: dp-quizshow
+    outbound:
+      rules:
+        - application: {{app}}-redis.{{namespace}}.svc.cluster.local}}
   env:
     - name: REDIS_HOST
-      value: {{app}}-redis.{{namespace}}.svc.cluster.local:6379
+      value: {{app}}-redis.{{namespace}}.svc.cluster.local
   envFrom:
     - secret: {{app}}-redis-secret
