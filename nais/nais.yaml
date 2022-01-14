@@ -3,12 +3,12 @@ apiVersion: "nais.io/v1alpha1"
 kind: "Application"
 metadata:
   labels:
-    team: ${{team}}
+    team: {{team}}
   annotations:
     "nais.io/run-as-group": "0"
     "nais.io/read-only-file-system": "false"
-  name: ${{app}}-redis
-  namespace: ${{namespace}}
+  name: {{app}}-redis
+  namespace: {{namespace}}
 spec:
   image: bitnami/redis:6.2
   port: 6379
@@ -28,9 +28,9 @@ spec:
   accessPolicy: # for GCP
     inbound:
       rules:
-        - application: ${{app}}
+        - application: {{app}}
   envFrom:
-    - secret: ${{app}}-redis-secret
+    - secret: {{app}}-redis-secret
 
 ---
 
@@ -78,6 +78,6 @@ spec:
         - application: dp-quizshow
   env:
     - name: REDIS_HOST
-      value: ${{app}}=redis.${{namespace}}.svc.cluster.local
+      value: {{app}}=redis.{{namespace}}.svc.cluster.local
   envFrom:
     - secret: ${{app}}-redis-secret
