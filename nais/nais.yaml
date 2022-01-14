@@ -80,4 +80,4 @@ spec:
     - name: REDIS_HOST
       value: {{app}}=redis.{{namespace}}.svc.cluster.local
   envFrom:
-    - secret: ${{app}}-redis-secret
+    - secret: {{app}}-redis-secret
