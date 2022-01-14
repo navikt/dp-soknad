@@ -14,12 +14,14 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         }
     }.build()
 
+    val persistence = RedisPersistence(
+        config["REDIS_HOST"] ?: throw IllegalStateException("REDIS_HOST missing"),
+        config["REDIS_PASSWORD"] ?: throw IllegalStateException("REDIS_PASSWORD missing"),
+    )
+
     private val mediator = Mediator(
         rapidsConnection,
-        RedisPersistence(
-            config["REDIS_HOST"] ?: throw IllegalStateException("REDIS_HOST missing"),
-            config["REDIS_PASSWORD"] ?: throw IllegalStateException("REDIS_PASSWORD missing"),
-        )
+        persistence
     )
 
     init {
@@ -28,6 +30,10 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
 
     fun start() = rapidsConnection.start()
     fun stop() = rapidsConnection.stop()
+
+    override fun onShutdown(rapidsConnection: RapidsConnection) {
+        persistence.close()
+    }
 
     override fun onStartup(rapidsConnection: RapidsConnection) {
     }

@@ -3,17 +3,17 @@ package no.nav.dagpenger.quizshow.api
 import io.lettuce.core.RedisClient
 
 class RedisPersistence(redisHost: String, redisPassword: String) : Persistence {
-    private val redisClient = RedisClient.create("redis://$redisPassword@$redisHost")
+    private val redisConnection = RedisClient.create("redis://$redisPassword@$redisHost").connect()
 
     override fun lagre(key: String, value: String) {
-        redisClient.connect().use { connection ->
-            connection.sync().set(key, value)
-        }
+        redisConnection.sync().set(key, value)
     }
 
     override fun hent(key: String): String? {
-        return redisClient.connect().use { connection ->
-            connection.sync().get(key)
-        }
+        return redisConnection.sync().get(key)
+    }
+
+    override fun close() {
+        redisConnection.close()
     }
 }
