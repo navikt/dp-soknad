@@ -78,7 +78,7 @@ spec:
         - application: dp-quizshow
     outbound:
       rules:
-        - application: {{app}}-redis.{{namespace}}.svc.cluster.local}}
+        - application: {{app}}-redis.{{namespace}}.svc.cluster.local
   env:
     - name: REDIS_HOST
       value: {{app}}-redis.{{namespace}}.svc.cluster.local
