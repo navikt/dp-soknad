@@ -14,7 +14,13 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         }
     }.build()
 
-    private val mediator = Mediator(rapidsConnection)
+    private val mediator = Mediator(
+        rapidsConnection,
+        RedisPersistence(
+            config["REDIS_HOST"] ?: throw IllegalStateException("REDIS_HOST missing"),
+            config["REDIS_PASSWORD"] ?: throw IllegalStateException("REDIS_PASSWORD missing"),
+        )
+    )
 
     init {
         rapidsConnection.register(this)

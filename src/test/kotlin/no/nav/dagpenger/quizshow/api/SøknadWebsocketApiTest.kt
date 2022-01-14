@@ -3,6 +3,7 @@ package no.nav.dagpenger.quizshow.api
 import io.ktor.http.cio.websocket.Frame
 import io.ktor.http.cio.websocket.readText
 import io.ktor.server.testing.withTestApplication
+import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -11,7 +12,7 @@ import org.junit.jupiter.api.Test
 
 internal class SøknadWebsocketApiTest {
     private val rapid = TestRapid()
-    private val mediator = Mediator(rapid)
+    private val mediator = Mediator(rapid, mockk())
 
     @BeforeEach
     fun reset() {

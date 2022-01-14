@@ -1,7 +1,5 @@
 package no.nav.dagpenger.quizshow.api
 
-import com.github.benmanes.caffeine.cache.Cache
-import com.github.benmanes.caffeine.cache.Caffeine
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -9,7 +7,6 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import java.io.Closeable
-import java.time.Duration
 
 internal interface SøknadStore {
     fun håndter(faktumSvar: FaktumSvar)
@@ -28,28 +25,13 @@ interface Persistence : Closeable {
     }
 }
 
-internal class Mediator(private val rapidsConnection: RapidsConnection, private val persistence: Persistence = cache) :
+internal class Mediator(private val rapidsConnection: RapidsConnection, private val persistence: Persistence) :
     River.PacketListener, SøknadStore {
     private val observers = mutableListOf<MeldingObserver>()
 
     private companion object {
         val logger = KotlinLogging.logger {}
         val sikkerlogg = KotlinLogging.logger("tjenestekall")
-
-        private val cache: Persistence = object : Persistence {
-            private val caffeineCache: Cache<String, String> = Caffeine.newBuilder()
-                .maximumSize(1000L)
-                .expireAfterWrite(Duration.ofHours(24))
-                .build()
-
-            override fun lagre(key: String, value: String) {
-                caffeineCache.put(key, value)
-            }
-
-            override fun hent(key: String): String? {
-                return caffeineCache.getIfPresent(key)
-            }
-        }
     }
 
     init {

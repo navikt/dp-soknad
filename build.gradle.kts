@@ -13,7 +13,6 @@ dependencies {
     implementation(Ktor.library("client-cio"))
     implementation(Ktor.library("client-jackson"))
 
-    implementation("com.github.ben-manes.caffeine:caffeine:3.0.5")
     implementation("io.lettuce:lettuce-core:6.1.6.RELEASE")
 
     testImplementation(Ktor.ktorTest)
