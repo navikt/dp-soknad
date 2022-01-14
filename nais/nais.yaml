@@ -78,6 +78,6 @@ spec:
         - application: dp-quizshow
   env:
     - name: REDIS_HOST
-      value: {{app}}=redis.{{namespace}}.svc.cluster.local
+      value: {{app}}-redis.{{namespace}}.svc.cluster.local
   envFrom:
     - secret: {{app}}-redis-secret
