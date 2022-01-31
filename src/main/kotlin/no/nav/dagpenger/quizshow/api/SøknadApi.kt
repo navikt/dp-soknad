@@ -22,6 +22,8 @@ import io.ktor.response.respond
 import io.ktor.routing.routing
 import mu.KotlinLogging
 import no.nav.dagpenger.quizshow.api.Configuration.appName
+import no.nav.dagpenger.quizshow.api.personalia.personalia
+import no.nav.dagpenger.quizshow.api.søknad.api
 import org.slf4j.event.Level
 
 private val logger = KotlinLogging.logger {}
@@ -87,6 +89,7 @@ internal fun Application.søknadApi(
     routing {
         authenticate {
             api(logger, store)
+            personalia()
         }
     }
 }

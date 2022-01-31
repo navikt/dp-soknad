@@ -1,6 +1,7 @@
-package no.nav.dagpenger.quizshow.api
+package no.nav.dagpenger.quizshow.api.søknad
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import no.nav.dagpenger.quizshow.api.Mediator
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue

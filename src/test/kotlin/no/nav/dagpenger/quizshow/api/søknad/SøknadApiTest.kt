@@ -1,4 +1,4 @@
-package no.nav.dagpenger.quizshow.api
+package no.nav.dagpenger.quizshow.api.søknad
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.http.ContentType
@@ -10,6 +10,9 @@ import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.dagpenger.quizshow.api.Configuration
+import no.nav.dagpenger.quizshow.api.SøknadStore
+import no.nav.dagpenger.quizshow.api.TestApplication
 import no.nav.dagpenger.quizshow.api.TestApplication.autentisert
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull

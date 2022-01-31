@@ -1,6 +1,7 @@
-package no.nav.dagpenger.quizshow.api
+package no.nav.dagpenger.quizshow.api.søknad
 
 import io.lettuce.core.RedisClient
+import no.nav.dagpenger.quizshow.api.Persistence
 
 class RedisPersistence(redisHost: String, redisPassword: String) : Persistence {
     private val redisConnection = RedisClient.create("redis://$redisPassword@$redisHost").connect()

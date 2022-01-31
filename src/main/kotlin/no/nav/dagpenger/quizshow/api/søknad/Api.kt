@@ -1,4 +1,4 @@
-package no.nav.dagpenger.quizshow.api
+package no.nav.dagpenger.quizshow.api.søknad
 
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
@@ -20,6 +20,8 @@ import io.ktor.routing.route
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.delay
 import mu.KLogger
+import no.nav.dagpenger.quizshow.api.Configuration
+import no.nav.dagpenger.quizshow.api.SøknadStore
 import no.nav.helse.rapids_rivers.JsonMessage
 import java.time.LocalDateTime
 import java.util.UUID
@@ -50,7 +52,7 @@ internal fun Route.api(logger: KLogger, store: SøknadStore) {
             input.valider()
 
             val faktumSvar = FaktumSvar(
-                søknadUuid = java.util.UUID.fromString(id),
+                søknadUuid = UUID.fromString(id),
                 faktumId = faktumId,
                 clazz = input.type,
                 svar = input.svar

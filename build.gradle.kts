@@ -6,12 +6,12 @@ plugins {
 }
 
 dependencies {
-    implementation(Ktor.library("websockets"))
     implementation(Ktor.library("jackson"))
     implementation(Ktor.library("auth"))
     implementation(Ktor.library("auth-jwt"))
     implementation(Ktor.library("client-cio"))
     implementation(Ktor.library("client-jackson"))
+    implementation("com.github.navikt:dp-biblioteker:refactor~pdl-SNAPSHOT")
 
     implementation("io.lettuce:lettuce-core:6.1.6.RELEASE")
 

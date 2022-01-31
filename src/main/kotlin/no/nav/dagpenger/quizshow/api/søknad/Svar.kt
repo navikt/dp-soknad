@@ -1,4 +1,4 @@
-package no.nav.dagpenger.quizshow.api
+package no.nav.dagpenger.quizshow.api.søknad
 
 data class Svar(val type: String, val svar: Any) {
     fun valider() {

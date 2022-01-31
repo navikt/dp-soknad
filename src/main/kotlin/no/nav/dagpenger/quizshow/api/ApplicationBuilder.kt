@@ -1,5 +1,6 @@
 package no.nav.dagpenger.quizshow.api
 
+import no.nav.dagpenger.quizshow.api.søknad.RedisPersistence
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 
@@ -8,7 +9,6 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     private val rapidsConnection = RapidApplication.Builder(
         RapidApplication.RapidApplicationConfig.fromEnv(config)
     ).withKtorModule {
-        søknadWebsocketApi(::subscribe)
         if (System.getenv()["NAIS_CLUSTER_NAME"] == "dev-gcp") {
             søknadApi(AuthFactory.jwkProvider, AuthFactory.issuer, AuthFactory.clientId, store())
         }

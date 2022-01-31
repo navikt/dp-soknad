@@ -2,6 +2,8 @@ package no.nav.dagpenger.quizshow.api
 
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
+import no.nav.dagpenger.quizshow.api.søknad.FaktumSvar
+import no.nav.dagpenger.quizshow.api.søknad.NySøknadMelding
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
