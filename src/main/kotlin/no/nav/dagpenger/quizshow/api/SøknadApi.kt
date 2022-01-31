@@ -6,7 +6,6 @@ import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.Authentication
 import io.ktor.auth.authenticate
-import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.auth.jwt.jwt
 import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
@@ -22,6 +21,7 @@ import io.ktor.response.respond
 import io.ktor.routing.routing
 import mu.KotlinLogging
 import no.nav.dagpenger.quizshow.api.Configuration.appName
+import no.nav.dagpenger.quizshow.api.auth.validator
 import no.nav.dagpenger.quizshow.api.personalia.personalia
 import no.nav.dagpenger.quizshow.api.søknad.api
 import org.slf4j.event.Level
@@ -78,10 +78,7 @@ internal fun Application.søknadApi(
             }
             realm = appName
             validate { credentials ->
-                requireNotNull(credentials.payload.claims["pid"] ?: credentials.payload.claims["sub"]) {
-                    "Token må inneholde fødselsnummer for personen"
-                }
-                JWTPrincipal(credentials.payload)
+                validator(credentials)
             }
         }
     }

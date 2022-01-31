@@ -9,6 +9,7 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import io.mockk.mockk
+import no.nav.dagpenger.quizshow.api.auth.AuthFactory
 import no.nav.security.mock.oauth2.MockOAuth2Server
 
 object TestApplication {

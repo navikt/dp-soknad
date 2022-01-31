@@ -22,6 +22,7 @@ import kotlinx.coroutines.delay
 import mu.KLogger
 import no.nav.dagpenger.quizshow.api.Configuration
 import no.nav.dagpenger.quizshow.api.SøknadStore
+import no.nav.dagpenger.quizshow.api.auth.fnr
 import no.nav.helse.rapids_rivers.JsonMessage
 import java.time.LocalDateTime
 import java.util.UUID
@@ -80,8 +81,6 @@ internal data class NySøknadMelding(val fødselsnummer: String) {
         )
     ).toJson()
 }
-
-private val JWTPrincipal.fnr get() = (this.payload.claims["pid"] ?: this.payload.claims["sub"])!!.asString()
 
 private suspend fun hentFakta(
     store: SøknadStore,

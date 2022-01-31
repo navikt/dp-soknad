@@ -1,5 +1,6 @@
 package no.nav.dagpenger.quizshow.api
 
+import no.nav.dagpenger.quizshow.api.auth.AuthFactory
 import no.nav.dagpenger.quizshow.api.søknad.RedisPersistence
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
