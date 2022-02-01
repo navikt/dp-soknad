@@ -7,10 +7,12 @@ plugins {
 
 dependencies {
     implementation(Ktor.library("jackson"))
+    implementation(Jackson.jsr310)
     implementation(Ktor.library("auth"))
     implementation(Ktor.library("auth-jwt"))
     implementation(Ktor.library("client-cio"))
     implementation(Ktor.library("client-jackson"))
+    implementation("com.github.navikt.dp-biblioteker:pdl-klient:bb6d8cc6fb")
 
     implementation("io.lettuce:lettuce-core:6.1.6.RELEASE")
 

@@ -8,8 +8,10 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
+import io.mockk.MockKSettings.relaxed
 import io.mockk.mockk
 import no.nav.dagpenger.quizshow.api.auth.AuthFactory
+import no.nav.dagpenger.quizshow.api.personalia.PersonOppslag
 import no.nav.security.mock.oauth2.MockOAuth2Server
 
 object TestApplication {
@@ -31,7 +33,8 @@ object TestApplication {
     }
 
     internal fun mockedSøknadApi(
-        store: SøknadStore = mockk(relaxed = true)
+        store: SøknadStore = mockk(relaxed = true),
+        personOppslag: PersonOppslag = mockk(relaxed = true)
     ): Application.() -> Unit {
 
         return fun Application.() {
@@ -39,7 +42,8 @@ object TestApplication {
                 jwkProvider = AuthFactory.jwkProvider,
                 issuer = AuthFactory.issuer,
                 clientId = AuthFactory.clientId,
-                store = store
+                store = store,
+                personOppslag
             )
         }
     }
