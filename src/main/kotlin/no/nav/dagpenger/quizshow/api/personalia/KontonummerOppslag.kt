@@ -13,7 +13,6 @@ import io.ktor.client.request.header
 import io.ktor.client.request.request
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
-import no.nav.dagpenger.quizshow.api.Configuration.config
 import no.nav.dagpenger.quizshow.api.Configuration.dpProxyTokenProvider
 import no.nav.dagpenger.quizshow.api.Configuration.dpProxyUrl
 
@@ -38,7 +37,7 @@ internal class KontonummerOppslag(private val config: Configuration) {
 
     suspend fun hentKontonummer(fnr: String): Kontonummer {
 
-        return dpProxyClient.request("${config.dpProxyUrl}/kontonummer") {
+        return dpProxyClient.request("${config.dpProxyUrl}/proxy/v1/kontonummer") {
             method = HttpMethod.Put
             header(HttpHeaders.Authorization, "Bearer ${tokenProvider.getAccessToken()}")
             header(HttpHeaders.ContentType, "application/json")
