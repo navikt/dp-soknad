@@ -13,12 +13,14 @@ import io.ktor.client.request.header
 import io.ktor.client.request.request
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import no.nav.dagpenger.quizshow.api.Configuration.dpProxyScope
 import no.nav.dagpenger.quizshow.api.Configuration.dpProxyTokenProvider
 import no.nav.dagpenger.quizshow.api.Configuration.dpProxyUrl
 
 internal class KontonummerOppslag(private val config: Configuration) {
 
     private val tokenProvider = config.dpProxyTokenProvider
+    private val dpProxyScope = config.dpProxyScope
 
     private val dpProxyClient = HttpClient() {
 
@@ -39,7 +41,7 @@ internal class KontonummerOppslag(private val config: Configuration) {
 
         return dpProxyClient.request("${config.dpProxyUrl}/proxy/v1/kontonummer") {
             method = HttpMethod.Post
-            header(HttpHeaders.Authorization, "Bearer ${tokenProvider.getAccessToken()}")
+            header(HttpHeaders.Authorization, "Bearer ${tokenProvider.clientCredentials(dpProxyScope)}")
             header(HttpHeaders.ContentType, "application/json")
             header(HttpHeaders.Accept, "application/json")
             body = mapOf("fnr" to fnr)

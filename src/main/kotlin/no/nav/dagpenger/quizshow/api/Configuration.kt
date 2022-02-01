@@ -7,7 +7,8 @@ import com.natpryce.konfig.EnvironmentVariables
 import com.natpryce.konfig.Key
 import com.natpryce.konfig.overriding
 import com.natpryce.konfig.stringType
-import no.nav.dagpenger.aad.api.ClientCredentialsClient
+import no.nav.dagpenger.oauth2.CachedOauth2Client
+import no.nav.dagpenger.oauth2.OAuth2Config
 
 internal object Configuration {
 
@@ -21,7 +22,8 @@ internal object Configuration {
             "KAFKA_RESET_POLICY" to "latest",
         )
     )
-    val properties = ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding defaultProperties
+    val properties =
+        ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding defaultProperties
 
     val config: Map<String, String> = properties.list().reversed().fold(emptyMap()) { map, pair ->
         map + pair.second
@@ -30,12 +32,13 @@ internal object Configuration {
     val basePath = "/arbeid/dagpenger/soknadapi"
 
     val Configuration.dpProxyUrl by lazy { properties[Key("DP_PROXY_URL", stringType)] }
+    val Configuration.dpProxyScope by lazy { properties[Key("DP_PROXY_SCOPE", stringType)] }
 
     val Configuration.dpProxyTokenProvider by lazy {
-        ClientCredentialsClient(properties) {
-            scope {
-                add(properties[Key("DP_PROXY_SCOPE", stringType)])
-            }
-        }
+        val azureAd = OAuth2Config.AzureAd(properties)
+        CachedOauth2Client(
+            tokenEndpointUrl = azureAd.tokenEndpointUrl,
+            authType = azureAd.clientSecret(),
+        )
     }
 }
