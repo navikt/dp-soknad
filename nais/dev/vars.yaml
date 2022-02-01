@@ -3,6 +3,8 @@ namespace: teamdagpenger
 team: teamdagpenger
 alerts_slack_channel: "#team-dagpenger-alert-non-prod"
 kafka_pool: nav-dev
+dp_proxy_scope: api://dev-fss.teamdagpenger.dp-proxy/.default
+dp_proxy_url: https://dp-proxy.dev-fss-pub.nais.io
 ingresses: |
   ingresses:
     - https://arbeid.dev.nav.no/arbeid/dagpenger/soknadapi

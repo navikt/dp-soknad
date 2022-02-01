@@ -1,9 +1,13 @@
 package no.nav.dagpenger.quizshow.api
 
+import com.natpryce.konfig.Configuration
 import com.natpryce.konfig.ConfigurationMap
 import com.natpryce.konfig.ConfigurationProperties
 import com.natpryce.konfig.EnvironmentVariables
+import com.natpryce.konfig.Key
 import com.natpryce.konfig.overriding
+import com.natpryce.konfig.stringType
+import no.nav.dagpenger.aad.api.ClientCredentialsClient
 
 internal object Configuration {
 
@@ -24,4 +28,12 @@ internal object Configuration {
     }
 
     val basePath = "/arbeid/dagpenger/soknadapi"
+
+    val Configuration.dpProxyTokenProvider by lazy {
+        ClientCredentialsClient(properties) {
+            scope {
+                add(properties[Key("DP_PROXY_SCOPE", stringType)])
+            }
+        }
+    }
 }

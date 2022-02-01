@@ -2,4 +2,6 @@ app: dp-quizshow-api
 namespace: teamdagpenger
 team: teamdagpenger
 alerts_slack_channel: "#team-dagpenger-alert"
+dp_proxy_scope: api://prod-fss.teamdagpenger.dp-proxy/.default
+dp_proxy_url: https://dp-proxy.prod-fss-pub.nais.io
 kafka_pool: nav-prod

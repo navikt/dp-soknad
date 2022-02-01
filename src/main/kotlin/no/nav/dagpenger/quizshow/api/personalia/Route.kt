@@ -10,12 +10,19 @@ import io.ktor.routing.route
 import no.nav.dagpenger.quizshow.api.Configuration
 import no.nav.dagpenger.quizshow.api.auth.fnr
 
-internal fun Route.personalia(personOppslag: PersonOppslag) {
+internal fun Route.personalia(personOppslag: PersonOppslag, kontonummerOppslag: KontonummerOppslag) {
     route("${Configuration.basePath}/personalia") {
         get {
             val fnr = call.authentication.principal<JWTPrincipal>()?.fnr
                 ?: throw IllegalArgumentException() // todo better exception
             call.respond(personOppslag.hentPerson(fnr))
+        }
+    }
+    route("${Configuration.basePath}/personalia/kontonummer") {
+        get {
+            val fnr = call.authentication.principal<JWTPrincipal>()?.fnr
+                ?: throw IllegalArgumentException() // todo better exception
+            call.respond(kontonummerOppslag.hentKontonummer(fnr))
         }
     }
 }

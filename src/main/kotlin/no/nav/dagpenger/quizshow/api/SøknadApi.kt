@@ -23,6 +23,7 @@ import io.ktor.routing.routing
 import mu.KotlinLogging
 import no.nav.dagpenger.quizshow.api.Configuration.appName
 import no.nav.dagpenger.quizshow.api.auth.validator
+import no.nav.dagpenger.quizshow.api.personalia.KontonummerOppslag
 import no.nav.dagpenger.quizshow.api.personalia.PersonOppslag
 import no.nav.dagpenger.quizshow.api.personalia.personalia
 import no.nav.dagpenger.quizshow.api.serder.objectMapper
@@ -36,7 +37,8 @@ internal fun Application.søknadApi(
     issuer: String,
     clientId: String,
     store: SøknadStore,
-    personOppslag: PersonOppslag
+    personOppslag: PersonOppslag,
+    kontonummerOppslag: KontonummerOppslag
 ) {
 
     install(CallLogging) {
@@ -90,7 +92,7 @@ internal fun Application.søknadApi(
     routing {
         authenticate {
             api(logger, store)
-            personalia(personOppslag)
+            personalia(personOppslag, kontonummerOppslag)
         }
     }
 }
