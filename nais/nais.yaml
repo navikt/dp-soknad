@@ -31,12 +31,6 @@ spec:
         - application: {{app}}
   envFrom:
     - secret: {{app}}-redis-secret
-  env:
-    - name: DP_PROXY_SCOPE
-      value: {{dp_proxy_scope}}
-    - name: DP_PROXY_URL
-      value: {{dp_proxy_url}}
-
 ---
 
 apiVersion: nais.io/v1alpha1
@@ -77,6 +71,9 @@ spec:
   {{ ingresses }}
   tokenx:
     enabled: true
+  azure:
+    application:
+      enabled: true
   accessPolicy:
     inbound:
       rules:
@@ -87,5 +84,9 @@ spec:
   env:
     - name: REDIS_HOST
       value: {{app}}-redis.{{namespace}}.svc.cluster.local
+    - name: DP_PROXY_SCOPE
+      value: {{dp_proxy_scope}}
+    - name: DP_PROXY_URL
+      value: {{dp_proxy_url}}
   envFrom:
     - secret: {{app}}-redis-secret
