@@ -38,7 +38,7 @@ internal class KontonummerOppslag(private val config: Configuration) {
     suspend fun hentKontonummer(fnr: String): Kontonummer {
 
         return dpProxyClient.request("${config.dpProxyUrl}/proxy/v1/kontonummer") {
-            method = HttpMethod.Put
+            method = HttpMethod.Post
             header(HttpHeaders.Authorization, "Bearer ${tokenProvider.getAccessToken()}")
             header(HttpHeaders.ContentType, "application/json")
             header(HttpHeaders.Accept, "application/json")
