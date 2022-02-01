@@ -29,6 +29,8 @@ internal object Configuration {
 
     val basePath = "/arbeid/dagpenger/soknadapi"
 
+    val Configuration.dpProxyUrl by lazy { properties[Key("DP_PROXY_URL", stringType)] }
+
     val Configuration.dpProxyTokenProvider by lazy {
         ClientCredentialsClient(properties) {
             scope {
