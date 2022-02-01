@@ -43,6 +43,7 @@ internal fun Application.søknadApi(
 
     install(CallLogging) {
         level = Level.DEBUG
+        disableDefaultColors()
         filter { call ->
             !setOf(
                 "isalive",
