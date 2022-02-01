@@ -75,7 +75,7 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: dp-quizshow
+        - application: dp-dagpengersoknad-frontend
     outbound:
       rules:
         - application: {{app}}-redis
