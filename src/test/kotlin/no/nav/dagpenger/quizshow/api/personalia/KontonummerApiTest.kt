@@ -32,7 +32,7 @@ internal class KontonummerApiTest {
     @Test
     fun `Hent kontonummer for autentiserte kall`() {
         val mockKontonummerOppslag = mockk<KontonummerOppslag>().also {
-            coEvery { it.hentKontonummer() } returns Kontonummer("12234241211", "TUR", "SWE")
+            coEvery { it.hentKontonummer(TestApplication.defaultDummyFodselsnummer) } returns Kontonummer("12234241211", "TUR", "SWE")
         }
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -48,7 +48,7 @@ internal class KontonummerApiTest {
                     this.response.contentType().contentType
                 )
                 assertEquals("""{"kontonummer":"12234241211","banknavn":"TUR","landkode":"SWE"}""", this.response.content!!)
-                coVerify(exactly = 1) { mockKontonummerOppslag.hentKontonummer() }
+                coVerify(exactly = 1) { mockKontonummerOppslag.hentKontonummer(TestApplication.defaultDummyFodselsnummer) }
             }
         }
     }
@@ -60,7 +60,7 @@ internal class KontonummerApiTest {
             every { it.status } returns HttpStatusCode.NotFound
         }
         val mockKontonummerOppslag = mockk<KontonummerOppslag>().also {
-            coEvery { it.hentKontonummer() } throws ClientRequestException(
+            coEvery { it.hentKontonummer(TestApplication.defaultDummyFodselsnummer) } throws ClientRequestException(
                 mockResponse,
                 "FEil"
             )
@@ -79,7 +79,7 @@ internal class KontonummerApiTest {
                     this.response.contentType().contentType
                 )
                 assertEquals("""{"type":"urn:oppslag:kontonummer","title":"Feil ved uthenting av kontonummer","status":404,"detail":"Client request(Url(child^3 of #1#5#6#7)) invalid: 404 Not Found. Text: \"FEil\"","instance":"/arbeid/dagpenger/soknadapi/personalia/kontonummer"}""", this.response.content!!)
-                coVerify(exactly = 1) { mockKontonummerOppslag.hentKontonummer() }
+                coVerify(exactly = 1) { mockKontonummerOppslag.hentKontonummer(TestApplication.defaultDummyFodselsnummer) }
             }
         }
     }
