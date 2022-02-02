@@ -25,9 +25,7 @@ internal fun Route.personalia(personOppslag: PersonOppslag, kontonummerOppslag: 
     route("${Configuration.basePath}/personalia/kontonummer") {
         get {
             try {
-                val fnr = call.authentication.principal<JWTPrincipal>()?.fnr
-                    ?: throw IllegalArgumentException("Mangler pid eller sub i claim")
-                call.respond(kontonummerOppslag.hentKontonummer(fnr))
+                call.respond(kontonummerOppslag.hentKontonummer())
             } catch (e: ResponseException) {
                 call.respond(
                     e.response.status,
