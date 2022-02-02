@@ -41,7 +41,7 @@ internal class KontonummerOppslag(private val config: Configuration) {
 
         return dpProxyClient.request("${config.dpProxyUrl}/proxy/v1/kontonummer") {
             method = HttpMethod.Post
-            header(HttpHeaders.Authorization, "Bearer ${tokenProvider.clientCredentials(dpProxyScope)}")
+            header(HttpHeaders.Authorization, "Bearer ${tokenProvider.clientCredentials(dpProxyScope).accessToken}")
             header(HttpHeaders.ContentType, "application/json")
             header(HttpHeaders.Accept, "application/json")
             body = mapOf("fnr" to fnr)
