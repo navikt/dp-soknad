@@ -15,7 +15,7 @@ internal class PersonOppslag {
         )
         return Person(
             forNavn = "forNavn",
-            mellonNavn = "mellonNavn",
+            mellomNavn = "mellonNavn",
             etterNavn = "etterNavn",
             fødselsDato = LocalDate.of(2000, 5, 1),
             postAdresse = adresse,

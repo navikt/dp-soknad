@@ -4,7 +4,7 @@ import java.time.LocalDate
 
 data class Person(
     val forNavn: String = "",
-    val mellonNavn: String = "",
+    val mellomNavn: String = "",
     val etterNavn: String = "",
     val fødselsDato: LocalDate,
     val postAdresse: Adresse?,

@@ -1,6 +1,5 @@
 package no.nav.dagpenger.quizshow.api.personalia
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -64,7 +63,7 @@ internal class PersonaliaApiTest {
             )
             return Person(
                 forNavn = "forNavn",
-                mellonNavn = "mellonNavn",
+                mellomNavn = "mellonNavn",
                 etterNavn = "etterNavn",
                 fødselsDato = LocalDate.of(2000, 5, 1),
                 postAdresse = adresse,
