@@ -62,12 +62,14 @@ internal fun Application.søknadApi(
             )
         }
         exception<IllegalArgumentException> { cause ->
+            logger.warn(cause) { "Kunne ikke håndtere API kall - Klient feil" }
             call.respond(
                 BadRequest,
                 HttpProblem(title = "Klient feil", status = 400, detail = cause.message)
             )
         }
         exception<NotFoundException> { cause ->
+            logger.info(cause) { "Kunne ikke håndtere API kall - Ikke funnet" }
             call.respond(
                 NotFound,
                 HttpProblem(title = "Ikke funnet", status = 404, detail = cause.message)
