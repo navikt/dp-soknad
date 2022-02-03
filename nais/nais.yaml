@@ -77,7 +77,7 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: dp-dagpengersoknad-frontend
+        - application: dp-soknad
     outbound:
       rules:
         - application: {{app}}-redis
