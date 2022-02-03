@@ -77,7 +77,7 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: dp-soknad
+        - application: dp-soknadsdialog
     outbound:
       rules:
         - application: {{app}}-redis
