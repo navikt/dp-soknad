@@ -1,45 +1,53 @@
 package no.nav.dagpenger.quizshow.api.personalia
 
 import io.ktor.application.call
+import io.ktor.application.install
 import io.ktor.auth.authentication
 import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.client.features.ResponseException
+import io.ktor.features.StatusPages
 import io.ktor.request.uri
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.route
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
 import no.nav.dagpenger.quizshow.api.Configuration
 import no.nav.dagpenger.quizshow.api.HttpProblem
 import no.nav.dagpenger.quizshow.api.auth.fnr
 import java.net.URI
 
 internal fun Route.personalia(personOppslag: PersonOppslag, kontonummerOppslag: KontonummerOppslag) {
+
+    this.install(StatusPages) {
+        exception<ResponseException> { error ->
+            call.respond(
+                error.response.status,
+                HttpProblem(
+                    type = URI("urn:oppslag:personalia"),
+                    title = "Feil ved uthenting av personalia",
+                    detail = error.message,
+                    status = error.response.status.value,
+                    instance = URI(call.request.uri)
+                )
+            )
+        }
+    }
+
     route("${Configuration.basePath}/personalia") {
         get {
             val fnr = call.authentication.principal<JWTPrincipal>()?.fnr
                 ?: throw IllegalArgumentException("Mangler pid eller sub i claim") // todo better exception
-            call.respond(personOppslag.hentPerson(fnr))
-        }
-    }
-    route("${Configuration.basePath}/personalia/kontonummer") {
-        get {
-            try {
-                val fnr = call.authentication.principal<JWTPrincipal>()?.fnr
-                    ?: throw IllegalArgumentException("Mangler pid eller sub i claim")
-                call.respond(kontonummerOppslag.hentKontonummer(fnr))
-            } catch (e: ResponseException) {
-                call.respond(
-                    e.response.status,
-                    HttpProblem(
-                        type = URI("urn:oppslag:kontonummer"),
-                        title = "Feil ved uthenting av kontonummer",
-                        detail = e.message,
-                        status = e.response.status.value,
-                        instance = URI(call.request.uri)
-                    )
-                )
+            val personalia = withContext(Dispatchers.IO) {
+                val person = async { personOppslag.hentPerson(fnr) }
+                val kontonummer = async { kontonummerOppslag.hentKontonummer(fnr) }
+                Personalia(person.await(), kontonummer.await())
             }
+            call.respond(personalia)
         }
     }
 }
+
+data class Personalia(val person: Person, val kontonummer: Kontonummer)
