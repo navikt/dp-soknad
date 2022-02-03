@@ -48,5 +48,3 @@ internal class KontonummerOppslag(private val config: Configuration) {
         }
     }
 }
-
-data class Kontonummer(val kontonummer: String, val banknavn: String?, val landkode: String?)

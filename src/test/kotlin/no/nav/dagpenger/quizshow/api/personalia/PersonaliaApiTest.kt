@@ -50,7 +50,7 @@ internal class PersonaliaApiTest {
             ).apply {
                 assertEquals(HttpStatusCode.OK, this.response.status())
                 assertEquals(ContentType.Application.Json.contentType, this.response.contentType().contentType)
-                assertEquals(testPersonalia, objectMapper.readValue(this.response.content!!, Personalia::class.java))
+                assertEquals(forventetPersonalia, this.response.content!!)
                 coVerify(exactly = 1) { mockPersonOppslag.hentPerson(TestApplication.defaultDummyFodselsnummer) }
             }
         }
@@ -89,7 +89,10 @@ internal class PersonaliaApiTest {
         }
     }
 
-    private val testPersonalia = Personalia(testPerson, testKontonummer)
+    private val forventetPersonalia: String
+        get() {
+            return objectMapper.writeValueAsString(Personalia(testPerson, testKontonummer))
+        }
 
     private val testPerson: Person
         get() {

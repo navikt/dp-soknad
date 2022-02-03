@@ -49,5 +49,3 @@ internal fun Route.personalia(personOppslag: PersonOppslag, kontonummerOppslag: 
         }
     }
 }
-
-data class Personalia(val person: Person, val kontonummer: Kontonummer)
