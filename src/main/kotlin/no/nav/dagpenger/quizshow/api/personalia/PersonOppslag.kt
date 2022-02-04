@@ -1,9 +1,24 @@
 package no.nav.dagpenger.quizshow.api.personalia
 
-import java.time.LocalDate
+import io.ktor.http.HttpHeaders
+import no.nav.dagpenger.pdl.PersonOppslag
+import no.nav.dagpenger.quizshow.api.Configuration
+import no.nav.dagpenger.quizshow.api.Configuration.tokenXClient
 
-internal class PersonOppslag {
-    suspend fun hentPerson(fnr: String): Person {
+internal class PersonOppslag(
+    private val personOppslag: PersonOppslag,
+    private val tokenProvider: (token: String, audience: String) -> String = { s: String, a: String ->
+        tokenXClient.tokenExchange(s, a).accessToken
+    },
+    private val pdlAudience: String = Configuration.pdlAudience
+) {
+    suspend fun hentPerson(fnr: String, subjectToken: String): Person {
+        val person = personOppslag.hentPerson(
+            fnr,
+            mapOf(
+                HttpHeaders.Authorization to "Bearer ${tokenProvider.invoke(subjectToken, pdlAudience)}"
+            )
+        )
         val adresse = Adresse(
             adresselinje1 = "adresselinje1",
             adresselinje2 = "adresselinje2",
@@ -14,10 +29,10 @@ internal class PersonOppslag {
             postkode = "2013"
         )
         return Person(
-            forNavn = "forNavn",
-            mellomNavn = "mellonNavn",
-            etterNavn = "etterNavn",
-            fødselsDato = LocalDate.of(2000, 5, 1),
+            forNavn = person.fornavn,
+            mellomNavn = person.mellomnavn ?: "",
+            etterNavn = person.etternavn,
+            fødselsDato = person.fodselsdato,
             postAdresse = adresse,
             folkeregistrertAdresse = adresse
         )

@@ -41,4 +41,16 @@ internal object Configuration {
             authType = azureAd.clientSecret(),
         )
     }
+
+    val pdlUrl by lazy { properties[Key("PDL_API_URL", stringType)] }
+    val pdlAudience by lazy { properties[Key("PDL_AUDIENCE", stringType)] }
+    val tokenXClient by lazy {
+        val tokenX = OAuth2Config.TokenX(properties)
+        CachedOauth2Client(
+            tokenEndpointUrl = tokenX.tokenEndpointUrl,
+            authType = tokenX.privateKey()
+        )
+    }
+
+    val hubba by lazy { tokenXClient::tokenExchange }
 }

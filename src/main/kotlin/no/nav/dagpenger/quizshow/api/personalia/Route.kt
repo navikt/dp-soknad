@@ -17,6 +17,7 @@ import kotlinx.coroutines.withContext
 import no.nav.dagpenger.quizshow.api.Configuration
 import no.nav.dagpenger.quizshow.api.HttpProblem
 import no.nav.dagpenger.quizshow.api.auth.fnr
+import no.nav.dagpenger.quizshow.api.auth.jwt
 import java.net.URI
 
 internal fun Route.personalia(personOppslag: PersonOppslag, kontonummerOppslag: KontonummerOppslag) {
@@ -40,8 +41,9 @@ internal fun Route.personalia(personOppslag: PersonOppslag, kontonummerOppslag: 
         get {
             val fnr = call.authentication.principal<JWTPrincipal>()?.fnr
                 ?: throw IllegalArgumentException("Mangler pid eller sub i claim") // todo better exception
+            val jwtToken = call.request.jwt()
             val personalia = withContext(Dispatchers.IO) {
-                val person = async { personOppslag.hentPerson(fnr) }
+                val person = async { personOppslag.hentPerson(fnr, jwtToken) }
                 val kontonummer = async { kontonummerOppslag.hentKontonummer(fnr) }
                 Personalia(person.await(), kontonummer.await())
             }
