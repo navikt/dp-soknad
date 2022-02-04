@@ -14,15 +14,19 @@ import io.ktor.routing.route
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
+import mu.KotlinLogging
 import no.nav.dagpenger.quizshow.api.Configuration
 import no.nav.dagpenger.quizshow.api.HttpProblem
 import no.nav.dagpenger.quizshow.api.auth.fnr
 import java.net.URI
 
+private val logger = KotlinLogging.logger {}
+
 internal fun Route.personalia(personOppslag: PersonOppslag, kontonummerOppslag: KontonummerOppslag) {
 
     this.install(StatusPages) {
         exception<ResponseException> { error ->
+            logger.error(error) { "Feil ved uthenting av personalia" }
             call.respond(
                 error.response.status,
                 HttpProblem(
