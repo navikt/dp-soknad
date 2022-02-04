@@ -35,7 +35,7 @@ internal class PersonaliaApiTest {
     @Test
     fun `Hent personalia for autentiserte kall`() {
         val mockPersonOppslag = mockk<PersonOppslag>().also {
-            coEvery { it.hentPerson(TestApplication.defaultDummyFodselsnummer) } returns testPerson
+            coEvery { it.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) } returns testPerson
         }
         val mockKontonummerOppslag = mockk<KontonummerOppslag>().also {
             coEvery { it.hentKontonummer(TestApplication.defaultDummyFodselsnummer) } returns testKontonummer
@@ -51,7 +51,7 @@ internal class PersonaliaApiTest {
                 assertEquals(HttpStatusCode.OK, this.response.status())
                 assertEquals(ContentType.Application.Json.contentType, this.response.contentType().contentType)
                 assertEquals(forventetPersonalia, this.response.content!!)
-                coVerify(exactly = 1) { mockPersonOppslag.hentPerson(TestApplication.defaultDummyFodselsnummer) }
+                coVerify(exactly = 1) { mockPersonOppslag.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) }
             }
         }
     }
@@ -60,7 +60,7 @@ internal class PersonaliaApiTest {
     fun `Propagerer feil`() {
 
         val mockPersonOppslag = mockk<PersonOppslag>().also {
-            coEvery { it.hentPerson(TestApplication.defaultDummyFodselsnummer) } returns testPerson
+            coEvery { it.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) } returns testPerson
         }
 
         val mockResponse = mockk<io.ktor.client.statement.HttpResponse>(relaxed = true).also {
@@ -84,7 +84,7 @@ internal class PersonaliaApiTest {
                 val problem = objectMapper.readValue(this.response.content!!, HttpProblem::class.java)
                 assertEquals(HttpStatusCode.BadGateway.value, problem.status)
                 assertEquals("urn:oppslag:personalia", problem.type.toASCIIString())
-                coVerify(exactly = 1) { mockPersonOppslag.hentPerson(TestApplication.defaultDummyFodselsnummer) }
+                coVerify(exactly = 1) { mockPersonOppslag.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) }
             }
         }
     }

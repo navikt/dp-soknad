@@ -12,8 +12,8 @@ dependencies {
     implementation(Ktor.library("auth-jwt"))
     implementation(Ktor.library("client-cio"))
     implementation(Ktor.library("client-jackson"))
-    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2022.02.02-09.48.c56dc6df860b")
-    implementation("com.github.navikt.dp-biblioteker:pdl-klient:2022.02.02-09.48.c56dc6df860b")
+    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2022.02.04-11.05.2e4e6cc859f7")
+    implementation("com.github.navikt.dp-biblioteker:pdl-klient:2022.02.04-11.05.2e4e6cc859f7")
 
     implementation("io.lettuce:lettuce-core:6.1.6.RELEASE")
 
