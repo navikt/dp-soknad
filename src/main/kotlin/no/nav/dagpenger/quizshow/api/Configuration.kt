@@ -51,6 +51,4 @@ internal object Configuration {
             authType = tokenX.privateKey()
         )
     }
-
-    val hubba by lazy { tokenXClient::tokenExchange }
 }
