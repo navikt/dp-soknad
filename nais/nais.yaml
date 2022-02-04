@@ -88,5 +88,9 @@ spec:
       value: {{dp_proxy_scope}}
     - name: DP_PROXY_URL
       value: {{dp_proxy_url}}
+    - name: PDL_API_URL
+      value: {{PDL_API_URL}}
+    - name: PDL_AUDIENCE
+      value: {{PDL_AUDIENCE}}
   envFrom:
     - secret: {{app}}-redis-secret
