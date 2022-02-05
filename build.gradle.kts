@@ -14,7 +14,7 @@ dependencies {
     implementation(Ktor.library("client-jackson"))
     implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2022.02.04-11.05.2e4e6cc859f7")
     implementation("com.github.navikt.dp-biblioteker:pdl-klient:2022.02.04-11.05.2e4e6cc859f7")
-
+    implementation("com.github.navikt:pam-geography:2.15")
     implementation("io.lettuce:lettuce-core:6.1.6.RELEASE")
 
     testImplementation(Ktor.ktorTest)

@@ -100,10 +100,10 @@ internal class PersonaliaApiTest {
                 adresselinje1 = "adresselinje1",
                 adresselinje2 = "adresselinje2",
                 adresselinje3 = "adresselinje3",
-                byEllerStedsnavn = "byEllerStedsnavn",
+                postnummer = "2013",
+                poststed = "Skjetten",
                 landkode = "NOR",
-                land = "Norge",
-                postkode = "2013"
+                land = "NORGE"
             )
             return Person(
                 forNavn = "forNavn",

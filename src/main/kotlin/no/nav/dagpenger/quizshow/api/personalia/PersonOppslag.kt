@@ -3,6 +3,7 @@ package no.nav.dagpenger.quizshow.api.personalia
 import io.ktor.http.HttpHeaders
 import mu.KotlinLogging
 import no.nav.dagpenger.pdl.PersonOppslag
+import no.nav.dagpenger.pdl.adresse.AdresseVisitor
 import no.nav.dagpenger.quizshow.api.Configuration
 import no.nav.dagpenger.quizshow.api.Configuration.tokenXClient
 
@@ -21,25 +22,17 @@ internal class PersonOppslag(
             mapOf(
                 HttpHeaders.Authorization to "Bearer ${tokenProvider.invoke(subjectToken, pdlAudience)}"
             )
-        ).also {
-            logger.info { "Fikk hentet person: $it" }
-        }
-        val adresse = Adresse(
-            adresselinje1 = "adresselinje1",
-            adresselinje2 = "adresselinje2",
-            adresselinje3 = "adresselinje3",
-            byEllerStedsnavn = "byEllerStedsnavn",
-            landkode = "NOR",
-            land = "Norge",
-            postkode = "2013"
         )
+
+        val adresseMapper = AdresseMapper(AdresseVisitor(person).adresser)
+
         return Person(
             forNavn = person.fornavn,
             mellomNavn = person.mellomnavn ?: "",
             etterNavn = person.etternavn,
             fødselsDato = person.fodselsdato,
-            postAdresse = adresse,
-            folkeregistrertAdresse = adresse
+            postAdresse = adresseMapper.postAdresse,
+            folkeregistrertAdresse = adresseMapper.folkeregistertAdresse
         )
     }
 }
