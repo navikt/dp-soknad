@@ -18,6 +18,7 @@ dependencies {
     implementation("io.lettuce:lettuce-core:6.1.6.RELEASE")
 
     testImplementation(Ktor.ktorTest)
+    testImplementation(Ktor.library("client-mock"))
     testImplementation(Mockk.mockk)
     testImplementation("no.nav.security:mock-oauth2-server:0.4.1")
     testImplementation("org.testcontainers:testcontainers:${TestContainers.version}")

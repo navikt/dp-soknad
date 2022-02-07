@@ -1,6 +1,5 @@
 package no.nav.dagpenger.quizshow.api
 
-import com.natpryce.konfig.Configuration
 import com.natpryce.konfig.ConfigurationMap
 import com.natpryce.konfig.ConfigurationProperties
 import com.natpryce.konfig.EnvironmentVariables
@@ -31,10 +30,10 @@ internal object Configuration {
 
     val basePath = "/arbeid/dagpenger/soknadapi"
 
-    val Configuration.dpProxyUrl by lazy { properties[Key("DP_PROXY_URL", stringType)] }
-    val Configuration.dpProxyScope by lazy { properties[Key("DP_PROXY_SCOPE", stringType)] }
+    val dpProxyUrl by lazy { properties[Key("DP_PROXY_URL", stringType)] }
+    val dpProxyScope by lazy { properties[Key("DP_PROXY_SCOPE", stringType)] }
 
-    val Configuration.dpProxyTokenProvider by lazy {
+    val dpProxyTokenProvider by lazy {
         val azureAd = OAuth2Config.AzureAd(properties)
         CachedOauth2Client(
             tokenEndpointUrl = azureAd.tokenEndpointUrl,
