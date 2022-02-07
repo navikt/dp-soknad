@@ -20,10 +20,15 @@ import no.nav.dagpenger.quizshow.api.HttpProblem
 import no.nav.dagpenger.quizshow.api.auth.fnr
 import no.nav.dagpenger.quizshow.api.auth.jwt
 import java.net.URI
+import kotlin.coroutines.CoroutineContext
 
 private val logger = KotlinLogging.logger {}
 
-internal fun Route.personalia(personOppslag: PersonOppslag, kontonummerOppslag: KontonummerOppslag) {
+internal fun Route.personalia(
+    personOppslag: PersonOppslag,
+    kontonummerOppslag: KontonummerOppslag,
+    coroutineContext: CoroutineContext = Dispatchers.IO
+) {
 
     this.install(StatusPages) {
         exception<ResponseException> { error ->
@@ -46,9 +51,9 @@ internal fun Route.personalia(personOppslag: PersonOppslag, kontonummerOppslag: 
             val fnr = call.authentication.principal<JWTPrincipal>()?.fnr
                 ?: throw IllegalArgumentException("Mangler pid eller sub i claim") // todo better exception
             val jwtToken = call.request.jwt()
-            val personalia = withContext(Dispatchers.IO) {
-                val person = async { personOppslag.hentPerson(fnr, jwtToken) }
+            val personalia = withContext(coroutineContext) {
                 val kontonummer = async { kontonummerOppslag.hentKontonummer(fnr) }
+                val person = async { personOppslag.hentPerson(fnr, jwtToken) }
                 Personalia(person.await(), kontonummer.await())
             }
             call.respond(personalia)

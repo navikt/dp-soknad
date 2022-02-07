@@ -84,7 +84,7 @@ internal class PersonaliaApiTest {
                 val problem = objectMapper.readValue(this.response.content!!, HttpProblem::class.java)
                 assertEquals(HttpStatusCode.BadGateway.value, problem.status)
                 assertEquals("urn:oppslag:personalia", problem.type.toASCIIString())
-                coVerify(exactly = 1) { mockKontonummerOppslag.hentKontonummer(TestApplication.defaultDummyFodselsnummer) }
+                coVerify(exactly = 1) { mockPersonOppslag.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) }
             }
         }
     }
