@@ -58,19 +58,19 @@ internal class PersonaliaApiTest {
 
     @Test
     fun `Propagerer feil`() {
-
-        val mockPersonOppslag = mockk<PersonOppslag>().also {
-            coEvery { it.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) } returns testPerson
-        }
-
         val mockResponse = mockk<io.ktor.client.statement.HttpResponse>(relaxed = true).also {
             every { it.status } returns HttpStatusCode.BadGateway
         }
-        val mockKontonummerOppslag = mockk<KontonummerOppslag>().also {
-            coEvery { it.hentKontonummer(TestApplication.defaultDummyFodselsnummer) } throws ClientRequestException(
+
+        val mockPersonOppslag = mockk<PersonOppslag>().also {
+            coEvery { it.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) } throws ClientRequestException(
                 mockResponse,
                 "FEil"
             )
+        }
+
+        val mockKontonummerOppslag = mockk<KontonummerOppslag>().also {
+            coEvery { it.hentKontonummer(TestApplication.defaultDummyFodselsnummer) } returns testKontonummer
         }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(personOppslag = mockPersonOppslag, kontonummerOppslag = mockKontonummerOppslag)
@@ -84,7 +84,7 @@ internal class PersonaliaApiTest {
                 val problem = objectMapper.readValue(this.response.content!!, HttpProblem::class.java)
                 assertEquals(HttpStatusCode.BadGateway.value, problem.status)
                 assertEquals("urn:oppslag:personalia", problem.type.toASCIIString())
-                coVerify(exactly = 1) { mockPersonOppslag.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) }
+                coVerify(exactly = 1) { mockKontonummerOppslag.hentKontonummer(TestApplication.defaultDummyFodselsnummer) }
             }
         }
     }

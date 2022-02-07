@@ -20,7 +20,10 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
                 clientId = AuthFactory.clientId,
                 store = store(),
                 personOppslag = PersonOppslag(createPersonOppslag(Configuration.pdlUrl)),
-                kontonummerOppslag = KontonummerOppslag(Configuration.properties)
+                kontonummerOppslag = KontonummerOppslag(
+                    dpProxyUrl = Configuration.dpProxyUrl,
+                    tokenProvider = { Configuration.dpProxyTokenProvider.clientCredentials(Configuration.dpProxyScope).accessToken },
+                )
             )
         }
     }.build()
