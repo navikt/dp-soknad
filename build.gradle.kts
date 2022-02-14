@@ -20,6 +20,7 @@ dependencies {
     testImplementation(Ktor.ktorTest)
     testImplementation(Ktor.library("client-mock"))
     testImplementation(Mockk.mockk)
+    testImplementation(Junit5.params)
     testImplementation("no.nav.security:mock-oauth2-server:0.4.1")
     testImplementation("org.testcontainers:testcontainers:${TestContainers.version}")
 }

@@ -17,6 +17,8 @@ import no.nav.dagpenger.quizshow.api.TestApplication.autentisert
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import java.util.UUID
 
 internal class SøknadApiTest {
@@ -106,6 +108,43 @@ internal class SøknadApiTest {
 
         verify(exactly = 1) { mockStore.håndter(any<FaktumSvar>()) }
     }
+
+
+
+    @ParameterizedTest
+    @CsvSource(
+        "boolean, true",
+        "dato, \"2022-01-15\"",
+        "double, 3.0",
+        "envalg, \"valg1\"",
+        """flervalg, ["valg1"]""",
+    )
+    fun `test faktum svar typer`(type: String, svar: String) {
+        val mockStore = mockk<SøknadStore>().also {
+            justRun {
+                it.håndter(any<FaktumSvar>())
+            }
+        }
+
+
+        val jsonSvar = """{"type": "$type", "svar": $svar}"""
+
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(mockStore)
+        ) {
+            autentisert(
+                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/faktum/1245",
+                httpMethod = HttpMethod.Put,
+                body = jsonSvar
+            ).apply {
+                assertEquals(HttpStatusCode.OK, this.response.status())
+                assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
+            }
+        }
+
+
+    }
+
 
     @Test
     fun `Skal avvise uautentiserte kall`() {
