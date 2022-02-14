@@ -50,13 +50,12 @@ internal fun Route.api(logger: KLogger, store: SøknadStore) {
             val faktumId = faktumId()
             val input = call.receive<Svar>()
             logger.info { "Fikk \n$input" }
-            input.valider()
 
             val faktumSvar = FaktumSvar(
                 søknadUuid = UUID.fromString(id),
                 faktumId = faktumId,
                 clazz = input.type,
-                svar = input.svar
+                svar = input.validerOgKonverter()
             )
 
             store.håndter(faktumSvar)
