@@ -48,14 +48,14 @@ internal fun Route.api(logger: KLogger, store: SøknadStore) {
         put("/{søknad_uuid}/faktum/{faktumid}") {
             val id = søknadId()
             val faktumId = faktumId()
-            val input = ApiSvar(call.receive())
+            val input = Svar(call.receive())
             logger.info { "Fikk \n$input" }
 
             val faktumSvar = FaktumSvar(
                 søknadUuid = UUID.fromString(id),
                 faktumId = faktumId,
                 clazz = input.type,
-                svar = input.svar
+                svar = input.jsonNode
             )
 
             store.håndter(faktumSvar)
@@ -89,8 +89,11 @@ private suspend fun hentFakta(
 private fun PipelineContext<Unit, ApplicationCall>.søknadId() =
     call.parameters["søknad_uuid"] ?: throw IllegalArgumentException("Må ha med id i parameter")
 
-private fun PipelineContext<Unit, ApplicationCall>.faktumId() =
-    call.parameters["faktumid"] ?: throw IllegalArgumentException("Må ha med id i parameter")
+private fun PipelineContext<Unit, ApplicationCall>.faktumId(): String {
+    val faktumId = call.parameters["faktumid"] ?: throw IllegalArgumentException("Må ha med id i parameter")
+    require(kotlin.runCatching { faktumId.toInt() }.isSuccess) { "FaktumId må være et heltall" }
+    return faktumId
+}
 
 suspend fun <T> retryIO(
     times: Int = Int.MAX_VALUE,

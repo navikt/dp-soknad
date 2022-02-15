@@ -1,7 +1,5 @@
 package no.nav.dagpenger.quizshow.api.søknad
 
-import com.fasterxml.jackson.databind.node.BooleanNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -25,7 +23,6 @@ import org.junit.jupiter.params.provider.CsvSource
 import java.util.UUID
 
 internal class SøknadApiTest {
-    private val jackson = jacksonObjectMapper()
     private val dummyUuid = UUID.randomUUID()
 
     @Test
@@ -155,86 +152,6 @@ internal class SøknadApiTest {
     }
 
     @Test
-    fun `test faktum svar med type generator`() {
-        val faktumSvar = slot<FaktumSvar>()
-        val mockStore = mockk<SøknadStore>().also {
-            justRun { it.håndter(capture(faktumSvar)) }
-        }
-        TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi(mockStore)
-        ) {
-            autentisert(
-                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/faktum/10",
-                httpMethod = HttpMethod.Put,
-                body = generatorSvar
-            ).apply {
-                assertEquals(HttpStatusCode.OK, this.response.status())
-                assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
-            }
-        }
-
-        val svarSomJson = objectMapper.readTree(faktumSvar.captured.toJson())
-        val fakta = svarSomJson["fakta"]
-        val førsteFaktasvar = fakta[0]
-
-        assertEquals("10", førsteFaktasvar["id"].asText())
-        assertEquals("generator", førsteFaktasvar["clazz"].asText())
-        val person1Navn = førsteFaktasvar["svar"][0][0]
-
-        assertEquals("11", person1Navn["id"].asText())
-        assertEquals("Ola Nordmann", person1Navn["svar"].asText())
-        assertEquals("tekst", person1Navn["type"].asText())
-
-        val person1Dato = førsteFaktasvar["svar"][0][1]
-        assertEquals("12", person1Dato["id"].asText())
-        assertEquals("2010-01-08", person1Dato["svar"].asText())
-        assertEquals("localdate", person1Dato["type"].asText())
-
-        val person2Navn = førsteFaktasvar["svar"][1][0]
-        assertEquals("11", person2Navn["id"].asText())
-        assertEquals("Kari Nordmann", person2Navn["svar"].asText())
-        assertEquals("tekst", person2Navn["type"].asText())
-
-        val person2Dato = førsteFaktasvar["svar"][1][1]
-        assertEquals("12", person2Dato["id"].asText())
-        assertEquals("2015-04-16", person2Dato["svar"].asText())
-        assertEquals("localdate", person2Dato["type"].asText())
-    }
-
-    // language=JSON
-    private val generatorSvar = """
-      {
-        "type": "generator",
-        "svar": [
-          [
-            {
-              "id": "11",
-              "svar": "Ola Nordmann",
-              "type": "tekst"
-            },
-            {
-              "id": "12",
-              "svar": "2010-01-08",
-              "type": "localdate"
-            }
-          ],
-          [
-            {
-              "id": "11",
-              "svar": "Kari Nordmann",
-              "type": "tekst"
-            },
-            {
-              "id": "12",
-              "svar": "2015-04-16",
-              "type": "localdate"
-            }
-          ]
-        ]
-      }
-    """.trimIndent()
-
-    @Test
     fun `Skal avvise uautentiserte kall`() {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi()
@@ -248,47 +165,14 @@ internal class SøknadApiTest {
     }
 
     @Test
-    fun `Godta svar med gyldig input for Valg`() {
-        val gyldigSvar = Svar("boolean", BooleanNode.TRUE)
-        TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi()
-        ) {
-            autentisert(
-                httpMethod = HttpMethod.Put,
-                endepunkt = "${Configuration.basePath}/soknad/$dummyUuid/faktum/456)",
-                body = jackson.writeValueAsString(gyldigSvar)
-            ).apply {
-                assertEquals(HttpStatusCode.OK, response.status())
-            }
-        }
-    }
-
-    @Test
-    fun `Avvis svar av typen Valg dersom ingen alternativer er valgt`() {
-        val ugyldigSvar = Svar("flervalg", objectMapper.createArrayNode())
-        TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi()
-        ) {
-            autentisert(
-                httpMethod = HttpMethod.Put,
-                endepunkt = "${Configuration.basePath}/soknad/$dummyUuid/faktum/456)",
-                body = jackson.writeValueAsString(ugyldigSvar)
-            ).apply {
-                assertEquals(HttpStatusCode.BadRequest, response.status())
-            }
-        }
-    }
-
-    @Test
     fun `Kommer ikke med faktum id`() {
-        val ugyldigSvar = Svar("flervalg", objectMapper.createArrayNode())
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi()
         ) {
             autentisert(
                 httpMethod = HttpMethod.Put,
                 endepunkt = "${Configuration.basePath}/soknad/$dummyUuid/faktum/",
-                body = jackson.writeValueAsString(ugyldigSvar)
+                body = """{"type":"boolean","svar":true}"""
             ).apply {
                 assertEquals(HttpStatusCode.NotFound, response.status())
             }
@@ -297,14 +181,13 @@ internal class SøknadApiTest {
 
     @Test
     fun `Kommer ikke med uglyldig faktum id`() {
-        val ugyldigSvar = Svar("flervalg", objectMapper.createArrayNode())
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi()
         ) {
             autentisert(
                 httpMethod = HttpMethod.Put,
                 endepunkt = "${Configuration.basePath}/soknad/$dummyUuid/faktum/blabla",
-                body = jackson.writeValueAsString(ugyldigSvar)
+                body = """{"type":"boolean","svar":true}"""
             ).apply {
                 assertEquals(HttpStatusCode.BadRequest, response.status())
             }

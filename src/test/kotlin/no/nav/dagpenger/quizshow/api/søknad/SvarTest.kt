@@ -1,69 +1,78 @@
 package no.nav.dagpenger.quizshow.api.søknad
 
-import com.fasterxml.jackson.databind.node.BooleanNode
-import com.fasterxml.jackson.databind.node.TextNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
-import org.junit.jupiter.api.assertThrows
-import java.time.LocalDate
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 
 class SvarTest {
 
     private val objectMapper = jacksonObjectMapper()
 
-    @Test
-    fun `Skal kunne opprette boolean type svar `() {
-        val jsonSvar = objectMapper.readTree("""{"type": "boolean", "svar": true}""")
-        val svar = ApiSvar(jsonSvar)
+    @ParameterizedTest
+    @CsvSource(
+        "boolean | true",
+        """localdate | "2022-01-15"""",
+        "double | 3.0",
+        """envalg | "valg1"""",
+        """flervalg | ["valg1"]""",
+        """int | 5""",
+        """periode | {"fom":"2022-01-15","tom":"2022-01-29"}""",
+        """tekst | "en tekst"""",
+        """land | "NOR"""",
+        delimiter = '|'
+    )
+    fun `Skal kunne opprette boolean type svar `(type: String, forventetSvar: String) {
+        val jsonSvar = objectMapper.readTree("""{"type": "$type", "svar": $forventetSvar}""")
         assertDoesNotThrow {
-            assertEquals(BooleanNode.TRUE, svar.svar)
+            val svar = Svar(jsonSvar)
+            assertEquals(type, svar.type)
+            assertEquals(forventetSvar, svar.jsonNode.toString())
         }
-        assertThrows<IllegalArgumentException> { ApiSvar(objectMapper.readTree("""{"type": "boolean", "svar": "tekst"}""")) }
     }
 
     @Test
-    fun `Skal kunne opprette flervalg type svar`() {
-        val svar = Svar("flervalg", listOf("valg1", "valg2"))
+    fun `Skal kunne opprette et generator svar`() {
+        val jsonSvar = objectMapper.readTree(generatorSvar)
         assertDoesNotThrow {
-            val forventet = objectMapper.createArrayNode()
-            forventet.add("valg1")
-            forventet.add("valg2")
-            assertEquals(forventet, svar.validerOgKonverter())
+            val svar = Svar(jsonSvar)
+            assertEquals("generator", svar.type)
+            // assertEquals(forventetSvar, svar.jsonNode.toString())
         }
-        assertThrows<IllegalArgumentException> { Svar("flervalg", emptyList<String>()).validerOgKonverter() }
     }
 
-    @Test
-    fun `Skal kunne opprette envalg type svar`() {
-        val svar = Svar("envalg", "valg1")
-        assertDoesNotThrow {
-            assertEquals(TextNode.valueOf("valg1"), svar.validerOgKonverter())
-        }
-        assertThrows<IllegalArgumentException> { Svar("envalg", emptyList<String>()).validerOgKonverter() }
-    }
-
-    @Test
-    fun `Skal kunne opprette localdate type svar`() {
-        val nå = LocalDate.now()
-        val svar = Svar("localdate", nå)
-        assertDoesNotThrow {
-            assertEquals(TextNode.valueOf(nå.toString()), svar.validerOgKonverter())
-        }
-        assertThrows<IllegalArgumentException> { Svar("localdate", "").validerOgKonverter() }
-    }
-
-    @Test
-    fun `Typen Valg er gyldig dersom det er minst ett svaralternativ`() {
-        val valgtSvar = listOf("valg1")
-        val svarMedEttValg = Svar("envalg", valgtSvar)
-        assertDoesNotThrow { svarMedEttValg.validerOgKonverter() }
-
-        val valgtFlervalgsvar = objectMapper.createArrayNode()
-        valgtFlervalgsvar.add("valg1")
-        valgtFlervalgsvar.add("valg2")
-        val svarMedFlereValg = Svar("envalg", valgtFlervalgsvar)
-        assertDoesNotThrow { svarMedFlereValg.validerOgKonverter() }
-    }
+    // language=JSON
+    private val generatorSvar = """
+      {
+        "type": "generator",
+        "svar": [
+          [
+            {
+              "id": "11",
+              "svar": "Ola Nordmann",
+              "type": "tekst"
+            },
+            {
+              "id": "12",
+              "svar": "2010-01-08",
+              "type": "localdate"
+            }
+          ],
+          [
+            {
+              "id": "11",
+              "svar": "Kari Nordmann",
+              "type": "tekst"
+            },
+            {
+              "id": "12",
+              "svar": "2015-04-16",
+              "type": "localdate"
+            }
+          ]
+        ]
+      }
+    """.trimIndent()
 }
