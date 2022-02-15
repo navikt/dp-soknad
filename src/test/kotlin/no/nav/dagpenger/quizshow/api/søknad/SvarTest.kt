@@ -1,14 +1,12 @@
 package no.nav.dagpenger.quizshow.api.søknad
 
 import com.fasterxml.jackson.databind.node.BooleanNode
-import com.fasterxml.jackson.databind.node.DecimalNode
 import com.fasterxml.jackson.databind.node.TextNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
-import java.math.BigDecimal
 import java.time.LocalDate
 
 class SvarTest {
@@ -17,11 +15,12 @@ class SvarTest {
 
     @Test
     fun `Skal kunne opprette boolean type svar `() {
-        val svar = Svar("boolean", true)
+        val jsonSvar = objectMapper.readTree("""{"type": "boolean", "svar": true}""")
+        val svar = ApiSvar(jsonSvar)
         assertDoesNotThrow {
-            assertEquals(BooleanNode.TRUE, svar.validerOgKonverter())
+            assertEquals(BooleanNode.TRUE, svar.svar)
         }
-        assertThrows<IllegalArgumentException> { Svar("boolean", DecimalNode.valueOf(BigDecimal(2.0))).validerOgKonverter() }
+        assertThrows<IllegalArgumentException> { ApiSvar(objectMapper.readTree("""{"type": "boolean", "svar": "tekst"}""")) }
     }
 
     @Test
