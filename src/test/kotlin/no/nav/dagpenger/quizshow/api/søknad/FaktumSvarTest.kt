@@ -1,5 +1,6 @@
 package no.nav.dagpenger.quizshow.api.søknad
 
+import com.fasterxml.jackson.databind.node.BooleanNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -14,7 +15,7 @@ internal class FaktumSvarTest {
             søknadUuid = UUID.randomUUID(),
             faktumId = "1",
             clazz = "localdate",
-            svar = "true"
+            svar = BooleanNode.TRUE
         ).toJson().also {
             val content = jackson.readTree(it)
             assertNotNull(content["@id"])

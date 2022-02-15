@@ -1,6 +1,5 @@
 package no.nav.dagpenger.quizshow.api.søknad
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -9,18 +8,21 @@ import io.ktor.server.testing.handleRequest
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import no.nav.dagpenger.quizshow.api.Configuration
 import no.nav.dagpenger.quizshow.api.SøknadStore
 import no.nav.dagpenger.quizshow.api.TestApplication
 import no.nav.dagpenger.quizshow.api.TestApplication.autentisert
+import no.nav.dagpenger.quizshow.api.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import java.util.UUID
 
 internal class SøknadApiTest {
-    private val jackson = jacksonObjectMapper()
     private val dummyUuid = UUID.randomUUID()
 
     @Test
@@ -107,6 +109,48 @@ internal class SøknadApiTest {
         verify(exactly = 1) { mockStore.håndter(any<FaktumSvar>()) }
     }
 
+    @ParameterizedTest
+    @CsvSource(
+        "boolean | true",
+        """localdate | "2022-01-15"""",
+        "double | 3.0",
+        """envalg | "valg1"""",
+        """flervalg | ["valg1"]""",
+        """int | 5""",
+        """periode | {"fom":"2022-01-15","tom":"2022-01-29"}""",
+        """tekst | "en tekst"""",
+        """land | "NOR"""",
+        delimiter = '|'
+    )
+    fun `test faktum svar typer`(type: String, svar: String) {
+        val faktumSvar = slot<FaktumSvar>()
+        val mockStore = mockk<SøknadStore>().also {
+            justRun { it.håndter(capture(faktumSvar)) }
+        }
+
+        val jsonSvar = """{"type": "$type", "svar": $svar}"""
+
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(mockStore)
+        ) {
+            autentisert(
+                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/faktum/1245",
+                httpMethod = HttpMethod.Put,
+                body = jsonSvar
+            ).apply {
+                assertEquals(HttpStatusCode.OK, this.response.status())
+                assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
+            }
+        }
+
+        val svarSomJson = objectMapper.readTree(faktumSvar.captured.toJson())
+        val fakta = svarSomJson["fakta"]
+        val førsteFaktasvar = fakta[0]
+        assertEquals("1245", førsteFaktasvar["id"].asText())
+        assertEquals(type, førsteFaktasvar["clazz"].asText())
+        assertEquals(svar, førsteFaktasvar["svar"].toString())
+    }
+
     @Test
     fun `Skal avvise uautentiserte kall`() {
         TestApplication.withMockAuthServerAndTestApplication(
@@ -121,101 +165,32 @@ internal class SøknadApiTest {
     }
 
     @Test
-    fun `Godta svar med gyldig input for Valg`() {
-        val gyldigSvar = Svar("boolean", true)
+    fun `Kommer ikke med faktum id`() {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi()
         ) {
             autentisert(
                 httpMethod = HttpMethod.Put,
-                endepunkt = "${Configuration.basePath}/soknad/$dummyUuid/faktum/456)",
-                body = jackson.writeValueAsString(gyldigSvar)
+                endepunkt = "${Configuration.basePath}/soknad/$dummyUuid/faktum/",
+                body = """{"type":"boolean","svar":true}"""
             ).apply {
-                assertEquals(HttpStatusCode.OK, response.status())
+                assertEquals(HttpStatusCode.NotFound, response.status())
             }
         }
     }
 
     @Test
-    fun `Avvis svar av typen Valg dersom ingen alternativer er valgt`() {
-        val ugyldigSvar = Svar("valg", emptyList<String>())
+    fun `Kommer ikke med uglyldig faktum id`() {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi()
         ) {
             autentisert(
                 httpMethod = HttpMethod.Put,
-                endepunkt = "${Configuration.basePath}/soknad/$dummyUuid/faktum/456)",
-                body = jackson.writeValueAsString(ugyldigSvar)
+                endepunkt = "${Configuration.basePath}/soknad/$dummyUuid/faktum/blabla",
+                body = """{"type":"boolean","svar":true}"""
             ).apply {
                 assertEquals(HttpStatusCode.BadRequest, response.status())
             }
         }
     }
-
-//    private fun testStore() = object : SøknadStore {
-//
-//        //language=JSON
-//        private val søkerOppgave =
-//            """
-//      {
-//        "@event_name": "søker_oppgave",
-//        "@id": "f1387052-1132-4692-be23-803817bdf214",
-//        "@opprettet": "2021-11-01T14:18:34.039275",
-//        "søknad_uuid": "d172a832-4f52-4e1f-ab5f-8be8348d9280",
-//        "seksjon_navn": "gjenopptak",
-//        "indeks": 0,
-//        "identer": [
-//          {
-//            "id": "123456789",
-//            "type": "folkeregisterident",
-//            "historisk": false
-//          }
-//        ],
-//        "fakta": [
-//          {
-//            "navn": "Har du hatt dagpenger siste 52 uker?",
-//            "id": "1",
-//            "roller": [
-//              "søker"
-//            ],
-//            "type": "boolean",
-//            "godkjenner": []
-//          }
-//        ],
-//        "subsumsjoner": [
-//          {
-//            "lokalt_resultat": null,
-//            "navn": "Sjekk at `Har du hatt dagpenger siste 52 uker med id 1` er lik true",
-//            "forklaring": "saksbehandlerforklaring",
-//            "type": "Enkel subsumsjon",
-//            "fakta": [
-//              "1"
-//            ]
-//          }
-//        ]
-//      }
-//            """.trimIndent()
-//
-//        override fun håndter(faktumSvar: FaktumSvar) {
-//            svar.add(faktumSvar)
-//        }
-//
-//        override fun håndter(nySøknadMelding: NySøknadMelding) {
-//            // TODO("Not yet implemented")
-//        }
-//
-//        override fun hentFakta(søknadUuid: String): String? {
-//            //language=JSON
-//            return """
-//                [
-//                {
-//                "id": "1.1",
-//                "beskrivendeId": "id",
-//                "type": "boolean",
-//                "svar" : true
-//                }
-//                ]
-//            """.trimIndent()
-//        }
-//    }
 }
