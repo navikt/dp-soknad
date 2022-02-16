@@ -147,7 +147,7 @@ internal class SøknadApiTest {
         val fakta = svarSomJson["fakta"]
         val førsteFaktasvar = fakta[0]
         assertEquals("1245", førsteFaktasvar["id"].asText())
-        assertEquals(type, førsteFaktasvar["clazz"].asText())
+        assertEquals(type, førsteFaktasvar["type"].asText())
         assertEquals(svar, førsteFaktasvar["svar"].toString())
     }
 

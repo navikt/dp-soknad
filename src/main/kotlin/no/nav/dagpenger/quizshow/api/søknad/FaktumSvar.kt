@@ -8,7 +8,7 @@ import java.util.UUID
 internal class FaktumSvar(
     private val søknadUuid: UUID,
     private val faktumId: String,
-    private val clazz: String,
+    private val type: String,
     private val svar: JsonNode
 ) {
 
@@ -26,7 +26,7 @@ internal class FaktumSvar(
             "fakta" to listOf(
                 mapOf(
                     "id" to faktumId,
-                    "clazz" to clazz,
+                    "type" to type,
                     "svar" to svar
                 )
             ),

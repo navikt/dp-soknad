@@ -54,7 +54,7 @@ internal fun Route.api(logger: KLogger, store: SøknadStore) {
             val faktumSvar = FaktumSvar(
                 søknadUuid = UUID.fromString(id),
                 faktumId = faktumId,
-                clazz = input.type,
+                type = input.type,
                 svar = input.jsonNode
             )
 

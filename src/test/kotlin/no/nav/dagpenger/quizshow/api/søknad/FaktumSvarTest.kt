@@ -14,7 +14,7 @@ internal class FaktumSvarTest {
         FaktumSvar(
             søknadUuid = UUID.randomUUID(),
             faktumId = "1",
-            clazz = "localdate",
+            type = "localdate",
             svar = BooleanNode.TRUE
         ).toJson().also {
             val content = jackson.readTree(it)
@@ -24,7 +24,7 @@ internal class FaktumSvarTest {
             assertEquals("faktum_svar", content["@event_name"].asText())
             assertNotNull(content["fakta"])
             assertEquals("1", content["fakta"][0]["id"].asText())
-            assertEquals("localdate", content["fakta"][0]["clazz"].asText())
+            assertEquals("localdate", content["fakta"][0]["type"].asText())
             assertEquals("true", content["fakta"][0]["svar"].asText())
         }
     }
