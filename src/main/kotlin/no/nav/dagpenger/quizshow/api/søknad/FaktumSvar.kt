@@ -19,7 +19,7 @@ internal class FaktumSvar(
     fun søknadUuid() = søknadUuid
 
     fun toJson() = JsonMessage.newMessage(
-        mutableMapOf(
+        mapOf(
             "@event_name" to navn,
             "@opprettet" to opprettet,
             "@id" to id,
