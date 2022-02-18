@@ -1,5 +1,6 @@
 package no.nav.dagpenger.quizshow.api
 
+import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.dagpenger.quizshow.api.søknad.FaktumSvar
@@ -13,7 +14,7 @@ import java.io.Closeable
 internal interface SøknadStore {
     fun håndter(faktumSvar: FaktumSvar)
     fun håndter(nySøknadMelding: NySøknadMelding)
-    fun hentFakta(søknadUuid: String): String?
+    fun hentFakta(søknadUuid: String): JsonNode?
 }
 
 interface MeldingObserver {
@@ -22,7 +23,7 @@ interface MeldingObserver {
 
 interface Persistence : Closeable {
     fun lagre(key: String, value: String)
-    fun hent(key: String): String?
+    fun hent(key: String): JsonNode?
     override fun close() {
     }
 }
@@ -59,7 +60,7 @@ internal class Mediator(private val rapidsConnection: RapidsConnection, private 
         )
     }
 
-    override fun hentFakta(søknadUuid: String): String? = persistence.hent(søknadUuid)
+    override fun hentFakta(søknadUuid: String): JsonNode? = persistence.hent(søknadUuid)
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info { "Mottat pakke ${packet["@event_name"].asText()}" }

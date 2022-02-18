@@ -1,12 +1,12 @@
 package no.nav.dagpenger.quizshow.api.søknad
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.dagpenger.quizshow.api.Mediator
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.utility.DockerImageName
 
@@ -58,11 +58,14 @@ class MediatorTest {
         """.trimIndent()
 
         testRapid.sendTestMessage(message)
-        mediator.hentFakta("123").let { ObjectMapper().readTree(it) }.also {
-            assertEquals("fakta", it["fakta"].asText())
-            assertEquals("12345678910", it["fødselsnummer"].asText())
-            assertEquals("123", it["søknad_uuid"].asText())
-            assertEquals("NySøknad", it["@event_name"].asText())
+        mediator.hentFakta("123").also {
+            assertDoesNotThrow {
+                requireNotNull(it)
+                assertEquals("fakta", it["fakta"].asText())
+                assertEquals("12345678910", it["fødselsnummer"].asText())
+                assertEquals("123", it["søknad_uuid"].asText())
+                assertEquals("NySøknad", it["@event_name"].asText())
+            }
         }
     }
 }

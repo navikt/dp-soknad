@@ -1,5 +1,6 @@
 package no.nav.dagpenger.quizshow.api.søknad
 
+import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.auth.authentication
@@ -11,6 +12,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.request.uri
 import io.ktor.response.header
+import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.Route
 import io.ktor.routing.get
@@ -42,14 +44,14 @@ internal fun Route.api(logger: KLogger, store: SøknadStore) {
         }
         get("/{søknad_uuid}/fakta") {
             val id = søknadId()
-            val fakta = hentFakta(store, id)
-            call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { fakta }
+            val søknad: JsonNode = hentFakta(store, id)
+            call.respond(HttpStatusCode.OK, søknad["fakta"])
         }
         put("/{søknad_uuid}/faktum/{faktumid}") {
             val id = søknadId()
             val faktumId = faktumId()
             val input = Svar(call.receive())
-            logger.info { "Fikk \n$input" }
+            logger.info { "Fikk \n${input.jsonNode}" }
 
             val faktumSvar = FaktumSvar(
                 søknadUuid = UUID.fromString(id),

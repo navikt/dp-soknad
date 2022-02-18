@@ -52,9 +52,10 @@ internal class SøknadApiTest {
 
     @Test
     fun `Skal hente søknad fakta`() {
-        val testJson = """{"key": "value"}"""
+        val fakta = """[{"id":"123"}]"""
+        val testJson = """{"fakta": $fakta}"""
         val mockStore = mockk<SøknadStore>().also { soknadStore ->
-            every { soknadStore.hentFakta("d172a832-4f52-4e1f-ab5f-8be8348d9280") } returns testJson
+            every { soknadStore.hentFakta("d172a832-4f52-4e1f-ab5f-8be8348d9280") } returns objectMapper.readTree(testJson)
         }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -66,7 +67,7 @@ internal class SøknadApiTest {
             ).apply {
                 assertEquals(HttpStatusCode.OK, this.response.status())
                 assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
-                assertEquals(testJson, this.response.content)
+                assertEquals(fakta, this.response.content)
             }
         }
     }

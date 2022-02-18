@@ -44,8 +44,8 @@ class Svar(json: JsonNode) {
         require(
             jsonNode is ArrayNode &&
                 kotlin.runCatching {
-                    jsonNode[0].forEach { templateFaktum ->
-                        Svar(templateFaktum)
+                    jsonNode[0].forEach { faktum ->
+                        Svar(faktum)
                     }
                 }.isSuccess
         ) { "Ikke gyldig generatorsvar $jsonNode" }
