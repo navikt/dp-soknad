@@ -17,12 +17,19 @@ dependencies {
     implementation("com.github.navikt:pam-geography:2.15")
     implementation("io.lettuce:lettuce-core:6.1.6.RELEASE")
 
+    // DB
+    implementation("org.flywaydb:flyway-core:8.5.0") // @todo update flyway in service-template
+    implementation("com.zaxxer:HikariCP:5.0.1") //  @todo update HikariCP in service-template
+    implementation("org.postgresql:postgresql:42.3.3") //  @todo update postgresql in service-template
+    implementation(Database.Kotlinquery)
+
     testImplementation(Ktor.ktorTest)
     testImplementation(Ktor.library("client-mock"))
     testImplementation(Mockk.mockk)
     testImplementation(Junit5.params)
     testImplementation("no.nav.security:mock-oauth2-server:0.4.1")
     testImplementation("org.testcontainers:testcontainers:${TestContainers.version}")
+    testImplementation(TestContainers.postgresql)
 }
 
 application {

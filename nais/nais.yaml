@@ -94,3 +94,17 @@ spec:
       value: {{PDL_AUDIENCE}}
   envFrom:
     - secret: {{app}}-redis-secret
+  gcp:
+    sqlInstances:
+      - name: dp-quizshow-api-v1
+        type: POSTGRES_14
+        tier: {{db_tier}}
+        diskType: SSD
+        highAvailability: false
+        diskSize: {{db_size}}
+        diskAutoresize: true
+        autoBackupHour: 3
+        databases:
+          - name: soknad
+            envVarPrefix: DB
+        cascadingDelete: false

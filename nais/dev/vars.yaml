@@ -10,3 +10,5 @@ PDL_AUDIENCE: dev-fss:pdl:pdl-api
 ingresses: |
   ingresses:
     - https://arbeid.dev.nav.no/arbeid/dagpenger/soknadapi
+db_tier: db-custom-1-3840
+db_size: 5
