@@ -1,6 +1,5 @@
 package no.nav.dagpenger.quizshow.api.søknad
 
-import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.auth.authentication
@@ -23,6 +22,7 @@ import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.delay
 import mu.KLogger
 import no.nav.dagpenger.quizshow.api.Configuration
+import no.nav.dagpenger.quizshow.api.Søknad
 import no.nav.dagpenger.quizshow.api.SøknadStore
 import no.nav.dagpenger.quizshow.api.auth.fnr
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -32,9 +32,8 @@ import java.util.UUID
 internal fun Route.api(logger: KLogger, store: SøknadStore) {
     route("${Configuration.basePath}/soknad") {
         post {
-            val jwtPrincipal = call.authentication.principal<JWTPrincipal>()
-            val fnr = jwtPrincipal!!.fnr
-            val nySøknadMelding = NySøknadMelding(fnr)
+            val ident = call.ident()
+            val nySøknadMelding = NySøknadMelding(ident)
             store.håndter(nySøknadMelding)
             val svar = nySøknadMelding.søknadUuid
             call.response.header(HttpHeaders.Location, "${call.request.uri}/$svar/fakta")
@@ -43,18 +42,22 @@ internal fun Route.api(logger: KLogger, store: SøknadStore) {
             }
         }
         get("/{søknad_uuid}/fakta") {
-            val id = søknadId()
-            val søknad: JsonNode = hentFakta(store, id)
-            call.respond(HttpStatusCode.OK, søknad["fakta"])
+            val id = søknadUuid()
+            val ident = ident()
+            val søknad: Søknad = hentFakta(store, id)
+            if (ident != søknad.eier()) {
+                throw IkkeTilgangExeption("Ikke tilgang til søknad")
+            }
+            call.respond(HttpStatusCode.OK, søknad.fakta())
         }
         put("/{søknad_uuid}/faktum/{faktumid}") {
-            val id = søknadId()
+            val søknadUuid = søknadUuid()
             val faktumId = faktumId()
             val input = Svar(call.receive())
             logger.info { "Fikk \n${input.jsonNode}" }
 
             val faktumSvar = FaktumSvar(
-                søknadUuid = UUID.fromString(id),
+                søknadUuid = søknadUuid,
                 faktumId = faktumId,
                 type = input.type,
                 svar = input.jsonNode
@@ -65,6 +68,8 @@ internal fun Route.api(logger: KLogger, store: SøknadStore) {
         }
     }
 }
+
+class IkkeTilgangExeption(melding: String) : RuntimeException(melding)
 
 internal data class NySøknadMelding(val fødselsnummer: String) {
     private val navn = "NySøknad"
@@ -85,11 +90,15 @@ internal data class NySøknadMelding(val fødselsnummer: String) {
 
 private suspend fun hentFakta(
     store: SøknadStore,
-    id: String
+    id: UUID
 ) = retryIO(times = 10) { store.hentFakta(id) ?: throw NotFoundException("Fant ikke søknad med id $id") }
 
-private fun PipelineContext<Unit, ApplicationCall>.søknadId() =
-    call.parameters["søknad_uuid"] ?: throw IllegalArgumentException("Må ha med id i parameter")
+private fun PipelineContext<Unit, ApplicationCall>.ident() = call.authentication.principal<JWTPrincipal>()!!.fnr
+
+private fun ApplicationCall.ident(): String = this.authentication.principal<JWTPrincipal>()!!.fnr
+
+private fun PipelineContext<Unit, ApplicationCall>.søknadUuid() =
+    call.parameters["søknad_uuid"].let { UUID.fromString(it) } ?: throw IllegalArgumentException("Må ha med id i parameter")
 
 private fun PipelineContext<Unit, ApplicationCall>.faktumId(): String {
     val faktumId = call.parameters["faktumid"] ?: throw IllegalArgumentException("Må ha med id i parameter")
