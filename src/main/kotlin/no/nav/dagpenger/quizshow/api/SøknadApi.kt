@@ -81,7 +81,7 @@ internal fun Application.søknadApi(
             logger.warn { "Kunne ikke håndtere API kall - Ikke tilgang" }
             call.respond(
                 Forbidden,
-                HttpProblem(title = "Ikke funnet", status = 403, detail = cause.message)
+                HttpProblem(title = "Ikke tilgang", status = 403, detail = cause.message)
             )
         }
     }
