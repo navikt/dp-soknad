@@ -15,7 +15,6 @@ dependencies {
     implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2022.02.05-16.32.da1deab37b31")
     implementation("com.github.navikt.dp-biblioteker:pdl-klient:2022.02.05-16.32.da1deab37b31")
     implementation("com.github.navikt:pam-geography:2.15")
-    implementation("io.lettuce:lettuce-core:6.1.6.RELEASE")
 
     // DB
     implementation("org.flywaydb:flyway-core:8.5.0") // @todo update flyway in service-template

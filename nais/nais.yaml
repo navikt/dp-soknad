@@ -1,38 +1,3 @@
----
-apiVersion: "nais.io/v1alpha1"
-kind: "Application"
-metadata:
-  labels:
-    team: {{team}}
-  annotations:
-    "nais.io/run-as-group": "0"
-    "nais.io/read-only-file-system": "false"
-  name: {{app}}-redis
-  namespace: {{namespace}}
-spec:
-  image: bitnami/redis:6.2
-  port: 6379
-  replicas: # A single Redis-app doesn't scale
-    min: 1
-    max: 1 # More replicas doesn't sync
-  resources: # you need to monitor the resource usage yourself
-    limits:
-      cpu: 100m
-      memory: 128Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
-  service:
-    port: 6379
-    protocol: redis
-  accessPolicy: # for GCP
-    inbound:
-      rules:
-        - application: {{app}}
-  envFrom:
-    - secret: {{app}}-redis-secret
----
-
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
@@ -78,12 +43,7 @@ spec:
     inbound:
       rules:
         - application: dp-soknadsdialog
-    outbound:
-      rules:
-        - application: {{app}}-redis
   env:
-    - name: REDIS_HOST
-      value: {{app}}-redis.{{namespace}}.svc.cluster.local
     - name: DP_PROXY_SCOPE
       value: {{dp_proxy_scope}}
     - name: DP_PROXY_URL
@@ -92,8 +52,6 @@ spec:
       value: {{PDL_API_URL}}
     - name: PDL_AUDIENCE
       value: {{PDL_AUDIENCE}}
-  envFrom:
-    - secret: {{app}}-redis-secret
   gcp:
     sqlInstances:
       - name: dp-quizshow-api-v1

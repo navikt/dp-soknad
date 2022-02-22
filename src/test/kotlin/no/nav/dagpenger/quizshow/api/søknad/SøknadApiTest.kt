@@ -11,9 +11,11 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import no.nav.dagpenger.quizshow.api.Configuration
+import no.nav.dagpenger.quizshow.api.Søknad
 import no.nav.dagpenger.quizshow.api.SøknadStore
 import no.nav.dagpenger.quizshow.api.TestApplication
 import no.nav.dagpenger.quizshow.api.TestApplication.autentisert
+import no.nav.dagpenger.quizshow.api.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.quizshow.api.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -52,10 +54,14 @@ internal class SøknadApiTest {
 
     @Test
     fun `Skal hente søknad fakta`() {
-        val fakta = """[{"id":"123"}]"""
-        val testJson = """{"fakta": $fakta}"""
+        // language=JSON
+        val fakta = """{"id":"blabla"}"""
+        val søknad = mockk<Søknad>().also {
+            every { it.eier() } returns defaultDummyFodselsnummer
+            every { it.fakta() } returns objectMapper.readTree(fakta)
+        }
         val mockStore = mockk<SøknadStore>().also { soknadStore ->
-            every { soknadStore.hentFakta("d172a832-4f52-4e1f-ab5f-8be8348d9280") } returns objectMapper.readTree(testJson)
+            every { soknadStore.hentFakta(UUID.fromString("d172a832-4f52-4e1f-ab5f-8be8348d9280")) } returns søknad
         }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -68,6 +74,30 @@ internal class SøknadApiTest {
                 assertEquals(HttpStatusCode.OK, this.response.status())
                 assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
                 assertEquals(fakta, this.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun `Skal avvise uautoriserte kall`() {
+        val søknad = mockk<Søknad>().also {
+            every { it.eier() } returns "en annen eier"
+            every { it.fakta() } returns objectMapper.nullNode()
+        }
+        val id = "d172a832-4f52-4e1f-ab5f-8be8348d9280"
+        val mockStore = mockk<SøknadStore>().also { soknadStore ->
+            every { soknadStore.hentFakta(UUID.fromString(id)) } returns søknad
+        }
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(
+                store = mockStore
+            )
+        ) {
+            autentisert(
+                "${Configuration.basePath}/soknad/$id/fakta",
+            ).apply {
+                assertEquals(HttpStatusCode.Forbidden, this.response.status())
+                assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
             }
         }
     }

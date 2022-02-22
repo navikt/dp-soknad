@@ -14,6 +14,7 @@ import io.ktor.features.NotFoundException
 import io.ktor.features.StatusPages
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.jackson.JacksonConverter
@@ -27,6 +28,7 @@ import no.nav.dagpenger.quizshow.api.personalia.KontonummerOppslag
 import no.nav.dagpenger.quizshow.api.personalia.PersonOppslag
 import no.nav.dagpenger.quizshow.api.personalia.personalia
 import no.nav.dagpenger.quizshow.api.serder.objectMapper
+import no.nav.dagpenger.quizshow.api.søknad.IkkeTilgangExeption
 import no.nav.dagpenger.quizshow.api.søknad.api
 import org.slf4j.event.Level
 
@@ -73,6 +75,13 @@ internal fun Application.søknadApi(
             call.respond(
                 NotFound,
                 HttpProblem(title = "Ikke funnet", status = 404, detail = cause.message)
+            )
+        }
+        exception<IkkeTilgangExeption> { cause ->
+            logger.warn { "Kunne ikke håndtere API kall - Ikke tilgang" }
+            call.respond(
+                Forbidden,
+                HttpProblem(title = "Ikke tilgang", status = 403, detail = cause.message)
             )
         }
     }

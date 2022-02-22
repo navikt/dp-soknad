@@ -2,9 +2,11 @@ package no.nav.dagpenger.quizshow.api
 
 import no.nav.dagpenger.pdl.createPersonOppslag
 import no.nav.dagpenger.quizshow.api.auth.AuthFactory
+import no.nav.dagpenger.quizshow.api.db.PostgresDataSourceBuilder
+import no.nav.dagpenger.quizshow.api.db.PostgresDataSourceBuilder.runMigration
 import no.nav.dagpenger.quizshow.api.personalia.KontonummerOppslag
 import no.nav.dagpenger.quizshow.api.personalia.PersonOppslag
-import no.nav.dagpenger.quizshow.api.søknad.RedisPersistence
+import no.nav.dagpenger.quizshow.api.søknad.PostgresPersistence
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 
@@ -28,9 +30,8 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         }
     }.build()
 
-    val persistence = RedisPersistence(
-        config["REDIS_HOST"] ?: throw IllegalStateException("REDIS_HOST missing"),
-        config["REDIS_PASSWORD"] ?: throw IllegalStateException("REDIS_PASSWORD missing"),
+    val persistence = PostgresPersistence(
+        PostgresDataSourceBuilder.dataSource
     )
 
     private val mediator = Mediator(
@@ -50,6 +51,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     }
 
     override fun onStartup(rapidsConnection: RapidsConnection) {
+        runMigration()
     }
 
     private fun store(): SøknadStore = mediator
