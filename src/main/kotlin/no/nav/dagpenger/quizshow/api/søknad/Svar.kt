@@ -2,7 +2,6 @@ package no.nav.dagpenger.quizshow.api.søknad
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
-import com.fasterxml.jackson.databind.node.BooleanNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.isMissingOrNull
@@ -22,19 +21,19 @@ class Svar(json: JsonNode) {
 
     private fun validerType() {
         when (type) {
-            "boolean" -> require(jsonNode is BooleanNode, feilmelding())
+            "boolean" -> require(jsonNode.isBoolean, feilmelding())
             "flervalg" -> require(
-                jsonNode.isArray && jsonNode.all { it.isTextual } && jsonNode.size() > 0,
+                erValg() && jsonNode.size() > 0,
                 feilmelding()
             )
-            "envalg" -> require(jsonNode.isTextual && jsonNode.asText().isNotBlank(), feilmelding())
+            "envalg" -> require((erValg() && jsonNode.size() == 1), feilmelding())
             "localdate" -> require(
                 jsonNode.isTextual && kotlin.runCatching { jsonNode.asLocalDate() }.isSuccess,
                 feilmelding()
             )
             "double" -> require(jsonNode.isDouble, feilmelding())
             "int" -> require(jsonNode.isInt, feilmelding())
-            "tekst" -> require(jsonNode.isTextual, feilmelding())
+            "tekst" -> require(erTekst(), feilmelding())
             "land" -> require(jsonNode.isTextual && jsonNode.asText().length < 4, feilmelding())
             "periode" -> validerPeriode()
             "generator" -> validerGenerator()
@@ -44,7 +43,11 @@ class Svar(json: JsonNode) {
         }
     }
 
-    private fun feilmelding(): () -> String = { "Ikke gyldig '$type' svar: $jsonNode" }
+    private fun erTekst() = jsonNode.isTextual && jsonNode.asText().isNotBlank()
+
+    private fun erValg() = jsonNode.isArray && jsonNode.all { it.asText().isNotBlank() }
+
+    private fun feilmelding(): () -> String = { "Ikke gyldig '$type' svar: '$jsonNode'" }
 
     private fun validerGenerator() {
         require(

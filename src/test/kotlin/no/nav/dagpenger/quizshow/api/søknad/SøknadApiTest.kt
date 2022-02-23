@@ -143,9 +143,10 @@ internal class SøknadApiTest {
     @ParameterizedTest
     @CsvSource(
         "boolean | true",
+        "boolean | false",
         """localdate | "2022-01-15"""",
         "double | 3.0",
-        """envalg | "valg1"""",
+        """envalg | ["valg1"]""",
         """flervalg | ["valg1"]""",
         """int | 5""",
         """periode | {"fom":"2022-01-15","tom":"2022-01-29"}""",

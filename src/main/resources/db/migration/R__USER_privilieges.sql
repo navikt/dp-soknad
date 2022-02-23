@@ -1,3 +1,4 @@
+-- ${flyway:timestamp}
 DO
 $$
     BEGIN
