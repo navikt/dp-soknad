@@ -13,8 +13,8 @@ class Svar(json: JsonNode) {
     val type: String
 
     init {
-        require(json.has("type")) { " Ingen type definert, ugyldig faktumsvar" }
-        require(json.has("svar")) { "Ingen svar definert, ugyldig faktumsvar" }
+        require(json.has("type")) { " Ingen 'type' definert, ugyldig faktumsvar" }
+        require(json.has("svar")) { "Ingen 'svar' definert, ugyldig faktumsvar" }
         jsonNode = json["svar"]
         type = json["type"].asText()
         validerType()
@@ -22,16 +22,20 @@ class Svar(json: JsonNode) {
 
     private fun validerType() {
         when (type) {
-            "boolean" -> require(jsonNode is BooleanNode) { "Ikke gyldig boolean svar $jsonNode" }
-            "flervalg" -> require(jsonNode.isArray && jsonNode.all { it.isTextual } && jsonNode.size() > 0) { "Ikke gyldig flervalg svar $jsonNode" }
-            "envalg" -> require(
-                jsonNode.isTextual && jsonNode.asText().isNotBlank()
-            ) { "Ikke gyldig envalg svar $jsonNode" }
-            "localdate" -> require(jsonNode.isTextual && kotlin.runCatching { jsonNode.asLocalDate() }.isSuccess) { "Ikke gyldig localdate svar $jsonNode" }
-            "double" -> require(jsonNode.isDouble) { "Ikke gyldig double svar $jsonNode" }
-            "int" -> require(jsonNode.isInt) { "Ikke gyldig int svar $jsonNode" }
-            "tekst" -> require(jsonNode.isTextual) { "Ikke gyldig tekst svar $jsonNode" }
-            "land" -> require(jsonNode.isTextual && jsonNode.asText().length < 4) { "Ikke gyldig land svar $jsonNode" }
+            "boolean" -> require(jsonNode is BooleanNode, feilmelding())
+            "flervalg" -> require(
+                jsonNode.isArray && jsonNode.all { it.isTextual } && jsonNode.size() > 0,
+                feilmelding()
+            )
+            "envalg" -> require(jsonNode.isTextual && jsonNode.asText().isNotBlank(), feilmelding())
+            "localdate" -> require(
+                jsonNode.isTextual && kotlin.runCatching { jsonNode.asLocalDate() }.isSuccess,
+                feilmelding()
+            )
+            "double" -> require(jsonNode.isDouble, feilmelding())
+            "int" -> require(jsonNode.isInt, feilmelding())
+            "tekst" -> require(jsonNode.isTextual, feilmelding())
+            "land" -> require(jsonNode.isTextual && jsonNode.asText().length < 4, feilmelding())
             "periode" -> validerPeriode()
             "generator" -> validerGenerator()
             else -> {
@@ -40,6 +44,8 @@ class Svar(json: JsonNode) {
         }
     }
 
+    private fun feilmelding(): () -> String = { "Ikke gyldig '$type' svar: $jsonNode" }
+
     private fun validerGenerator() {
         require(
             jsonNode is ArrayNode &&
@@ -47,8 +53,9 @@ class Svar(json: JsonNode) {
                     jsonNode[0].forEach { faktum ->
                         Svar(faktum)
                     }
-                }.isSuccess
-        ) { "Ikke gyldig generatorsvar $jsonNode" }
+                }.isSuccess,
+            feilmelding()
+        )
     }
 
     private fun validerPeriode() {
@@ -61,7 +68,8 @@ class Svar(json: JsonNode) {
                         tom.asLocalDate()
                     }
                 }
-            }.isSuccess
-        ) { "Ikke gyldig periode svar $jsonNode" }
+            }.isSuccess,
+            feilmelding()
+        )
     }
 }
