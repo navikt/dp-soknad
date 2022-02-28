@@ -26,7 +26,7 @@ class Svar(json: JsonNode) {
                 erValg() && jsonNode.size() > 0,
                 feilmelding()
             )
-            "envalg" -> require((erValg() && jsonNode.size() == 1), feilmelding())
+            "envalg" -> require((erTekst()), feilmelding())
             "localdate" -> require(
                 jsonNode.isTextual && kotlin.runCatching { jsonNode.asLocalDate() }.isSuccess,
                 feilmelding()

@@ -63,7 +63,7 @@ internal class Mediator(private val rapidsConnection: RapidsConnection, private 
 
     override fun håndter(faktumSvar: FaktumSvar) {
         rapidsConnection.publish(faktumSvar.toJson())
-        logger.info { "Sendte faktum svar for ${faktumSvar.søknadUuid()} ønsker_rettighetsavklaring" }
+        logger.info { "Sendte faktum svar for ${faktumSvar.søknadUuid()}" }
     }
 
     override fun håndter(nySøknadMelding: NySøknadMelding) {
