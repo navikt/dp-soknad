@@ -54,13 +54,13 @@ internal fun Route.api(logger: KLogger, store: SøknadStore) {
             val søknadUuid = søknadUuid()
             val faktumId = faktumId()
             val input = Svar(call.receive())
-            logger.info { "Fikk \n${input.jsonNode}" }
+            logger.info { "Fikk \n${input.svarAsJson}" }
 
             val faktumSvar = FaktumSvar(
                 søknadUuid = søknadUuid,
                 faktumId = faktumId,
                 type = input.type,
-                svar = input.jsonNode
+                svar = input.svarAsJson
             )
 
             store.håndter(faktumSvar)
