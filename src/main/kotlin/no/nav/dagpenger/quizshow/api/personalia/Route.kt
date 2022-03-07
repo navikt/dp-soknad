@@ -2,8 +2,6 @@ package no.nav.dagpenger.quizshow.api.personalia
 
 import io.ktor.application.call
 import io.ktor.application.install
-import io.ktor.auth.authentication
-import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.client.features.ResponseException
 import io.ktor.features.StatusPages
 import io.ktor.request.uri
@@ -18,6 +16,7 @@ import mu.KotlinLogging
 import no.nav.dagpenger.quizshow.api.Configuration
 import no.nav.dagpenger.quizshow.api.HttpProblem
 import no.nav.dagpenger.quizshow.api.auth.fnr
+import no.nav.dagpenger.quizshow.api.auth.ident
 import no.nav.dagpenger.quizshow.api.auth.jwt
 import java.net.URI
 import kotlin.coroutines.CoroutineContext
@@ -48,8 +47,7 @@ internal fun Route.personalia(
 
     route("${Configuration.basePath}/personalia") {
         get {
-            val fnr = call.authentication.principal<JWTPrincipal>()?.fnr
-                ?: throw IllegalArgumentException("Mangler pid eller sub i claim") // todo better exception
+            val fnr = call.ident()
             val jwtToken = call.request.jwt()
             val personalia = withContext(coroutineContext) {
                 val kontonummer = async { kontonummerOppslag.hentKontonummer(fnr) }

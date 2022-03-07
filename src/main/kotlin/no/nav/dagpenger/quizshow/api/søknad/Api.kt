@@ -2,8 +2,6 @@ package no.nav.dagpenger.quizshow.api.søknad
 
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
-import io.ktor.auth.authentication
-import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.features.NotFoundException
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -24,7 +22,7 @@ import mu.KLogger
 import no.nav.dagpenger.quizshow.api.Configuration
 import no.nav.dagpenger.quizshow.api.Søknad
 import no.nav.dagpenger.quizshow.api.SøknadStore
-import no.nav.dagpenger.quizshow.api.auth.fnr
+import no.nav.dagpenger.quizshow.api.auth.ident
 import no.nav.helse.rapids_rivers.JsonMessage
 import java.time.LocalDateTime
 import java.util.UUID
@@ -43,7 +41,7 @@ internal fun Route.api(logger: KLogger, store: SøknadStore) {
         }
         get("/{søknad_uuid}/fakta") {
             val id = søknadUuid()
-            val ident = ident()
+            val ident = call.ident()
             val søknad: Søknad = hentFakta(store, id)
             if (ident != søknad.eier()) {
                 throw IkkeTilgangExeption("Ikke tilgang til søknad")
@@ -92,10 +90,6 @@ private suspend fun hentFakta(
     store: SøknadStore,
     id: UUID
 ) = retryIO(times = 10) { store.hentFakta(id) ?: throw NotFoundException("Fant ikke søknad med id $id") }
-
-private fun PipelineContext<Unit, ApplicationCall>.ident() = call.authentication.principal<JWTPrincipal>()!!.fnr
-
-private fun ApplicationCall.ident(): String = this.authentication.principal<JWTPrincipal>()!!.fnr
 
 private fun PipelineContext<Unit, ApplicationCall>.søknadUuid() =
     call.parameters["søknad_uuid"].let { UUID.fromString(it) } ?: throw IllegalArgumentException("Må ha med id i parameter")
