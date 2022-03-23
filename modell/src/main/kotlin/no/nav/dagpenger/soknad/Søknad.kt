@@ -2,7 +2,7 @@ package no.nav.dagpenger.soknad
 
 import java.util.UUID
 
-class Søknad(søknadId: UUID, private val tilstand: Tilstand) {
+internal class Søknad(private val søknadId: UUID, private val tilstand: Tilstand) {
 
     constructor(søknadId: UUID) : this(søknadId, Opprettet)
 
@@ -14,5 +14,9 @@ class Søknad(søknadId: UUID, private val tilstand: Tilstand) {
         internal fun harOpprettetSøknad(søknader: List<Søknad>) = søknader.any {
             it.tilstand == Opprettet
         }
+    }
+
+    fun accept(visitor: SøknadVisitor) {
+        visitor.visitSøknad(søknadId, tilstand)
     }
 }
