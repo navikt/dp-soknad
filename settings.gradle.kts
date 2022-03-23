@@ -1,1 +1,1 @@
-rootProject.name = "dp-quizshow-api"
+rootProject.name = "dp-soknad"

@@ -1,4 +1,4 @@
-app: dp-quizshow-api
+app: dp-soknad
 namespace: teamdagpenger
 team: teamdagpenger
 alerts_slack_channel: "#team-dagpenger-alert"

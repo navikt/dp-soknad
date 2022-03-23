@@ -6,7 +6,7 @@ on:
       - mediator/**
 
 env:
-  IMAGE: ghcr.io/${{ github.repository }}/dp-quizshow-api:${{ github.sha }}
+  IMAGE: ghcr.io/${{ github.repository }}/dp-soknad:${{ github.sha }}
 
 jobs:
   build:

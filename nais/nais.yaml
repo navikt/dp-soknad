@@ -54,7 +54,7 @@ spec:
       value: {{PDL_AUDIENCE}}
   gcp:
     sqlInstances:
-      - name: dp-quizshow-api-v1
+      - name: dp-soknad-v1
         type: POSTGRES_14
         tier: {{db_tier}}
         diskType: SSD

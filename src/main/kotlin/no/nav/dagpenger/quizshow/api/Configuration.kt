@@ -11,12 +11,12 @@ import no.nav.dagpenger.oauth2.OAuth2Config
 
 internal object Configuration {
 
-    const val appName = "dp-quizshow-api"
+    const val appName = "dp-soknad"
 
     private val defaultProperties = ConfigurationMap(
         mapOf(
-            "RAPID_APP_NAME" to "dp-quizshow-api",
-            "KAFKA_CONSUMER_GROUP_ID" to "dp-quizshow-api-v1",
+            "RAPID_APP_NAME" to "dp-soknad",
+            "KAFKA_CONSUMER_GROUP_ID" to "dp-soknad-v1",
             "KAFKA_RAPID_TOPIC" to "teamdagpenger.rapid.v1",
             "KAFKA_RESET_POLICY" to "latest",
         )

@@ -1,3 +1,3 @@
 FROM navikt/java:16
 
-COPY build/libs/dp-quizshow-api.jar app.jar
+COPY build/libs/dp-soknad.jar app.jar
