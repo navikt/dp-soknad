@@ -58,7 +58,7 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: nais-yaml
-          path: nais
+          path: mediator/nais
 
   deploy-dev:
     name: Deploy to dev
