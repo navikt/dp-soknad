@@ -24,14 +24,36 @@ internal class SøknadTest {
         håndterNySøknadOpprettet()
         assertEquals(Søknad.UnderArbeid, oppdatertInspektør().gjeldendetilstand)
         håndterSendInnSøknad()
+        assertEquals(Søknad.AvventerArkiverbarSøknad, oppdatertInspektør().gjeldendetilstand)
+        assertBehov(Behovtype.ArkiverbarSøknad)
+        println(person.aktivitetslogg.toString())
+
     }
+
+    @Test
+    fun `person oppretter en søknad med tilstand Opprettet`() {
+        val person = Person(testIdent)
+        person.håndter(ØnskeOmNySøknadHendelse())
+        assertEquals(1, PersonTestVisitor(person).antallSøknader)
+    }
+
+    @Test
+    fun `en person kan kun ha én opprettet søknad av gangen`() {
+        val person = Person(testIdent)
+        person.håndter(ØnskeOmNySøknadHendelse())
+        assertThrows<Aktivitetslogg.AktivitetException> { person.håndter(ØnskeOmNySøknadHendelse()) }
+    }
+
+
 
     private fun håndterNySøknadOpprettet() {
         person.håndter(SøknadOpprettetHendelse(oppdatertInspektør().søknadId))
     }
 
     private fun assertBehov(behovtype: Behovtype) {
-        assertEquals(behovtype, oppdatertInspektør().personLogg.behov()[0].type)
+        oppdatertInspektør().personLogg.behov().find {
+            it.type == behovtype
+        } ?: throw AssertionError("Fant ikke behov $behovtype")
     }
 
     private fun assertØnskeOmNySøknadHendelse() {
@@ -46,22 +68,6 @@ internal class SøknadTest {
 
     private fun håndterØnskeOmNySøknadHendelse() {
         person.håndter(ØnskeOmNySøknadHendelse())
-    }
-
-    @Test
-    fun `person oppretter en søknad med tilstand Opprettet`() {
-        val person = Person(testIdent)
-        person.håndter(ØnskeOmNySøknadHendelse())
-        assertEquals(1, PersonTestVisitor(person).antallSøknader)
-    }
-
-    @Test
-    fun `en person kan kun ha én opprettet søknad av gangen`() {
-        val person = Person("fnr")
-        person.håndter(ØnskeOmNySøknadHendelse())
-        assertThrows<Aktivitetslogg.AktivitetException> { person.håndter(ØnskeOmNySøknadHendelse()) }
-
-        println(person.aktivitetslogg.toString())
     }
 
     private class PersonTestVisitor(person: Person) : PersonVisitor {

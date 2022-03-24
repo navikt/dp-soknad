@@ -179,7 +179,8 @@ class Aktivitetslogg(private var forelder: Aktivitetslogg? = null) : IAktivitets
             }
 
             enum class Behovtype {
-                NySøknad
+                NySøknad,
+                ArkiverbarSøknad
             }
         }
 

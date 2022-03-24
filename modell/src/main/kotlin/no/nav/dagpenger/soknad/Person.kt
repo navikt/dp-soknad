@@ -43,6 +43,8 @@ class Person private constructor(
 
     fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
         kontekst(søknadInnsendtHendelse, "Sender inn søknaden")
+        val søknaden = finnSøknad(søknadInnsendtHendelse)
+        søknaden.håndter(søknadInnsendtHendelse)
     }
 
     fun accept(visitor: PersonVisitor) {
