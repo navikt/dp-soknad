@@ -1,7 +1,8 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
-import no.nav.dagpenger.soknad.hendelse.OpprettNySøknadHendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
+import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -16,35 +17,40 @@ internal class SøknadTest {
 
     @Test
     fun `Søker oppretter søknad og ferdigstiller den`() {
-        håndterNySøknadHendelse()
-        assertSøknadOpprettet()
+        håndterØnskeOmNySøknadHendelse()
+        assertØnskeOmNySøknadHendelse()
         assertBehov(Behovtype.NySøknad)
+        håndterNySøknadOpprettet()
+    }
+
+    private fun håndterNySøknadOpprettet() {
+        person.håndter(SøknadOpprettetHendelse(UUID.randomUUID()))
     }
 
     private fun assertBehov(behovtype: Behovtype) {
         assertEquals(behovtype, TestSøknadInspektør(person).personLogg.behov()[0].type)
     }
 
-    private fun assertSøknadOpprettet() {
-        assertEquals(Søknad.Opprettet, TestSøknadInspektør(person).gjeldendetilstand)
+    private fun assertØnskeOmNySøknadHendelse() {
+        assertEquals(Søknad.UnderOpprettelse, TestSøknadInspektør(person).gjeldendetilstand)
     }
 
-    private fun håndterNySøknadHendelse() {
-        person.håndter(OpprettNySøknadHendelse())
+    private fun håndterØnskeOmNySøknadHendelse() {
+        person.håndter(ØnskeOmNySøknadHendelse())
     }
 
     @Test
     fun `person oppretter en søknad med tilstand Opprettet`() {
         val person = Person(testIdent)
-        person.håndter(OpprettNySøknadHendelse())
+        person.håndter(ØnskeOmNySøknadHendelse())
         assertEquals(1, PersonTestVisitor(person).antallSøknader)
     }
 
     @Test
     fun `en person kan kun ha én opprettet søknad av gangen`() {
         val person = Person("fnr")
-        person.håndter(OpprettNySøknadHendelse())
-        assertThrows<Aktivitetslogg.AktivitetException> { person.håndter(OpprettNySøknadHendelse()) }
+        person.håndter(ØnskeOmNySøknadHendelse())
+        assertThrows<Aktivitetslogg.AktivitetException> { person.håndter(ØnskeOmNySøknadHendelse()) }
 
         println(person.aktivitetslogg.toString())
     }
@@ -65,7 +71,7 @@ internal class SøknadTest {
         }
 
         override fun visitSøknad(søknadId: UUID, tilstand: Søknad.Tilstand) {
-            assertEquals(Søknad.Opprettet, tilstand)
+            assertEquals(Søknad.UnderOpprettelse, tilstand)
         }
     }
 }

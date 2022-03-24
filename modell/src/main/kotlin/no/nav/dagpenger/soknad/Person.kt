@@ -2,7 +2,8 @@ package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Søknad.Companion.harOpprettetSøknad
 import no.nav.dagpenger.soknad.hendelse.Hendelse
-import no.nav.dagpenger.soknad.hendelse.OpprettNySøknadHendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
+import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import java.util.UUID
 
 class Person private constructor(
@@ -13,13 +14,25 @@ class Person private constructor(
 
     constructor(ident: String) : this(mutableListOf(), ident)
 
-    fun håndter(opprettNySøknadHendelse: OpprettNySøknadHendelse) {
+    fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         if (harOpprettetSøknad(søknader)) {
-            opprettNySøknadHendelse.severe("Kan ikke ha flere enn én opprettet søknad.")
+            ønskeOmNySøknadHendelse.severe("Kan ikke ha flere enn én opprettet søknad.")
         }
 
-        kontekst(opprettNySøknadHendelse, "Opprettet søknad")
-        søknader.add(Søknad(UUID.randomUUID()))
+        kontekst(ønskeOmNySøknadHendelse, "Ønske om søknad registrert")
+        søknader.add(
+            Søknad(UUID.randomUUID()).also {
+                it.håndter(ønskeOmNySøknadHendelse)
+            }
+        )
+    }
+
+    fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse) {
+        kontekst(søknadOpprettetHendelse, "Oppretter søknad")
+
+        søknader.find {
+            it.søknadID() == søknadOpprettetHendelse.søknadID()
+        }?.håndter(søknadOpprettetHendelse) ?: søknadOpprettetHendelse.severe("Fant ikke søknaden")
     }
 
     fun accept(visitor: PersonVisitor) {
