@@ -61,7 +61,7 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand) : Akt
         }
     }
 
-    object AvventerArkiverbarSøknad: Tilstand  {
+    object AvventerArkiverbarSøknad : Tilstand {
         override fun vedAktivering(søknadInnsendtHendelse: SøknadHendelse) {
             søknadInnsendtHendelse.behov(Behovtype.ArkiverbarSøknad, "Trenger søknad på et arkiverbart format")
         }
@@ -91,6 +91,4 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand) : Akt
         tilstand = nyTilstand
         nyTilstand.vedAktivering(søknadHendelse)
     }
-
-
 }

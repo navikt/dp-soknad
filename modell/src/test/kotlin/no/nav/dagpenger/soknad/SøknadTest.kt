@@ -27,7 +27,6 @@ internal class SøknadTest {
         assertEquals(Søknad.AvventerArkiverbarSøknad, oppdatertInspektør().gjeldendetilstand)
         assertBehov(Behovtype.ArkiverbarSøknad)
         println(person.aktivitetslogg.toString())
-
     }
 
     @Test
@@ -43,8 +42,6 @@ internal class SøknadTest {
         person.håndter(ØnskeOmNySøknadHendelse())
         assertThrows<Aktivitetslogg.AktivitetException> { person.håndter(ØnskeOmNySøknadHendelse()) }
     }
-
-
 
     private fun håndterNySøknadOpprettet() {
         person.håndter(SøknadOpprettetHendelse(oppdatertInspektør().søknadId))
