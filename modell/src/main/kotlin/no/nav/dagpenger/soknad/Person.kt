@@ -27,6 +27,7 @@ class Person private constructor(
         visitor.preVisitSøknader()
         søknader.forEach { it.accept(visitor) }
         visitor.postVisitSøknader()
+        aktivitetslogg.accept(visitor)
     }
 
     private fun kontekst(hendelse: Hendelse, melding: String) {

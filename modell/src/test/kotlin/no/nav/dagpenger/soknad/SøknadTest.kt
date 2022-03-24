@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad
 
+import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.hendelse.OpprettNySøknadHendelse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -7,7 +8,30 @@ import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class SøknadTest {
-    private val testIdent = "fnr"
+
+    companion object {
+        private val testIdent = "fnr"
+        val person = Person(testIdent)
+    }
+
+    @Test
+    fun `Søker oppretter søknad og ferdigstiller den`() {
+        håndterNySøknadHendelse()
+        assertSøknadOpprettet()
+        assertBehov(Behovtype.NySøknad)
+    }
+
+    private fun assertBehov(behovtype: Behovtype) {
+        assertEquals(behovtype, TestSøknadInspektør(person).personLogg.behov()[0].type)
+    }
+
+    private fun assertSøknadOpprettet() {
+        assertEquals(Søknad.Opprettet, TestSøknadInspektør(person).gjeldendetilstand)
+    }
+
+    private fun håndterNySøknadHendelse() {
+        person.håndter(OpprettNySøknadHendelse())
+    }
 
     @Test
     fun `person oppretter en søknad med tilstand Opprettet`() {
