@@ -21,19 +21,22 @@ internal class SøknadTest {
         assertØnskeOmNySøknadHendelse()
         assertBehov(Behovtype.NySøknad)
         håndterNySøknadOpprettet()
+        assertEquals(Søknad.UnderArbeid, oppdatertInspektør().gjeldendetilstand)
     }
 
     private fun håndterNySøknadOpprettet() {
-        person.håndter(SøknadOpprettetHendelse(UUID.randomUUID()))
+        person.håndter(SøknadOpprettetHendelse(oppdatertInspektør().søknadId))
     }
 
     private fun assertBehov(behovtype: Behovtype) {
-        assertEquals(behovtype, TestSøknadInspektør(person).personLogg.behov()[0].type)
+        assertEquals(behovtype, oppdatertInspektør().personLogg.behov()[0].type)
     }
 
     private fun assertØnskeOmNySøknadHendelse() {
-        assertEquals(Søknad.UnderOpprettelse, TestSøknadInspektør(person).gjeldendetilstand)
+        assertEquals(Søknad.UnderOpprettelse, oppdatertInspektør().gjeldendetilstand)
     }
+
+    private fun oppdatertInspektør() = TestSøknadInspektør(person)
 
     private fun håndterØnskeOmNySøknadHendelse() {
         person.håndter(ØnskeOmNySøknadHendelse())

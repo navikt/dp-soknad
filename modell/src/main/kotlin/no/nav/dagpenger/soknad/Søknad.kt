@@ -6,7 +6,7 @@ import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import java.util.UUID
 
-class Søknad(private val søknadId: UUID, private val tilstand: Tilstand) : Aktivitetskontekst {
+class Søknad(private val søknadId: UUID, private var tilstand: Tilstand) : Aktivitetskontekst {
 
     constructor(søknadId: UUID) : this(søknadId, UnderOpprettelse)
 
@@ -14,29 +14,38 @@ class Søknad(private val søknadId: UUID, private val tilstand: Tilstand) : Akt
 
     fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         kontekst(ønskeOmNySøknadHendelse)
-        tilstand.håndter(ønskeOmNySøknadHendelse)
+        tilstand.håndter(ønskeOmNySøknadHendelse, this)
     }
 
     fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse) {
         kontekst(søknadOpprettetHendelse)
-        tilstand.håndter(søknadOpprettetHendelse)
+        tilstand.håndter(søknadOpprettetHendelse, this)
     }
 
     interface Tilstand {
-        fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
+        fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) {
             ønskeOmNySøknadHendelse.warn("Kan ikke håndtere ønskeOmNySøknadHendelse")
         }
 
-        fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse) {
+        fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse, søknad: Søknad) {
             søknadOpprettetHendelse.warn("Kan ikke håndtere søknadOpprettetHendelse")
         }
     }
 
     object UnderOpprettelse : Tilstand {
-        override fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
+        override fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) {
             ønskeOmNySøknadHendelse.behov(Behovtype.NySøknad, "Behøver tom søknad for denne søknaden")
         }
+        override fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse, søknad: Søknad) {
+            søknad.endreTilstand(this, UnderArbeid)
+        }
     }
+
+    private fun endreTilstand(forrigeTilstand: Tilstand, nyTilstand: Tilstand) {
+        tilstand = nyTilstand
+    }
+
+    object UnderArbeid : Tilstand
 
     companion object {
         internal fun harOpprettetSøknad(søknader: List<Søknad>) = søknader.any {

@@ -30,9 +30,11 @@ class Person private constructor(
     fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse) {
         kontekst(søknadOpprettetHendelse, "Oppretter søknad")
 
-        søknader.find {
+        val søknaden = søknader.find {
             it.søknadID() == søknadOpprettetHendelse.søknadID()
-        }?.håndter(søknadOpprettetHendelse) ?: søknadOpprettetHendelse.severe("Fant ikke søknaden")
+        } ?: søknadOpprettetHendelse.severe("Fant ikke søknaden")
+
+        søknaden.håndter(søknadOpprettetHendelse)
     }
 
     fun accept(visitor: PersonVisitor) {

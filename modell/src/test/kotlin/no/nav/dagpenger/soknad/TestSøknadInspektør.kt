@@ -4,6 +4,7 @@ import java.util.UUID
 
 internal class TestSøknadInspektør(person: Person) : PersonVisitor {
 
+    lateinit var søknadId: UUID
     lateinit var gjeldendetilstand: Søknad.Tilstand
     internal lateinit var personLogg: Aktivitetslogg
 
@@ -12,6 +13,7 @@ internal class TestSøknadInspektør(person: Person) : PersonVisitor {
     }
 
     override fun visitSøknad(søknadId: UUID, tilstand: Søknad.Tilstand) {
+        this.søknadId = søknadId
         gjeldendetilstand = tilstand
     }
 
