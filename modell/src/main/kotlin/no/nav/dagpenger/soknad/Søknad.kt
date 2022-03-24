@@ -2,7 +2,7 @@ package no.nav.dagpenger.soknad
 
 import java.util.UUID
 
-internal class Søknad(private val søknadId: UUID, private val tilstand: Tilstand) {
+class Søknad(private val søknadId: UUID, private val tilstand: Tilstand) : Aktivitetskontekst {
 
     constructor(søknadId: UUID) : this(søknadId, Opprettet)
 
@@ -19,4 +19,6 @@ internal class Søknad(private val søknadId: UUID, private val tilstand: Tilsta
     fun accept(visitor: SøknadVisitor) {
         visitor.visitSøknad(søknadId, tilstand)
     }
+
+    override fun toSpesifikkKontekst(): SpesifikkKontekst = SpesifikkKontekst(kontekstType = "søknad", mapOf("søknadUUID" to søknadId.toString()))
 }

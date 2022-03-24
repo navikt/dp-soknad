@@ -2,10 +2,12 @@ package no.nav.dagpenger.soknad
 
 import java.util.UUID
 
-internal interface PersonVisitor {
-    fun visitPerson(søknader: List<Søknad>, ident: String)
+interface SøknadVisitor {
+    fun visitSøknad(søknadId: UUID, tilstand: Søknad.Tilstand) {}
 }
 
-internal interface SøknadVisitor {
-    fun visitSøknad(søknadId: UUID, tilstand: Søknad.Tilstand)
+interface PersonVisitor : SøknadVisitor, AktivitetsloggVisitor {
+    fun visitPerson(ident: String) {}
+    fun preVisitSøknader() {}
+    fun postVisitSøknader() {}
 }
