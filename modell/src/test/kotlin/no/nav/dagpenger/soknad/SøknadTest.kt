@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
+import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -22,6 +23,7 @@ internal class SøknadTest {
         assertBehov(Behovtype.NySøknad)
         håndterNySøknadOpprettet()
         assertEquals(Søknad.UnderArbeid, oppdatertInspektør().gjeldendetilstand)
+        håndterSendInnSøknad()
     }
 
     private fun håndterNySøknadOpprettet() {
@@ -34,6 +36,10 @@ internal class SøknadTest {
 
     private fun assertØnskeOmNySøknadHendelse() {
         assertEquals(Søknad.UnderOpprettelse, oppdatertInspektør().gjeldendetilstand)
+    }
+
+    private fun håndterSendInnSøknad() {
+        person.håndter(SøknadInnsendtHendelse(oppdatertInspektør().søknadId))
     }
 
     private fun oppdatertInspektør() = TestSøknadInspektør(person)

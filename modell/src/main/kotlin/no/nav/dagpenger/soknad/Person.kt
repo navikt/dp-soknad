@@ -2,6 +2,8 @@ package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Søknad.Companion.harOpprettetSøknad
 import no.nav.dagpenger.soknad.hendelse.Hendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import java.util.UUID
@@ -30,11 +32,17 @@ class Person private constructor(
     fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse) {
         kontekst(søknadOpprettetHendelse, "Oppretter søknad")
 
-        val søknaden = søknader.find {
-            it.søknadID() == søknadOpprettetHendelse.søknadID()
-        } ?: søknadOpprettetHendelse.severe("Fant ikke søknaden")
+        val søknaden = finnSøknad(søknadOpprettetHendelse)
 
         søknaden.håndter(søknadOpprettetHendelse)
+    }
+
+    private fun finnSøknad(søknadHendelse: SøknadHendelse) = søknader.find {
+        it.søknadID() == søknadHendelse.søknadID()
+    } ?: søknadHendelse.severe("Fant ikke søknaden")
+
+    fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
+        kontekst(søknadInnsendtHendelse, "Sender inn søknaden")
     }
 
     fun accept(visitor: PersonVisitor) {
