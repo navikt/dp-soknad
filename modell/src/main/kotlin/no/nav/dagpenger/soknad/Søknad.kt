@@ -51,13 +51,13 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand) : Akt
             ønskeOmNySøknadHendelse.behov(Behovtype.NySøknad, "Behøver tom søknad for denne søknaden")
         }
         override fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse, søknad: Søknad) {
-            søknad.endreTilstand(this, UnderArbeid, søknadOpprettetHendelse)
+            søknad.endreTilstand(UnderArbeid, søknadOpprettetHendelse)
         }
     }
 
     object UnderArbeid : Tilstand {
         override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
-            søknad.endreTilstand(this, AvventerArkiverbarSøknad, søknadInnsendtHendelse)
+            søknad.endreTilstand(AvventerArkiverbarSøknad, søknadInnsendtHendelse)
         }
     }
 
@@ -84,11 +84,14 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand) : Akt
     }
 
     private fun endreTilstand(
-        forrigeTilstand: Tilstand,
         nyTilstand: Tilstand,
         søknadHendelse: SøknadHendelse
     ) {
+        if (nyTilstand == tilstand) {
+            return // Vi er allerede i tilstanden
+        }
+        val forrigeTilstand = tilstand
         tilstand = nyTilstand
-        nyTilstand.vedAktivering(søknadHendelse)
+        tilstand.vedAktivering(søknadHendelse)
     }
 }
