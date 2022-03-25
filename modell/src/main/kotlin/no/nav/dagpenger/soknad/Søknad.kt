@@ -40,7 +40,7 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
         tilstand.håndter(arkiverbarSøknadMotattHendelse, this)
     }
 
-    interface Tilstand {
+    interface Tilstand : Aktivitetskontekst {
 
         fun entering(søknadHendelse: SøknadHendelse, søknad: Søknad) {}
 
@@ -58,6 +58,12 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
 
         fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMotattHendelse, søknad: Søknad) {
             arkiverbarSøknadMotattHendelse.warn("Kan ikke håndtere arkiverbarSøknadHendelse")
+        }
+
+        override fun toSpesifikkKontekst(): SpesifikkKontekst {
+            return this.javaClass.canonicalName.split('.').last().let {
+                SpesifikkKontekst(it, emptyMap())
+            }
         }
     }
 
@@ -116,6 +122,7 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
 
     private fun kontekst(hendelse: Hendelse) {
         hendelse.kontekst(this)
+        hendelse.kontekst(tilstand)
     }
 
     private fun endreTilstand(
@@ -127,6 +134,7 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
         }
         val forrigeTilstand = tilstand
         tilstand = nyTilstand
+        søknadHendelse.kontekst(tilstand)
         tilstand.entering(søknadHendelse, this)
     }
 }
