@@ -1,6 +1,8 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
+import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMotattHendelse
+import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
@@ -8,9 +10,9 @@ import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import java.util.UUID
 
-class Søknad(private val søknadId: UUID, private var tilstand: Tilstand) : Aktivitetskontekst {
+class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, private var dokumentLokasjon: DokumentLokasjon?) : Aktivitetskontekst {
 
-    constructor(søknadId: UUID) : this(søknadId, UnderOpprettelse)
+    constructor(søknadId: UUID) : this(søknadId, UnderOpprettelse, dokumentLokasjon = null)
 
     internal fun søknadID() = søknadId
 
@@ -29,6 +31,11 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand) : Akt
         tilstand.håndter(søknadInnsendtHendelse, this)
     }
 
+    fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMotattHendelse) {
+        kontekst(arkiverbarSøknadMotattHendelse)
+        tilstand.håndter(arkiverbarSøknadMotattHendelse, this)
+    }
+
     interface Tilstand {
 
         fun vedAktivering(søknadHendelse: SøknadHendelse) {}
@@ -43,6 +50,10 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand) : Akt
 
         fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
             søknadInnsendtHendelse.warn("Kan ikke håndtere søknadInnsendtHendelse")
+        }
+
+        fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMotattHendelse, søknad: Søknad) {
+            arkiverbarSøknadMotattHendelse.warn("Kan ikke håndtere arkiverbarSøknadHendelse")
         }
     }
 
@@ -65,9 +76,17 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand) : Akt
         override fun vedAktivering(søknadInnsendtHendelse: SøknadHendelse) {
             søknadInnsendtHendelse.behov(Behovtype.ArkiverbarSøknad, "Trenger søknad på et arkiverbart format")
         }
+
+        override fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMotattHendelse, søknad: Søknad) {
+            søknad.dokumentLokasjon = arkiverbarSøknadMotattHendelse.dokumentLokasjon()
+            søknad.endreTilstand(AvventerJournalføring, arkiverbarSøknadMotattHendelse)
+        }
     }
 
+    object AvventerJournalføring : Tilstand
+
     companion object {
+
         internal fun harOpprettetSøknad(søknader: List<Søknad>) = søknader.any {
             it.tilstand == UnderOpprettelse
         }

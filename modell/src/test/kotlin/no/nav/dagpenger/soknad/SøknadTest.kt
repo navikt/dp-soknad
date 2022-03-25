@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
+import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMotattHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
@@ -26,6 +27,8 @@ internal class SøknadTest {
         håndterSendInnSøknad()
         assertEquals(Søknad.AvventerArkiverbarSøknad, oppdatertInspektør().gjeldendetilstand)
         assertBehov(Behovtype.ArkiverbarSøknad)
+        håndterArkiverbarSøknad()
+        assertEquals(Søknad.AvventerJournalføring, oppdatertInspektør().gjeldendetilstand)
         println(person.aktivitetslogg.toString())
     }
 
@@ -45,6 +48,10 @@ internal class SøknadTest {
 
     private fun håndterNySøknadOpprettet() {
         person.håndter(SøknadOpprettetHendelse(oppdatertInspektør().søknadId))
+    }
+
+    private fun håndterArkiverbarSøknad() {
+        person.håndter(ArkiverbarSøknadMotattHendelse(oppdatertInspektør().søknadId, "urn:dokument:1"))
     }
 
     private fun assertBehov(behovtype: Behovtype) {

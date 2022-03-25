@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Søknad.Companion.harOpprettetSøknad
+import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMotattHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
@@ -45,6 +46,13 @@ class Person private constructor(
         kontekst(søknadInnsendtHendelse, "Sender inn søknaden")
         val søknaden = finnSøknad(søknadInnsendtHendelse)
         søknaden.håndter(søknadInnsendtHendelse)
+    }
+
+    fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMotattHendelse) {
+        kontekst(arkiverbarSøknadMotattHendelse, "Arkiverbar søknad motatt")
+        finnSøknad(arkiverbarSøknadMotattHendelse).also { søknaden ->
+            søknaden.håndter(arkiverbarSøknadMotattHendelse)
+        }
     }
 
     fun accept(visitor: PersonVisitor) {
