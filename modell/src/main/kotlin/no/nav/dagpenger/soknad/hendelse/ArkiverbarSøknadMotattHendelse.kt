@@ -10,6 +10,10 @@ class ArkiverbarSøknadMotattHendelse(
 ) : SøknadHendelse(søknadID, aktivitetslogg) {
 
     internal fun dokumentLokasjon() = dokumentLokasjon
+    fun valider(): Boolean {
+        return true
+        // TODO: Husk å validere
+    }
 }
 
 typealias DokumentLokasjon = String

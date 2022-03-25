@@ -29,6 +29,7 @@ internal class SøknadTest {
         assertBehov(Behovtype.ArkiverbarSøknad)
         håndterArkiverbarSøknad()
         assertEquals(Søknad.AvventerJournalføring, oppdatertInspektør().gjeldendetilstand)
+        assertBehov(Behovtype.Journalføring)
         println(person.aktivitetslogg.toString())
     }
 

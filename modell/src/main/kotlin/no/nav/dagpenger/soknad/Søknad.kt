@@ -32,13 +32,17 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
     }
 
     fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMotattHendelse) {
+        if (!arkiverbarSøknadMotattHendelse.valider()) {
+            arkiverbarSøknadMotattHendelse.warn("Ikke gyldig dokumentlokasjon")
+            return
+        }
         kontekst(arkiverbarSøknadMotattHendelse)
         tilstand.håndter(arkiverbarSøknadMotattHendelse, this)
     }
 
     interface Tilstand {
 
-        fun vedAktivering(søknadHendelse: SøknadHendelse) {}
+        fun entering(søknadHendelse: SøknadHendelse, søknad: Søknad) {}
 
         fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) {
             ønskeOmNySøknadHendelse.warn("Kan ikke håndtere ønskeOmNySøknadHendelse")
@@ -73,8 +77,8 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
     }
 
     object AvventerArkiverbarSøknad : Tilstand {
-        override fun vedAktivering(søknadInnsendtHendelse: SøknadHendelse) {
-            søknadInnsendtHendelse.behov(Behovtype.ArkiverbarSøknad, "Trenger søknad på et arkiverbart format")
+        override fun entering(søknadHendelse: SøknadHendelse, søknad: Søknad) {
+            søknadHendelse.behov(Behovtype.ArkiverbarSøknad, "Trenger søknad på et arkiverbart format")
         }
 
         override fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMotattHendelse, søknad: Søknad) {
@@ -83,7 +87,19 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
         }
     }
 
-    object AvventerJournalføring : Tilstand
+    object AvventerJournalføring : Tilstand {
+        override fun entering(søknadHendelse: SøknadHendelse, søknad: Søknad) {
+            søknad.trengerJournalføring(søknadHendelse)
+        }
+    }
+
+    private fun trengerJournalføring(søknadHendelse: SøknadHendelse) {
+        val dokumentLokasjon = requireNotNull(dokumentLokasjon) {
+            "OBS! Dokumentlokasjon ikke satt enda?"
+        }
+
+        søknadHendelse.behov(Behovtype.Journalføring, "Trenger å journalføre søknad", mapOf("dokumentLokasjon" to dokumentLokasjon))
+    }
 
     companion object {
 
@@ -111,6 +127,6 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
         }
         val forrigeTilstand = tilstand
         tilstand = nyTilstand
-        tilstand.vedAktivering(søknadHendelse)
+        tilstand.entering(søknadHendelse, this)
     }
 }
