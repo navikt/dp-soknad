@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMotattHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -30,7 +31,13 @@ internal class SøknadTest {
         håndterArkiverbarSøknad()
         assertEquals(Søknad.AvventerJournalføring, oppdatertInspektør().gjeldendetilstand)
         assertBehov(Behovtype.Journalføring)
+        håndterJournalførtSøknad()
+        assertEquals(Søknad.Journalført, oppdatertInspektør().gjeldendetilstand)
         println(person.aktivitetslogg.toString())
+    }
+
+    private fun håndterJournalførtSøknad() {
+        person.håndter(SøknadJournalførtHendelse(oppdatertInspektør().søknadId))
     }
 
     @Test

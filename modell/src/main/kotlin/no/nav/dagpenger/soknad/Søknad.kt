@@ -6,6 +6,7 @@ import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import java.util.UUID
@@ -15,6 +16,12 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
     constructor(søknadId: UUID) : this(søknadId, UnderOpprettelse, dokumentLokasjon = null)
 
     internal fun søknadID() = søknadId
+
+    companion object {
+        internal fun harOpprettetSøknad(søknader: List<Søknad>) = søknader.any {
+            it.tilstand == UnderOpprettelse
+        }
+    }
 
     fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         kontekst(ønskeOmNySøknadHendelse)
@@ -40,6 +47,11 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
         tilstand.håndter(arkiverbarSøknadMotattHendelse, this)
     }
 
+    fun håndter(søknadJournalførtHendelse: SøknadJournalførtHendelse) {
+        kontekst(søknadJournalførtHendelse)
+        tilstand.håndter(søknadJournalførtHendelse, this)
+    }
+
     interface Tilstand : Aktivitetskontekst {
 
         fun entering(søknadHendelse: SøknadHendelse, søknad: Søknad) {}
@@ -58,6 +70,10 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
 
         fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMotattHendelse, søknad: Søknad) {
             arkiverbarSøknadMotattHendelse.warn("Kan ikke håndtere arkiverbarSøknadHendelse")
+        }
+
+        fun håndter(søknadJournalførtHendelse: SøknadJournalførtHendelse, søknad: Søknad) {
+            søknadJournalførtHendelse.warn("Kan ikke håndtere søknadJournalførtHendelse")
         }
 
         override fun toSpesifikkKontekst(): SpesifikkKontekst {
@@ -97,22 +113,13 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
         override fun entering(søknadHendelse: SøknadHendelse, søknad: Søknad) {
             søknad.trengerJournalføring(søknadHendelse)
         }
-    }
 
-    private fun trengerJournalføring(søknadHendelse: SøknadHendelse) {
-        val dokumentLokasjon = requireNotNull(dokumentLokasjon) {
-            "OBS! Dokumentlokasjon ikke satt enda?"
-        }
-
-        søknadHendelse.behov(Behovtype.Journalføring, "Trenger å journalføre søknad", mapOf("dokumentLokasjon" to dokumentLokasjon))
-    }
-
-    companion object {
-
-        internal fun harOpprettetSøknad(søknader: List<Søknad>) = søknader.any {
-            it.tilstand == UnderOpprettelse
+        override fun håndter(søknadJournalførtHendelse: SøknadJournalførtHendelse, søknad: Søknad) {
+            søknad.endreTilstand(Journalført, søknadJournalførtHendelse)
         }
     }
+
+    object Journalført : Tilstand
 
     fun accept(visitor: SøknadVisitor) {
         visitor.visitSøknad(søknadId, tilstand)
@@ -125,10 +132,15 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
         hendelse.kontekst(tilstand)
     }
 
-    private fun endreTilstand(
-        nyTilstand: Tilstand,
-        søknadHendelse: SøknadHendelse
-    ) {
+    private fun trengerJournalføring(søknadHendelse: SøknadHendelse) {
+        val dokumentLokasjon = requireNotNull(dokumentLokasjon) {
+            "Forventet at variabel dokumentLokasjon var satt. Er i tilstand: $tilstand"
+        }
+
+        søknadHendelse.behov(Behovtype.Journalføring, "Trenger å journalføre søknad", mapOf("dokumentLokasjon" to dokumentLokasjon))
+    }
+
+    private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: SøknadHendelse) {
         if (nyTilstand == tilstand) {
             return // Vi er allerede i tilstanden
         }

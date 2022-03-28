@@ -5,6 +5,7 @@ import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMotattHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import java.util.UUID
@@ -52,6 +53,13 @@ class Person private constructor(
         kontekst(arkiverbarSøknadMotattHendelse, "Arkiverbar søknad motatt")
         finnSøknad(arkiverbarSøknadMotattHendelse).also { søknaden ->
             søknaden.håndter(arkiverbarSøknadMotattHendelse)
+        }
+    }
+
+    fun håndter(søknadJournalførtHendelse: SøknadJournalførtHendelse) {
+        kontekst(søknadJournalførtHendelse, "Søknad journalført")
+        finnSøknad(søknadJournalførtHendelse).also { søknaden ->
+            søknaden.håndter(søknadJournalførtHendelse)
         }
     }
 
