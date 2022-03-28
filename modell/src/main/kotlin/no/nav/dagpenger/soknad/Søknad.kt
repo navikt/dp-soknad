@@ -54,6 +54,8 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
 
     interface Tilstand : Aktivitetskontekst {
 
+        val tilstandType: Type
+
         fun entering(søknadHendelse: SøknadHendelse, søknad: Søknad) {}
 
         fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) {
@@ -81,9 +83,24 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
                 SpesifikkKontekst(it, emptyMap())
             }
         }
+
+        fun accept(visitor: TilstandVisitor) {
+            visitor.visitTilstand(tilstandType)
+        }
+
+        enum class Type {
+            UnderOpprettelse,
+            UnderArbeid,
+            AvventerArkiverbarSøknad,
+            AvventerJournalføring,
+            Journalført
+        }
     }
 
-    object UnderOpprettelse : Tilstand {
+    private object UnderOpprettelse : Tilstand {
+        override val tilstandType: Tilstand.Type
+            get() = Tilstand.Type.UnderOpprettelse
+
         override fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) {
             ønskeOmNySøknadHendelse.behov(Behovtype.NySøknad, "Behøver tom søknad for denne søknaden")
         }
@@ -92,13 +109,19 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
         }
     }
 
-    object UnderArbeid : Tilstand {
+    private object UnderArbeid : Tilstand {
+        override val tilstandType: Tilstand.Type
+            get() = Tilstand.Type.UnderArbeid
+
         override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
             søknad.endreTilstand(AvventerArkiverbarSøknad, søknadInnsendtHendelse)
         }
     }
 
-    object AvventerArkiverbarSøknad : Tilstand {
+    private object AvventerArkiverbarSøknad : Tilstand {
+        override val tilstandType: Tilstand.Type
+            get() = Tilstand.Type.AvventerArkiverbarSøknad
+
         override fun entering(søknadHendelse: SøknadHendelse, søknad: Søknad) {
             søknadHendelse.behov(Behovtype.ArkiverbarSøknad, "Trenger søknad på et arkiverbart format")
         }
@@ -109,7 +132,10 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
         }
     }
 
-    object AvventerJournalføring : Tilstand {
+    private object AvventerJournalføring : Tilstand {
+        override val tilstandType: Tilstand.Type
+            get() = Tilstand.Type.AvventerJournalføring
+
         override fun entering(søknadHendelse: SøknadHendelse, søknad: Søknad) {
             søknad.trengerJournalføring(søknadHendelse)
         }
@@ -119,10 +145,14 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
         }
     }
 
-    object Journalført : Tilstand
+    private object Journalført : Tilstand {
+        override val tilstandType: Tilstand.Type
+            get() = Tilstand.Type.Journalført
+    }
 
     fun accept(visitor: SøknadVisitor) {
-        visitor.visitSøknad(søknadId, tilstand)
+        visitor.visitSøknad(søknadId)
+        tilstand.accept(visitor)
     }
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst = SpesifikkKontekst(kontekstType = "søknad", mapOf("søknadUUID" to søknadId.toString()))

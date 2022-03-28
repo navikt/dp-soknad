@@ -9,7 +9,6 @@ import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.util.UUID
 
 internal class SøknadTest {
 
@@ -21,18 +20,18 @@ internal class SøknadTest {
     @Test
     fun `Søker oppretter søknad og ferdigstiller den`() {
         håndterØnskeOmNySøknadHendelse()
-        assertØnskeOmNySøknadHendelse()
+        assertEquals(Søknad.Tilstand.Type.UnderOpprettelse, oppdatertInspektør().gjeldendetilstand)
         assertBehov(Behovtype.NySøknad)
         håndterNySøknadOpprettet()
-        assertEquals(Søknad.UnderArbeid, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(Søknad.Tilstand.Type.UnderArbeid, oppdatertInspektør().gjeldendetilstand)
         håndterSendInnSøknad()
-        assertEquals(Søknad.AvventerArkiverbarSøknad, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(Søknad.Tilstand.Type.AvventerArkiverbarSøknad, oppdatertInspektør().gjeldendetilstand)
         assertBehov(Behovtype.ArkiverbarSøknad)
         håndterArkiverbarSøknad()
-        assertEquals(Søknad.AvventerJournalføring, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(Søknad.Tilstand.Type.AvventerJournalføring, oppdatertInspektør().gjeldendetilstand)
         assertBehov(Behovtype.Journalføring)
         håndterJournalførtSøknad()
-        assertEquals(Søknad.Journalført, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(Søknad.Tilstand.Type.Journalført, oppdatertInspektør().gjeldendetilstand)
         println(person.aktivitetslogg.toString())
     }
 
@@ -41,10 +40,16 @@ internal class SøknadTest {
     }
 
     @Test
-    fun `person oppretter en søknad med tilstand Opprettet`() {
+    fun `oppretter en person `() {
         val person = Person(testIdent)
-        person.håndter(ØnskeOmNySøknadHendelse())
-        assertEquals(1, PersonTestVisitor(person).antallSøknader)
+        object : PersonVisitor {
+            init {
+                person.accept(this)
+            }
+            override fun visitPerson(ident: String) {
+                assertEquals(testIdent, ident)
+            }
+        }
     }
 
     @Test
@@ -68,10 +73,6 @@ internal class SøknadTest {
         } ?: throw AssertionError("Fant ikke behov $behovtype")
     }
 
-    private fun assertØnskeOmNySøknadHendelse() {
-        assertEquals(Søknad.UnderOpprettelse, oppdatertInspektør().gjeldendetilstand)
-    }
-
     private fun håndterSendInnSøknad() {
         person.håndter(SøknadInnsendtHendelse(oppdatertInspektør().søknadId))
     }
@@ -80,25 +81,5 @@ internal class SøknadTest {
 
     private fun håndterØnskeOmNySøknadHendelse() {
         person.håndter(ØnskeOmNySøknadHendelse())
-    }
-
-    private class PersonTestVisitor(person: Person) : PersonVisitor {
-
-        init {
-            person.accept(this)
-        }
-
-        var antallSøknader = 0
-        override fun visitPerson(ident: String) {
-            assertEquals("fnr", ident)
-        }
-
-        override fun postVisitSøknader() {
-            antallSøknader++
-        }
-
-        override fun visitSøknad(søknadId: UUID, tilstand: Søknad.Tilstand) {
-            assertEquals(Søknad.UnderOpprettelse, tilstand)
-        }
     }
 }
