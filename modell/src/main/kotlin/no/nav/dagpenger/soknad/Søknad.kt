@@ -11,7 +11,13 @@ import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import java.util.UUID
 
-class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, private var dokumentLokasjon: DokumentLokasjon?) : Aktivitetskontekst {
+class Søknad(
+    private val søknadId: UUID,
+    private var tilstand: Tilstand,
+    private var dokumentLokasjon: DokumentLokasjon?,
+) : Aktivitetskontekst {
+
+    private val observers = mutableListOf<SøknadObserver>()
 
     constructor(søknadId: UUID) : this(søknadId, UnderOpprettelse, dokumentLokasjon = null)
 
@@ -50,6 +56,10 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
     fun håndter(søknadJournalførtHendelse: SøknadJournalførtHendelse) {
         kontekst(søknadJournalførtHendelse)
         tilstand.håndter(søknadJournalførtHendelse, this)
+    }
+
+    fun leggTilObserver(søknadObserver: SøknadObserver) {
+        observers.add(søknadObserver)
     }
 
     interface Tilstand : Aktivitetskontekst {
@@ -104,6 +114,7 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
         override fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) {
             ønskeOmNySøknadHendelse.behov(Behovtype.NySøknad, "Behøver tom søknad for denne søknaden")
         }
+
         override fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse, søknad: Søknad) {
             søknad.endreTilstand(UnderArbeid, søknadOpprettetHendelse)
         }
@@ -155,7 +166,8 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
         tilstand.accept(visitor)
     }
 
-    override fun toSpesifikkKontekst(): SpesifikkKontekst = SpesifikkKontekst(kontekstType = "søknad", mapOf("søknadUUID" to søknadId.toString()))
+    override fun toSpesifikkKontekst(): SpesifikkKontekst =
+        SpesifikkKontekst(kontekstType = "søknad", mapOf("søknadUUID" to søknadId.toString()))
 
     private fun kontekst(hendelse: Hendelse) {
         hendelse.kontekst(this)
@@ -167,7 +179,11 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
             "Forventet at variabel dokumentLokasjon var satt. Er i tilstand: $tilstand"
         }
 
-        søknadHendelse.behov(Behovtype.Journalføring, "Trenger å journalføre søknad", mapOf("dokumentLokasjon" to dokumentLokasjon))
+        søknadHendelse.behov(
+            Behovtype.Journalføring,
+            "Trenger å journalføre søknad",
+            mapOf("dokumentLokasjon" to dokumentLokasjon)
+        )
     }
 
     private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: SøknadHendelse) {
@@ -178,5 +194,19 @@ class Søknad(private val søknadId: UUID, private var tilstand: Tilstand, priva
         tilstand = nyTilstand
         søknadHendelse.kontekst(tilstand)
         tilstand.entering(søknadHendelse, this)
+
+        varsleOmEndretTilstand(forrigeTilstand)
+    }
+
+    private fun varsleOmEndretTilstand(forrigeTilstand: Tilstand) {
+        observers.forEach { observer ->
+            observer.tilstandEndret(
+                SøknadObserver.SøknadEndretTilstandEvent(
+                    søknadId = søknadId,
+                    gjeldendeTilstand = tilstand.tilstandType,
+                    forrigeTilstand = forrigeTilstand.tilstandType
+                )
+            )
+        }
     }
 }

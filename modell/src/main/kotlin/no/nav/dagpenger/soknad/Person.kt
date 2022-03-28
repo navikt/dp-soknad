@@ -13,7 +13,7 @@ import java.util.UUID
 class Person private constructor(
     private val søknader: MutableList<Søknad>,
     private val ident: String,
-    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : Aktivitetskontekst {
 
     constructor(ident: String) : this(mutableListOf(), ident)
@@ -71,10 +71,17 @@ class Person private constructor(
         aktivitetslogg.accept(visitor)
     }
 
+    fun addObserver(søknadObserver: SøknadObserver) {
+        søknader.forEach { søknad ->
+            søknad.leggTilObserver(søknadObserver)
+        }
+    }
+
     private fun kontekst(hendelse: Hendelse, melding: String) {
         hendelse.kontekst(this)
         hendelse.info(melding)
     }
 
-    override fun toSpesifikkKontekst(): SpesifikkKontekst = SpesifikkKontekst(kontekstType = "person", mapOf("ident" to ident))
+    override fun toSpesifikkKontekst(): SpesifikkKontekst =
+        SpesifikkKontekst(kontekstType = "person", mapOf("ident" to ident))
 }

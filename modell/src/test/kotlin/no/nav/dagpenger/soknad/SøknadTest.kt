@@ -1,38 +1,63 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerArkiverbarSøknad
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerJournalføring
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderArbeid
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMotattHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
+private const val testIdent = "fnr"
+
 internal class SøknadTest {
 
-    companion object {
-        private val testIdent = "fnr"
-        val person = Person(testIdent)
+    private lateinit var person: Person
+    private lateinit var observatør: TestSøknadObserver
+
+    @BeforeEach
+    internal fun setUp() {
+        person = Person(testIdent)
+        observatør = TestSøknadObserver().also { person.addObserver(it) }
     }
 
     @Test
     fun `Søker oppretter søknad og ferdigstiller den`() {
         håndterØnskeOmNySøknadHendelse()
-        assertEquals(Søknad.Tilstand.Type.UnderOpprettelse, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(UnderOpprettelse, oppdatertInspektør().gjeldendetilstand)
         assertBehov(Behovtype.NySøknad)
         håndterNySøknadOpprettet()
-        assertEquals(Søknad.Tilstand.Type.UnderArbeid, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(UnderArbeid, oppdatertInspektør().gjeldendetilstand)
         håndterSendInnSøknad()
-        assertEquals(Søknad.Tilstand.Type.AvventerArkiverbarSøknad, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(AvventerArkiverbarSøknad, oppdatertInspektør().gjeldendetilstand)
         assertBehov(Behovtype.ArkiverbarSøknad)
         håndterArkiverbarSøknad()
-        assertEquals(Søknad.Tilstand.Type.AvventerJournalføring, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(AvventerJournalføring, oppdatertInspektør().gjeldendetilstand)
         assertBehov(Behovtype.Journalføring)
         håndterJournalførtSøknad()
-        assertEquals(Søknad.Tilstand.Type.Journalført, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(Journalført, oppdatertInspektør().gjeldendetilstand)
+
+        assertTilstander(
+            UnderOpprettelse,
+            UnderArbeid,
+            AvventerArkiverbarSøknad,
+            AvventerJournalføring,
+            Journalført
+        )
+
         println(person.aktivitetslogg.toString())
+    }
+
+    private fun assertTilstander(vararg tilstander: Søknad.Tilstand.Type) {
+        assertEquals(tilstander.asList(), observatør.tilstander)
     }
 
     private fun håndterJournalførtSøknad() {
@@ -46,6 +71,7 @@ internal class SøknadTest {
             init {
                 person.accept(this)
             }
+
             override fun visitPerson(ident: String) {
                 assertEquals(testIdent, ident)
             }
