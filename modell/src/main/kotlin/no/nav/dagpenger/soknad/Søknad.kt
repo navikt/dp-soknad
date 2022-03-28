@@ -28,9 +28,9 @@ class Søknad private constructor(
     internal fun søknadID() = søknadId
 
     companion object {
-        internal fun harOpprettetSøknad(søknader: List<Søknad>) = søknader.any {
-            it.tilstand == UnderOpprettelse
-        }
+
+        internal fun List<Søknad>.harAlleredeOpprettetSøknad() = this.any { it.tilstand == UnderOpprettelse }
+        internal fun List<Søknad>.finnSøknad(søknadId: UUID): Søknad? = this.find { it.søknadId == søknadId }
     }
 
     fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {

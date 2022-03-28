@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad
 
-import no.nav.dagpenger.soknad.Søknad.Companion.harOpprettetSøknad
+import no.nav.dagpenger.soknad.Søknad.Companion.finnSøknad
+import no.nav.dagpenger.soknad.Søknad.Companion.harAlleredeOpprettetSøknad
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
@@ -21,7 +22,7 @@ class Person private constructor(
     constructor(ident: String) : this(mutableListOf(), ident)
 
     fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
-        if (harOpprettetSøknad(søknader)) {
+        if (søknader.harAlleredeOpprettetSøknad()) {
             ønskeOmNySøknadHendelse.severe("Kan ikke ha flere enn én opprettet søknad.")
         }
 
@@ -41,9 +42,8 @@ class Person private constructor(
         søknaden.håndter(søknadOpprettetHendelse)
     }
 
-    private fun finnSøknad(søknadHendelse: SøknadHendelse) = søknader.find {
-        it.søknadID() == søknadHendelse.søknadID()
-    } ?: søknadHendelse.severe("Fant ikke søknaden")
+    private fun finnSøknad(søknadHendelse: SøknadHendelse) =
+        søknader.finnSøknad(søknadHendelse.søknadID()) ?: søknadHendelse.severe("Fant ikke søknaden")
 
     fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
         kontekst(søknadInnsendtHendelse, "Sender inn søknaden")
