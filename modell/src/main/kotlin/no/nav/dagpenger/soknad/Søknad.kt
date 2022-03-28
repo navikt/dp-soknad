@@ -135,6 +135,7 @@ class Søknad private constructor(
 
         override fun entering(søknadHendelse: SøknadHendelse, søknad: Søknad) {
             søknadHendelse.behov(Behovtype.ArkiverbarSøknad, "Trenger søknad på et arkiverbart format")
+            // TODO: Emit en hendelse som fører til at vi besvarer faktum i quiz for når søknaden/kravet ble fremsatt
         }
 
         override fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse, søknad: Søknad) {
