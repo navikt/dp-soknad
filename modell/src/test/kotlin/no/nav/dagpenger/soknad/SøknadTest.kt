@@ -6,7 +6,7 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerJournalføring
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderArbeid
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
-import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMotattHendelse
+import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
@@ -21,29 +21,25 @@ private const val testIdent = "fnr"
 internal class SøknadTest {
 
     private lateinit var person: Person
-    private lateinit var observatør: TestSøknadObserver
+    private lateinit var observatør: TestPersonObserver
+    private val inspektør get() = TestSøknadInspektør(person)
 
     @BeforeEach
     internal fun setUp() {
         person = Person(testIdent)
-        observatør = TestSøknadObserver().also { person.addObserver(it) }
+        observatør = TestPersonObserver().also { person.addObserver(it) }
     }
 
     @Test
     fun `Søker oppretter søknad og ferdigstiller den`() {
         håndterØnskeOmNySøknadHendelse()
-        assertEquals(UnderOpprettelse, oppdatertInspektør().gjeldendetilstand)
         assertBehov(Behovtype.NySøknad)
         håndterNySøknadOpprettet()
-        assertEquals(UnderArbeid, oppdatertInspektør().gjeldendetilstand)
         håndterSendInnSøknad()
-        assertEquals(AvventerArkiverbarSøknad, oppdatertInspektør().gjeldendetilstand)
         assertBehov(Behovtype.ArkiverbarSøknad)
         håndterArkiverbarSøknad()
-        assertEquals(AvventerJournalføring, oppdatertInspektør().gjeldendetilstand)
         assertBehov(Behovtype.Journalføring)
         håndterJournalførtSøknad()
-        assertEquals(Journalført, oppdatertInspektør().gjeldendetilstand)
 
         assertTilstander(
             UnderOpprettelse,
@@ -54,14 +50,6 @@ internal class SøknadTest {
         )
 
         println(person.aktivitetslogg.toString())
-    }
-
-    private fun assertTilstander(vararg tilstander: Søknad.Tilstand.Type) {
-        assertEquals(tilstander.asList(), observatør.tilstander)
-    }
-
-    private fun håndterJournalførtSøknad() {
-        person.håndter(SøknadJournalførtHendelse(oppdatertInspektør().søknadId))
     }
 
     @Test
@@ -85,25 +73,31 @@ internal class SøknadTest {
         assertThrows<Aktivitetslogg.AktivitetException> { person.håndter(ØnskeOmNySøknadHendelse()) }
     }
 
+    private fun assertTilstander(vararg tilstander: Søknad.Tilstand.Type) {
+        assertEquals(tilstander.asList(), observatør.tilstander)
+    }
+
+    private fun håndterJournalførtSøknad() {
+        person.håndter(SøknadJournalførtHendelse(inspektør.søknadId))
+    }
+
     private fun håndterNySøknadOpprettet() {
-        person.håndter(SøknadOpprettetHendelse(oppdatertInspektør().søknadId))
+        person.håndter(SøknadOpprettetHendelse(inspektør.søknadId))
     }
 
     private fun håndterArkiverbarSøknad() {
-        person.håndter(ArkiverbarSøknadMotattHendelse(oppdatertInspektør().søknadId, "urn:dokument:1"))
+        person.håndter(ArkiverbarSøknadMottattHendelse(inspektør.søknadId, "urn:dokument:1"))
     }
 
     private fun assertBehov(behovtype: Behovtype) {
-        oppdatertInspektør().personLogg.behov().find {
+        inspektør.personLogg.behov().find {
             it.type == behovtype
         } ?: throw AssertionError("Fant ikke behov $behovtype")
     }
 
     private fun håndterSendInnSøknad() {
-        person.håndter(SøknadInnsendtHendelse(oppdatertInspektør().søknadId))
+        person.håndter(SøknadInnsendtHendelse(inspektør.søknadId))
     }
-
-    private fun oppdatertInspektør() = TestSøknadInspektør(person)
 
     private fun håndterØnskeOmNySøknadHendelse() {
         person.håndter(ØnskeOmNySøknadHendelse())

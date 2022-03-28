@@ -3,7 +3,7 @@ package no.nav.dagpenger.soknad.hendelse
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import java.util.UUID
 
-class ArkiverbarSøknadMotattHendelse(
+class ArkiverbarSøknadMottattHendelse(
     søknadID: UUID,
     private val dokumentLokasjon: DokumentLokasjon,
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg()

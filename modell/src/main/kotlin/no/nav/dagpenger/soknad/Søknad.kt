@@ -1,7 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
-import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMotattHendelse
+import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
@@ -11,15 +11,19 @@ import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import java.util.UUID
 
-class Søknad(
+class Søknad private constructor(
     private val søknadId: UUID,
+    private val person: Person,
     private var tilstand: Tilstand,
     private var dokumentLokasjon: DokumentLokasjon?,
 ) : Aktivitetskontekst {
 
-    private val observers = mutableListOf<SøknadObserver>()
-
-    constructor(søknadId: UUID) : this(søknadId, UnderOpprettelse, dokumentLokasjon = null)
+    internal constructor(søknadId: UUID, person: Person) : this(
+        søknadId,
+        person,
+        UnderOpprettelse,
+        dokumentLokasjon = null
+    )
 
     internal fun søknadID() = søknadId
 
@@ -44,7 +48,7 @@ class Søknad(
         tilstand.håndter(søknadInnsendtHendelse, this)
     }
 
-    fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMotattHendelse) {
+    fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse) {
         if (!arkiverbarSøknadMotattHendelse.valider()) {
             arkiverbarSøknadMotattHendelse.warn("Ikke gyldig dokumentlokasjon")
             return
@@ -56,10 +60,6 @@ class Søknad(
     fun håndter(søknadJournalførtHendelse: SøknadJournalførtHendelse) {
         kontekst(søknadJournalførtHendelse)
         tilstand.håndter(søknadJournalførtHendelse, this)
-    }
-
-    fun leggTilObserver(søknadObserver: SøknadObserver) {
-        observers.add(søknadObserver)
     }
 
     interface Tilstand : Aktivitetskontekst {
@@ -80,7 +80,7 @@ class Søknad(
             søknadInnsendtHendelse.warn("Kan ikke håndtere søknadInnsendtHendelse")
         }
 
-        fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMotattHendelse, søknad: Søknad) {
+        fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse, søknad: Søknad) {
             arkiverbarSøknadMotattHendelse.warn("Kan ikke håndtere arkiverbarSøknadHendelse")
         }
 
@@ -137,7 +137,7 @@ class Søknad(
             søknadHendelse.behov(Behovtype.ArkiverbarSøknad, "Trenger søknad på et arkiverbart format")
         }
 
-        override fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMotattHendelse, søknad: Søknad) {
+        override fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse, søknad: Søknad) {
             søknad.dokumentLokasjon = arkiverbarSøknadMotattHendelse.dokumentLokasjon()
             søknad.endreTilstand(AvventerJournalføring, arkiverbarSøknadMotattHendelse)
         }
@@ -199,14 +199,12 @@ class Søknad(
     }
 
     private fun varsleOmEndretTilstand(forrigeTilstand: Tilstand) {
-        observers.forEach { observer ->
-            observer.tilstandEndret(
-                SøknadObserver.SøknadEndretTilstandEvent(
-                    søknadId = søknadId,
-                    gjeldendeTilstand = tilstand.tilstandType,
-                    forrigeTilstand = forrigeTilstand.tilstandType
-                )
+        person.søknadTilstandEndret(
+            PersonObserver.SøknadEndretTilstandEvent(
+                søknadId = søknadId,
+                gjeldendeTilstand = tilstand.tilstandType,
+                forrigeTilstand = forrigeTilstand.tilstandType
             )
-        }
+        )
     }
 }

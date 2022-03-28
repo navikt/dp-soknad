@@ -1,7 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Søknad.Companion.harOpprettetSøknad
-import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMotattHendelse
+import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
@@ -14,7 +14,9 @@ class Person private constructor(
     private val søknader: MutableList<Søknad>,
     private val ident: String,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
-) : Aktivitetskontekst {
+) : Aktivitetskontekst, PersonObserver {
+
+    private val observers = mutableListOf<PersonObserver>()
 
     constructor(ident: String) : this(mutableListOf(), ident)
 
@@ -25,7 +27,7 @@ class Person private constructor(
 
         kontekst(ønskeOmNySøknadHendelse, "Ønske om søknad registrert")
         søknader.add(
-            Søknad(UUID.randomUUID()).also {
+            Søknad(UUID.randomUUID(), this).also {
                 it.håndter(ønskeOmNySøknadHendelse)
             }
         )
@@ -49,7 +51,7 @@ class Person private constructor(
         søknaden.håndter(søknadInnsendtHendelse)
     }
 
-    fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMotattHendelse) {
+    fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse) {
         kontekst(arkiverbarSøknadMotattHendelse, "Arkiverbar søknad motatt")
         finnSøknad(arkiverbarSøknadMotattHendelse).also { søknaden ->
             søknaden.håndter(arkiverbarSøknadMotattHendelse)
@@ -71,9 +73,13 @@ class Person private constructor(
         aktivitetslogg.accept(visitor)
     }
 
-    fun addObserver(søknadObserver: SøknadObserver) {
-        søknader.forEach { søknad ->
-            søknad.leggTilObserver(søknadObserver)
+    fun addObserver(søknadObserver: PersonObserver) {
+        observers.add(søknadObserver)
+    }
+
+    override fun søknadTilstandEndret(søknadEndretTilstandEvent: PersonObserver.SøknadEndretTilstandEvent) {
+        observers.forEach {
+            it.søknadTilstandEndret(søknadEndretTilstandEvent)
         }
     }
 
