@@ -16,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-private const val testIdent = "fnr"
+private const val testIdent = "12345678912"
 
 internal class SøknadTest {
 

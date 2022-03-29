@@ -17,6 +17,10 @@ class Person private constructor(
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : Aktivitetskontekst, PersonObserver {
 
+    init {
+        require(ident.matches("\\d{11}".toRegex())) { "Ugyldig ident, må være 11 sifre" }
+    }
+
     private val observers = mutableListOf<PersonObserver>()
 
     constructor(ident: String) : this(mutableListOf(), ident)
