@@ -22,6 +22,8 @@ class Person private constructor(
         require(ident.matches("\\d{11}".toRegex())) { "Ugyldig ident, må være 11 sifre" }
     }
 
+    fun ident() = ident
+
     private val observers = mutableListOf<PersonObserver>()
 
     constructor(ident: String) : this(mutableListOf(), ident)

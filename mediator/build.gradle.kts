@@ -6,6 +6,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":modell"))
     implementation(Ktor.library("jackson"))
     implementation(Jackson.jsr310)
     implementation(Ktor.library("auth"))
