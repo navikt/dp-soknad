@@ -14,8 +14,8 @@ abstract class Hendelse protected constructor(
     }
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst {
-        return this.javaClass.canonicalName.split('.').last().let {
-            SpesifikkKontekst(it, emptyMap())
+        return this.javaClass.canonicalName.split('.').last().let { klassenavn ->
+            SpesifikkKontekst(klassenavn, emptyMap())
         }
     }
 

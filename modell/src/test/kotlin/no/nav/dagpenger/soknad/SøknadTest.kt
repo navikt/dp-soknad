@@ -2,9 +2,9 @@ package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerArkiverbarSøknad
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerMidlertidligJournalføring
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerJournalføring
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderArbeid
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
@@ -22,33 +22,38 @@ internal class SøknadTest {
 
     private lateinit var person: Person
     private lateinit var observatør: TestPersonObserver
+    private lateinit var plantUmlObservatør: PlantUmlObservatør
     private val inspektør get() = TestSøknadInspektør(person)
 
     @BeforeEach
     internal fun setUp() {
         person = Person(testIdent)
         observatør = TestPersonObserver().also { person.addObserver(it) }
+        plantUmlObservatør = PlantUmlObservatør().also {
+            person.addObserver(it)
+        }
     }
 
     @Test
     fun `Søker oppretter søknad og ferdigstiller den`() {
         håndterØnskeOmNySøknadHendelse()
-        assertBehov(Behovtype.NySøknad)
+        assertBehov(Behovtype.NySøknad, mapOf("ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
         håndterNySøknadOpprettet()
         håndterSendInnSøknad()
-        assertBehov(Behovtype.ArkiverbarSøknad)
+        assertBehov(Behovtype.ArkiverbarSøknad, mapOf("ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
         håndterArkiverbarSøknad()
-        assertBehov(Behovtype.Journalføring)
+        assertBehov(Behovtype.Journalføring, mapOf("dokumentLokasjon" to "urn:dokument:1", "ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
         håndterJournalførtSøknad()
 
         assertTilstander(
             UnderOpprettelse,
-            UnderArbeid,
+            Påbegynt,
             AvventerArkiverbarSøknad,
-            AvventerJournalføring,
-            Journalført
+            AvventerMidlertidligJournalføring,
+            AvventerJournalføring
         )
 
+        assertPuml("Søker oppretter søknad og ferdigstiller den")
         println(person.aktivitetslogg.toString())
     }
 
@@ -89,10 +94,12 @@ internal class SøknadTest {
         person.håndter(ArkiverbarSøknadMottattHendelse(inspektør.søknadId, "urn:dokument:1"))
     }
 
-    private fun assertBehov(behovtype: Behovtype) {
-        inspektør.personLogg.behov().find {
+    private fun assertBehov(behovtype: Behovtype, forventetDetaljer: Map<String, Any> = emptyMap()) {
+       val behov =  inspektør.personLogg.behov().find {
             it.type == behovtype
         } ?: throw AssertionError("Fant ikke behov $behovtype")
+
+        assertEquals(forventetDetaljer, behov.detaljer() + behov.kontekst())
     }
 
     private fun håndterSendInnSøknad() {
@@ -101,5 +108,9 @@ internal class SøknadTest {
 
     private fun håndterØnskeOmNySøknadHendelse() {
         person.håndter(ØnskeOmNySøknadHendelse())
+    }
+
+    private fun assertPuml(tittel: String) {
+        plantUmlObservatør.verify(tittel)
     }
 }

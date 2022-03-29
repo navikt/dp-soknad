@@ -81,9 +81,9 @@ class Person private constructor(
         observers.add(søknadObserver)
     }
 
-    override fun søknadTilstandEndret(søknadEndretTilstandEvent: PersonObserver.SøknadEndretTilstandEvent) {
+    override fun søknadTilstandEndret(event: PersonObserver.SøknadEndretTilstandEvent) {
         observers.forEach {
-            it.søknadTilstandEndret(søknadEndretTilstandEvent)
+            it.søknadTilstandEndret(event)
         }
     }
 

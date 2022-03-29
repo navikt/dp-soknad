@@ -7,7 +7,7 @@ class TestPersonObserver : PersonObserver {
         it.add(Søknad.Tilstand.Type.UnderOpprettelse)
     }
 
-    override fun søknadTilstandEndret(søknadEndretTilstandEvent: SøknadEndretTilstandEvent) {
-        tilstander.add(søknadEndretTilstandEvent.gjeldendeTilstand)
+    override fun søknadTilstandEndret(event: SøknadEndretTilstandEvent) {
+        tilstander.add(event.gjeldendeTilstand)
     }
 }

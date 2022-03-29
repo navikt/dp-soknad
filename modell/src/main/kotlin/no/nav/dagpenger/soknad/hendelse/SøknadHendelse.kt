@@ -11,8 +11,8 @@ abstract class SøknadHendelse protected constructor(
     internal fun søknadID() = søknadID
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst {
-        return this.javaClass.canonicalName.split('.').last().let {
-            SpesifikkKontekst(it, mapOf("søknadID" to søknadID.toString()))
+        return this.javaClass.canonicalName.split('.').last().let { klassenavn ->
+            SpesifikkKontekst(klassenavn, mapOf("søknad_uuid" to søknadID.toString()))
         }
     }
 }

@@ -3,7 +3,7 @@ package no.nav.dagpenger.soknad
 import java.util.UUID
 
 interface PersonObserver {
-    fun søknadTilstandEndret(søknadEndretTilstandEvent: SøknadEndretTilstandEvent) {}
+    fun søknadTilstandEndret(event: SøknadEndretTilstandEvent) {}
 
     data class SøknadEndretTilstandEvent(
         val søknadId: UUID,

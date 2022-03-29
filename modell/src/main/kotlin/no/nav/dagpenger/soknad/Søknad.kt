@@ -100,10 +100,10 @@ class Søknad private constructor(
 
         enum class Type {
             UnderOpprettelse,
-            UnderArbeid,
+            Påbegynt,
             AvventerArkiverbarSøknad,
-            AvventerJournalføring,
-            Journalført
+            AvventerMidlertidligJournalføring,
+            AvventerJournalføring
         }
     }
 
@@ -116,13 +116,13 @@ class Søknad private constructor(
         }
 
         override fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse, søknad: Søknad) {
-            søknad.endreTilstand(UnderArbeid, søknadOpprettetHendelse)
+            søknad.endreTilstand(Påbegynt, søknadOpprettetHendelse)
         }
     }
 
-    private object UnderArbeid : Tilstand {
+    private object Påbegynt : Tilstand {
         override val tilstandType: Tilstand.Type
-            get() = Tilstand.Type.UnderArbeid
+            get() = Tilstand.Type.Påbegynt
 
         override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
             søknad.endreTilstand(AvventerArkiverbarSøknad, søknadInnsendtHendelse)
@@ -140,26 +140,26 @@ class Søknad private constructor(
 
         override fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse, søknad: Søknad) {
             søknad.dokumentLokasjon = arkiverbarSøknadMotattHendelse.dokumentLokasjon()
-            søknad.endreTilstand(AvventerJournalføring, arkiverbarSøknadMotattHendelse)
+            søknad.endreTilstand(AvventerMidlertidligJournalføring, arkiverbarSøknadMotattHendelse)
         }
     }
 
-    private object AvventerJournalføring : Tilstand {
+    private object AvventerMidlertidligJournalføring : Tilstand {
         override val tilstandType: Tilstand.Type
-            get() = Tilstand.Type.AvventerJournalføring
+            get() = Tilstand.Type.AvventerMidlertidligJournalføring
 
         override fun entering(søknadHendelse: SøknadHendelse, søknad: Søknad) {
             søknad.trengerJournalføring(søknadHendelse)
         }
 
         override fun håndter(søknadJournalførtHendelse: SøknadJournalførtHendelse, søknad: Søknad) {
-            søknad.endreTilstand(Journalført, søknadJournalførtHendelse)
+            søknad.endreTilstand(AvventerJournalføring, søknadJournalførtHendelse)
         }
     }
 
-    private object Journalført : Tilstand {
+    private object AvventerJournalføring : Tilstand {
         override val tilstandType: Tilstand.Type
-            get() = Tilstand.Type.Journalført
+            get() = Tilstand.Type.AvventerJournalføring
     }
 
     fun accept(visitor: SøknadVisitor) {
@@ -168,7 +168,7 @@ class Søknad private constructor(
     }
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst =
-        SpesifikkKontekst(kontekstType = "søknad", mapOf("søknadUUID" to søknadId.toString()))
+        SpesifikkKontekst(kontekstType = "søknad", mapOf("søknad_uuid" to søknadId.toString()))
 
     private fun kontekst(hendelse: Hendelse) {
         hendelse.kontekst(this)
