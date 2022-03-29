@@ -7,6 +7,7 @@ import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadJournalførtHendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import java.util.UUID
@@ -57,6 +58,11 @@ class Søknad private constructor(
         tilstand.håndter(arkiverbarSøknadMotattHendelse, this)
     }
 
+    fun håndter(søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse) {
+        kontekst(søknadMidlertidigJournalførtHendelse)
+        tilstand.håndter(søknadMidlertidigJournalførtHendelse, this)
+    }
+
     fun håndter(søknadJournalførtHendelse: SøknadJournalførtHendelse) {
         kontekst(søknadJournalførtHendelse)
         tilstand.håndter(søknadJournalførtHendelse, this)
@@ -68,25 +74,26 @@ class Søknad private constructor(
 
         fun entering(søknadHendelse: SøknadHendelse, søknad: Søknad) {}
 
-        fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) {
-            ønskeOmNySøknadHendelse.warn("Kan ikke håndtere ønskeOmNySøknadHendelse")
-        }
+        fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) =
+            ønskeOmNySøknadHendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse, søknad: Søknad) {
-            søknadOpprettetHendelse.warn("Kan ikke håndtere søknadOpprettetHendelse")
-        }
+        fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse, søknad: Søknad) =
+            søknadOpprettetHendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
-            søknadInnsendtHendelse.warn("Kan ikke håndtere søknadInnsendtHendelse")
-        }
+        fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) =
+            søknadInnsendtHendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse, søknad: Søknad) {
-            arkiverbarSøknadMotattHendelse.warn("Kan ikke håndtere arkiverbarSøknadHendelse")
-        }
+        fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse, søknad: Søknad) =
+            arkiverbarSøknadMotattHendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(søknadJournalførtHendelse: SøknadJournalførtHendelse, søknad: Søknad) {
-            søknadJournalførtHendelse.warn("Kan ikke håndtere søknadJournalførtHendelse")
-        }
+        fun håndter(søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse, søknad: Søknad) =
+            søknadMidlertidigJournalførtHendelse.`kan ikke håndteres i denne tilstanden`()
+
+        fun håndter(søknadJournalførtHendelse: SøknadJournalførtHendelse, søknad: Søknad) =
+            søknadJournalførtHendelse.`kan ikke håndteres i denne tilstanden`()
+
+        private fun Hendelse.`kan ikke håndteres i denne tilstanden`() =
+            this.warn("Kan ikke håndtere ${this.javaClass.simpleName} i tilstand $tilstandType")
 
         override fun toSpesifikkKontekst(): SpesifikkKontekst {
             return this.javaClass.canonicalName.split('.').last().let {
@@ -103,7 +110,8 @@ class Søknad private constructor(
             Påbegynt,
             AvventerArkiverbarSøknad,
             AvventerMidlertidligJournalføring,
-            AvventerJournalføring
+            AvventerJournalføring,
+            Journalført
         }
     }
 
@@ -149,17 +157,29 @@ class Søknad private constructor(
             get() = Tilstand.Type.AvventerMidlertidligJournalføring
 
         override fun entering(søknadHendelse: SøknadHendelse, søknad: Søknad) {
-            søknad.trengerJournalføring(søknadHendelse)
+            søknad.trengerMidlertidigJournalføring(søknadHendelse)
         }
 
-        override fun håndter(søknadJournalførtHendelse: SøknadJournalførtHendelse, søknad: Søknad) {
-            søknad.endreTilstand(AvventerJournalføring, søknadJournalførtHendelse)
+        override fun håndter(
+            søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse,
+            søknad: Søknad
+        ) {
+            søknad.endreTilstand(AvventerJournalføring, søknadMidlertidigJournalførtHendelse)
         }
     }
 
     private object AvventerJournalføring : Tilstand {
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.AvventerJournalføring
+
+        override fun håndter(søknadJournalførtHendelse: SøknadJournalførtHendelse, søknad: Søknad) {
+            søknad.endreTilstand(Journalført, søknadJournalførtHendelse)
+        }
+    }
+
+    private object Journalført : Tilstand {
+        override val tilstandType: Tilstand.Type
+            get() = Tilstand.Type.Journalført
     }
 
     fun accept(visitor: SøknadVisitor) {
@@ -175,13 +195,13 @@ class Søknad private constructor(
         hendelse.kontekst(tilstand)
     }
 
-    private fun trengerJournalføring(søknadHendelse: SøknadHendelse) {
+    private fun trengerMidlertidigJournalføring(søknadHendelse: SøknadHendelse) {
         val dokumentLokasjon = requireNotNull(dokumentLokasjon) {
             "Forventet at variabel dokumentLokasjon var satt. Er i tilstand: $tilstand"
         }
 
         søknadHendelse.behov(
-            Behovtype.Journalføring,
+            Behovtype.MidlertidigJournalføring,
             "Trenger å journalføre søknad",
             mapOf("dokumentLokasjon" to dokumentLokasjon)
         )

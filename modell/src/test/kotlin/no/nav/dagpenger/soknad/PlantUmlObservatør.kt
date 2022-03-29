@@ -11,7 +11,7 @@ class PlantUmlObservatør() : PersonObserver {
 
     private companion object {
         val path = "${
-            Paths.get("").toAbsolutePath().toString().substringBeforeLast("/")
+        Paths.get("").toAbsolutePath().toString().substringBeforeLast("/")
         }/docs/arkitektur/"
         val options = Options()
             .forFile()

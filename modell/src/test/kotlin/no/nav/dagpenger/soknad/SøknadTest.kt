@@ -2,13 +2,15 @@ package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerArkiverbarSøknad
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerMidlertidligJournalføring
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerJournalføring
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerMidlertidligJournalføring
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadJournalførtHendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -17,6 +19,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 private const val testIdent = "12345678912"
+private const val testJournalpostId = "J123"
 
 internal class SøknadTest {
 
@@ -42,7 +45,8 @@ internal class SøknadTest {
         håndterSendInnSøknad()
         assertBehov(Behovtype.ArkiverbarSøknad, mapOf("ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
         håndterArkiverbarSøknad()
-        assertBehov(Behovtype.Journalføring, mapOf("dokumentLokasjon" to "urn:dokument:1", "ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
+        assertBehov(Behovtype.MidlertidigJournalføring, mapOf("dokumentLokasjon" to "urn:dokument:1", "ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
+        håndterMidlertidigJournalførtSøknad()
         håndterJournalførtSøknad()
 
         assertTilstander(
@@ -50,7 +54,8 @@ internal class SøknadTest {
             Påbegynt,
             AvventerArkiverbarSøknad,
             AvventerMidlertidligJournalføring,
-            AvventerJournalføring
+            AvventerJournalføring,
+            Journalført
         )
 
         assertPuml("Søker oppretter søknad og ferdigstiller den")
@@ -82,10 +87,6 @@ internal class SøknadTest {
         assertEquals(tilstander.asList(), observatør.tilstander)
     }
 
-    private fun håndterJournalførtSøknad() {
-        person.håndter(SøknadJournalførtHendelse(inspektør.søknadId))
-    }
-
     private fun håndterNySøknadOpprettet() {
         person.håndter(SøknadOpprettetHendelse(inspektør.søknadId))
     }
@@ -94,8 +95,15 @@ internal class SøknadTest {
         person.håndter(ArkiverbarSøknadMottattHendelse(inspektør.søknadId, "urn:dokument:1"))
     }
 
+    private fun håndterMidlertidigJournalførtSøknad() {
+        person.håndter(SøknadMidlertidigJournalførtHendelse(inspektør.søknadId, testJournalpostId))
+    }
+
+    private fun håndterJournalførtSøknad() {
+        person.håndter(SøknadJournalførtHendelse(inspektør.søknadId))
+    }
     private fun assertBehov(behovtype: Behovtype, forventetDetaljer: Map<String, Any> = emptyMap()) {
-       val behov =  inspektør.personLogg.behov().find {
+        val behov = inspektør.personLogg.behov().find {
             it.type == behovtype
         } ?: throw AssertionError("Fant ikke behov $behovtype")
 

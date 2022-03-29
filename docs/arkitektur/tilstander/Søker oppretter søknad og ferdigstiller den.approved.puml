@@ -7,5 +7,6 @@ UnderOpprettelse --> Påbegynt
 Påbegynt --> AvventerArkiverbarSøknad
 AvventerArkiverbarSøknad --> AvventerMidlertidligJournalføring
 AvventerMidlertidligJournalføring --> AvventerJournalføring
-AvventerJournalføring--> [*]
+AvventerJournalføring --> Journalført
+Journalført--> [*]
 @enduml
