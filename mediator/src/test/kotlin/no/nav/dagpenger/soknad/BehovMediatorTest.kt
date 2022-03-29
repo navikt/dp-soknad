@@ -2,30 +2,31 @@ package no.nav.dagpenger.soknad
 
 import com.fasterxml.jackson.databind.JsonNode
 import io.mockk.mockk
-
+import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NySøknad
+import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDateTime
 import java.util.UUID
 
 internal class BehovMediatorTest {
     private companion object {
-        private const val journalpostId = "journalpostId"
+        private const val testIdent = "12345678912"
         private lateinit var behovMediator: BehovMediator
     }
 
     private val testRapid = TestRapid()
     private lateinit var aktivitetslogg: Aktivitetslogg
-    private lateinit var innsending: Innsending
+    private lateinit var person: Person
 
     @BeforeEach
     fun setup() {
-        innsending = Innsending(journalpostId = journalpostId)
+        person = Person(testIdent)
         aktivitetslogg = Aktivitetslogg()
         behovMediator = BehovMediator(
             rapidsConnection = testRapid,
@@ -35,57 +36,52 @@ internal class BehovMediatorTest {
     }
 
     @Test
-    internal fun `grupperer behov`() {
-
+    internal fun `Sender NySøkad behov`() {
         val hendelse = TestHendelse("Hendelse1", aktivitetslogg.barn())
-        hendelse.kontekst(innsending)
+        hendelse.kontekst(person)
 
         hendelse.behov(
-            Aktivitetslogg.Aktivitet.Behov.Behovtype.Persondata,
-            "Trenger personopplysninger",
+            NySøknad,
+            "Behøver tom søknad for denne søknaden",
             mapOf(
-                "aktørId" to "12344"
+                "ident" to testIdent
             )
         )
-        hendelse.behov(Aktivitetslogg.Aktivitet.Behov.Behovtype.Søknadsdata, "Trenger Søknadsdata")
-        hendelse.behov(EksisterendeSaker, "Trenger EksisterendeSaker")
 
         behovMediator.håndter(hendelse)
 
         val inspektør = testRapid.inspektør
 
         assertEquals(1, inspektør.size)
-        assertEquals(journalpostId, inspektør.key(0))
-
         inspektør.message(0).also {
+            println(it)
             assertEquals("behov", it["@event_name"].asText())
             assertTrue(it.hasNonNull("@id"))
             assertDoesNotThrow { UUID.fromString(it["@id"].asText()) }
             assertTrue(it.hasNonNull("@opprettet"))
             assertDoesNotThrow { LocalDateTime.parse(it["@opprettet"].asText()) }
-            assertEquals(listOf("Persondata", "Søknadsdata", "EksisterendeSaker"), it["@behov"].map(JsonNode::asText))
+            assertEquals(listOf("NySøknad"), it["@behov"].map(JsonNode::asText))
             assertEquals("behov", it["@event_name"].asText())
-            assertEquals("12344", it["aktørId"].asText())
-            assertEquals(journalpostId, it["journalpostId"].asText())
+            assertEquals(testIdent, it["ident"].asText())
         }
     }
 
     @Test
     internal fun `sjekker etter duplikatverdier`() {
         val hendelse = TestHendelse("Hendelse1", aktivitetslogg.barn())
-        hendelse.kontekst(innsending)
+        hendelse.kontekst(person)
         hendelse.behov(
-            Aktivitetslogg.Aktivitet.Behov.Behovtype.Persondata,
-            "Trenger personopplysninger",
+            NySøknad,
+            "Behøver tom søknad for denne søknaden",
             mapOf(
-                "aktørId" to "12344"
+                "ident" to testIdent
             )
         )
         hendelse.behov(
-            Aktivitetslogg.Aktivitet.Behov.Behovtype.Persondata,
-            "Trenger personopplysninger",
+            NySøknad,
+            "Behøver tom søknad for denne søknaden",
             mapOf(
-                "aktørId" to "12344"
+                "ident" to testIdent
             )
         )
 
@@ -95,9 +91,9 @@ internal class BehovMediatorTest {
     @Test
     internal fun `kan ikke produsere samme behov`() {
         val hendelse = TestHendelse("Hendelse1", aktivitetslogg.barn())
-        hendelse.kontekst(innsending)
-        hendelse.behov(EksisterendeSaker, "Trenger EksisterendeSaker")
-        hendelse.behov(EksisterendeSaker, "Trenger EksisterendeSaker")
+        hendelse.kontekst(person)
+        hendelse.behov(NySøknad, "Behøver tom søknad for denne søknaden")
+        hendelse.behov(NySøknad, "Behøver tom søknad for denne søknaden")
 
         assertThrows<IllegalArgumentException> { behovMediator.håndter(hendelse) }
     }
@@ -116,7 +112,7 @@ internal class BehovMediatorTest {
             logg.kontekst(this)
         }
 
-        override fun journalpostId(): String = journalpostId
+        // override fun ident(): String = testIdent
 
         override fun toSpesifikkKontekst() = SpesifikkKontekst("TestHendelse")
         override fun kontekst(kontekst: Aktivitetskontekst) {
