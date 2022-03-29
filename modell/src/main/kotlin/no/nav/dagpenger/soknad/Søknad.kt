@@ -26,10 +26,7 @@ class Søknad private constructor(
         dokumentLokasjon = null
     )
 
-    internal fun søknadID() = søknadId
-
     companion object {
-
         internal fun List<Søknad>.harAlleredeOpprettetSøknad() = this.any { it.tilstand == UnderOpprettelse }
         internal fun List<Søknad>.finnSøknad(søknadId: UUID): Søknad? = this.find { it.søknadId == søknadId }
     }
