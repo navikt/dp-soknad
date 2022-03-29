@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad
 
+import mu.KotlinLogging
 import no.nav.dagpenger.soknad.db.PersonRepository
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -8,6 +9,11 @@ internal class SøknadMediator(
     rapidsConnection: RapidsConnection,
     private val personRepository: PersonRepository
 ) {
+    private companion object {
+        val sikkerLogger = KotlinLogging.logger("tjenestekall")
+    }
+
+    private val behovMediator = BehovMediator(rapidsConnection, sikkerLogger)
 
     fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         val person = personRepository.hent(ønskeOmNySøknadHendelse.ident())
@@ -18,6 +24,7 @@ internal class SøknadMediator(
             val nyPerson = Person(ønskeOmNySøknadHendelse.ident())
             nyPerson.håndter(ønskeOmNySøknadHendelse)
         }
+        behovMediator.håndter(ønskeOmNySøknadHendelse)
 
         // lagre ny person?
         // delegere ønskeOmNySøknadHendelse til person?

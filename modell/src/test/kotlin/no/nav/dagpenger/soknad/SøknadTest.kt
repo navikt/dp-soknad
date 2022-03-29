@@ -79,8 +79,8 @@ internal class SøknadTest {
     @Test
     fun `en person kan kun ha én opprettet søknad av gangen`() {
         val person = Person(testIdent)
-        person.håndter(ØnskeOmNySøknadHendelse())
-        assertThrows<Aktivitetslogg.AktivitetException> { person.håndter(ØnskeOmNySøknadHendelse()) }
+        person.håndter(ØnskeOmNySøknadHendelse(testIdent))
+        assertThrows<Aktivitetslogg.AktivitetException> { person.håndter(ØnskeOmNySøknadHendelse(testIdent)) }
     }
 
     private fun assertTilstander(vararg tilstander: Søknad.Tilstand.Type) {
@@ -115,7 +115,7 @@ internal class SøknadTest {
     }
 
     private fun håndterØnskeOmNySøknadHendelse() {
-        person.håndter(ØnskeOmNySøknadHendelse())
+        person.håndter(ØnskeOmNySøknadHendelse(testIdent))
     }
 
     private fun assertPuml(tittel: String) {

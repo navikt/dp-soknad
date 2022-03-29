@@ -35,6 +35,6 @@ internal class SøknadMediatorTest {
         mediator.håndter(ØnskeOmNySøknadHendelse(testIdent))
         assertEquals(1, testRapid.inspektør.size)
         val behov = testRapid.inspektør.message(0)
-        assertEquals("Behov", behov["@event_name"])
+        assertEquals("behov", behov["@event_name"].asText())
     }
 }

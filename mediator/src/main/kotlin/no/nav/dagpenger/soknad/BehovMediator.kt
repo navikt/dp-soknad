@@ -5,15 +5,15 @@ import mu.KotlinLogging
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
-import java.time.LocalDateTime
-import java.util.UUID
-
-private val logg = KotlinLogging.logger {}
 
 class BehovMediator(
     private val rapidsConnection: RapidsConnection,
     private val sikkerLogg: KLogger
 ) {
+
+    private companion object {
+        val logger = KotlinLogging.logger { }
+    }
 
     internal fun håndter(hendelse: Hendelse) {
         hendelse.kontekster().forEach { if (!it.hasErrors()) håndter(hendelse, it.behov()) }
@@ -23,35 +23,23 @@ class BehovMediator(
         hendelse: Hendelse,
         behov: List<Aktivitetslogg.Aktivitet.Behov>
     ) {
-        behov.groupBy { it.kontekst() }.forEach { (kontekst, behov) ->
-            val behovsliste = mutableListOf<String>()
-            val id = UUID.randomUUID()
-
-            mutableMapOf(
-                "@event_name" to "behov",
-                "@opprettet" to LocalDateTime.now(),
-                "@id" to id,
-                "@behov" to behovsliste
-            )
-                .apply {
-                    putAll(kontekst)
-                    behov.forEach { behov ->
-                        require(behov.type.name !in behovsliste) { "Kan ikke produsere samme behov ${behov.type.name} på samme kontekst" }
-                        require(
-                            behov.detaljer().filterKeys { this.containsKey(it) && this[it] != behov.detaljer()[it] }
-                                .isEmpty()
-                        ) { "Kan ikke produsere behov med duplikate detaljer" }
-                        behovsliste.add(behov.type.name)
-                        putAll(behov.detaljer())
+        behov
+            .groupBy { it.kontekst() }
+            .onEach { (_, behovMap) ->
+                require(
+                    behovMap.size == behovMap.map { it.type.name }
+                        .toSet().size
+                ) { "Kan ikke produsere samme behov på samme kontekst" }
+            }
+            .forEach { (kontekst, liste) ->
+                val behovMap = liste.associate { behov -> behov.type.name to behov.detaljer() }
+                (kontekst + behovMap).let { JsonMessage.newNeed(behovMap.keys, it) }
+                    .also { message ->
+                        sikkerLogg.info("sender behov for {}:\n{}", behovMap.keys, message.toJson())
+                        // @todo: Husk partisjonsnøkkel? hendelse.ident()
+                        rapidsConnection.publish(message.toJson())
+                        logger.info("Sender behov for {}", behovMap.keys)
                     }
-                }
-                .let { JsonMessage.newMessage(it) }
-                .also { message ->
-                    sikkerLogg.info { "Sender $id som ${message.toJson()}" }
-                    // @todo: Husk partisjonsnøkkel?
-                    rapidsConnection.publish(message.toJson())
-                    logg.info { "Sender behov ${behovsliste.joinToString { it }}" }
-                }
-        }
+            }
     }
 }
