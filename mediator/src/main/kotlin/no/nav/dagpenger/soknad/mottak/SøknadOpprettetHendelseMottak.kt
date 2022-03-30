@@ -7,7 +7,6 @@ import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import java.util.UUID
@@ -38,12 +37,11 @@ internal class SøknadOpprettetHendelseMottak(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val søknadOpprettetHendelse = SøknadOpprettetHendelse(packet["@løsning"][behov]["søknad_uuid"].asUUID())
+        val søknadID = packet["@løsning"][behov]["søknad_uuid"].asUUID()
+        val søknadOpprettetHendelse =
+            SøknadOpprettetHendelse(søknadID, packet["ident"].asText())
+        logger.info { "Fått løsning for $behov for $søknadID" }
         mediator.behandle(søknadOpprettetHendelse)
-    }
-
-    override fun onError(problems: MessageProblems, context: MessageContext) {
-        logger.error { problems.toExtendedReport() }
     }
 }
 

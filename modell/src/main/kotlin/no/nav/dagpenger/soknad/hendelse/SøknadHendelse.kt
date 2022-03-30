@@ -6,8 +6,9 @@ import java.util.UUID
 
 abstract class SøknadHendelse protected constructor(
     private val søknadID: UUID,
+    ident: String,
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
-) : Hendelse(aktivitetslogg) {
+) : Hendelse(ident, aktivitetslogg) {
     internal fun søknadID() = søknadID
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst {

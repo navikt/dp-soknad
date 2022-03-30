@@ -37,8 +37,7 @@ class BehovMediator(
                 (kontekst + behovMap + behovParametere).let { JsonMessage.newNeed(behovMap.keys, it) }
                     .also { message ->
                         sikkerLogg.info("sender behov for {}:\n{}", behovMap.keys, message.toJson())
-                        // @todo: Husk partisjonsnøkkel? hendelse.ident()
-                        rapidsConnection.publish(message.toJson())
+                        rapidsConnection.publish(hendelse.ident(), message.toJson())
                         logger.info("Sender behov for {}", behovMap.keys)
                     }
             }

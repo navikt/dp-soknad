@@ -57,6 +57,7 @@ internal class BehovMediatorTest {
         val inspektør = testRapid.inspektør
 
         assertEquals(1, inspektør.size)
+        assertEquals(testIdent, inspektør.key(0), "Forventer at partisjonsnøkker er ident ($testIdent)")
         inspektør.message(0).also { json ->
             assertStandardBehovFelter(json)
             assertEquals(listOf("NySøknad"), json["@behov"].map(JsonNode::asText))
@@ -164,7 +165,7 @@ internal class BehovMediatorTest {
     private class TestHendelse(
         private val melding: String,
         internal val logg: Aktivitetslogg
-    ) : Hendelse(logg), Aktivitetskontekst {
+    ) : Hendelse(testIdent, logg), Aktivitetskontekst {
         init {
             logg.kontekst(this)
         }

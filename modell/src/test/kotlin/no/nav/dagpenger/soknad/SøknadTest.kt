@@ -88,19 +88,19 @@ internal class SøknadTest {
     }
 
     private fun håndterNySøknadOpprettet() {
-        person.håndter(SøknadOpprettetHendelse(inspektør.søknadId))
+        person.håndter(SøknadOpprettetHendelse(inspektør.søknadId, testIdent))
     }
 
     private fun håndterArkiverbarSøknad() {
-        person.håndter(ArkiverbarSøknadMottattHendelse(inspektør.søknadId, "urn:dokument:1"))
+        person.håndter(ArkiverbarSøknadMottattHendelse(inspektør.søknadId, testIdent, "urn:dokument:1"))
     }
 
     private fun håndterMidlertidigJournalførtSøknad() {
-        person.håndter(SøknadMidlertidigJournalførtHendelse(inspektør.søknadId, testJournalpostId))
+        person.håndter(SøknadMidlertidigJournalførtHendelse(inspektør.søknadId, testJournalpostId, testIdent))
     }
 
     private fun håndterJournalførtSøknad() {
-        person.håndter(SøknadJournalførtHendelse(inspektør.søknadId))
+        person.håndter(SøknadJournalførtHendelse(inspektør.søknadId, testIdent))
     }
     private fun assertBehov(behovtype: Behovtype, forventetDetaljer: Map<String, Any> = emptyMap()) {
         val behov = inspektør.personLogg.behov().find {
@@ -111,7 +111,7 @@ internal class SøknadTest {
     }
 
     private fun håndterSendInnSøknad() {
-        person.håndter(SøknadInnsendtHendelse(inspektør.søknadId))
+        person.håndter(SøknadInnsendtHendelse(inspektør.søknadId, testIdent))
     }
 
     private fun håndterØnskeOmNySøknadHendelse() {

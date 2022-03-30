@@ -5,9 +5,10 @@ import java.util.UUID
 
 class ArkiverbarSøknadMottattHendelse(
     søknadID: UUID,
+    ident: String,
     private val dokumentLokasjon: DokumentLokasjon,
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
-) : SøknadHendelse(søknadID, aktivitetslogg) {
+) : SøknadHendelse(søknadID, ident, aktivitetslogg) {
 
     internal fun dokumentLokasjon() = dokumentLokasjon
     fun valider(): Boolean {

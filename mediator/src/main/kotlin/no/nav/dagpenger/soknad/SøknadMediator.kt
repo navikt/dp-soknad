@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import no.nav.dagpenger.soknad.db.PersonRepository
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
+import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.helse.rapids_rivers.RapidsConnection
 
 internal class SøknadMediator(
@@ -22,10 +23,21 @@ internal class SøknadMediator(
         }
     }
 
+    fun behandle(søknadOpprettetHendelse: ØnskeOmNySøknadHendelse) {
+        behandle(søknadOpprettetHendelse) { person ->
+            person.håndter(søknadOpprettetHendelse)
+        }
+    }
+
     private fun behandle(hendelse: Hendelse, håndterer: (Person) -> Unit) {
         val person = hentEllerOpprettPerson(hendelse)
         håndterer(person)
+        lagre(person)
         behovMediator.håndter(hendelse)
+    }
+
+    private fun lagre(person: Person) {
+        personRepository.lagre(person)
     }
 
     private fun hentEllerOpprettPerson(hendelse: Hendelse) =

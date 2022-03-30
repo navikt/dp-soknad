@@ -6,12 +6,15 @@ import no.nav.dagpenger.soknad.IAktivitetslogg
 import no.nav.dagpenger.soknad.SpesifikkKontekst
 
 abstract class Hendelse protected constructor(
+    private val ident: String,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 ) : IAktivitetslogg by aktivitetslogg, Aktivitetskontekst {
 
     init {
         aktivitetslogg.kontekst(this)
     }
+
+    fun ident() = ident
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst {
         return this.javaClass.canonicalName.split('.').last().let { klassenavn ->
@@ -20,6 +23,4 @@ abstract class Hendelse protected constructor(
     }
 
     fun toLogString() = aktivitetslogg.toString()
-
-    fun ident() = "12345678912"
 }
