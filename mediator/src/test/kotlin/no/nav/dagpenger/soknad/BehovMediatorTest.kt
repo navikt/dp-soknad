@@ -38,15 +38,17 @@ internal class BehovMediatorTest {
     }
 
     @Test
-    internal fun `NySøkad behov blir sendt og inneholder det den skal`() {
+    internal fun `Behov blir sendt og inneholder det den skal`() {
         val hendelse = TestHendelse("Hendelse1", aktivitetslogg.barn())
         hendelse.kontekst(person)
+        hendelse.kontekst(Testkontekst("Testkontekst"))
 
         hendelse.behov(
             NySøknad,
             "Behøver tom søknad for denne søknaden",
             mapOf(
-                "ident" to testIdent
+                "parameter1" to "verdi1",
+                "parameter2" to "verdi2"
             )
         )
 
@@ -60,7 +62,11 @@ internal class BehovMediatorTest {
 
             assertEquals(listOf("NySøknad"), json["@behov"].map(JsonNode::asText))
             assertEquals(testIdent, json["ident"].asText())
-            assertEquals(testIdent, json["NySøknad"]["ident"].asText())
+            assertEquals("Testkontekst", json["Testkontekst"].asText())
+            assertEquals("verdi1", json["parameter1"].asText())
+            assertEquals("verdi2", json["parameter2"].asText())
+            assertEquals("verdi1", json["NySøknad"]["parameter1"].asText())
+            assertEquals("verdi2", json["NySøknad"]["parameter2"].asText())
         }
     }
 
