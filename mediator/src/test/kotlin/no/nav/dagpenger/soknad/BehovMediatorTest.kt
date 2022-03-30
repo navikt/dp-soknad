@@ -59,7 +59,6 @@ internal class BehovMediatorTest {
         assertEquals(1, inspektør.size)
         inspektør.message(0).also { json ->
             assertStandardBehovFelter(json)
-
             assertEquals(listOf("NySøknad"), json["@behov"].map(JsonNode::asText))
             assertEquals(testIdent, json["ident"].asText())
             assertEquals("Testkontekst", json["Testkontekst"].asText())
@@ -71,16 +70,26 @@ internal class BehovMediatorTest {
     }
 
     @Test
-    internal fun `ArkiverbarSøknad behov blir sendt og inneholder det den skal`() {
+    internal fun `Gruppere behov`() {
         val hendelse = TestHendelse("Hendelse1", aktivitetslogg.barn())
         hendelse.kontekst(person)
+        hendelse.kontekst(Testkontekst("Testkontekst"))
 
         hendelse.behov(
             ArkiverbarSøknad,
             "Trenger søknad på et arkiverbart format",
             mapOf(
-                "ident" to testIdent,
-                "søknad_uuid" to testSøknadUuid
+                "parameter1" to "verdi1",
+                "parameter2" to "verdi2"
+            )
+        )
+
+        hendelse.behov(
+            NySøknad,
+            "Behøver tom søknad for denne søknaden",
+            mapOf(
+                "parameter3" to "verdi3",
+                "parameter4" to "verdi4"
             )
         )
 
@@ -91,11 +100,17 @@ internal class BehovMediatorTest {
         assertEquals(1, inspektør.size)
         inspektør.message(0).also { json ->
             assertStandardBehovFelter(json)
-            assertEquals(listOf("ArkiverbarSøknad"), json["@behov"].map(JsonNode::asText))
+            assertEquals(listOf("ArkiverbarSøknad", "NySøknad"), json["@behov"].map(JsonNode::asText))
             assertEquals(testIdent, json["ident"].asText())
-            assertEquals(testIdent, json["ArkiverbarSøknad"]["ident"].asText())
-            assertEquals(testSøknadUuid, json["søknad_uuid"].asText().also { UUID.fromString(it) })
-            assertEquals(testSøknadUuid, json["ArkiverbarSøknad"]["søknad_uuid"].asText().also { UUID.fromString(it) })
+            assertEquals("Testkontekst", json["Testkontekst"].asText())
+            assertEquals("verdi1", json["parameter1"].asText())
+            assertEquals("verdi2", json["parameter2"].asText())
+            assertEquals("verdi3", json["parameter3"].asText())
+            assertEquals("verdi4", json["parameter4"].asText())
+            assertEquals("verdi1", json["ArkiverbarSøknad"]["parameter1"].asText())
+            assertEquals("verdi2", json["ArkiverbarSøknad"]["parameter2"].asText())
+            assertEquals("verdi3", json["NySøknad"]["parameter3"].asText())
+            assertEquals("verdi4", json["NySøknad"]["parameter4"].asText())
         }
     }
 
