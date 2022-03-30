@@ -32,8 +32,9 @@ class BehovMediator(
                 ) { "Kan ikke produsere samme behov på samme kontekst" }
             }
             .forEach { (kontekst, liste) ->
-                val behovMap = liste.associate { behov -> behov.type.name to behov.detaljer() }
-                (kontekst + behovMap).let { JsonMessage.newNeed(behovMap.keys, it) }
+                val behovMap: Map<String, Map<String, Any>> = liste.associate { behov -> behov.type.name to behov.detaljer() }
+                val behovParametere = behovMap.values.fold<Map<String, Any>, Map<String, Any>>(emptyMap()) { acc, map -> acc + map }
+                (kontekst + behovMap + behovParametere).let { JsonMessage.newNeed(behovMap.keys, it) }
                     .also { message ->
                         sikkerLogg.info("sender behov for {}:\n{}", behovMap.keys, message.toJson())
                         // @todo: Husk partisjonsnøkkel? hendelse.ident()
