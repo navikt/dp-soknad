@@ -4,6 +4,7 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.db.PersonRepository
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
+import no.nav.dagpenger.soknad.mottak.SøknadOpprettetHendelseMottak
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -29,6 +30,7 @@ internal class SøknadMediatorTest {
     @BeforeEach
     fun setup() {
         mediator = SøknadMediator(testRapid, personRepository)
+        SøknadOpprettetHendelseMottak(testRapid, mediator)
     }
 
     @Test

@@ -20,4 +20,6 @@ abstract class Hendelse protected constructor(
     }
 
     fun toLogString() = aktivitetslogg.toString()
+
+    fun ident() = "12345678912"
 }
