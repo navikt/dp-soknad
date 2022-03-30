@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.db.PersonRepository
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -32,16 +33,18 @@ internal class SøknadMediatorTest {
 
     @Test
     fun `Skal håndtere ønske om ny søknad`() {
-        mediator.håndter(ØnskeOmNySøknadHendelse(testIdent))
-        val personInspektør = TestPersonInspektør(personRepository.hent(testIdent)!!)
+        mediator.behandle(ØnskeOmNySøknadHendelse(testIdent))
         assertEquals(1, testRapid.inspektør.size)
         val nySøknadBehov = testRapid.inspektør.message(0)
         assertEquals(listOf("NySøknad"), nySøknadBehov["@behov"].map { it.asText() })
+        assertEquals(UnderOpprettelse, hentOppdatertInspektør().gjeldendetilstand)
 
         val søknadUuid = nySøknadBehov["søknad_uuid"].asText()
         testRapid.sendTestMessage(nySøknadBehovsløsning(søknadUuid))
-        assertEquals(Påbegynt, personInspektør.gjeldendetilstand)
+        assertEquals(Påbegynt, hentOppdatertInspektør().gjeldendetilstand)
     }
+
+    fun hentOppdatertInspektør() = TestPersonInspektør(personRepository.hent(testIdent)!!)
 
     // language=JSON
     private fun nySøknadBehovsløsning(søknadUuid: String) = """
