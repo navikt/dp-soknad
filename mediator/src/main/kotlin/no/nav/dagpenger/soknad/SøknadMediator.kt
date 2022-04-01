@@ -23,9 +23,9 @@ internal class SøknadMediator(
         }
     }
 
-    fun behandle(søknadOpprettetHendelse: ØnskeOmNySøknadHendelse) {
-        behandle(søknadOpprettetHendelse) { person ->
-            person.håndter(søknadOpprettetHendelse)
+    fun behandle(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
+        behandle(ønskeOmNySøknadHendelse) { person ->
+            person.håndter(ønskeOmNySøknadHendelse)
         }
     }
 

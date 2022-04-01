@@ -23,7 +23,6 @@ internal class SøknadOpprettetHendelseMottak(
     private val behov = NySøknad.name
 
     init {
-
         River(rapidsConnection).apply {
             validate { it.requireValue("@event_name", "behov") }
             validate { it.requireAllOrAny("@behov", listOf(behov)) }

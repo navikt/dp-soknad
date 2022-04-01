@@ -153,7 +153,6 @@ internal class BehovMediatorTest {
         assertDoesNotThrow { UUID.fromString(json["@id"].asText()) }
         assertTrue(json.hasNonNull("@opprettet"))
         assertDoesNotThrow { LocalDateTime.parse(json["@opprettet"].asText()) }
-        assertEquals("behov", json["@event_name"].asText())
     }
 
     private class Testkontekst(
