@@ -5,6 +5,7 @@ import no.nav.dagpenger.soknad.db.PersonRepository
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -40,6 +41,12 @@ internal class SøknadMediator(
     fun behandle(arkiverbarSøknadMottattHendelse: ArkiverbarSøknadMottattHendelse) {
         behandle(arkiverbarSøknadMottattHendelse) { person ->
             person.håndter(arkiverbarSøknadMottattHendelse)
+        }
+    }
+
+    fun behandle(søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse) {
+        behandle(søknadMidlertidigJournalførtHendelse) { person ->
+            person.håndter(søknadMidlertidigJournalførtHendelse)
         }
     }
 

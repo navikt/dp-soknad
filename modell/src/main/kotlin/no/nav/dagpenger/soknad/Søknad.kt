@@ -154,7 +154,7 @@ class Søknad private constructor(
             get() = Tilstand.Type.AvventerMidlertidligJournalføring
 
         override fun entering(søknadHendelse: SøknadHendelse, søknad: Søknad) {
-            søknad.trengerMidlertidigJournalføring(søknadHendelse)
+            søknad.trengerNyJournalpost(søknadHendelse)
         }
 
         override fun håndter(
@@ -192,13 +192,13 @@ class Søknad private constructor(
         hendelse.kontekst(tilstand)
     }
 
-    private fun trengerMidlertidigJournalføring(søknadHendelse: SøknadHendelse) {
+    private fun trengerNyJournalpost(søknadHendelse: SøknadHendelse) {
         val dokumentLokasjon = requireNotNull(dokumentLokasjon) {
             "Forventet at variabel dokumentLokasjon var satt. Er i tilstand: $tilstand"
         }
 
         søknadHendelse.behov(
-            Behovtype.MidlertidigJournalføring,
+            Behovtype.NyJournalpost,
             "Trenger å journalføre søknad",
             mapOf("dokumentLokasjon" to dokumentLokasjon)
         )

@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerArkiverbarSøknad
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerJournalføring
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerMidlertidligJournalføring
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
@@ -9,6 +10,7 @@ import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.mottak.ArkiverbarSøknadMottattHendelseMottak
+import no.nav.dagpenger.soknad.mottak.NyJournalpostMottak
 import no.nav.dagpenger.soknad.mottak.SøknadOpprettetHendelseMottak
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -38,30 +40,34 @@ internal class SøknadMediatorTest {
         mediator = SøknadMediator(testRapid, personRepository)
         SøknadOpprettetHendelseMottak(testRapid, mediator)
         ArkiverbarSøknadMottattHendelseMottak(testRapid, mediator)
+        NyJournalpostMottak(testRapid, mediator)
     }
 
     @Test
     fun `Skal håndtere ønske om ny søknad`() {
         mediator.behandle(ØnskeOmNySøknadHendelse(testIdent))
         assertEquals(1, testRapid.inspektør.size)
-        val nySøknadBehov = testRapid.inspektør.message(0)
-        assertEquals(listOf("NySøknad"), nySøknadBehov["@behov"].map { it.asText() })
+        assertEquals(listOf("NySøknad"), behov(0))
         assertEquals(UnderOpprettelse, hentOppdatertInspektør().gjeldendetilstand)
 
-        val søknadUuid = nySøknadBehov["søknad_uuid"].asText()
-        testRapid.sendTestMessage(nySøknadBehovsløsning(søknadUuid))
+        testRapid.sendTestMessage(nySøknadBehovsløsning(søknadId()))
         assertEquals(Påbegynt, hentOppdatertInspektør().gjeldendetilstand)
 
-        mediator.behandle(SøknadInnsendtHendelse(UUID.fromString(søknadUuid), testIdent))
+        mediator.behandle(SøknadInnsendtHendelse(UUID.fromString(søknadId()), testIdent))
         assertEquals(AvventerArkiverbarSøknad, hentOppdatertInspektør().gjeldendetilstand)
-        val arkiverbarSøknadBehov = testRapid.inspektør.message(1)
-        assertEquals(listOf("ArkiverbarSøknad"), arkiverbarSøknadBehov["@behov"].map { it.asText() })
+        assertEquals(listOf("ArkiverbarSøknad"), behov(1))
 
-        testRapid.sendTestMessage(arkiverbarsøknadLøsning(testIdent, søknadUuid, "urn:dokument:1"))
+        testRapid.sendTestMessage(arkiverbarsøknadLøsning(testIdent, søknadId(), "urn:dokument:1"))
         assertEquals(AvventerMidlertidligJournalføring, hentOppdatertInspektør().gjeldendetilstand)
-        val midlertidligJournalføringBehov = testRapid.inspektør.message(2)
-        assertEquals(listOf("MidlertidigJournalføring"), midlertidligJournalføringBehov["@behov"].map { it.asText() })
+
+        assertEquals(listOf("NyJournalpost"), behov(2))
+        testRapid.sendTestMessage(nyJournalpostLøsning(ident = testIdent, søknadUuid = søknadId(), journalpostId = "123455PDS"))
+        assertEquals(AvventerJournalføring, hentOppdatertInspektør().gjeldendetilstand)
     }
+
+    private fun søknadId() = hentOppdatertInspektør().gjeldendeSøknadId
+
+    private fun behov(indeks: Int) = testRapid.inspektør.message(indeks)["@behov"].map { it.asText() }
 
     fun hentOppdatertInspektør() = TestPersonInspektør(personRepository.hent(testIdent)!!)
 
@@ -112,6 +118,31 @@ internal class SøknadMediatorTest {
         "ArkiverbarSøknad": {
           "dokumentLokasjon": "$dokumentLokasjon"
         }
+      }
+}""".trimMargin()
+
+    // language=JSON
+    private fun nyJournalpostLøsning(ident: String, søknadUuid: String, journalpostId: String) = """
+    {
+      "@event_name": "behov",
+      "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
+      "@behov": [
+        "NyJournalpost"
+      ],
+      "ident": "$ident",
+      "søknad_uuid": "$søknadUuid",
+      "NyJournalpost": {},
+      "@id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
+      "@opprettet": "2022-03-30T12:19:08.418821",
+      "system_read_count": 0,
+      "system_participating_services": [
+        {
+          "id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
+          "time": "2022-03-30T12:19:08.418821"
+        }
+      ],
+      "@løsning": {
+        "NyJournalpost": "$journalpostId"
       }
 }""".trimMargin()
 }

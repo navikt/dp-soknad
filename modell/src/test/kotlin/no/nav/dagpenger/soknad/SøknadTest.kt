@@ -45,7 +45,7 @@ internal class SøknadTest {
         håndterSendInnSøknad()
         assertBehov(Behovtype.ArkiverbarSøknad, mapOf("ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
         håndterArkiverbarSøknad()
-        assertBehov(Behovtype.MidlertidigJournalføring, mapOf("dokumentLokasjon" to "urn:dokument:1", "ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
+        assertBehov(Behovtype.NyJournalpost, mapOf("dokumentLokasjon" to "urn:dokument:1", "ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
         håndterMidlertidigJournalførtSøknad()
         håndterJournalførtSøknad()
 
@@ -96,7 +96,7 @@ internal class SøknadTest {
     }
 
     private fun håndterMidlertidigJournalførtSøknad() {
-        person.håndter(SøknadMidlertidigJournalførtHendelse(inspektør.søknadId, testJournalpostId, testIdent))
+        person.håndter(SøknadMidlertidigJournalførtHendelse(inspektør.søknadId, testIdent, testJournalpostId))
     }
 
     private fun håndterJournalførtSøknad() {
