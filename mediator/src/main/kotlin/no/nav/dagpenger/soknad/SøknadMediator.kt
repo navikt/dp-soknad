@@ -5,6 +5,7 @@ import no.nav.dagpenger.soknad.db.PersonRepository
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
@@ -47,6 +48,12 @@ internal class SøknadMediator(
     fun behandle(søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse) {
         behandle(søknadMidlertidigJournalførtHendelse) { person ->
             person.håndter(søknadMidlertidigJournalførtHendelse)
+        }
+    }
+
+    fun behandle(søknadJournalførtHendelse: SøknadJournalførtHendelse) {
+        behandle(søknadJournalførtHendelse) { person ->
+            person.håndter(søknadJournalførtHendelse)
         }
     }
 
