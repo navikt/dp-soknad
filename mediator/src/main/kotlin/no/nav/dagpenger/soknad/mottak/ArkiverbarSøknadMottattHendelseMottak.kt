@@ -1,17 +1,15 @@
 package no.nav.dagpenger.soknad.mottak
 
-import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
-import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NySøknad
+import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.ArkiverbarSøknad
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
+import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import java.util.UUID
 
-internal class SøknadOpprettetHendelseMottak(
+internal class ArkiverbarSøknadMottattHendelseMottak(
     rapidsConnection: RapidsConnection,
     private val mediator: SøknadMediator
 ) : River.PacketListener {
@@ -20,7 +18,7 @@ internal class SøknadOpprettetHendelseMottak(
         private val logger = KotlinLogging.logger {}
     }
 
-    private val behov = NySøknad.name
+    private val behov = ArkiverbarSøknad.name
 
     init {
         River(rapidsConnection).apply {
@@ -36,12 +34,11 @@ internal class SøknadOpprettetHendelseMottak(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val søknadID = packet["@løsning"][behov]["søknad_uuid"].asUUID()
-        val søknadOpprettetHendelse =
-            SøknadOpprettetHendelse(søknadID, packet["ident"].asText())
+        val søknadID = packet["søknad_uuid"].asUUID()
+        val dokumentLokasjon = packet["@løsning"][behov]["dokumentLokasjon"].asText()
+        val arkiverbarSøknadMottattHendelse =
+            ArkiverbarSøknadMottattHendelse(søknadID, packet["ident"].asText(), dokumentLokasjon)
         logger.info { "Fått løsning for $behov for $søknadID" }
-        mediator.behandle(søknadOpprettetHendelse)
+        mediator.behandle(arkiverbarSøknadMottattHendelse)
     }
 }
-
-internal fun JsonNode.asUUID(): UUID = this.asText().let { UUID.fromString(it) }

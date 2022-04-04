@@ -2,7 +2,9 @@ package no.nav.dagpenger.soknad
 
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.db.PersonRepository
+import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -26,6 +28,18 @@ internal class SøknadMediator(
     fun behandle(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         behandle(ønskeOmNySøknadHendelse) { person ->
             person.håndter(ønskeOmNySøknadHendelse)
+        }
+    }
+
+    fun behandle(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
+        behandle(søknadInnsendtHendelse) { person ->
+            person.håndter(søknadInnsendtHendelse)
+        }
+    }
+
+    fun behandle(arkiverbarSøknadMottattHendelse: ArkiverbarSøknadMottattHendelse) {
+        behandle(arkiverbarSøknadMottattHendelse) { person ->
+            person.håndter(arkiverbarSøknadMottattHendelse)
         }
     }
 
