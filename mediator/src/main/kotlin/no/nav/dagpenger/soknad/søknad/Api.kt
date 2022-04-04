@@ -20,16 +20,19 @@ import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.delay
 import mu.KLogger
 import no.nav.dagpenger.soknad.Configuration
+import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.auth.ident
+import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.helse.rapids_rivers.JsonMessage
 import java.time.LocalDateTime
 import java.util.UUID
 
-internal fun Route.api(logger: KLogger, store: SøknadStore) {
+internal fun Route.api(logger: KLogger, store: SøknadStore, søknadMediator: SøknadMediator) {
     route("${Configuration.basePath}/soknad") {
         post {
             val ident = call.ident()
             val nySøknadMelding = NySøknadMelding(ident)
+            søknadMediator.behandle(ØnskeOmNySøknadHendelse(ident))
             store.håndter(nySøknadMelding)
             val svar = nySøknadMelding.søknadUuid
             call.response.header(HttpHeaders.Location, "${call.request.uri}/$svar/fakta")

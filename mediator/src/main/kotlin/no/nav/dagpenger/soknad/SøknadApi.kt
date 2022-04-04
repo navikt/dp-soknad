@@ -41,7 +41,8 @@ internal fun Application.søknadApi(
     clientId: String,
     store: SøknadStore,
     personOppslag: PersonOppslag,
-    kontonummerOppslag: KontonummerOppslag
+    kontonummerOppslag: KontonummerOppslag,
+    søknadMediator: SøknadMediator
 ) {
 
     install(CallLogging) {
@@ -104,7 +105,7 @@ internal fun Application.søknadApi(
 
     routing {
         authenticate {
-            api(logger, store)
+            api(logger, store, søknadMediator)
             personalia(personOppslag, kontonummerOppslag)
         }
     }

@@ -36,7 +36,8 @@ object TestApplication {
     internal fun mockedSøknadApi(
         store: SøknadStore = mockk(relaxed = true),
         personOppslag: PersonOppslag = mockk(relaxed = true),
-        kontonummerOppslag: KontonummerOppslag = mockk(relaxed = true)
+        kontonummerOppslag: KontonummerOppslag = mockk(relaxed = true),
+        søknadMediator: SøknadMediator = mockk(relaxed = true)
     ): Application.() -> Unit {
 
         return fun Application.() {
@@ -46,7 +47,8 @@ object TestApplication {
                 clientId = AuthFactory.clientId,
                 store = store,
                 personOppslag,
-                kontonummerOppslag
+                kontonummerOppslag,
+                søknadMediator
             )
         }
     }

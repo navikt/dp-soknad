@@ -15,7 +15,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 
 internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnection.StatusListener {
 
-    private val rapidsConnection = RapidApplication.Builder(
+    private val rapidsConnection: RapidsConnection = RapidApplication.Builder(
         RapidApplication.RapidApplicationConfig.fromEnv(config)
     ).withKtorModule {
         if (System.getenv()["NAIS_CLUSTER_NAME"] == "dev-gcp") {
@@ -25,10 +25,11 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
                 clientId = AuthFactory.clientId,
                 store = store(),
                 personOppslag = PersonOppslag(createPersonOppslag(Configuration.pdlUrl)),
+                søknadMediator = søknadMediator(),
                 kontonummerOppslag = KontonummerOppslag(
                     dpProxyUrl = Configuration.dpProxyUrl,
                     tokenProvider = { Configuration.dpProxyTokenProvider.clientCredentials(Configuration.dpProxyScope).accessToken },
-                )
+                ),
             )
         }
     }.build()
@@ -37,10 +38,8 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         PostgresDataSourceBuilder.dataSource
     )
 
-    private val mediator = Mediator(
-        rapidsConnection,
-        persistence
-    )
+    private val mediator = Mediator(rapidsConnection, persistence)
+    private val søknadMediator = SøknadMediator(rapidsConnection, persistence)
 
     init {
         rapidsConnection.register(this)
@@ -58,6 +57,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     }
 
     private fun store(): SøknadStore = mediator
+    private fun søknadMediator(): SøknadMediator = søknadMediator
 
     private fun subscribe(meldingObserver: MeldingObserver) {
         mediator.register(meldingObserver)

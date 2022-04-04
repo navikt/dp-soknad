@@ -5,12 +5,21 @@ import io.ktor.features.NotFoundException
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import no.nav.dagpenger.soknad.Person
+import no.nav.dagpenger.soknad.db.PersonRepository
 import no.nav.dagpenger.soknad.serder.objectMapper
 import org.postgresql.util.PGobject
 import java.util.UUID
 import javax.sql.DataSource
 
-class PostgresPersistence(private val dataSource: DataSource) : Persistence {
+class PostgresPersistence(private val dataSource: DataSource) : Persistence, PersonRepository {
+
+    private val db = mutableMapOf<String, Person>()
+    override fun hent(ident: String): Person? = db[ident]
+
+    override fun lagre(person: Person) {
+        db[person.ident()] = person
+    }
 
     override fun lagre(søknad: Søknad) {
         using(sessionOf(dataSource)) { session ->
