@@ -13,7 +13,8 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 
 internal class SøknadMediator(
     rapidsConnection: RapidsConnection,
-    private val personRepository: PersonRepository
+    private val personRepository: PersonRepository,
+    private val personObservers: List<PersonObserver> = emptyList(),
 ) {
     private companion object {
         val sikkerLogger = KotlinLogging.logger("tjenestekall")
@@ -57,10 +58,20 @@ internal class SøknadMediator(
         }
     }
 
-    private fun behandle(hendelse: Hendelse, håndterer: (Person) -> Unit) {
+    private fun behandle(hendelse: Hendelse, håndter: (Person) -> Unit) {
         val person = hentEllerOpprettPerson(hendelse)
-        håndterer(person)
+        personObservers.forEach { personObserver ->
+            person.addObserver(personObserver)
+        }
+        håndter(person)
+        finalize(person, hendelse)
+    }
+
+    private fun finalize(person: Person, hendelse: Hendelse) {
         lagre(person)
+        if (!hendelse.hasMessages()) return
+        if (hendelse.hasErrors()) return sikkerLogger.info("aktivitetslogg inneholder errors: ${hendelse.toLogString()}")
+        sikkerLogger.info("aktivitetslogg inneholder meldinger: ${hendelse.toLogString()}")
         behovMediator.håndter(hendelse)
     }
 
