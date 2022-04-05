@@ -19,7 +19,7 @@ internal class JournalførtMottak(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.requireValue("@event_name", "innsending_ferdigstilt") }
+            validate { it.demandValue("@event_name", "innsending_ferdigstilt") }
             validate { it.demandValue("type", "NySøknad") }
             validate { it.requireKey("fødselsnummer") }
             validate { it.requireKey("søknadsData.søknad_uuid") }
