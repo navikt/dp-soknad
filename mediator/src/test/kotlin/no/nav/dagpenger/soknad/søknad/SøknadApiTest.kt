@@ -15,6 +15,7 @@ import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
+import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -50,6 +51,30 @@ internal class SøknadApiTest {
         }
 
         verify(exactly = 1) { søknadMediatorMock.behandle(any<ØnskeOmNySøknadHendelse>()) }
+    }
+
+    @Test
+    fun `Ferdigstill søknad`() {
+        val testSøknadUuid = UUID.randomUUID()
+        val søknadMediatorMock = mockk<SøknadMediator>().also {
+            justRun {
+                it.behandle(SøknadInnsendtHendelse(testSøknadUuid, ident = defaultDummyFodselsnummer))
+            }
+        }
+
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(
+                søknadMediator = søknadMediatorMock
+            )
+        ) {
+            autentisert(
+                "${Configuration.basePath}/soknad/$testSøknadUuid/ferdigstill",
+                httpMethod = HttpMethod.Put,
+            ).apply {
+                assertEquals(HttpStatusCode.NoContent, this.response.status())
+            }
+        }
+        verify(exactly = 1) { søknadMediatorMock.behandle(any<SøknadInnsendtHendelse>()) }
     }
 
     @Test

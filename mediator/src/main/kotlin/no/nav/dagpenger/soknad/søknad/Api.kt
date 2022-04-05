@@ -22,6 +22,7 @@ import mu.KLogger
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.auth.ident
+import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import java.util.UUID
 
@@ -29,7 +30,7 @@ internal fun Route.api(logger: KLogger, store: SøknadStore, søknadMediator: S�
     route("${Configuration.basePath}/soknad") {
         post {
             val ident = call.ident()
-            val ønskeOmNySøknadHendelse = ØnskeOmNySøknadHendelse(ident, UUID.randomUUID())
+            val ønskeOmNySøknadHendelse = ØnskeOmNySøknadHendelse(ident, søknadID = UUID.randomUUID())
             søknadMediator.behandle(ønskeOmNySøknadHendelse)
             val svar = ønskeOmNySøknadHendelse.søknadID()
             call.response.header(HttpHeaders.Location, "${call.request.uri}/$svar/fakta")
@@ -61,6 +62,14 @@ internal fun Route.api(logger: KLogger, store: SøknadStore, søknadMediator: S�
 
             store.håndter(faktumSvar)
             call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { """{"status": "ok"}""" }
+        }
+
+        put("/{søknad_uuid}/ferdigstill") {
+            val søknadUuid = søknadUuid()
+            val ident = call.ident()
+            val søknadInnsendtHendelse = SøknadInnsendtHendelse(søknadUuid, ident)
+            søknadMediator.behandle(søknadInnsendtHendelse)
+            call.respond(HttpStatusCode.NoContent)
         }
     }
 }
