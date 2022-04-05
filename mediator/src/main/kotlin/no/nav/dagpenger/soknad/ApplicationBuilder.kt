@@ -4,6 +4,10 @@ import no.nav.dagpenger.pdl.createPersonOppslag
 import no.nav.dagpenger.soknad.auth.AuthFactory
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder.runMigration
+import no.nav.dagpenger.soknad.mottak.ArkiverbarSøknadMottattHendelseMottak
+import no.nav.dagpenger.soknad.mottak.JournalførtMottak
+import no.nav.dagpenger.soknad.mottak.NyJournalpostMottak
+import no.nav.dagpenger.soknad.mottak.SøknadOpprettetHendelseMottak
 import no.nav.dagpenger.soknad.observers.PersonLoggerObserver
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
@@ -40,13 +44,19 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     )
 
     private val mediator = Mediator(rapidsConnection, persistence)
+
     private val søknadMediator = SøknadMediator(
         rapidsConnection = rapidsConnection,
         personRepository = persistence,
         personObservers = listOf(
             PersonLoggerObserver
         )
-    )
+    ).also {
+        SøknadOpprettetHendelseMottak(rapidsConnection, it)
+        ArkiverbarSøknadMottattHendelseMottak(rapidsConnection, it)
+        NyJournalpostMottak(rapidsConnection, it)
+        JournalførtMottak(rapidsConnection, it)
+    }
 
     init {
         rapidsConnection.register(this)
