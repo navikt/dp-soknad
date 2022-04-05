@@ -97,7 +97,7 @@ internal class SøknadMediatorTest {
           "time": "2022-03-30T12:19:08.418821"
         }
       ],
-      "@løsning": {"NySøknad": {"søknad_uuid": "$søknadUuid"}}
+      "@løsning": {"NySøknad": "$søknadUuid"}
     }""".trimMargin()
 
     // language=JSON

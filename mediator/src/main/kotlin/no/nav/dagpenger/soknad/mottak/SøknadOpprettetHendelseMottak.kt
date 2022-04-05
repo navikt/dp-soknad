@@ -36,7 +36,7 @@ internal class SøknadOpprettetHendelseMottak(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val søknadID = packet["@løsning"][behov]["søknad_uuid"].asUUID()
+        val søknadID = packet["@løsning"][behov].asUUID()
         val søknadOpprettetHendelse =
             SøknadOpprettetHendelse(søknadID, packet["ident"].asText())
         logger.info { "Fått løsning for $behov for $søknadID" }

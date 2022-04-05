@@ -22,15 +22,16 @@ internal class SøknadMediator(
 
     private val behovMediator = BehovMediator(rapidsConnection, sikkerLogger)
 
-    fun behandle(søknadOpprettetHendelse: SøknadOpprettetHendelse) {
-        behandle(søknadOpprettetHendelse) { person ->
-            person.håndter(søknadOpprettetHendelse)
-        }
-    }
 
     fun behandle(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         behandle(ønskeOmNySøknadHendelse) { person ->
             person.håndter(ønskeOmNySøknadHendelse)
+        }
+    }
+
+    fun behandle(søknadOpprettetHendelse: SøknadOpprettetHendelse) {
+        behandle(søknadOpprettetHendelse) { person ->
+            person.håndter(søknadOpprettetHendelse)
         }
     }
 
