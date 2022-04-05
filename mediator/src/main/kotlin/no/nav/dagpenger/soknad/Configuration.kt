@@ -18,6 +18,7 @@ internal object Configuration {
             "RAPID_APP_NAME" to "dp-soknad",
             "KAFKA_CONSUMER_GROUP_ID" to "dp-soknad-v1",
             "KAFKA_RAPID_TOPIC" to "teamdagpenger.rapid.v1",
+            "KAFKA_EXTRA_TOPIC" to "teamdagpenger.journalfort.v1",
             "KAFKA_RESET_POLICY" to "latest",
         )
     )
