@@ -35,7 +35,7 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val søknadID = packet["søknad_uuid"].asUUID()
-        val dokumentLokasjon = packet["@løsning"][behov]["dokumentLokasjon"].asText()
+        val dokumentLokasjon = packet["@løsning"][behov].asText()
         val arkiverbarSøknadMottattHendelse =
             ArkiverbarSøknadMottattHendelse(søknadID, packet["ident"].asText(), dokumentLokasjon)
         logger.info { "Fått løsning for $behov for $søknadID" }

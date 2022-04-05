@@ -46,7 +46,20 @@ internal class SøknadTest {
         håndterSendInnSøknad()
         assertBehov(Behovtype.ArkiverbarSøknad, mapOf("ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
         håndterArkiverbarSøknad()
-        assertBehov(Behovtype.NyJournalpost, mapOf("dokumentLokasjon" to "urn:dokument:1", "ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
+
+        val dokumenter = listOf(
+            Søknad.Dokument(
+                varianter = listOf(
+                    Søknad.Dokument.Variant(
+                        urn = "urn:dokument:1",
+                        format = "ARKIV",
+                        type = "PDF"
+                    )
+                )
+            )
+        )
+
+        assertBehov(Behovtype.NyJournalpost, mapOf("dokumenter" to dokumenter, "ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
         håndterMidlertidigJournalførtSøknad()
         håndterJournalførtSøknad()
 

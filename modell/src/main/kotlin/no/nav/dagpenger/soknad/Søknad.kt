@@ -191,16 +191,58 @@ class Søknad private constructor(
         hendelse.kontekst(tilstand)
     }
 
+    data class Dokument(
+        val brevkode: String = "NAV 04-01.04",
+        val varianter: List<Variant>,
+    ) {
+        data class Variant(
+            val urn: String,
+            val format: String,
+            val type: String
+        )
+    }
+
     private fun trengerNyJournalpost(søknadHendelse: Hendelse) {
         val dokumentLokasjon = requireNotNull(dokumentLokasjon) {
             "Forventet at variabel dokumentLokasjon var satt. Er i tilstand: $tilstand"
         }
 
+        val dokumenter = listOf(
+            Dokument(
+                varianter = listOf(
+                    Dokument.Variant(
+                        urn = dokumentLokasjon,
+                        format = "ARKIV",
+                        type = "PDF"
+                    )
+                )
+            )
+        )
+
         søknadHendelse.behov(
             Behovtype.NyJournalpost,
             "Trenger å journalføre søknad",
-            mapOf("dokumentLokasjon" to dokumentLokasjon)
+            mapOf("dokumenter" to dokumenter)
         )
+
+        /*
+        * "dokumenter": [
+    {
+      "brevkode": "NAV 04-01.04",
+      "varianter": [
+        {
+          "urn": "urn:vedlegg:soknadId/fil1",
+          "format": "ARKIV",
+          "type": "PDF"
+        },
+        {
+          "urn": "urn:vedlegg:soknadId/fil2",
+          "format": "ORIGINAL",
+          "type": "JSON"
+        }
+      ]
+    }
+  ]*/
     }
 
     private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: Hendelse) {

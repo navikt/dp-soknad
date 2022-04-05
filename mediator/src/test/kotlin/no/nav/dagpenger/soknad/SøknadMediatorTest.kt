@@ -121,9 +121,7 @@ internal class SøknadMediatorTest {
         }
       ],
       "@løsning": {
-        "ArkiverbarSøknad": {
-          "dokumentLokasjon": "$dokumentLokasjon"
-        }
+        "ArkiverbarSøknad": "$dokumentLokasjon"
       }
 }""".trimMargin()
 
