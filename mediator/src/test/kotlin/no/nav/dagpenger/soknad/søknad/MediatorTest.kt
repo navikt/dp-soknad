@@ -5,7 +5,6 @@ import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import java.util.UUID
@@ -16,22 +15,6 @@ class MediatorTest {
     @AfterEach
     fun reset() {
         testRapid.reset()
-    }
-
-    @Test
-    fun `publiserer ny-faktamelding på kafka`() {
-        Postgres.withMigratedDb {
-            val mediator = Mediator(testRapid, PostgresPersistence(PostgresDataSourceBuilder.dataSource))
-            val fnr = "12345678910"
-            mediator.håndter(NySøknadMelding(fnr))
-            testRapid.inspektør.message(0).also {
-                assertTrue(it.has("@id"))
-                assertTrue(it.has("@event_name"))
-                assertTrue(it.has("søknad_uuid"))
-                assertEquals(fnr, it["fødselsnummer"].asText())
-                assertEquals("NySøknad", it["@event_name"].asText())
-            }
-        }
     }
 
     @Test

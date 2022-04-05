@@ -4,7 +4,6 @@ import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
 import no.nav.dagpenger.soknad.hendelse.Hendelse
-import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
@@ -69,7 +68,7 @@ class Søknad private constructor(
 
         val tilstandType: Type
 
-        fun entering(søknadHendelse: SøknadHendelse, søknad: Søknad) {}
+        fun entering(søknadHendelse: Hendelse, søknad: Søknad) {}
 
         fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) =
             ønskeOmNySøknadHendelse.`kan ikke håndteres i denne tilstanden`()
@@ -138,7 +137,7 @@ class Søknad private constructor(
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.AvventerArkiverbarSøknad
 
-        override fun entering(søknadHendelse: SøknadHendelse, søknad: Søknad) {
+        override fun entering(søknadHendelse: Hendelse, søknad: Søknad) {
             søknadHendelse.behov(Behovtype.ArkiverbarSøknad, "Trenger søknad på et arkiverbart format")
             // TODO: Emit en hendelse som fører til at vi besvarer faktum i quiz for når søknaden/kravet ble fremsatt
         }
@@ -153,7 +152,7 @@ class Søknad private constructor(
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.AvventerMidlertidligJournalføring
 
-        override fun entering(søknadHendelse: SøknadHendelse, søknad: Søknad) {
+        override fun entering(søknadHendelse: Hendelse, søknad: Søknad) {
             søknad.trengerNyJournalpost(søknadHendelse)
         }
 
@@ -192,7 +191,7 @@ class Søknad private constructor(
         hendelse.kontekst(tilstand)
     }
 
-    private fun trengerNyJournalpost(søknadHendelse: SøknadHendelse) {
+    private fun trengerNyJournalpost(søknadHendelse: Hendelse) {
         val dokumentLokasjon = requireNotNull(dokumentLokasjon) {
             "Forventet at variabel dokumentLokasjon var satt. Er i tilstand: $tilstand"
         }
@@ -204,7 +203,7 @@ class Søknad private constructor(
         )
     }
 
-    private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: SøknadHendelse) {
+    private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: Hendelse) {
         if (nyTilstand == tilstand) {
             return // Vi er allerede i tilstanden
         }

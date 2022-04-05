@@ -8,7 +8,7 @@ class ArkiverbarSøknadMottattHendelse(
     ident: String,
     private val dokumentLokasjon: DokumentLokasjon,
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
-) : SøknadHendelse(søknadID, ident, aktivitetslogg) {
+) : Hendelse(søknadID, ident, aktivitetslogg) {
 
     internal fun dokumentLokasjon() = dokumentLokasjon
     fun valider(): Boolean {

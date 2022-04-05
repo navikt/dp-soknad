@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.util.UUID
 
 private const val testIdent = "12345678912"
 private const val testJournalpostId = "J123"
@@ -79,8 +80,8 @@ internal class SøknadTest {
     @Test
     fun `en person kan kun ha én opprettet søknad av gangen`() {
         val person = Person(testIdent)
-        person.håndter(ØnskeOmNySøknadHendelse(testIdent))
-        assertThrows<Aktivitetslogg.AktivitetException> { person.håndter(ØnskeOmNySøknadHendelse(testIdent)) }
+        person.håndter(ØnskeOmNySøknadHendelse(testIdent, UUID.randomUUID()))
+        assertThrows<Aktivitetslogg.AktivitetException> { person.håndter(ØnskeOmNySøknadHendelse(testIdent, UUID.randomUUID())) }
     }
 
     private fun assertTilstander(vararg tilstander: Søknad.Tilstand.Type) {
@@ -115,7 +116,7 @@ internal class SøknadTest {
     }
 
     private fun håndterØnskeOmNySøknadHendelse() {
-        person.håndter(ØnskeOmNySøknadHendelse(testIdent))
+        person.håndter(ØnskeOmNySøknadHendelse(testIdent, UUID.randomUUID()))
     }
 
     private fun assertPuml(tittel: String) {

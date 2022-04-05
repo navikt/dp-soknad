@@ -23,18 +23,15 @@ import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.auth.ident
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
-import no.nav.helse.rapids_rivers.JsonMessage
-import java.time.LocalDateTime
 import java.util.UUID
 
 internal fun Route.api(logger: KLogger, store: SøknadStore, søknadMediator: SøknadMediator) {
     route("${Configuration.basePath}/soknad") {
         post {
             val ident = call.ident()
-            val nySøknadMelding = NySøknadMelding(ident)
-            søknadMediator.behandle(ØnskeOmNySøknadHendelse(ident))
-            store.håndter(nySøknadMelding)
-            val svar = nySøknadMelding.søknadUuid
+            val ønskeOmNySøknadHendelse = ØnskeOmNySøknadHendelse(ident, UUID.randomUUID())
+            søknadMediator.behandle(ønskeOmNySøknadHendelse)
+            val svar = ønskeOmNySøknadHendelse.søknadID()
             call.response.header(HttpHeaders.Location, "${call.request.uri}/$svar/fakta")
             call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.Created) {
                 svar.toString()
@@ -69,23 +66,6 @@ internal fun Route.api(logger: KLogger, store: SøknadStore, søknadMediator: S�
 }
 
 class IkkeTilgangExeption(melding: String) : RuntimeException(melding)
-
-internal data class NySøknadMelding(val fødselsnummer: String) {
-    private val navn = "NySøknad"
-    private val opprettet = LocalDateTime.now()
-    private val id = UUID.randomUUID()
-    internal val søknadUuid = UUID.randomUUID()
-
-    fun toJson() = JsonMessage.newMessage(
-        mutableMapOf(
-            "@event_name" to navn,
-            "@opprettet" to opprettet,
-            "@id" to id,
-            "søknad_uuid" to søknadUuid,
-            "fødselsnummer" to fødselsnummer,
-        )
-    ).toJson()
-}
 
 private suspend fun hentFakta(
     store: SøknadStore,

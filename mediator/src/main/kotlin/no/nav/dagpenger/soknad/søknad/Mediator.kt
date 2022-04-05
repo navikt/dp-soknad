@@ -12,7 +12,6 @@ import java.util.UUID
 
 internal interface SøknadStore {
     fun håndter(faktumSvar: FaktumSvar)
-    fun håndter(nySøknadMelding: NySøknadMelding)
     fun hentFakta(søknadUuid: UUID): Søknad?
 }
 
@@ -62,14 +61,6 @@ internal class Mediator(private val rapidsConnection: RapidsConnection, private 
     override fun håndter(faktumSvar: FaktumSvar) {
         rapidsConnection.publish(faktumSvar.toJson())
         logger.info { "Sendte faktum svar for ${faktumSvar.søknadUuid()}" }
-    }
-
-    override fun håndter(nySøknadMelding: NySøknadMelding) {
-        rapidsConnection.publish(
-            nySøknadMelding.toJson().also {
-                sikkerlogg.info { "Nysøknad: $it" }
-            }
-        )
     }
 
     override fun hentFakta(søknadUuid: UUID): Søknad = persistence.hent(søknadUuid)

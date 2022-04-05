@@ -29,11 +29,6 @@ internal class SøknadApiTest {
 
     @Test
     fun `Skal starte søknad`() {
-        val mockStore = mockk<SøknadStore>().also {
-            justRun {
-                it.håndter(any<NySøknadMelding>())
-            }
-        }
         val søknadMediatorMock = mockk<SøknadMediator>().also {
             justRun {
                 it.behandle(any<ØnskeOmNySøknadHendelse>())
@@ -42,7 +37,6 @@ internal class SøknadApiTest {
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                store = mockStore,
                 søknadMediator = søknadMediatorMock
             )
         ) {
@@ -55,7 +49,6 @@ internal class SøknadApiTest {
             }
         }
 
-        verify(exactly = 1) { mockStore.håndter(any<NySøknadMelding>()) }
         verify(exactly = 1) { søknadMediatorMock.behandle(any<ØnskeOmNySøknadHendelse>()) }
     }
 

@@ -48,7 +48,7 @@ internal class SøknadMediatorTest {
 
     @Test
     fun `Skal håndtere ønske om ny søknad`() {
-        mediator.behandle(ØnskeOmNySøknadHendelse(testIdent))
+        mediator.behandle(ØnskeOmNySøknadHendelse(testIdent, UUID.randomUUID()))
         assertEquals(1, testRapid.inspektør.size)
         assertEquals(listOf("NySøknad"), behov(0))
         assertEquals(UnderOpprettelse, hentOppdatertInspektør().gjeldendetilstand)
