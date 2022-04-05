@@ -48,7 +48,6 @@ internal class SøknadOpprettetHendelseMottak(
     override fun onError(problems: MessageProblems, context: MessageContext) {
         logger.error { problems.toString() }
         sikkerLogger.error { problems.toExtendedReport() }
-
     }
 }
 

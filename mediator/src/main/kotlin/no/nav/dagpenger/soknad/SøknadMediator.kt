@@ -22,7 +22,6 @@ internal class SøknadMediator(
 
     private val behovMediator = BehovMediator(rapidsConnection, sikkerLogger)
 
-
     fun behandle(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         behandle(ønskeOmNySøknadHendelse) { person ->
             person.håndter(ønskeOmNySøknadHendelse)
