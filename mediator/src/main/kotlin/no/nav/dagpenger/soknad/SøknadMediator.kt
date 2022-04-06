@@ -10,6 +10,7 @@ import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helse.rapids_rivers.withMDC
 
 internal class SøknadMediator(
     rapidsConnection: RapidsConnection,
@@ -17,6 +18,7 @@ internal class SøknadMediator(
     private val personObservers: List<PersonObserver> = emptyList(),
 ) {
     private companion object {
+        val logger = KotlinLogging.logger { }
         val sikkerLogger = KotlinLogging.logger("tjenestekall")
     }
 
@@ -59,12 +61,28 @@ internal class SøknadMediator(
     }
 
     private fun behandle(hendelse: Hendelse, håndter: (Person) -> Unit) {
-        val person = hentEllerOpprettPerson(hendelse)
-        personObservers.forEach { personObserver ->
-            person.addObserver(personObserver)
+        try {
+            val person = hentEllerOpprettPerson(hendelse)
+            personObservers.forEach { personObserver ->
+                person.addObserver(personObserver)
+            }
+            håndter(person)
+            finalize(person, hendelse)
+        } catch (err: Aktivitetslogg.AktivitetException) {
+            withMDC("søknad_uuid" to hendelse.søknadID().toString()) {
+                logger.error("alvorlig feil i aktivitetslogg (se sikkerlogg for detaljer)")
+            }
+            withMDC(err.kontekst()) {
+                sikkerLogger.error("alvorlig feil i aktivitetslogg: ${err.message}", err)
+            }
+        } catch (e: Exception) {
+            errorHandler(e, e.message ?: "Ukjent feil")
         }
-        håndter(person)
-        finalize(person, hendelse)
+    }
+
+    private fun errorHandler(err: Exception, message: String, context: Map<String, String> = emptyMap()) {
+        logger.error("alvorlig feil: ${err.message} (se sikkerlogg for melding)", err)
+        withMDC(context) { sikkerLogger.error("alvorlig feil: ${err.message}\n\t$message", err) }
     }
 
     private fun finalize(person: Person, hendelse: Hendelse) {

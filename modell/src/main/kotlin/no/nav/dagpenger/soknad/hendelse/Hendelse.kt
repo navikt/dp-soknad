@@ -21,7 +21,7 @@ abstract class Hendelse protected constructor(
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst {
         return this.javaClass.canonicalName.split('.').last().let { klassenavn ->
-            SpesifikkKontekst(klassenavn, emptyMap())
+            SpesifikkKontekst(klassenavn, mapOf("søknad_uuid" to søknadID().toString()))
         }
     }
 
