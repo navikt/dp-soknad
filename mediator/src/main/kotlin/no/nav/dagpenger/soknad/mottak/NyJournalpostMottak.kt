@@ -38,7 +38,7 @@ internal class NyJournalpostMottak(
         val journalpostId = packet["@løsning"][behov].asText()
         val søknadMidlertidigJournalførtHendelse =
             SøknadMidlertidigJournalførtHendelse(søknadID, packet["ident"].asText(), journalpostId)
-        logger.info { "Fått løsning for $behov for $søknadID" }
+        logger.info { "Fått løsning for $behov for $søknadID med journalpostId $journalpostId" }
         mediator.behandle(søknadMidlertidigJournalførtHendelse)
     }
 }

@@ -69,7 +69,7 @@ internal class SøknadMediator(
             håndter(person)
             finalize(person, hendelse)
         } catch (err: Aktivitetslogg.AktivitetException) {
-            withMDC("søknad_uuid" to hendelse.søknadID().toString()) {
+            withMDC(kontekst(hendelse)) {
                 logger.error("alvorlig feil i aktivitetslogg (se sikkerlogg for detaljer)")
             }
             withMDC(err.kontekst()) {
