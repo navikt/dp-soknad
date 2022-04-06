@@ -80,6 +80,9 @@ internal class SøknadMediator(
         }
     }
 
+    private fun kontekst(hendelse: Hendelse): Map<String, String> =
+        mapOf("søknad_uuid" to hendelse.søknadID().toString())
+
     private fun errorHandler(err: Exception, message: String, context: Map<String, String> = emptyMap()) {
         logger.error("alvorlig feil: ${err.message} (se sikkerlogg for melding)", err)
         withMDC(context) { sikkerLogger.error("alvorlig feil: ${err.message}\n\t$message", err) }
