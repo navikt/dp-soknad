@@ -114,7 +114,7 @@ internal class SøknadTest {
     }
 
     private fun håndterJournalførtSøknad() {
-        person.håndter(JournalførtHendelse(inspektør.søknadId, testIdent))
+        person.håndter(JournalførtHendelse(testJournalpostId, testIdent))
     }
     private fun assertBehov(behovtype: Behovtype, forventetDetaljer: Map<String, Any> = emptyMap()) {
         val behov = inspektør.personLogg.behov().find {

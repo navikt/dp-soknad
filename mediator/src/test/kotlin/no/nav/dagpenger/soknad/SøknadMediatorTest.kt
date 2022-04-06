@@ -23,6 +23,7 @@ import java.util.UUID
 internal class SøknadMediatorTest {
     companion object {
         private const val testIdent = "12345678912"
+        private const val testJournalpostId = "123455PDS"
     }
 
     private lateinit var mediator: SøknadMediator
@@ -64,11 +65,17 @@ internal class SøknadMediatorTest {
         assertEquals(AvventerMidlertidligJournalføring, hentOppdatertInspektør().gjeldendetilstand)
 
         assertEquals(listOf("NyJournalpost"), behov(2))
-        testRapid.sendTestMessage(nyJournalpostLøsning(ident = testIdent, søknadUuid = søknadId(), journalpostId = "123455PDS"))
+
+        testRapid.sendTestMessage(nyJournalpostLøsning(ident = testIdent, søknadUuid = søknadId(), journalpostId = testJournalpostId))
         assertEquals(AvventerJournalføring, hentOppdatertInspektør().gjeldendetilstand)
 
-        testRapid.sendTestMessage(søknadJournalførtHendelse(ident = testIdent, søknadUuid = søknadId()))
+        testRapid.sendTestMessage(søknadJournalførtHendelse(ident = testIdent, journalpostId = testJournalpostId))
         assertEquals(Journalført, hentOppdatertInspektør().gjeldendetilstand)
+    }
+
+    @Test
+    fun `Hva skjer om en får JournalførtHendelse som ikke er tilknyttet en søknad`() {
+        testRapid.sendTestMessage(søknadJournalførtHendelse(ident = testIdent, journalpostId = "UKJENT"))
     }
 
     private fun søknadId() = hentOppdatertInspektør().gjeldendeSøknadId
@@ -151,11 +158,11 @@ internal class SøknadMediatorTest {
 }""".trimMargin()
 
     // language=JSON
-    private fun søknadJournalførtHendelse(ident: String, søknadUuid: String) = """
+    private fun søknadJournalførtHendelse(ident: String, journalpostId: String) = """
     {
       "@id": "7d1938c6-f1ae-435d-8d83-c7f200b9cc2b",
       "@opprettet": "2022-04-04T10:39:58.621716",
-      "journalpostId": "12455",
+      "journalpostId": "$journalpostId",
       "datoRegistrert": "2022-04-04T10:39:58.586548",
       "skjemaKode": "test",
       "tittel": "Tittel",
@@ -163,9 +170,6 @@ internal class SøknadMediatorTest {
       "fødselsnummer": "$ident",
       "aktørId": "1234455",
       "fagsakId": "1234",
-      "søknadsData": {
-        "søknad_uuid": "$søknadUuid"
-      },
       "@event_name": "innsending_ferdigstilt",
       "system_read_count": 0
     }

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.ArkiverbarSøknad
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NySøknad
-import no.nav.dagpenger.soknad.hendelse.Hendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -165,7 +165,7 @@ internal class BehovMediatorTest {
     private class TestHendelse(
         private val melding: String,
         internal val logg: Aktivitetslogg
-    ) : Hendelse(søknadID, testIdent, logg), Aktivitetskontekst {
+    ) : SøknadHendelse(søknadID, testIdent, logg), Aktivitetskontekst {
         init {
             logg.kontekst(this)
         }

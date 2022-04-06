@@ -22,17 +22,16 @@ internal class JournalførtMottak(
             validate { it.demandValue("@event_name", "innsending_ferdigstilt") }
             validate { it.demandValue("type", "NySøknad") }
             validate { it.requireKey("fødselsnummer") }
-            validate { it.requireKey("søknadsData.søknad_uuid") }
             validate { it.requireKey("journalpostId") }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val søknadID = packet["søknadsData.søknad_uuid"].asUUID()
+        val journalpostId = packet["journalpostId"].asText()
         val ident = packet["fødselsnummer"].asText()
         val journalførtHendelse =
-            JournalførtHendelse(søknadID, ident)
-        logger.info { "Fått løsning for innsending_ferdigstilt for $søknadID" }
+            JournalførtHendelse(journalpostId, ident)
+        logger.info { "Fått løsning for innsending_ferdigstilt for $journalpostId" }
         mediator.behandle(journalførtHendelse)
     }
 }

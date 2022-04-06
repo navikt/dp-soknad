@@ -24,7 +24,7 @@ class Søknad private constructor(
         person,
         UnderOpprettelse,
         dokumentLokasjon = null,
-        journalportId = null
+        journalpostId = null
     )
 
     companion object {

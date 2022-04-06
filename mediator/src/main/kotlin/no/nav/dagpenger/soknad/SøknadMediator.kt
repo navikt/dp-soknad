@@ -5,6 +5,7 @@ import no.nav.dagpenger.soknad.db.PersonRepository
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
@@ -81,7 +82,13 @@ internal class SøknadMediator(
     }
 
     private fun kontekst(hendelse: Hendelse): Map<String, String> =
-        mapOf("søknad_uuid" to hendelse.søknadID().toString())
+        when (hendelse) {
+            is SøknadHendelse -> mapOf("søknad_uuid" to hendelse.søknadID().toString())
+            is JournalførtHendelse -> mapOf("journalpostId" to hendelse.journalpostId())
+            else -> {
+                emptyMap()
+            }
+        }
 
     private fun errorHandler(err: Exception, message: String, context: Map<String, String> = emptyMap()) {
         logger.error("alvorlig feil: ${err.message} (se sikkerlogg for melding)", err)
