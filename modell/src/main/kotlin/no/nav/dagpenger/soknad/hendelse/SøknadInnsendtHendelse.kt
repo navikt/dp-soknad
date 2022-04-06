@@ -4,11 +4,8 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import java.util.UUID
 
 class SøknadInnsendtHendelse(søknadID: UUID, ident: String, aktivitetslogg: Aktivitetslogg = Aktivitetslogg()) :
-    Hendelse(
+    SøknadHendelse(
         søknadID,
         ident,
         aktivitetslogg
-    ) {
-    override fun equals(other: Any?) =
-        other is SøknadInnsendtHendelse && other.ident() == this.ident() && other.søknadID() == this.søknadID()
-}
+    )

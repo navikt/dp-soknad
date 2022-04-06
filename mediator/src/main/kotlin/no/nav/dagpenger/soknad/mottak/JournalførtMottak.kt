@@ -2,7 +2,7 @@ package no.nav.dagpenger.soknad.mottak
 
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.hendelse.SøknadJournalførtHendelse
+import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -30,9 +30,9 @@ internal class JournalførtMottak(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val søknadID = packet["søknadsData.søknad_uuid"].asUUID()
         val ident = packet["fødselsnummer"].asText()
-        val søknadJournalførtHendelse =
-            SøknadJournalførtHendelse(søknadID, ident)
+        val journalførtHendelse =
+            JournalførtHendelse(søknadID, ident)
         logger.info { "Fått løsning for innsending_ferdigstilt for $søknadID" }
-        mediator.behandle(søknadJournalførtHendelse)
+        mediator.behandle(journalførtHendelse)
     }
 }
