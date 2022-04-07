@@ -4,8 +4,9 @@ import no.nav.dagpenger.soknad.Søknad.Companion.finnSøknad
 import no.nav.dagpenger.soknad.Søknad.Companion.harAlleredeOpprettetSøknad
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
+import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
-import no.nav.dagpenger.soknad.hendelse.SøknadJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
@@ -47,8 +48,12 @@ class Person private constructor(
         søknaden.håndter(søknadOpprettetHendelse)
     }
 
-    private fun finnSøknad(søknadHendelse: Hendelse) =
+    private fun finnSøknad(søknadHendelse: SøknadHendelse) =
         søknader.finnSøknad(søknadHendelse.søknadID()) ?: søknadHendelse.severe("Fant ikke søknaden")
+
+    private fun finnSøknad(journalførtHendelse: JournalførtHendelse): Søknad? {
+        return søknader.finnSøknad(journalførtHendelse.journalpostId())
+    }
 
     fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
         kontekst(søknadInnsendtHendelse, "Sender inn søknaden")
@@ -70,10 +75,12 @@ class Person private constructor(
         }
     }
 
-    fun håndter(søknadJournalførtHendelse: SøknadJournalførtHendelse) {
-        kontekst(søknadJournalførtHendelse, "Søknad journalført")
-        finnSøknad(søknadJournalførtHendelse).also { søknaden ->
-            søknaden.håndter(søknadJournalførtHendelse)
+    fun håndter(journalførtHendelse: JournalførtHendelse) {
+        kontekst(journalførtHendelse, "Søknad journalført")
+        val søknaden = finnSøknad(journalførtHendelse)
+        when {
+            søknaden != null -> søknaden.håndter(journalførtHendelse)
+            else -> journalførtHendelse.info("Fant ikke søknaden for ${journalførtHendelse.journalpostId()}")
         }
     }
 

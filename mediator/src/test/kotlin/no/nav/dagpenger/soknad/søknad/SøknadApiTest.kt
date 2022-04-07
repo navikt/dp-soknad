@@ -20,6 +20,7 @@ import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -56,9 +57,10 @@ internal class SøknadApiTest {
     @Test
     fun `Ferdigstill søknad`() {
         val testSøknadUuid = UUID.randomUUID()
+        val slot = slot<SøknadInnsendtHendelse>()
         val søknadMediatorMock = mockk<SøknadMediator>().also {
             justRun {
-                it.behandle(SøknadInnsendtHendelse(testSøknadUuid, ident = defaultDummyFodselsnummer))
+                it.behandle(capture(slot))
             }
         }
 
@@ -75,6 +77,9 @@ internal class SøknadApiTest {
             }
         }
         verify(exactly = 1) { søknadMediatorMock.behandle(any<SøknadInnsendtHendelse>()) }
+        assertTrue(slot.isCaptured)
+        assertEquals(testSøknadUuid, slot.captured.søknadID())
+        assertEquals(defaultDummyFodselsnummer, slot.captured.ident())
     }
 
     @Test

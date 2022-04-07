@@ -7,7 +7,6 @@ import no.nav.dagpenger.soknad.SpesifikkKontekst
 import java.util.UUID
 
 abstract class Hendelse protected constructor(
-    private val søknadID: UUID,
     private val ident: String,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 ) : IAktivitetslogg by aktivitetslogg, Aktivitetskontekst {
@@ -17,6 +16,22 @@ abstract class Hendelse protected constructor(
     }
 
     fun ident() = ident
+
+    override fun toSpesifikkKontekst(): SpesifikkKontekst {
+        return this.javaClass.canonicalName.split('.').last().let { klassenavn ->
+            SpesifikkKontekst(klassenavn, emptyMap())
+        }
+    }
+
+    fun toLogString() = aktivitetslogg.toString()
+}
+
+abstract class SøknadHendelse protected constructor(
+    private val søknadID: UUID,
+    ident: String,
+    aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+) : Hendelse(ident = ident, aktivitetslogg = aktivitetslogg) {
+
     fun søknadID() = søknadID
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst {
@@ -24,6 +39,4 @@ abstract class Hendelse protected constructor(
             SpesifikkKontekst(klassenavn, mapOf("søknad_uuid" to søknadID().toString()))
         }
     }
-
-    fun toLogString() = aktivitetslogg.toString()
 }

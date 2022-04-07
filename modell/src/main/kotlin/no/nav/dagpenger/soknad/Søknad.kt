@@ -4,8 +4,8 @@ import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
 import no.nav.dagpenger.soknad.hendelse.Hendelse
+import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
-import no.nav.dagpenger.soknad.hendelse.SøknadJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
@@ -16,18 +16,22 @@ class Søknad private constructor(
     private val person: Person,
     private var tilstand: Tilstand,
     private var dokumentLokasjon: DokumentLokasjon?,
+    private var journalpostId: String?
 ) : Aktivitetskontekst {
 
     internal constructor(søknadId: UUID, person: Person) : this(
         søknadId,
         person,
         UnderOpprettelse,
-        dokumentLokasjon = null
+        dokumentLokasjon = null,
+        journalpostId = null
     )
 
     companion object {
         internal fun List<Søknad>.harAlleredeOpprettetSøknad() = this.any { it.tilstand == UnderOpprettelse }
         internal fun List<Søknad>.finnSøknad(søknadId: UUID): Søknad? = this.find { it.søknadId == søknadId }
+        internal fun List<Søknad>.finnSøknad(journalpostId: String): Søknad? =
+            this.find { it.journalpostId == journalpostId }
     }
 
     fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
@@ -59,9 +63,9 @@ class Søknad private constructor(
         tilstand.håndter(søknadMidlertidigJournalførtHendelse, this)
     }
 
-    fun håndter(søknadJournalførtHendelse: SøknadJournalførtHendelse) {
-        kontekst(søknadJournalførtHendelse)
-        tilstand.håndter(søknadJournalførtHendelse, this)
+    fun håndter(journalførtHendelse: JournalførtHendelse) {
+        kontekst(journalførtHendelse)
+        tilstand.håndter(journalførtHendelse, this)
     }
 
     interface Tilstand : Aktivitetskontekst {
@@ -85,8 +89,8 @@ class Søknad private constructor(
         fun håndter(søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse, søknad: Søknad) =
             søknadMidlertidigJournalførtHendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(søknadJournalførtHendelse: SøknadJournalførtHendelse, søknad: Søknad) =
-            søknadJournalførtHendelse.`kan ikke håndteres i denne tilstanden`()
+        fun håndter(journalførtHendelse: JournalførtHendelse, søknad: Søknad) =
+            journalførtHendelse.`kan ikke håndteres i denne tilstanden`()
 
         private fun Hendelse.`kan ikke håndteres i denne tilstanden`() =
             this.warn("Kan ikke håndtere ${this.javaClass.simpleName} i tilstand $tilstandType")
@@ -160,6 +164,7 @@ class Søknad private constructor(
             søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse,
             søknad: Søknad
         ) {
+            søknad.journalpostId = søknadMidlertidigJournalførtHendelse.journalpostId()
             søknad.endreTilstand(AvventerJournalføring, søknadMidlertidigJournalførtHendelse)
         }
     }
@@ -168,8 +173,8 @@ class Søknad private constructor(
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.AvventerJournalføring
 
-        override fun håndter(søknadJournalførtHendelse: SøknadJournalførtHendelse, søknad: Søknad) {
-            søknad.endreTilstand(Journalført, søknadJournalførtHendelse)
+        override fun håndter(journalførtHendelse: JournalførtHendelse, søknad: Søknad) {
+            søknad.endreTilstand(Journalført, journalførtHendelse)
         }
     }
 

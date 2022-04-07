@@ -8,8 +8,8 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
-import no.nav.dagpenger.soknad.hendelse.SøknadJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
@@ -114,7 +114,7 @@ internal class SøknadTest {
     }
 
     private fun håndterJournalførtSøknad() {
-        person.håndter(SøknadJournalførtHendelse(inspektør.søknadId, testIdent))
+        person.håndter(JournalførtHendelse(testJournalpostId, testIdent))
     }
     private fun assertBehov(behovtype: Behovtype, forventetDetaljer: Map<String, Any> = emptyMap()) {
         val behov = inspektør.personLogg.behov().find {
