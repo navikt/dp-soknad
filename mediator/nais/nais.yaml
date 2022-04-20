@@ -62,6 +62,9 @@ spec:
         diskSize: {{db_size}}
         diskAutoresize: true
         autoBackupHour: 3
+        maintenance:
+          day: 1
+          hour: 3
         databases:
           - name: dp-soknad
             envVarPrefix: DB
