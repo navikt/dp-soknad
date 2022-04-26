@@ -19,7 +19,7 @@ class Søknad private constructor(
     private var journalpostId: String?
 ) : Aktivitetskontekst {
 
-    internal constructor(søknadId: UUID, person: Person) : this(
+    constructor(søknadId: UUID, person: Person) : this(
         søknadId,
         person,
         UnderOpprettelse,

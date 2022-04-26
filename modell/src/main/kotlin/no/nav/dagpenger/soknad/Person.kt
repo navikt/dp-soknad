@@ -12,20 +12,24 @@ import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 
 class Person private constructor(
-    private val søknader: MutableList<Søknad>,
+    søknadsfunksjon: (person: Person) -> MutableList<Søknad>,
     private val ident: String,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : Aktivitetskontekst, PersonObserver {
 
+    private val søknader: MutableList<Søknad>
+
     init {
         require(ident.matches("\\d{11}".toRegex())) { "Ugyldig ident, må være 11 sifre" }
+        this.søknader = søknadsfunksjon(this)
     }
 
     fun ident() = ident
 
     private val observers = mutableListOf<PersonObserver>()
 
-    constructor(ident: String) : this(mutableListOf(), ident)
+    constructor(ident: String) : this({ mutableListOf() }, ident)
+    constructor(ident: String, søknadsfunksjon: (person: Person) -> MutableList<Søknad>) : this(søknadsfunksjon, ident)
 
     fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         if (søknader.harAlleredeOpprettetSøknad()) {
@@ -86,6 +90,7 @@ class Person private constructor(
 
     fun accept(visitor: PersonVisitor) {
         visitor.visitPerson(ident)
+        visitor.visitPerson(ident, søknader)
         visitor.preVisitSøknader()
         søknader.forEach { it.accept(visitor) }
         visitor.postVisitSøknader()
