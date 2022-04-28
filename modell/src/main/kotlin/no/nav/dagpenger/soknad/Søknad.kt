@@ -185,6 +185,7 @@ class Søknad private constructor(
 
     fun accept(visitor: SøknadVisitor) {
         visitor.visitSøknad(søknadId)
+        visitor.visitSøknad(søknadId, person, tilstand, dokumentLokasjon, journalpostId)
         tilstand.accept(visitor)
     }
 

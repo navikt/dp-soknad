@@ -1,13 +1,16 @@
 package no.nav.dagpenger.soknad
 
+import no.nav.dagpenger.soknad.Søknad.Tilstand
+import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
 import java.util.UUID
 
 interface TilstandVisitor {
-    fun visitTilstand(tilstand: Søknad.Tilstand.Type) {}
+    fun visitTilstand(tilstand: Tilstand.Type) {}
 }
 
 interface SøknadVisitor : TilstandVisitor {
     fun visitSøknad(søknadId: UUID) {}
+    fun visitSøknad(søknadId: UUID, person: Person, tilstand: Tilstand, dokumentLokasjon: DokumentLokasjon?, journalpostId: String?) {}
 }
 
 interface PersonVisitor : SøknadVisitor, AktivitetsloggVisitor {

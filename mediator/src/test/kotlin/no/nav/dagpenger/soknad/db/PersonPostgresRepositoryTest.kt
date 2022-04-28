@@ -35,9 +35,11 @@ internal class PersonPostgresRepositoryTest {
     @Test
     fun `Lagre og hente person med søknader`() {
         val søknaduuid = UUID.randomUUID()
+        val søknaduuid2 = UUID.randomUUID()
         val expectedPerson = Person("12345678910") {
             mutableListOf(
-                Søknad(søknaduuid, it)
+                Søknad(søknaduuid, it),
+                Søknad(søknaduuid2, it)
             )
         }
 
