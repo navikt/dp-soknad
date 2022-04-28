@@ -32,6 +32,24 @@ class Søknad private constructor(
         internal fun List<Søknad>.finnSøknad(søknadId: UUID): Søknad? = this.find { it.søknadId == søknadId }
         internal fun List<Søknad>.finnSøknad(journalpostId: String): Søknad? =
             this.find { it.journalpostId == journalpostId }
+
+        fun rehydrer(
+            søknadId: UUID,
+            person: Person,
+            tilstandsType: String,
+            dokumentLokasjon: DokumentLokasjon?,
+            journalpostId: String?
+        ): Søknad {
+            val tilstand: Tilstand = when (Tilstand.Type.valueOf(tilstandsType)) {
+                Tilstand.Type.UnderOpprettelse -> Søknad.UnderOpprettelse
+                Tilstand.Type.Påbegynt -> Søknad.Påbegynt
+                Tilstand.Type.AvventerArkiverbarSøknad -> Søknad.AvventerArkiverbarSøknad
+                Tilstand.Type.AvventerMidlertidligJournalføring -> Søknad.AvventerMidlertidligJournalføring
+                Tilstand.Type.AvventerJournalføring -> Søknad.AvventerJournalføring
+                Tilstand.Type.Journalført -> Søknad.Journalført
+            }
+            return Søknad(søknadId, person, tilstand, dokumentLokasjon, journalpostId)
+        }
     }
 
     fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {

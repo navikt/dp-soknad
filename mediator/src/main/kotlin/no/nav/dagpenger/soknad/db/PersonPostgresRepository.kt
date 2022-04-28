@@ -25,7 +25,26 @@ class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepos
         }
 
         return persistertIdent?.let {
-            Person(persistertIdent) { mutableListOf() }
+            Person(persistertIdent) { person ->
+                using(sessionOf(dataSource)) { session ->
+                    session.run(
+                        queryOf(
+                            """SELECT uuid, tilstand, dokument_lokasjon, journalpost_id FROM soknad_v1 WHERE person_ident = :ident """,
+                            mapOf("ident" to ident)
+                        ).map { r ->
+                            SøknadDB(
+                                UUID.fromString(r.string("uuid")),
+                                r.string("tilstand"),
+                                r.stringOrNull("dokument_lokasjon"),
+                                r.stringOrNull("journalpost_id")
+                            )
+                        }.asList
+
+                    )
+                }
+                    .map { søknadDb -> søknadDb.tilSøknad(person) }
+                    .toMutableList()
+            }
         }
     }
 
@@ -40,17 +59,37 @@ class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepos
                         paramMap = mapOf("ident" to visitor.ident)
                     ).asUpdate
                 )
-                tx.run(
-                    queryOf(
-                        "INSERT INTO soknad_v1(uuid,person_ident,tilstand,dokument_lokasjon,journalpost_id) VALUES ${visitor.søknaderValues()}"
-                    ).asUpdate
-                )
+
+                if (visitor.søknader.isNotEmpty()) {
+                    tx.run(
+                        queryOf(
+                            "INSERT INTO soknad_v1(uuid,person_ident,tilstand,dokument_lokasjon,journalpost_id) VALUES ${visitor.søknaderValues()}"
+                        ).asUpdate
+                    )
+                }
             }
         }
     }
 }
 
-internal class PersonPersistenceVisitor(person: Person) : PersonVisitor {
+private data class SøknadDB(
+    val uuid: UUID,
+    val tilstandType: String,
+    val dokumentLokasjon: String?,
+    val journalpostId: String?
+) {
+    fun tilSøknad(person: Person): Søknad {
+        return Søknad.rehydrer(
+            uuid,
+            person,
+            tilstandType,
+            dokumentLokasjon,
+            journalpostId
+        )
+    }
+}
+
+private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
     lateinit var ident: String
     lateinit var søknader: List<Søknad>
     private val søknadSqlStrings: MutableList<String> = mutableListOf()
@@ -81,5 +120,5 @@ internal class PersonPersistenceVisitor(person: Person) : PersonVisitor {
         søknadSqlStrings.add("""('$søknadId', '${person.ident()}', '${tilstand.tilstandType}', $lokasjon, $jp)""")
     }
 
-    internal fun søknaderValues() = søknadSqlStrings.joinToString(",")
+    fun søknaderValues() = søknadSqlStrings.joinToString(",")
 }

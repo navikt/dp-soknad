@@ -14,11 +14,12 @@ internal class PersonPostgresRepositoryTest {
     fun `Lagre og hente person`() {
         withMigratedDb {
             PersonPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
-                it.lagre(Person("12345678910"))
+                val expectedPerson = Person("12345678910")
+                it.lagre(expectedPerson)
                 val person = it.hent("12345678910")
 
                 assertNotNull(person)
-                assertEquals("12345678910", PersonPersistenceVisitor(person!!).ident)
+                assertEquals(expectedPerson, person)
             }
         }
     }
@@ -49,9 +50,7 @@ internal class PersonPostgresRepositoryTest {
                 it.lagre(expectedPerson)
                 val person = it.hent("12345678910")
                 assertNotNull(person)
-                val visitor = PersonPersistenceVisitor(person!!)
-                assertEquals("12345678910", visitor.ident)
-                assertEquals(1, visitor.søknader.size)
+                assertEquals(expectedPerson, person)
             }
         }
     }
