@@ -114,4 +114,8 @@ class Person private constructor(
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst =
         SpesifikkKontekst(kontekstType = "person", mapOf("ident" to ident))
+
+    override fun equals(other: Any?): Boolean {
+        return other is Person && this.ident == other.ident
+    }
 }
