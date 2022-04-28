@@ -1,7 +1,7 @@
 package no.nav.dagpenger.soknad.søknad
 
 import com.fasterxml.jackson.databind.JsonNode
-import io.ktor.features.NotFoundException
+import io.ktor.server.plugins.NotFoundException
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
