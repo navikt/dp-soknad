@@ -59,11 +59,18 @@ class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepos
                         paramMap = mapOf("ident" to visitor.ident)
                     ).asUpdate
                 )
-
-                if (visitor.søknader.isNotEmpty()) {
+                visitor.søknader.forEach {
                     tx.run(
+                        //language=PostgreSQL
                         queryOf(
-                            "INSERT INTO soknad_v1(uuid,person_ident,tilstand,dokument_lokasjon,journalpost_id) VALUES ${visitor.søknaderValues()}"
+                            statement = "INSERT INTO soknad_v1(uuid,person_ident,tilstand,dokument_lokasjon,journalpost_id) VALUES(:uuid,:person_ident,:tilstand,:dokument,:journalpostID)",
+                            paramMap = mapOf(
+                                "uuid" to it.uuid,
+                                "person_ident" to visitor.ident,
+                                "tilstand" to it.tilstandType,
+                                "dokument" to it.dokumentLokasjon,
+                                "journalpostID" to it.journalpostId
+                            )
                         ).asUpdate
                     )
                 }
@@ -91,7 +98,7 @@ private data class SøknadDB(
 
 private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
     lateinit var ident: String
-    lateinit var søknader: List<Søknad>
+    val søknader: MutableList<SøknadDB> = mutableListOf()
     private val søknadSqlStrings: MutableList<String> = mutableListOf()
 
     init {
@@ -104,7 +111,6 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
 
     override fun visitPerson(ident: String, søknader: List<Søknad>) {
         this.ident = ident
-        this.søknader = søknader
     }
 
     override fun visitSøknad(
@@ -114,11 +120,13 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
         dokumentLokasjon: DokumentLokasjon?,
         journalpostId: String?
     ) {
-        val lokasjon = dokumentLokasjon?.let { """'$it'""" } ?: "NULL"
-        val jp = journalpostId?.let { """'$it'""" } ?: "NULL"
-
-        søknadSqlStrings.add("""('$søknadId', '${person.ident()}', '${tilstand.tilstandType}', $lokasjon, $jp)""")
+        søknader.add(
+            SøknadDB(
+                uuid = søknadId,
+                tilstandType = tilstand.tilstandType.name,
+                dokumentLokasjon = dokumentLokasjon,
+                journalpostId = journalpostId
+            )
+        )
     }
-
-    fun søknaderValues() = søknadSqlStrings.joinToString(",")
 }

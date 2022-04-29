@@ -4,10 +4,10 @@ import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
-import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -37,16 +37,20 @@ internal class PersonPostgresRepositoryTest {
 
     @Test
     fun `Lagre og hente person med søknader`() {
-        val søknaduuid = UUID.randomUUID()
-        val søknaduuid2 = UUID.randomUUID()
         val originalPerson = Person("12345678910") {
             mutableListOf(
-                Søknad(søknaduuid, it),
-                Søknad(søknaduuid2, it)
+                Søknad(UUID.randomUUID(), it),
+                Søknad.rehydrer(
+                    søknadId = UUID.randomUUID(),
+                    person = it,
+                    tilstandsType = "Journalført",
+                    dokumentLokasjon = "urn:hubba:bubba",
+                    journalpostId = "journalpostid"
+                )
             )
         }
-        withMigratedDb {
 
+        withMigratedDb {
             PersonPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
                 it.lagre(originalPerson)
                 val personFraDatabase = it.hent("12345678910")
@@ -56,12 +60,15 @@ internal class PersonPostgresRepositoryTest {
                 val søknaderFraDatabase = TestSøknadVisitor(personFraDatabase).søknader
                 val originalSøknader = TestSøknadVisitor(originalPerson).søknader
 
-                assertEquals(originalSøknader, søknaderFraDatabase)
-
+                assertDeepEquals(originalSøknader.first(), søknaderFraDatabase.first())
+                assertDeepEquals(originalSøknader.last(), søknaderFraDatabase.last())
             }
         }
     }
 
+    private fun assertDeepEquals(expected: Søknad, result: Søknad) {
+        assertTrue(expected.deepEquals(result), "Søknadene var ikke like")
+    }
 
     private class TestSøknadVisitor(person: Person?) : PersonVisitor {
         init {
@@ -72,6 +79,5 @@ internal class PersonPostgresRepositoryTest {
         override fun visitPerson(ident: String, søknader: List<Søknad>) {
             this.søknader = søknader
         }
-
     }
 }

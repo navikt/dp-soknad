@@ -27,7 +27,6 @@ class Søknad private constructor(
         journalpostId = null
     )
 
-
     companion object {
         internal fun List<Søknad>.harAlleredeOpprettetSøknad() = this.any { it.tilstand == UnderOpprettelse }
         internal fun List<Søknad>.finnSøknad(søknadId: UUID): Søknad? = this.find { it.søknadId == søknadId }
@@ -249,26 +248,12 @@ class Søknad private constructor(
             "Trenger å journalføre søknad",
             mapOf("dokumenter" to dokumenter)
         )
+    }
 
-        /*
-        * "dokumenter": [
-    {
-      "brevkode": "NAV 04-01.04",
-      "varianter": [
-        {
-          "urn": "urn:vedlegg:soknadId/fil1",
-          "format": "ARKIV",
-          "type": "PDF"
-        },
-        {
-          "urn": "urn:vedlegg:soknadId/fil2",
-          "format": "ORIGINAL",
-          "type": "JSON"
-        }
-      ]
-    }
-  ]*/
-    }
+    fun deepEquals(other: Any?): Boolean =
+        other is Søknad && other.søknadId == this.søknadId && other.person == this.person &&
+            other.tilstand == this.tilstand && other.dokumentLokasjon == this.dokumentLokasjon &&
+            other.journalpostId == this.journalpostId
 
     private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: Hendelse) {
         if (nyTilstand == tilstand) {
