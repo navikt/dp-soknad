@@ -63,7 +63,9 @@ class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepos
                     tx.run(
                         //language=PostgreSQL
                         queryOf(
-                            statement = "INSERT INTO soknad_v1(uuid,person_ident,tilstand,dokument_lokasjon,journalpost_id) VALUES(:uuid,:person_ident,:tilstand,:dokument,:journalpostID)",
+                            statement = "INSERT INTO soknad_v1(uuid,person_ident,tilstand,dokument_lokasjon,journalpost_id) " +
+                                "VALUES(:uuid,:person_ident,:tilstand,:dokument,:journalpostID) ON CONFLICT(uuid) DO UPDATE " +
+                                "SET tilstand=:tilstand, dokument_lokasjon=:dokument, journalpost_id=:journalpostID",
                             paramMap = mapOf(
                                 "uuid" to it.uuid,
                                 "person_ident" to visitor.ident,

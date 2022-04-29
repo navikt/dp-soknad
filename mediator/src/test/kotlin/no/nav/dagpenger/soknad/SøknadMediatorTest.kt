@@ -6,7 +6,9 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerMidlertidligJournal
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
+import no.nav.dagpenger.soknad.db.PersonPostgresRepository
 import no.nav.dagpenger.soknad.db.PersonRepository
+import no.nav.dagpenger.soknad.db.Postgres
 import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
@@ -27,16 +29,8 @@ internal class SøknadMediatorTest {
     }
 
     private lateinit var mediator: SøknadMediator
+    private val personRepository: PersonRepository = PersonPostgresRepository(Postgres.withMigratedDb())
     private val testRapid = TestRapid()
-
-    private val personRepository = object : PersonRepository {
-        private val db = mutableMapOf<String, Person>()
-        override fun hent(ident: String): Person? = db[ident]
-
-        override fun lagre(person: Person) {
-            db[person.ident()] = person
-        }
-    }
 
     @BeforeEach
     fun setup() {
