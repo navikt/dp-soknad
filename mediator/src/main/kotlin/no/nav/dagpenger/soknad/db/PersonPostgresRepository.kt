@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad.db
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Søknad
@@ -52,13 +53,15 @@ class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepos
         val visitor = PersonPersistenceVisitor(person)
         using(sessionOf(dataSource)) { session ->
             session.transaction { tx ->
-                tx.run(
+                val internId: Long = tx.run(
                     //language=PostgreSQL
                     queryOf(
-                        "INSERT INTO person_v1(ident) VALUES(:ident) ON CONFLICT DO NOTHING",
+                        "INSERT INTO person_v1(ident) VALUES(:ident) ON CONFLICT DO NOTHING RETURNING id",
                         paramMap = mapOf("ident" to visitor.ident)
-                    ).asUpdate
-                )
+                    ).map { row ->
+                        row.long("id")
+                    }.asSingle
+                )!!
                 visitor.søknader.forEach {
                     tx.run(
                         //language=PostgreSQL
@@ -76,6 +79,11 @@ class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepos
                         ).asUpdate
                     )
                 }
+
+                // VI må hente ut id basert på ident, id må legges inn sammen med insert av aktivitetslogg
+//                tx.run(
+//                   queryOf("")
+//                )
             }
         }
     }
@@ -101,7 +109,7 @@ private data class SøknadDB(
 private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
     lateinit var ident: String
     val søknader: MutableList<SøknadDB> = mutableListOf()
-    private val søknadSqlStrings: MutableList<String> = mutableListOf()
+    lateinit var aktivitetslogg: Aktivitetslogg
 
     init {
         person.accept(this)
@@ -113,6 +121,10 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
 
     override fun visitPerson(ident: String, søknader: List<Søknad>) {
         this.ident = ident
+    }
+
+    override fun preVisitAktivitetslogg(aktivitetslogg: Aktivitetslogg) {
+        this.aktivitetslogg = aktivitetslogg
     }
 
     override fun visitSøknad(
