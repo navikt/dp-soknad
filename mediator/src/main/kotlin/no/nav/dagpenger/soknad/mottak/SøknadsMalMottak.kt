@@ -1,7 +1,7 @@
 package no.nav.dagpenger.soknad.mottak
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import mu.KotlinLogging
+import no.nav.dagpenger.soknad.db.SøknadMal
 import no.nav.dagpenger.soknad.db.SøknadMalRepository
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -21,16 +21,13 @@ class SøknadsMalMottak(rapidsConnection: RapidsConnection, private val søknadM
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val versjonNavn = packet["versjon_navn"].asText()
         val versjonId = packet["versjon_id"].asInt()
-        søknadMalRepository.lagre(
-            versjonNavn,
-            versjonId,
-            objectMapper.readTree(packet.toJson())
-        )
+        val søknadMal = SøknadMal(versjonNavn, versjonId, packet["seksjoner"])
+
+        søknadMalRepository.lagre(søknadMal)
         logger.info("Mottatt søknadsmal med versjon_navn $versjonNavn og versjon_id $versjonId")
     }
 
     private companion object {
-        val objectMapper = jacksonObjectMapper()
         val logger = KotlinLogging.logger {}
     }
 }

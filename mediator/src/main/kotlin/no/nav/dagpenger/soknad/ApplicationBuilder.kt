@@ -4,10 +4,12 @@ import no.nav.dagpenger.pdl.createPersonOppslag
 import no.nav.dagpenger.soknad.auth.AuthFactory
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder.runMigration
+import no.nav.dagpenger.soknad.db.SøknadMalPostgresRepository
 import no.nav.dagpenger.soknad.mottak.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.dagpenger.soknad.mottak.JournalførtMottak
 import no.nav.dagpenger.soknad.mottak.NyJournalpostMottak
 import no.nav.dagpenger.soknad.mottak.SøknadOpprettetHendelseMottak
+import no.nav.dagpenger.soknad.mottak.SøknadsMalMottak
 import no.nav.dagpenger.soknad.observers.PersonLoggerObserver
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
@@ -44,6 +46,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     )
 
     private val mediator = Mediator(rapidsConnection, persistence)
+    private val søknadMalRepository = SøknadMalPostgresRepository(PostgresDataSourceBuilder.dataSource)
 
     private val søknadMediator = SøknadMediator(
         rapidsConnection = rapidsConnection,
@@ -63,7 +66,6 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     }
 
     fun start() = rapidsConnection.start()
-    fun stop() = rapidsConnection.stop()
 
     override fun onShutdown(rapidsConnection: RapidsConnection) {
         persistence.close()
@@ -71,12 +73,10 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
 
     override fun onStartup(rapidsConnection: RapidsConnection) {
         runMigration()
+        SøknadsMalMottak(rapidsConnection, søknadMalRepository)
     }
 
     private fun store(): SøknadStore = mediator
     private fun søknadMediator(): SøknadMediator = søknadMediator
 
-    private fun subscribe(meldingObserver: MeldingObserver) {
-        mediator.register(meldingObserver)
-    }
 }
