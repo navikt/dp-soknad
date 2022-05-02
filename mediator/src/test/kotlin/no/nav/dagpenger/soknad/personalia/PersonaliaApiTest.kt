@@ -1,11 +1,11 @@
 package no.nav.dagpenger.soknad.personalia
 
 import io.ktor.client.plugins.ClientRequestException
-import io.ktor.http.ContentType
+import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.contentType
-import io.ktor.server.testing.handleRequest
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -23,12 +23,8 @@ internal class PersonaliaApiTest {
 
     @Test
     fun `Skal avvise uautentiserte kall`() {
-        TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi()
-        ) {
-            handleRequest(HttpMethod.Get, "${Configuration.basePath}/personalia") { }.apply {
-                assertEquals(HttpStatusCode.Unauthorized, response.status())
-            }
+        TestApplication.withMockAuthServerAndTestApplication() {
+            assertEquals(HttpStatusCode.Unauthorized, client.get("${Configuration.basePath}/personalia").status)
         }
     }
 
@@ -42,15 +38,18 @@ internal class PersonaliaApiTest {
         }
 
         TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi(personOppslag = mockPersonOppslag, kontonummerOppslag = mockKontonummerOppslag)
+            TestApplication.mockedSøknadApi(
+                personOppslag = mockPersonOppslag,
+                kontonummerOppslag = mockKontonummerOppslag
+            )
         ) {
             autentisert(
-                "${Configuration.basePath}/personalia",
+                endepunkt = "${Configuration.basePath}/personalia",
                 httpMethod = HttpMethod.Get,
-            ).apply {
-                assertEquals(HttpStatusCode.OK, this.response.status())
-                assertEquals(ContentType.Application.Json.contentType, this.response.contentType().contentType)
-                assertEquals(forventetPersonalia, this.response.content!!)
+            ).let { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals("application/json; charset=UTF-8", response.headers["Content-Type"])
+                assertEquals(forventetPersonalia, response.bodyAsText())
                 coVerify(exactly = 1) { mockPersonOppslag.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) }
             }
         }
@@ -58,7 +57,7 @@ internal class PersonaliaApiTest {
 
     @Test
     fun `Propagerer feil`() {
-        val mockResponse = mockk<io.ktor.client.statement.HttpResponse>(relaxed = true).also {
+        val mockResponse = mockk<HttpResponse>(relaxed = true).also {
             every { it.status } returns HttpStatusCode.BadGateway
         }
 
@@ -73,15 +72,18 @@ internal class PersonaliaApiTest {
             coEvery { it.hentKontonummer(TestApplication.defaultDummyFodselsnummer) } returns testKontonummer
         }
         TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi(personOppslag = mockPersonOppslag, kontonummerOppslag = mockKontonummerOppslag)
+            TestApplication.mockedSøknadApi(
+                personOppslag = mockPersonOppslag,
+                kontonummerOppslag = mockKontonummerOppslag
+            )
         ) {
             autentisert(
                 "${Configuration.basePath}/personalia",
                 httpMethod = HttpMethod.Get,
-            ).apply {
-                assertEquals(HttpStatusCode.BadGateway, this.response.status())
-                assertEquals(ContentType.Application.Json.contentType, this.response.contentType().contentType)
-                val problem = objectMapper.readValue(this.response.content!!, HttpProblem::class.java)
+            ).let { response ->
+                assertEquals(HttpStatusCode.BadGateway, response.status)
+                assertEquals("application/json; charset=UTF-8", response.headers["Content-Type"])
+                val problem = objectMapper.readValue(response.bodyAsText(), HttpProblem::class.java)
                 assertEquals(HttpStatusCode.BadGateway.value, problem.status)
                 assertEquals("urn:oppslag:personalia", problem.type.toASCIIString())
                 coVerify(exactly = 1) { mockPersonOppslag.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) }

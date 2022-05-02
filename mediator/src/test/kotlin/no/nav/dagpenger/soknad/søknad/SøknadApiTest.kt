@@ -1,10 +1,10 @@
 package no.nav.dagpenger.soknad.søknad
 
-import io.ktor.http.ContentType
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.handleRequest
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
@@ -48,8 +48,8 @@ internal class SøknadApiTest {
                 "${Configuration.basePath}/soknad",
                 httpMethod = HttpMethod.Post,
             ).apply {
-                assertEquals(HttpStatusCode.Created, this.response.status())
-                assertNotNull(this.response.headers[HttpHeaders.Location])
+                assertEquals(HttpStatusCode.Created, this.status)
+                assertNotNull(this.headers[HttpHeaders.Location])
             }
         }
 
@@ -75,7 +75,7 @@ internal class SøknadApiTest {
                 "${Configuration.basePath}/soknad/$testSøknadUuid/ferdigstill",
                 httpMethod = HttpMethod.Put,
             ).apply {
-                assertEquals(HttpStatusCode.NoContent, this.response.status())
+                assertEquals(HttpStatusCode.NoContent, this.status)
             }
         }
         verify(exactly = 1) { søknadMediatorMock.behandle(any<SøknadInnsendtHendelse>()) }
@@ -103,9 +103,9 @@ internal class SøknadApiTest {
             autentisert(
                 "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/fakta",
             ).apply {
-                assertEquals(HttpStatusCode.OK, this.response.status())
-                assertEquals("application/json", this.response.headers["Content-Type"])
-                assertEquals(fakta, this.response.content)
+                assertEquals(HttpStatusCode.OK, this.status)
+                assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])
+                assertEquals(fakta, this.bodyAsText())
             }
         }
     }
@@ -128,8 +128,8 @@ internal class SøknadApiTest {
             autentisert(
                 "${Configuration.basePath}/soknad/$id/fakta",
             ).apply {
-                assertEquals(HttpStatusCode.Forbidden, this.response.status())
-                assertEquals("application/json", this.response.headers["Content-Type"])
+                assertEquals(HttpStatusCode.Forbidden, this.status)
+                assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])
             }
         }
     }
@@ -143,7 +143,7 @@ internal class SøknadApiTest {
             autentisert(
                 "${Configuration.basePath}/soknad/12121/neste-seksjon"
             ).apply {
-                assertEquals(HttpStatusCode.MethodNotAllowed, this.response.status())
+                assertEquals(HttpStatusCode.MethodNotAllowed, this.status)
             }
         }
     }
@@ -164,8 +164,8 @@ internal class SøknadApiTest {
                 httpMethod = HttpMethod.Put,
                 body = """{"type": "boolean", "svar": true}"""
             ).apply {
-                assertEquals(HttpStatusCode.OK, this.response.status())
-                assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
+                assertEquals(HttpStatusCode.OK, this.status)
+                assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])
             }
         }
 
@@ -202,8 +202,8 @@ internal class SøknadApiTest {
                 httpMethod = HttpMethod.Put,
                 body = jsonSvar
             ).apply {
-                assertEquals(HttpStatusCode.OK, this.response.status())
-                assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
+                assertEquals(HttpStatusCode.OK, this.status)
+                assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])
             }
         }
 
@@ -217,14 +217,11 @@ internal class SøknadApiTest {
 
     @Test
     fun `Skal avvise uautentiserte kall`() {
-        TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi()
-        ) {
-            handleRequest(HttpMethod.Get, "${Configuration.basePath}/soknad/$dummyUuid/fakta") {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-            }.apply {
-                assertEquals(HttpStatusCode.Unauthorized, response.status())
-            }
+        TestApplication.withMockAuthServerAndTestApplication() {
+            assertEquals(
+                HttpStatusCode.Unauthorized,
+                client.get("${Configuration.basePath}/soknad/$dummyUuid/fakta").status
+            )
         }
     }
 
@@ -238,7 +235,7 @@ internal class SøknadApiTest {
                 endepunkt = "${Configuration.basePath}/soknad/$dummyUuid/faktum/",
                 body = """{"type":"boolean","svar":true}"""
             ).apply {
-                assertEquals(HttpStatusCode.MethodNotAllowed, response.status())
+                assertEquals(HttpStatusCode.MethodNotAllowed, this.status)
             }
         }
     }
@@ -253,7 +250,7 @@ internal class SøknadApiTest {
                 endepunkt = "${Configuration.basePath}/soknad/$dummyUuid/faktum/blabla",
                 body = """{"type":"boolean","svar":true}"""
             ).apply {
-                assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertEquals(HttpStatusCode.BadRequest, this.status)
             }
         }
     }
@@ -278,8 +275,8 @@ internal class SøknadApiTest {
                 httpMethod = HttpMethod.Get,
                 endepunkt = "${Configuration.basePath}/soknad/mal"
             ).apply {
-                assertEquals(HttpStatusCode.OK, response.status())
-                val malen = objectMapper.readTree(response.content)
+                assertEquals(HttpStatusCode.OK, this.status)
+                val malen = objectMapper.readTree(this.bodyAsText())
                 assertTrue(malen.has("seksjoner"))
                 assertEquals(0, malen["seksjoner"].size())
             }
