@@ -50,6 +50,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     private val søknadMediator = SøknadMediator(
         rapidsConnection = rapidsConnection,
         personRepository = persistence,
+        søknadMalRepository = søknadMalRepository,
         personObservers = listOf(
             PersonLoggerObserver
         )

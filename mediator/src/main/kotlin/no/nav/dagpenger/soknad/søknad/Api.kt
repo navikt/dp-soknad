@@ -71,6 +71,11 @@ internal fun Route.api(logger: KLogger, store: SøknadStore, søknadMediator: S�
             søknadMediator.behandle(søknadInnsendtHendelse)
             call.respond(HttpStatusCode.NoContent)
         }
+
+        get("/soknad/mal") {
+            val nyesteMal = søknadMediator.hentNyesteMal("Dagpenger")
+            call.respond(nyesteMal.mal)
+        }
     }
 }
 

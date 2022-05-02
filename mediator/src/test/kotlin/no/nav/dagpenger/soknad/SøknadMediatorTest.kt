@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad
 
+import io.mockk.mockk
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerArkiverbarSøknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerJournalføring
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerMidlertidligJournalføring
@@ -9,6 +10,7 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.db.PersonPostgresRepository
 import no.nav.dagpenger.soknad.db.PersonRepository
 import no.nav.dagpenger.soknad.db.Postgres
+import no.nav.dagpenger.soknad.db.SøknadMalRepository
 import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
@@ -30,11 +32,12 @@ internal class SøknadMediatorTest {
 
     private lateinit var mediator: SøknadMediator
     private val personRepository: PersonRepository = PersonPostgresRepository(Postgres.withMigratedDb())
+    private val søknadMalRepositoryMock = mockk<SøknadMalRepository>()
     private val testRapid = TestRapid()
 
     @BeforeEach
     fun setup() {
-        mediator = SøknadMediator(testRapid, personRepository)
+        mediator = SøknadMediator(testRapid, personRepository, søknadMalRepositoryMock)
         SøknadOpprettetHendelseMottak(testRapid, mediator)
         ArkiverbarSøknadMottattHendelseMottak(testRapid, mediator)
         NyJournalpostMottak(testRapid, mediator)
