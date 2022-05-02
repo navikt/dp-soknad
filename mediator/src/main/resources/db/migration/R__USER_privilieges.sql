@@ -1,4 +1,4 @@
--- ${flyway:timestamp}
+-- ${flyway:timestamp} - trigger ny oppdatering
 DO
 $$
     BEGIN
