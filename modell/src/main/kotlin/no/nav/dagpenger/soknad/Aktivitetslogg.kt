@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov
+import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -287,6 +288,8 @@ interface AktivitetsloggVisitor {
 
     fun postVisitAktivitetslogg(aktivitetslogg: Aktivitetslogg) {}
 }
+
+fun Aktivitetslogg.toMap() = AktivitetsloggMapper(this).toMap()
 
 interface Aktivitetskontekst {
     fun toSpesifikkKontekst(): SpesifikkKontekst

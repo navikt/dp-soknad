@@ -1,5 +1,8 @@
 package no.nav.dagpenger.soknad.db
 
+import kotliquery.queryOf
+import kotliquery.sessionOf
+import kotliquery.using
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Søknad
@@ -107,5 +110,16 @@ internal class PersonPostgresRepositoryTest {
         override fun visitPerson(ident: String, søknader: List<Søknad>) {
             this.søknader = søknader
         }
+    }
+
+    private fun assertAntallRader(tabell: String, antallRader: Int) {
+        val faktiskeRader = using(sessionOf(PostgresDataSourceBuilder.dataSource)) { session ->
+            session.run(
+                queryOf("select count(1) from $tabell").map { row ->
+                    row.int(1)
+                }.asSingle
+            )
+        }
+        assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: $tabell")
     }
 }

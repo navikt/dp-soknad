@@ -8,6 +8,9 @@ import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
+import no.nav.dagpenger.soknad.serder.objectMapper
+import no.nav.dagpenger.soknad.toMap
+import org.postgresql.util.PGobject
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -62,6 +65,20 @@ class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepos
                         row.long("id")
                     }.asSingle
                 )!!
+
+                tx.run(
+                    queryOf(
+                        statement = """ INSERT INTO aktivitetslogg_v1 (id, data ) VALUES (:id, :data ) ON CONFLICT(id) DO UPDATE SET data = :data """.trimIndent(),
+                        paramMap = mapOf(
+                            "id" to internId,
+                            "data" to PGobject().apply {
+                                type = "jsonb"
+                                value = objectMapper.writeValueAsString(visitor.aktivitetslogg.toMap())
+                            }
+                        )
+                    ).asUpdate
+                )
+
                 visitor.søknader.forEach {
                     tx.run(
                         //language=PostgreSQL
@@ -79,11 +96,6 @@ class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepos
                         ).asUpdate
                     )
                 }
-
-                // VI må hente ut id basert på ident, id må legges inn sammen med insert av aktivitetslogg
-//                tx.run(
-//                   queryOf("")
-//                )
             }
         }
     }
