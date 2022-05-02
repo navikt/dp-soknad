@@ -1,6 +1,6 @@
 package no.nav.dagpenger.soknad.søknad
 
-import io.ktor.features.NotFoundException
+import io.ktor.server.plugins.NotFoundException
 import no.nav.dagpenger.soknad.db.Postgres
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder.dataSource
 import no.nav.dagpenger.soknad.serder.objectMapper

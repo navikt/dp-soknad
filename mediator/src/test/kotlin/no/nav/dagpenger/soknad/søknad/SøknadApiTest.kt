@@ -102,7 +102,7 @@ internal class SøknadApiTest {
                 "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/fakta",
             ).apply {
                 assertEquals(HttpStatusCode.OK, this.response.status())
-                assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
+                assertEquals("application/json", this.response.headers["Content-Type"])
                 assertEquals(fakta, this.response.content)
             }
         }
@@ -127,13 +127,13 @@ internal class SøknadApiTest {
                 "${Configuration.basePath}/soknad/$id/fakta",
             ).apply {
                 assertEquals(HttpStatusCode.Forbidden, this.response.status())
-                assertEquals("application/json; charset=UTF-8", this.response.headers["Content-Type"])
+                assertEquals("application/json", this.response.headers["Content-Type"])
             }
         }
     }
 
     @Test
-    fun `404 på ting som ikke finnes`() {
+    fun `405 på ting som ikke finnes`() {
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi()
@@ -141,7 +141,7 @@ internal class SøknadApiTest {
             autentisert(
                 "${Configuration.basePath}/soknad/12121/neste-seksjon"
             ).apply {
-                assertEquals(HttpStatusCode.NotFound, this.response.status())
+                assertEquals(HttpStatusCode.MethodNotAllowed, this.response.status())
             }
         }
     }
@@ -236,7 +236,7 @@ internal class SøknadApiTest {
                 endepunkt = "${Configuration.basePath}/soknad/$dummyUuid/faktum/",
                 body = """{"type":"boolean","svar":true}"""
             ).apply {
-                assertEquals(HttpStatusCode.NotFound, response.status())
+                assertEquals(HttpStatusCode.MethodNotAllowed, response.status())
             }
         }
     }
