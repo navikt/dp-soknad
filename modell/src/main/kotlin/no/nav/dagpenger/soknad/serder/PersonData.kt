@@ -7,14 +7,15 @@ import no.nav.dagpenger.soknad.Søknad
 import java.util.UUID
 
 class PersonData(
+    val internId: Long,
     val ident: String,
-    val søknader: List<SøknadData>,
-    val aktivitetsLogg: AktivitetsloggData
+    var søknader: List<SøknadData> = listOf(),
+    var aktivitetsLogg: AktivitetsloggData? = null
 ) {
     fun createPerson(): Person {
         return Person.rehydrer(
             ident = this.ident,
-            aktivitetslogg = this.aktivitetsLogg.konverterTilAktivitetslogg(),
+            aktivitetslogg = this.aktivitetsLogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
         ) { p ->
             søknader.map {
                 Søknad.rehydrer(
@@ -30,7 +31,6 @@ class PersonData(
 
     class SøknadData(
         val søknadsId: UUID,
-        val personIdent: String,
         val tilstandType: String,
         val dokumentLokasjon: String?,
         val journalpostId: String?

@@ -1,8 +1,13 @@
 package no.nav.dagpenger.soknad.serder
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.AktivitetsloggVisitor
 import no.nav.dagpenger.soknad.SpesifikkKontekst
+import java.io.InputStream
 
 class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
 
@@ -12,6 +17,17 @@ class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
         BEHOV,
         ERROR,
         SEVERE
+    }
+
+    companion object {
+        private val jacksonJsonAdapter =
+            jacksonMapperBuilder()
+                .addModule(JavaTimeModule())
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .build()
+
+        fun InputStream.aktivitetslogg() = jacksonJsonAdapter.readValue(this, PersonData.AktivitetsloggData::class.java)
     }
 
     private val aktiviteter = Aktivitetslogginspektør(aktivitetslogg).aktiviteter

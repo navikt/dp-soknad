@@ -36,7 +36,7 @@ internal class PersonPostgresRepositoryTest {
     }
 
     @Test
-    fun `Hent perosn som ikke finnes`() {
+    fun `Hent person som ikke finnes`() {
         withMigratedDb {
             PersonPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
                 assertNull(it.hent("finnes ikke"))

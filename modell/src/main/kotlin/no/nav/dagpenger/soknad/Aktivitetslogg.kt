@@ -14,15 +14,13 @@ class Aktivitetslogg private constructor(
 ) : IAktivitetslogg {
     private val kontekster: MutableList<Aktivitetskontekst> = mutableListOf()
 
-    constructor(forelder: Aktivitetslogg?) : this(forelder, mutableListOf())
+    constructor(forelder: Aktivitetslogg? = null) : this(forelder, mutableListOf())
 
     companion object {
         fun rehyder(
             aktiviteter: MutableList<Aktivitet>,
         ) = Aktivitetslogg(null, aktiviteter)
-
     }
-
 
     internal fun accept(visitor: AktivitetsloggVisitor) {
         visitor.preVisitAktivitetslogg(this)
