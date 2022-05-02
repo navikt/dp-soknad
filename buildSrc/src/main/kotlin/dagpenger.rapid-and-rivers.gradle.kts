@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    implementation(RapidAndRivers)
+    implementation("com.github.navikt:rapids-and-rivers:2022.04.21-09.34.08966130226f")
 
     implementation(Konfig.konfig)
     implementation(Kotlin.Logging.kotlinLogging)

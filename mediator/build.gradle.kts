@@ -7,14 +7,18 @@ plugins {
 
 dependencies {
     implementation(project(":modell"))
-    implementation(Ktor.library("jackson"))
     implementation(Jackson.jsr310)
-    implementation(Ktor.library("auth"))
-    implementation(Ktor.library("auth-jwt"))
-    implementation(Ktor.library("client-cio"))
-    implementation(Ktor.library("client-jackson"))
-    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2022.02.05-16.32.da1deab37b31")
-    implementation("com.github.navikt.dp-biblioteker:pdl-klient:2022.02.05-16.32.da1deab37b31")
+    implementation(Ktor2.Server.library("auth"))
+    implementation(Ktor2.Server.library("auth-jwt"))
+    implementation(Ktor2.Server.library("status-pages"))
+    implementation(Ktor2.Server.library("call-logging"))
+    implementation(Ktor2.Server.library("default-headers"))
+    implementation(Ktor2.Client.library("cio"))
+    implementation(Ktor2.Client.library("content-negotiation"))
+    implementation(Ktor2.Server.library("content-negotiation"))
+    implementation("io.ktor:ktor-serialization-jackson:${Ktor2.version}")
+    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2022.05.02-14.21.f4e9d6da3fa8")
+    implementation("com.github.navikt.dp-biblioteker:pdl-klient:2022.05.02-14.21.f4e9d6da3fa8")
     implementation("com.github.navikt:pam-geography:2.15")
 
     // DB
@@ -23,8 +27,8 @@ dependencies {
     implementation("org.postgresql:postgresql:42.3.3") //  @todo update postgresql in service-template
     implementation(Database.Kotlinquery)
 
-    testImplementation(Ktor.ktorTest)
-    testImplementation(Ktor.library("client-mock"))
+    testImplementation(Ktor2.Server.library("test-host"))
+    testImplementation(Ktor2.Client.library("mock"))
     testImplementation(Mockk.mockk)
     testImplementation(Junit5.params)
     testImplementation("no.nav.security:mock-oauth2-server:0.4.1")

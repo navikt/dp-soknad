@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad
 
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.db.PersonRepository
+import no.nav.dagpenger.soknad.db.SøknadMalRepository
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
@@ -16,8 +17,9 @@ import no.nav.helse.rapids_rivers.withMDC
 internal class SøknadMediator(
     rapidsConnection: RapidsConnection,
     private val personRepository: PersonRepository,
-    private val personObservers: List<PersonObserver> = emptyList(),
-) {
+    private val søknadMalRepository: SøknadMalRepository,
+    private val personObservers: List<PersonObserver> = emptyList()
+) : SøknadMalRepository by søknadMalRepository {
     private companion object {
         val logger = KotlinLogging.logger { }
         val sikkerLogger = KotlinLogging.logger("tjenestekall")

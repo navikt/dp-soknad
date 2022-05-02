@@ -1,14 +1,14 @@
 package no.nav.dagpenger.soknad.auth
 
-import io.ktor.application.ApplicationCall
-import io.ktor.auth.Principal
-import io.ktor.auth.authentication
-import io.ktor.auth.jwt.JWTCredential
-import io.ktor.auth.jwt.JWTPayloadHolder
-import io.ktor.auth.jwt.JWTPrincipal
-import io.ktor.auth.parseAuthorizationHeader
 import io.ktor.http.auth.HttpAuthHeader
-import io.ktor.request.ApplicationRequest
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.auth.Principal
+import io.ktor.server.auth.authentication
+import io.ktor.server.auth.jwt.JWTCredential
+import io.ktor.server.auth.jwt.JWTPayloadHolder
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.parseAuthorizationHeader
+import io.ktor.server.request.ApplicationRequest
 
 internal fun validator(jwtCredential: JWTCredential): Principal {
     requirePid(jwtCredential)

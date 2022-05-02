@@ -1,13 +1,16 @@
 package no.nav.dagpenger.soknad
 
-import io.ktor.application.Application
+import io.ktor.client.request.header
+import io.ktor.client.request.request
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
-import io.ktor.server.testing.TestApplicationEngine
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
+import io.ktor.http.content.TextContent
+import io.ktor.server.application.Application
+import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.server.testing.testApplication
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.auth.AuthFactory
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
@@ -53,34 +56,29 @@ object TestApplication {
         }
     }
 
-    internal fun <R> withMockAuthServerAndTestApplication(
-        moduleFunction: Application.() -> Unit,
-        test: TestApplicationEngine.() -> R
-    ): R {
-        try {
-            System.setProperty("token-x.client-id", CLIENT_ID)
-            System.setProperty("token-x.well-known-url", "${mockOAuth2Server.wellKnownUrl(ISSUER_ID)}")
+    internal fun withMockAuthServerAndTestApplication(
+        moduleFunction: Application.() -> Unit = mockedSøknadApi(),
+        test: suspend ApplicationTestBuilder.() -> Unit
+    ) {
+        System.setProperty("token-x.client-id", CLIENT_ID)
+        System.setProperty("token-x.well-known-url", "${mockOAuth2Server.wellKnownUrl(ISSUER_ID)}")
 
-            return withTestApplication(moduleFunction, test)
-        } finally {
+        return testApplication {
+            application(moduleFunction)
+            test()
         }
     }
 
-    internal fun TestApplicationEngine.autentisert(
+    internal suspend fun ApplicationTestBuilder.autentisert(
         endepunkt: String,
         token: String = testOAuthToken,
         httpMethod: HttpMethod = HttpMethod.Get,
-        body: String? = null
-    ) = handleRequest(httpMethod, endepunkt) {
-        addHeader(
-            HttpHeaders.Accept,
-            ContentType.Application.Json.toString()
-        )
-        addHeader(
-            HttpHeaders.ContentType,
-            ContentType.Application.Json.toString()
-        )
-        addHeader(HttpHeaders.Authorization, "Bearer $token")
-        body?.also { setBody(it) }
+        body: String? = null,
+    ): HttpResponse {
+        return client.request(endepunkt) {
+            this.method = httpMethod
+            body?.let { this.setBody(TextContent(it, ContentType.Application.Json)) }
+            this.header(HttpHeaders.Authorization, "Bearer $token")
+        }
     }
 }

@@ -3,17 +3,17 @@ package no.nav.dagpenger.soknad.personalia
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.features.DefaultRequest
-import io.ktor.client.features.json.JacksonSerializer
-import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.plugins.DefaultRequest
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.header
-import io.ktor.client.request.request
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
+import io.ktor.serialization.jackson.jackson
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
@@ -28,26 +28,23 @@ internal class KontonummerOppslag(
 
         install(DefaultRequest) {
         }
-        install(JsonFeature) {
-            serializer = JacksonSerializer(
-                jackson = jacksonMapperBuilder()
-                    .addModule(JavaTimeModule())
-                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                    .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                    .build()
-            )
+        install(ContentNegotiation) {
+            jackson {
+                registerModule(JavaTimeModule())
+                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            }
         }
     }
 
     suspend fun hentKontonummer(fnr: String): Kontonummer {
         return runCatching {
-            dpProxyClient.request<Kontonummer>("$dpProxyUrl/proxy/v1/kontonummer") {
-                method = HttpMethod.Post
+            dpProxyClient.post("$dpProxyUrl/proxy/v1/kontonummer") {
                 header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
                 header(HttpHeaders.ContentType, "application/json")
                 header(HttpHeaders.Accept, "application/json")
-                body = mapOf("fnr" to fnr)
-            }
+                setBody(mapOf("fnr" to fnr))
+            }.body<Kontonummer>()
         }.getOrElse { t ->
             logger.error(t) { "Fikk ikke hentet konto nummer" }
             Kontonummer()
