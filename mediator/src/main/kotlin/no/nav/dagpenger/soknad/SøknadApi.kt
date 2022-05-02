@@ -3,8 +3,10 @@ package no.nav.dagpenger.soknad
 import com.auth0.jwk.JwkProvider
 import io.ktor.client.plugins.ResponseException
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
+import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.serialization.jackson.JacksonConverter
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.application.Application
@@ -76,14 +78,14 @@ internal fun Application.søknadApi(
                 }
                 is IllegalArgumentException -> {
                     call.respond(
-                        InternalServerError,
+                        BadRequest,
                         HttpProblem(title = "Feilet", detail = cause.message)
                     )
                 }
                 is NotFoundException -> {
                     logger.info(cause) { "Kunne ikke håndtere API kall - Ikke funnet" }
                     call.respond(
-                        InternalServerError,
+                        NotFound,
                         HttpProblem(title = "Feilet", detail = cause.message)
                     )
                 }
@@ -106,8 +108,8 @@ internal fun Application.søknadApi(
     }
     install(ContentNegotiation) {
         jackson {
+            register(ContentType.Application.Json, JacksonConverter(objectMapper))
         }
-        register(ContentType.Application.Json, JacksonConverter(objectMapper))
     }
 
     install(Authentication) {

@@ -28,7 +28,7 @@ dependencies {
     implementation(Database.Kotlinquery)
 
     testImplementation(Ktor2.Server.library("test-host"))
-    testImplementation(Ktor.library("client-mock"))
+    testImplementation(Ktor2.Client.library("mock"))
     testImplementation(Mockk.mockk)
     testImplementation(Junit5.params)
     testImplementation("no.nav.security:mock-oauth2-server:0.4.1")
