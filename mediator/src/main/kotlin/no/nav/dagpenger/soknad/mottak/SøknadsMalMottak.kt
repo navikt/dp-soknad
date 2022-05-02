@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad.mottak
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.db.SøknadMal
 import no.nav.dagpenger.soknad.db.SøknadMalRepository
+import no.nav.dagpenger.soknad.serder.objectMapper
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -21,7 +22,7 @@ class SøknadsMalMottak(rapidsConnection: RapidsConnection, private val søknadM
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val versjonNavn = packet["versjon_navn"].asText()
         val versjonId = packet["versjon_id"].asInt()
-        val søknadMal = SøknadMal(versjonNavn, versjonId, packet["seksjoner"])
+        val søknadMal = SøknadMal(versjonNavn, versjonId, objectMapper.readTree(packet.toJson()))
 
         søknadMalRepository.lagre(søknadMal)
         logger.info("Mottatt søknadsmal med versjon_navn $versjonNavn og versjon_id $versjonId")

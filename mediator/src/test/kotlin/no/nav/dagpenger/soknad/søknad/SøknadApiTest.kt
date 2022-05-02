@@ -15,8 +15,10 @@ import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
+import no.nav.dagpenger.soknad.db.SøknadMal
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
+import no.nav.dagpenger.soknad.mottak.testSøknadMalMelding
 import no.nav.dagpenger.soknad.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -258,14 +260,28 @@ internal class SøknadApiTest {
 
     @Test
     fun `Skal kunne hente søknadmal`() {
+
+        val meditatorMock = mockk<SøknadMediator>().also {
+            every { it.hentNyesteMal("Dagpenger") } returns
+                SøknadMal(
+                    prosessnavn = "Dagpenger",
+                    prosessversjon = 1,
+                    mal = objectMapper.readTree(testSøknadMalMelding())
+                )
+        }
         TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi()
+            TestApplication.mockedSøknadApi(
+                søknadMediator = meditatorMock
+            )
         ) {
             autentisert(
                 httpMethod = HttpMethod.Get,
                 endepunkt = "${Configuration.basePath}/soknad/mal"
             ).apply {
                 assertEquals(HttpStatusCode.OK, response.status())
+                val malen = objectMapper.readTree(response.content)
+                assertTrue(malen.has("seksjoner"))
+                assertEquals(0, malen["seksjoner"].size())
             }
         }
     }
