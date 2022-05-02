@@ -14,7 +14,6 @@ import no.nav.dagpenger.soknad.observers.PersonLoggerObserver
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
 import no.nav.dagpenger.soknad.søknad.Mediator
-import no.nav.dagpenger.soknad.søknad.MeldingObserver
 import no.nav.dagpenger.soknad.søknad.PostgresPersistence
 import no.nav.dagpenger.soknad.søknad.SøknadStore
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -78,5 +77,4 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
 
     private fun store(): SøknadStore = mediator
     private fun søknadMediator(): SøknadMediator = søknadMediator
-
 }
