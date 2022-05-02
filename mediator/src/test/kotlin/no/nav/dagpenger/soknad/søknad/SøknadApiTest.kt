@@ -255,4 +255,18 @@ internal class SøknadApiTest {
             }
         }
     }
+
+    @Test
+    fun `Skal kunne hente søknadmal`() {
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi()
+        ) {
+            autentisert(
+                httpMethod = HttpMethod.Get,
+                endepunkt = "${Configuration.basePath}/soknad/mal"
+            ).apply {
+                assertEquals(HttpStatusCode.OK, response.status())
+            }
+        }
+    }
 }
