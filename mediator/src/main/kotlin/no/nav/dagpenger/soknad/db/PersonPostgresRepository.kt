@@ -29,7 +29,6 @@ class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepos
 
     override fun hent(ident: String): Person? {
         val personData: PersonData? = using(sessionOf(dataSource)) { session ->
-            //language=PostgreSQL
             session.run(
                 queryOf(
                     hentAktivitetsloggOgPersonQuery,
@@ -46,12 +45,12 @@ class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepos
             )
         }
 
-        return personData?.also {
-            it.søknader = using(sessionOf(dataSource)) { session ->
+        return personData?.also { person ->
+            person.søknader = using(sessionOf(dataSource)) { session ->
                 session.run(
                     queryOf(
                         """SELECT uuid, tilstand, dokument_lokasjon, journalpost_id FROM soknad_v1 WHERE person_ident = :ident """,
-                        mapOf("ident" to ident)
+                        mapOf("ident" to person.ident)
                     ).map { r ->
                         SøknadData(
                             UUID.fromString(r.string("uuid")),
@@ -69,15 +68,15 @@ class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepos
         val visitor = PersonPersistenceVisitor(person)
         using(sessionOf(dataSource)) { session ->
             session.transaction { tx ->
-                //language=PostgreSQL
                 val internId: Long = tx.run(
                     queryOf(
+                        //language=PostgreSQL
                         "SELECT id FROM person_v1 WHERE ident=:ident",
                         mapOf("ident" to person.ident())
                     ).map { row -> row.longOrNull("id") }.asSingle
                 ) ?: tx.run(
-                    //language=PostgreSQL
                     queryOf(
+                        //language=PostgreSQL
                         "INSERT INTO person_v1(ident) VALUES(:ident) ON CONFLICT DO NOTHING RETURNING id",
                         paramMap = mapOf("ident" to visitor.ident)
                     ).map { row ->
@@ -100,8 +99,8 @@ class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepos
 
                 visitor.søknader.forEach {
                     tx.run(
-                        //language=PostgreSQL
                         queryOf(
+                            //language=PostgreSQL
                             statement = "INSERT INTO soknad_v1(uuid,person_ident,tilstand,dokument_lokasjon,journalpost_id) " +
                                 "VALUES(:uuid,:person_ident,:tilstand,:dokument,:journalpostID) ON CONFLICT(uuid) DO UPDATE " +
                                 "SET tilstand=:tilstand, dokument_lokasjon=:dokument, journalpost_id=:journalpostID",
