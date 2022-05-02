@@ -17,6 +17,15 @@ class Person private constructor(
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : Aktivitetskontekst, PersonObserver {
 
+    companion object {
+        internal fun rehydrer(
+            ident: String,
+            aktivitetslogg: Aktivitetslogg,
+            søknadsfunksjon: (person: Person) -> MutableList<Søknad>,
+        ): Person = Person(søknadsfunksjon, ident, aktivitetslogg)
+    }
+
+
     private val søknader: MutableList<Søknad>
 
     init {

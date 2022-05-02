@@ -8,9 +8,21 @@ import java.time.format.DateTimeFormatter
 // Understands issues that arose when analyzing a JSON message
 // Implements Collecting Parameter in Refactoring by Martin Fowler
 // Implements Visitor pattern to traverse the messages
-class Aktivitetslogg(private var forelder: Aktivitetslogg? = null) : IAktivitetslogg {
-    private val aktiviteter = mutableListOf<Aktivitet>()
-    private val kontekster = mutableListOf<Aktivitetskontekst>() // Doesn't need serialization
+class Aktivitetslogg private constructor(
+    private var forelder: Aktivitetslogg? = null,
+    private val aktiviteter: MutableList<Aktivitet>,
+) : IAktivitetslogg {
+    private val kontekster: MutableList<Aktivitetskontekst> = mutableListOf()
+
+    constructor(forelder: Aktivitetslogg?) : this(forelder, mutableListOf())
+
+    companion object {
+        fun rehyder(
+            aktiviteter: MutableList<Aktivitet>,
+        ) = Aktivitetslogg(null, aktiviteter)
+
+    }
+
 
     internal fun accept(visitor: AktivitetsloggVisitor) {
         visitor.preVisitAktivitetslogg(this)

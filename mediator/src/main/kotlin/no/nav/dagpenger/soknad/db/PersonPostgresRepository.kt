@@ -105,6 +105,7 @@ class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepos
             }
         }
     }
+
 }
 
 private data class SøknadDB(

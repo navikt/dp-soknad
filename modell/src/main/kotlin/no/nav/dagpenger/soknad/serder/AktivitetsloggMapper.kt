@@ -4,7 +4,7 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.AktivitetsloggVisitor
 import no.nav.dagpenger.soknad.SpesifikkKontekst
 
-internal class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
+class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
 
     enum class Alvorlighetsgrad {
         INFO,
