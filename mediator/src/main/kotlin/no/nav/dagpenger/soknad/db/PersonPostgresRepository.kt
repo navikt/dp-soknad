@@ -56,7 +56,13 @@ class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepos
         val visitor = PersonPersistenceVisitor(person)
         using(sessionOf(dataSource)) { session ->
             session.transaction { tx ->
+                //language=PostgreSQL
                 val internId: Long = tx.run(
+                    queryOf(
+                        "SELECT id FROM person_v1 WHERE ident=:ident",
+                        mapOf("ident" to person.ident())
+                    ).map { row -> row.longOrNull("id") }.asSingle
+                ) ?: tx.run(
                     //language=PostgreSQL
                     queryOf(
                         "INSERT INTO person_v1(ident) VALUES(:ident) ON CONFLICT DO NOTHING RETURNING id",

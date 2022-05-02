@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad.db
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Søknad
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import java.util.UUID
 
 internal class PersonPostgresRepositoryTest {
@@ -25,6 +27,10 @@ internal class PersonPostgresRepositoryTest {
 
                 assertNotNull(person)
                 assertEquals(expectedPerson, person)
+
+                assertDoesNotThrow {
+                    it.lagre(expectedPerson)
+                }
             }
         }
     }
@@ -39,7 +45,7 @@ internal class PersonPostgresRepositoryTest {
     }
 
     @Test
-    fun `Lagre og hente person med søknader`() {
+    fun `Lagre og hente person med søknader og aktivitetslogg`() {
         val originalPerson = Person("12345678910") {
             mutableListOf(
                 Søknad(UUID.randomUUID(), it),
@@ -60,11 +66,15 @@ internal class PersonPostgresRepositoryTest {
                 assertNotNull(personFraDatabase)
                 assertEquals(originalPerson, personFraDatabase)
 
-                val søknaderFraDatabase = TestSøknadVisitor(personFraDatabase).søknader
-                val originalSøknader = TestSøknadVisitor(originalPerson).søknader
-
+                val fraDatabaseVisitor = TestPersonVisitor(personFraDatabase)
+                val originalVisitor = TestPersonVisitor(originalPerson)
+                val søknaderFraDatabase = fraDatabaseVisitor.søknader
+                val originalSøknader = originalVisitor.søknader
                 assertDeepEquals(originalSøknader.first(), søknaderFraDatabase.first())
                 assertDeepEquals(originalSøknader.last(), søknaderFraDatabase.last())
+
+                assertAntallRader("aktivitetslogg_v1", 1)
+                assertEquals(originalVisitor.aktivitetslogg.toString(), fraDatabaseVisitor.aktivitetslogg.toString())
             }
         }
     }
@@ -91,7 +101,7 @@ internal class PersonPostgresRepositoryTest {
                 val personFraDatabase = it.hent("12345678910")
                 assertNotNull(personFraDatabase)
 
-                val søknaderFraDatabase = TestSøknadVisitor(personFraDatabase).søknader
+                val søknaderFraDatabase = TestPersonVisitor(personFraDatabase).søknader
                 assertEquals(1, søknaderFraDatabase.size)
             }
         }
@@ -101,14 +111,19 @@ internal class PersonPostgresRepositoryTest {
         assertTrue(expected.deepEquals(result), "Søknadene var ikke like")
     }
 
-    private class TestSøknadVisitor(person: Person?) : PersonVisitor {
+    private class TestPersonVisitor(person: Person?) : PersonVisitor {
         init {
             person?.accept(this)
         }
 
         lateinit var søknader: List<Søknad>
+        lateinit var aktivitetslogg: Aktivitetslogg
         override fun visitPerson(ident: String, søknader: List<Søknad>) {
             this.søknader = søknader
+        }
+
+        override fun postVisitAktivitetslogg(aktivitetslogg: Aktivitetslogg) {
+            this.aktivitetslogg = aktivitetslogg
         }
     }
 
