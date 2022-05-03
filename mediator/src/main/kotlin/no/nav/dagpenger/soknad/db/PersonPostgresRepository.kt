@@ -7,6 +7,7 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.soknad.serder.PersonData
@@ -14,6 +15,7 @@ import no.nav.dagpenger.soknad.serder.PersonData.SøknadData
 import no.nav.dagpenger.soknad.serder.objectMapper
 import no.nav.dagpenger.soknad.toMap
 import org.postgresql.util.PGobject
+import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -118,6 +120,21 @@ class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepos
             }
         }
     }
+
+    override fun hentPåbegynte(personIdent: String): List<PåbegyntSøknad> {
+        return using(sessionOf(dataSource)) { session ->
+            session.run(
+                (
+                    queryOf(
+                        "SELECT uuid, opprettet FROM soknad_v1 WHERE person_ident=:ident AND tilstand=:paabegyntTilstand",
+                        mapOf("ident" to personIdent, "paabegyntTilstand" to Påbegynt.name)
+                    ).map { r ->
+                        PåbegyntSøknad(UUID.fromString(r.string("uuid")), r.localDate("opprettet"))
+                    }
+                    ).asList
+            )
+        }
+    }
 }
 
 private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
@@ -158,3 +175,5 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
         )
     }
 }
+
+data class PåbegyntSøknad(val uuid: UUID, val startDato: LocalDate)

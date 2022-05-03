@@ -57,6 +57,27 @@ internal class SøknadApiTest {
     }
 
     @Test
+    fun `Skal hente påbegynte søknader`() {
+
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi()
+        ) {
+            autentisert(
+                "${Configuration.basePath}/soknad/paabegynte",
+                httpMethod = HttpMethod.Get,
+            ).apply {
+                val expectedJson = """
+                    {
+                    "soknader": [ { "soknadId": "12345", "startDato": "14.03.2022"}]
+                    }
+                """.trimIndent()
+                assertEquals(HttpStatusCode.OK, this.status)
+                assertEquals(expectedJson, this.bodyAsText().trimIndent())
+            }
+        }
+    }
+
+    @Test
     fun `Ferdigstill søknad`() {
         val testSøknadUuid = UUID.randomUUID()
         val slot = slot<SøknadInnsendtHendelse>()

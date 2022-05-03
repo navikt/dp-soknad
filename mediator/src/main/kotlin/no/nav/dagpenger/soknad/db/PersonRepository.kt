@@ -5,4 +5,5 @@ import no.nav.dagpenger.soknad.Person
 interface PersonRepository {
     fun hent(ident: String): Person?
     fun lagre(person: Person)
+    fun hentPåbegynte(personIdent: String): List<PåbegyntSøknad>
 }

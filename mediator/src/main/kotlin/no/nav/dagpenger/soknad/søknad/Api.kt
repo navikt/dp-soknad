@@ -38,6 +38,10 @@ internal fun Route.api(logger: KLogger, store: SøknadStore, søknadMediator: S�
                 svar.toString()
             }
         }
+        get("/paabegynte") {
+
+            call.respond(HttpStatusCode.OK)
+        }
         get("/{søknad_uuid}/fakta") {
             val id = søknadUuid()
             val ident = call.ident()

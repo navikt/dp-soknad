@@ -80,6 +80,35 @@ internal class PersonPostgresRepositoryTest {
     }
 
     @Test
+    fun `Henter påbegynte søknader`() {
+        val person = Person("12345678910") {
+            mutableListOf(
+                Søknad.rehydrer(
+                    søknadId = UUID.randomUUID(),
+                    person = it,
+                    tilstandsType = "Påbegynt",
+                    dokumentLokasjon = "urn:hubba:la",
+                    journalpostId = "jouhasjk"
+                ),
+                Søknad.rehydrer(
+                    søknadId = UUID.randomUUID(),
+                    person = it,
+                    tilstandsType = "Journalført",
+                    dokumentLokasjon = "urn:hubba:bubba",
+                    journalpostId = "journalpostid"
+                )
+            )
+        }
+
+        withMigratedDb {
+            PersonPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
+                it.lagre(person)
+                assertEquals(1, it.hentPåbegynte(person.ident()).size)
+            }
+        }
+    }
+
+    @Test
     fun `Kan oppdatere søknader`() {
         val søknadId = UUID.randomUUID()
         val originalPerson = Person("12345678910") {
