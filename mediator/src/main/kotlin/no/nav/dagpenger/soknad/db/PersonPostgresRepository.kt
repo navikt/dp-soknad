@@ -49,6 +49,7 @@ class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepos
             person.søknader = using(sessionOf(dataSource)) { session ->
                 session.run(
                     queryOf(
+                        //language=PostgreSQL
                         """SELECT uuid, tilstand, dokument_lokasjon, journalpost_id FROM soknad_v1 WHERE person_ident = :ident """,
                         mapOf("ident" to person.ident)
                     ).map { r ->

@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.pdl.createPersonOppslag
 import no.nav.dagpenger.soknad.auth.AuthFactory
+import no.nav.dagpenger.soknad.db.PersonPostgresRepository
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder.runMigration
 import no.nav.dagpenger.soknad.db.SøknadMalPostgresRepository
@@ -49,7 +50,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
 
     private val søknadMediator = SøknadMediator(
         rapidsConnection = rapidsConnection,
-        personRepository = persistence,
+        personRepository = PersonPostgresRepository(PostgresDataSourceBuilder.dataSource),
         søknadMalRepository = søknadMalRepository,
         personObservers = listOf(
             PersonLoggerObserver
