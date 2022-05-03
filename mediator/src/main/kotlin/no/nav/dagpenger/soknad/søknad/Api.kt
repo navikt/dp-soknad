@@ -22,11 +22,17 @@ import mu.KLogger
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.auth.ident
+import no.nav.dagpenger.soknad.db.PersonRepository
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import java.util.UUID
 
-internal fun Route.api(logger: KLogger, store: SøknadStore, søknadMediator: SøknadMediator) {
+internal fun Route.api(
+    logger: KLogger,
+    store: SøknadStore,
+    søknadMediator: SøknadMediator,
+    personRepository: PersonRepository
+) {
     route("${Configuration.basePath}/soknad") {
         post {
             val ident = call.ident()
@@ -39,8 +45,7 @@ internal fun Route.api(logger: KLogger, store: SøknadStore, søknadMediator: S�
             }
         }
         get("/paabegynte") {
-
-            call.respond(HttpStatusCode.OK)
+            call.respond(HttpStatusCode.OK, personRepository.hentPåbegynte(call.ident()))
         }
         get("/{søknad_uuid}/fakta") {
             val id = søknadUuid()
@@ -91,7 +96,8 @@ private suspend fun hentFakta(
 ) = retryIO(times = 10) { store.hentFakta(id) ?: throw NotFoundException("Fant ikke søknad med id $id") }
 
 private fun PipelineContext<Unit, ApplicationCall>.søknadUuid() =
-    call.parameters["søknad_uuid"].let { UUID.fromString(it) } ?: throw IllegalArgumentException("Må ha med id i parameter")
+    call.parameters["søknad_uuid"].let { UUID.fromString(it) }
+        ?: throw IllegalArgumentException("Må ha med id i parameter")
 
 private fun PipelineContext<Unit, ApplicationCall>.faktumId(): String {
     val faktumId = call.parameters["faktumid"] ?: throw IllegalArgumentException("Må ha med id i parameter")

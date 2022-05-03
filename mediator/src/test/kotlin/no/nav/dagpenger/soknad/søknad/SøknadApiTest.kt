@@ -15,6 +15,8 @@ import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
+import no.nav.dagpenger.soknad.db.PersonRepository
+import no.nav.dagpenger.soknad.db.PåbegyntSøknad
 import no.nav.dagpenger.soknad.db.SøknadMal
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
@@ -26,6 +28,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import java.time.LocalDate
 import java.util.UUID
 
 internal class SøknadApiTest {
@@ -59,18 +62,36 @@ internal class SøknadApiTest {
     @Test
     fun `Skal hente påbegynte søknader`() {
 
+        val expectedSoknader = listOf(
+            PåbegyntSøknad(
+                UUID.fromString("258b2f1b-bdda-4bed-974c-c4ddb206e4f4"),
+                LocalDate.of(2021, 10, 3)
+            )
+        )
         TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi()
+            TestApplication.mockedSøknadApi(
+                personRepository = mockk<PersonRepository>().also {
+                    every { it.hentPåbegynte("ingensoknad") } returns emptyList()
+                    every { it.hentPåbegynte("harsoknad") } returns expectedSoknader
+                }
+            )
         ) {
             autentisert(
-                "${Configuration.basePath}/soknad/paabegynte",
+                endepunkt = "${Configuration.basePath}/soknad/paabegynte",
+                token = TestApplication.getToken("ingensoknad"),
                 httpMethod = HttpMethod.Get,
             ).apply {
-                val expectedJson = """
-                    {
-                    "soknader": [ { "soknadId": "12345", "startDato": "14.03.2022"}]
-                    }
-                """.trimIndent()
+                val expectedJson = """[]"""
+                assertEquals(HttpStatusCode.OK, this.status)
+                assertEquals(expectedJson, this.bodyAsText().trimIndent())
+            }
+
+            autentisert(
+                endepunkt = "${Configuration.basePath}/soknad/paabegynte",
+                token = TestApplication.getToken("harsoknad"),
+                httpMethod = HttpMethod.Get,
+            ).apply {
+                val expectedJson = """[{"uuid":"258b2f1b-bdda-4bed-974c-c4ddb206e4f4","startDato":"2021-10-03"}]"""
                 assertEquals(HttpStatusCode.OK, this.status)
                 assertEquals(expectedJson, this.bodyAsText().trimIndent())
             }

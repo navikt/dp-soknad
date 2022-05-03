@@ -26,6 +26,7 @@ import io.ktor.server.routing.routing
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration.appName
 import no.nav.dagpenger.soknad.auth.validator
+import no.nav.dagpenger.soknad.db.PersonRepository
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
 import no.nav.dagpenger.soknad.personalia.personalia
@@ -45,7 +46,8 @@ internal fun Application.søknadApi(
     store: SøknadStore,
     personOppslag: PersonOppslag,
     kontonummerOppslag: KontonummerOppslag,
-    søknadMediator: SøknadMediator
+    søknadMediator: SøknadMediator,
+    personRepository: PersonRepository
 ) {
 
     install(CallLogging) {
@@ -126,7 +128,7 @@ internal fun Application.søknadApi(
 
     routing {
         authenticate {
-            api(logger, store, søknadMediator)
+            api(logger, store, søknadMediator, personRepository)
             personalia(personOppslag, kontonummerOppslag)
         }
     }

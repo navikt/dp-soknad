@@ -104,6 +104,8 @@ internal class PersonPostgresRepositoryTest {
             PersonPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
                 it.lagre(person)
                 assertEquals(1, it.hentPåbegynte(person.ident()).size)
+
+                assertEquals(0, it.hentPåbegynte("hubbba").size)
             }
         }
     }

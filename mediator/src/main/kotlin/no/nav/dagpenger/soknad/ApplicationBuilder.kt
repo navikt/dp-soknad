@@ -21,6 +21,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 
 internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnection.StatusListener {
+    private val personRepository = PersonPostgresRepository(PostgresDataSourceBuilder.dataSource)
 
     private val rapidsConnection: RapidsConnection = RapidApplication.Builder(
         RapidApplication.RapidApplicationConfig.fromEnv(config)
@@ -37,6 +38,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
                     dpProxyUrl = Configuration.dpProxyUrl,
                     tokenProvider = { Configuration.dpProxyTokenProvider.clientCredentials(Configuration.dpProxyScope).accessToken },
                 ),
+                personRepository = personRepository,
             )
         }
     }.build()
@@ -50,7 +52,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
 
     private val søknadMediator = SøknadMediator(
         rapidsConnection = rapidsConnection,
-        personRepository = PersonPostgresRepository(PostgresDataSourceBuilder.dataSource),
+        personRepository = personRepository,
         søknadMalRepository = søknadMalRepository,
         personObservers = listOf(
             PersonLoggerObserver
