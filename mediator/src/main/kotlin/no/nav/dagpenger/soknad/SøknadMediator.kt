@@ -1,7 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import mu.KotlinLogging
-import no.nav.dagpenger.soknad.db.PersonRepository
+import no.nav.dagpenger.soknad.db.LivsyklusRepository
 import no.nav.dagpenger.soknad.db.SøknadMalRepository
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
@@ -16,7 +16,7 @@ import no.nav.helse.rapids_rivers.withMDC
 
 internal class SøknadMediator(
     rapidsConnection: RapidsConnection,
-    private val personRepository: PersonRepository,
+    private val livsyklusRepository: LivsyklusRepository,
     private val søknadMalRepository: SøknadMalRepository,
     private val personObservers: List<PersonObserver> = emptyList()
 ) : SøknadMalRepository by søknadMalRepository {
@@ -106,9 +106,9 @@ internal class SøknadMediator(
     }
 
     private fun lagre(person: Person) {
-        personRepository.lagre(person)
+        livsyklusRepository.lagre(person)
     }
 
     private fun hentEllerOpprettPerson(hendelse: Hendelse) =
-        personRepository.hent(hendelse.ident()) ?: Person(hendelse.ident())
+        livsyklusRepository.hent(hendelse.ident()) ?: Person(hendelse.ident())
 }

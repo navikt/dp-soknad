@@ -2,7 +2,7 @@ package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.pdl.createPersonOppslag
 import no.nav.dagpenger.soknad.auth.AuthFactory
-import no.nav.dagpenger.soknad.db.PersonPostgresRepository
+import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder.runMigration
 import no.nav.dagpenger.soknad.db.SøknadMalPostgresRepository
@@ -21,7 +21,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 
 internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnection.StatusListener {
-    private val personRepository = PersonPostgresRepository(PostgresDataSourceBuilder.dataSource)
+    private val livsyklusRepository = LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
 
     private val rapidsConnection: RapidsConnection = RapidApplication.Builder(
         RapidApplication.RapidApplicationConfig.fromEnv(config)
@@ -38,7 +38,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
                     dpProxyUrl = Configuration.dpProxyUrl,
                     tokenProvider = { Configuration.dpProxyTokenProvider.clientCredentials(Configuration.dpProxyScope).accessToken },
                 ),
-                personRepository = personRepository,
+                livsyklusRepository = livsyklusRepository,
             )
         }
     }.build()
@@ -52,7 +52,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
 
     private val søknadMediator = SøknadMediator(
         rapidsConnection = rapidsConnection,
-        personRepository = personRepository,
+        livsyklusRepository = livsyklusRepository,
         søknadMalRepository = søknadMalRepository,
         personObservers = listOf(
             PersonLoggerObserver

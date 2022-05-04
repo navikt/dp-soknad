@@ -15,7 +15,7 @@ import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
-import no.nav.dagpenger.soknad.db.PersonRepository
+import no.nav.dagpenger.soknad.db.LivsyklusRepository
 import no.nav.dagpenger.soknad.db.PåbegyntSøknad
 import no.nav.dagpenger.soknad.db.SøknadMal
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
@@ -70,7 +70,7 @@ internal class SøknadApiTest {
         )
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                personRepository = mockk<PersonRepository>().also {
+                livsyklusRepository = mockk<LivsyklusRepository>().also {
                     every { it.hentPåbegynte("ingensoknad") } returns emptyList()
                     every { it.hentPåbegynte("harsoknad") } returns expectedSoknader
                 }

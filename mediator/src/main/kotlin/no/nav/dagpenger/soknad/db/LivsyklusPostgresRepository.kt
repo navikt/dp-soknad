@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.db
 
+import kotliquery.action.UpdateQueryAction
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
@@ -19,15 +20,7 @@ import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
-class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepository {
-
-    val hentAktivitetsloggOgPersonQuery =
-        //language=PostgreSQL
-        """
-            SELECT p.id AS person_id, p.ident AS person_ident, a.data AS aktivitetslogg 
-            FROM person_v1 AS p, aktivitetslogg_v1 AS a 
-            WHERE p.id=a.id AND p.ident=:ident
-        """.trimIndent()
+class LivsyklusPostgresRepository(private val dataSource: DataSource) : LivsyklusRepository {
 
     override fun hent(ident: String): Person? {
         val personData: PersonData? = using(sessionOf(dataSource)) { session ->
@@ -89,7 +82,8 @@ class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepos
 
                 tx.run(
                     queryOf(
-                        statement = """ INSERT INTO aktivitetslogg_v1 (id, data ) VALUES (:id, :data ) ON CONFLICT(id) DO UPDATE SET data = :data """.trimIndent(),
+                        //language=PostgreSQL
+                        statement = "INSERT INTO aktivitetslogg_v1 (id, data ) VALUES (:id, :data ) ON CONFLICT(id) DO UPDATE SET data =:data",
                         paramMap = mapOf(
                             "id" to internId,
                             "data" to PGobject().apply {
@@ -99,23 +93,8 @@ class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepos
                         )
                     ).asUpdate
                 )
-
                 visitor.søknader.forEach {
-                    tx.run(
-                        queryOf(
-                            //language=PostgreSQL
-                            statement = "INSERT INTO soknad_v1(uuid,person_ident,tilstand,dokument_lokasjon,journalpost_id) " +
-                                "VALUES(:uuid,:person_ident,:tilstand,:dokument,:journalpostID) ON CONFLICT(uuid) DO UPDATE " +
-                                "SET tilstand=:tilstand, dokument_lokasjon=:dokument, journalpost_id=:journalpostID",
-                            paramMap = mapOf(
-                                "uuid" to it.søknadsId,
-                                "person_ident" to visitor.ident,
-                                "tilstand" to it.tilstandType,
-                                "dokument" to it.dokumentLokasjon,
-                                "journalpostID" to it.journalpostId
-                            )
-                        ).asUpdate
-                    )
+                    tx.run(it.insertQuery(visitor.ident))
                 }
             }
         }
@@ -136,6 +115,21 @@ class PersonPostgresRepository(private val dataSource: DataSource) : PersonRepos
         }
     }
 }
+
+private fun SøknadData.insertQuery(personIdent: String): UpdateQueryAction =
+    queryOf(
+        //language=PostgreSQL
+        statement = "INSERT INTO soknad_v1(uuid,person_ident,tilstand,dokument_lokasjon,journalpost_id) " +
+            "VALUES(:uuid,:person_ident,:tilstand,:dokument,:journalpostID) ON CONFLICT(uuid) DO UPDATE " +
+            "SET tilstand=:tilstand, dokument_lokasjon=:dokument, journalpost_id=:journalpostID",
+        paramMap = mapOf(
+            "uuid" to søknadsId,
+            "person_ident" to personIdent,
+            "tilstand" to tilstandType,
+            "dokument" to dokumentLokasjon,
+            "journalpostID" to journalpostId
+        )
+    ).asUpdate
 
 private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
     lateinit var ident: String
@@ -177,3 +171,11 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
 }
 
 data class PåbegyntSøknad(val uuid: UUID, val startDato: LocalDate)
+
+private val hentAktivitetsloggOgPersonQuery =
+    //language=PostgreSQL
+    """
+            SELECT p.id AS person_id, p.ident AS person_ident, a.data AS aktivitetslogg 
+            FROM person_v1 AS p, aktivitetslogg_v1 AS a 
+            WHERE p.id=a.id AND p.ident=:ident
+    """.trimIndent()

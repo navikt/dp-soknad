@@ -7,8 +7,8 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerMidlertidligJournal
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
-import no.nav.dagpenger.soknad.db.PersonPostgresRepository
-import no.nav.dagpenger.soknad.db.PersonRepository
+import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository
+import no.nav.dagpenger.soknad.db.LivsyklusRepository
 import no.nav.dagpenger.soknad.db.Postgres
 import no.nav.dagpenger.soknad.db.SøknadMalRepository
 import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
@@ -31,13 +31,13 @@ internal class SøknadMediatorTest {
     }
 
     private lateinit var mediator: SøknadMediator
-    private val personRepository: PersonRepository = PersonPostgresRepository(Postgres.withMigratedDb())
+    private val livsyklusRepository: LivsyklusRepository = LivsyklusPostgresRepository(Postgres.withMigratedDb())
     private val søknadMalRepositoryMock = mockk<SøknadMalRepository>()
     private val testRapid = TestRapid()
 
     @BeforeEach
     fun setup() {
-        mediator = SøknadMediator(testRapid, personRepository, søknadMalRepositoryMock)
+        mediator = SøknadMediator(testRapid, livsyklusRepository, søknadMalRepositoryMock)
         SøknadOpprettetHendelseMottak(testRapid, mediator)
         ArkiverbarSøknadMottattHendelseMottak(testRapid, mediator)
         NyJournalpostMottak(testRapid, mediator)
@@ -79,7 +79,7 @@ internal class SøknadMediatorTest {
 
     private fun behov(indeks: Int) = testRapid.inspektør.message(indeks)["@behov"].map { it.asText() }
 
-    fun hentOppdatertInspektør() = TestPersonInspektør(personRepository.hent(testIdent)!!)
+    fun hentOppdatertInspektør() = TestPersonInspektør(livsyklusRepository.hent(testIdent)!!)
 
     // language=JSON
     private fun nySøknadBehovsløsning(søknadUuid: String) = """

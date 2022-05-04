@@ -13,7 +13,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.auth.AuthFactory
-import no.nav.dagpenger.soknad.db.PersonRepository
+import no.nav.dagpenger.soknad.db.LivsyklusRepository
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
 import no.nav.dagpenger.soknad.søknad.SøknadStore
@@ -49,7 +49,7 @@ object TestApplication {
         personOppslag: PersonOppslag = mockk(relaxed = true),
         kontonummerOppslag: KontonummerOppslag = mockk(relaxed = true),
         søknadMediator: SøknadMediator = mockk(relaxed = true),
-        personRepository: PersonRepository = mockk(relaxed = true)
+        livsyklusRepository: LivsyklusRepository = mockk(relaxed = true)
     ): Application.() -> Unit {
 
         return fun Application.() {
@@ -61,7 +61,7 @@ object TestApplication {
                 personOppslag,
                 kontonummerOppslag,
                 søknadMediator,
-                personRepository
+                livsyklusRepository
             )
         }
     }

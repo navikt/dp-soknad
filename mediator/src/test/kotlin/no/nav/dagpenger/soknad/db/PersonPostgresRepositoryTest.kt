@@ -20,7 +20,7 @@ internal class PersonPostgresRepositoryTest {
     @Test
     fun `Lagre og hente person uten søknader`() {
         withMigratedDb {
-            PersonPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
+            LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
                 val expectedPerson = Person("12345678910")
                 it.lagre(expectedPerson)
                 val person = it.hent("12345678910")
@@ -38,7 +38,7 @@ internal class PersonPostgresRepositoryTest {
     @Test
     fun `Hent person som ikke finnes`() {
         withMigratedDb {
-            PersonPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
+            LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
                 assertNull(it.hent("finnes ikke"))
             }
         }
@@ -60,7 +60,7 @@ internal class PersonPostgresRepositoryTest {
         }
 
         withMigratedDb {
-            PersonPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
+            LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
                 it.lagre(originalPerson)
                 val personFraDatabase = it.hent("12345678910")
                 assertNotNull(personFraDatabase)
@@ -101,7 +101,7 @@ internal class PersonPostgresRepositoryTest {
         }
 
         withMigratedDb {
-            PersonPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
+            LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
                 it.lagre(person)
                 assertEquals(1, it.hentPåbegynte(person.ident()).size)
 
@@ -127,7 +127,7 @@ internal class PersonPostgresRepositoryTest {
         }
 
         withMigratedDb {
-            PersonPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
+            LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
                 it.lagre(originalPerson)
                 val personFraDatabase = it.hent("12345678910")
                 assertNotNull(personFraDatabase)

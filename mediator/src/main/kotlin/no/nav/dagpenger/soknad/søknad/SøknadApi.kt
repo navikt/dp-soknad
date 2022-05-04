@@ -22,7 +22,7 @@ import mu.KLogger
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.auth.ident
-import no.nav.dagpenger.soknad.db.PersonRepository
+import no.nav.dagpenger.soknad.db.LivsyklusRepository
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import java.util.UUID
@@ -31,7 +31,7 @@ internal fun Route.api(
     logger: KLogger,
     store: SøknadStore,
     søknadMediator: SøknadMediator,
-    personRepository: PersonRepository
+    livsyklusRepository: LivsyklusRepository
 ) {
     route("${Configuration.basePath}/soknad") {
         post {
@@ -45,7 +45,7 @@ internal fun Route.api(
             }
         }
         get("/paabegynte") {
-            call.respond(HttpStatusCode.OK, personRepository.hentPåbegynte(call.ident()))
+            call.respond(HttpStatusCode.OK, livsyklusRepository.hentPåbegynte(call.ident()))
         }
         get("/{søknad_uuid}/fakta") {
             val id = søknadUuid()
