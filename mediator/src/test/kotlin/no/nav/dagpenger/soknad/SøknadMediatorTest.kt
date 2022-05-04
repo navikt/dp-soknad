@@ -12,6 +12,8 @@ import no.nav.dagpenger.soknad.db.LivsyklusRepository
 import no.nav.dagpenger.soknad.db.Postgres
 import no.nav.dagpenger.soknad.db.SøknadMalRepository
 import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
+import no.nav.dagpenger.soknad.hendelse.NySøknadsProsess
+import no.nav.dagpenger.soknad.hendelse.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.mottak.ArkiverbarSøknadMottattHendelseMottak
@@ -20,6 +22,7 @@ import no.nav.dagpenger.soknad.mottak.NyJournalpostMottak
 import no.nav.dagpenger.soknad.mottak.SøknadOpprettetHendelseMottak
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -45,6 +48,28 @@ internal class SøknadMediatorTest {
     }
 
     @Test
+    fun `Skal håndtere ønske om ny søknad når det finnes en påbegynt søknad`() {
+        val testident2 = "12346578910"
+
+        mediator.hentEllerOpprettSøknadsprosess(testident2).also {
+            assertTrue(it is NySøknadsProsess)
+        }
+        assertEquals(1, testRapid.inspektør.size)
+        assertEquals(listOf("NySøknad"), behov(0))
+        assertEquals(UnderOpprettelse, hentOppdatertInspektør(testident2).gjeldendetilstand)
+        val expectedSøknadsId = hentOppdatertInspektør(testident2).gjeldendeSøknadId
+
+        testRapid.sendTestMessage(nySøknadBehovsløsning(søknadId(testident2), testident2))
+        assertEquals(Påbegynt, hentOppdatertInspektør(testident2).gjeldendetilstand)
+
+        mediator.hentEllerOpprettSøknadsprosess(testident2).also {
+            assertTrue(it is PåbegyntSøknadsProsess)
+            assertEquals(expectedSøknadsId, it.getSøknadsId().toString())
+        }
+        assertEquals(1, testRapid.inspektør.size)
+    }
+
+    @Test
     fun `Skal håndtere ønske om ny søknad`() {
         mediator.behandle(ØnskeOmNySøknadHendelse(testIdent, UUID.randomUUID()))
         assertEquals(1, testRapid.inspektør.size)
@@ -63,7 +88,13 @@ internal class SøknadMediatorTest {
 
         assertEquals(listOf("NyJournalpost"), behov(2))
 
-        testRapid.sendTestMessage(nyJournalpostLøsning(ident = testIdent, søknadUuid = søknadId(), journalpostId = testJournalpostId))
+        testRapid.sendTestMessage(
+            nyJournalpostLøsning(
+                ident = testIdent,
+                søknadUuid = søknadId(),
+                journalpostId = testJournalpostId
+            )
+        )
         assertEquals(AvventerJournalføring, hentOppdatertInspektør().gjeldendetilstand)
 
         testRapid.sendTestMessage(søknadJournalførtHendelse(ident = testIdent, journalpostId = testJournalpostId))
@@ -75,21 +106,22 @@ internal class SøknadMediatorTest {
         testRapid.sendTestMessage(søknadJournalførtHendelse(ident = testIdent, journalpostId = "UKJENT"))
     }
 
-    private fun søknadId() = hentOppdatertInspektør().gjeldendeSøknadId
+    private fun søknadId(ident: String = testIdent) = hentOppdatertInspektør(ident).gjeldendeSøknadId
 
     private fun behov(indeks: Int) = testRapid.inspektør.message(indeks)["@behov"].map { it.asText() }
 
-    fun hentOppdatertInspektør() = TestPersonInspektør(livsyklusRepository.hent(testIdent)!!)
+    fun hentOppdatertInspektør(ident: String = testIdent) =
+        TestPersonInspektør(livsyklusRepository.hent(ident)!!)
 
     // language=JSON
-    private fun nySøknadBehovsløsning(søknadUuid: String) = """
+    private fun nySøknadBehovsløsning(søknadUuid: String, ident: String = testIdent) = """
     {
       "@event_name": "behov",
       "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
       "@behov": [
         "NySøknad"
       ],
-      "ident": "12345678912",
+      "ident": "$ident",
       "søknad_uuid": "$søknadUuid",
       "NySøknad": {},
       "@id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",

@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad
 import no.nav.dagpenger.soknad.Søknad.Companion.finnSøknad
 import no.nav.dagpenger.soknad.Søknad.Companion.harAlleredeOpprettetSøknad
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
@@ -43,13 +44,16 @@ class Person private constructor(
         if (søknader.harAlleredeOpprettetSøknad()) {
             ønskeOmNySøknadHendelse.severe("Kan ikke ha flere enn én opprettet søknad.")
         }
-
         kontekst(ønskeOmNySøknadHendelse, "Ønske om søknad registrert")
         søknader.add(
             Søknad(ønskeOmNySøknadHendelse.søknadID(), this).also {
                 it.håndter(ønskeOmNySøknadHendelse)
             }
         )
+    }
+
+    fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse) {
+        kontekst(harPåbegyntSøknadHendelse, "Fortsetter på påbegynt søknad")
     }
 
     fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse) {

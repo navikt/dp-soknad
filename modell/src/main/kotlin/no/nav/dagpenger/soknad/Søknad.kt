@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
+import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
@@ -29,6 +30,8 @@ class Søknad private constructor(
 
     companion object {
         internal fun List<Søknad>.harAlleredeOpprettetSøknad() = this.any { it.tilstand == UnderOpprettelse }
+        internal fun List<Søknad>.harPåbegyntSøknad(): Boolean = this.filter { it.tilstand == Påbegynt }.size == 1
+        internal fun List<Søknad>.hentPåbegyntSøknad(): Søknad = this.single { it.tilstand == Påbegynt }
         internal fun List<Søknad>.finnSøknad(søknadId: UUID): Søknad? = this.find { it.søknadId == søknadId }
         internal fun List<Søknad>.finnSøknad(journalpostId: String): Søknad? =
             this.find { it.journalpostId == journalpostId }
@@ -55,6 +58,11 @@ class Søknad private constructor(
     fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         kontekst(ønskeOmNySøknadHendelse)
         tilstand.håndter(ønskeOmNySøknadHendelse, this)
+    }
+
+    fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse) {
+        kontekst(harPåbegyntSøknadHendelse)
+        tilstand.håndter(harPåbegyntSøknadHendelse, this)
     }
 
     fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse) {
@@ -94,6 +102,9 @@ class Søknad private constructor(
 
         fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) =
             ønskeOmNySøknadHendelse.`kan ikke håndteres i denne tilstanden`()
+
+        fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse, søknad: Søknad) =
+            harPåbegyntSøknadHendelse.`kan ikke håndteres i denne tilstanden`()
 
         fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse, søknad: Søknad) =
             søknadOpprettetHendelse.`kan ikke håndteres i denne tilstanden`()
@@ -152,6 +163,8 @@ class Søknad private constructor(
 
         override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
             søknad.endreTilstand(AvventerArkiverbarSøknad, søknadInnsendtHendelse)
+        }
+        override fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse, søknad: Søknad) {
         }
     }
 

@@ -4,12 +4,16 @@ import mu.KotlinLogging
 import no.nav.dagpenger.soknad.db.LivsyklusRepository
 import no.nav.dagpenger.soknad.db.SøknadMalRepository
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
+import no.nav.dagpenger.soknad.hendelse.NySøknadsProsess
+import no.nav.dagpenger.soknad.hendelse.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
+import no.nav.dagpenger.soknad.hendelse.Søknadsprosess
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.withMDC
@@ -32,7 +36,11 @@ internal class SøknadMediator(
             person.håndter(ønskeOmNySøknadHendelse)
         }
     }
-
+    fun behandle(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse) {
+        behandle(harPåbegyntSøknadHendelse) { person ->
+            person.håndter(harPåbegyntSøknadHendelse)
+        }
+    }
     fun behandle(søknadOpprettetHendelse: SøknadOpprettetHendelse) {
         behandle(søknadOpprettetHendelse) { person ->
             person.håndter(søknadOpprettetHendelse)
@@ -60,6 +68,16 @@ internal class SøknadMediator(
     fun behandle(journalførtHendelse: JournalførtHendelse) {
         behandle(journalførtHendelse) { person ->
             person.håndter(journalførtHendelse)
+        }
+    }
+
+    internal fun hentEllerOpprettSøknadsprosess(ident: String): Søknadsprosess {
+        return hentPåbegynte(ident).singleOrNull()?.let {
+            PåbegyntSøknadsProsess(it.uuid).also {
+                behandle(HarPåbegyntSøknadHendelse(ident, it.getSøknadsId()))
+            }
+        } ?: NySøknadsProsess.also {
+            behandle(ØnskeOmNySøknadHendelse(ident, it.getSøknadsId()))
         }
     }
 

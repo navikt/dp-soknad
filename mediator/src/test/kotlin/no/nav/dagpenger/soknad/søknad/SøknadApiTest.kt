@@ -17,8 +17,9 @@ import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.soknad.db.PåbegyntSøknad
 import no.nav.dagpenger.soknad.db.SøknadMal
+import no.nav.dagpenger.soknad.hendelse.NySøknadsProsess
+import no.nav.dagpenger.soknad.hendelse.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
-import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.mottak.testSøknadMalMelding
 import no.nav.dagpenger.soknad.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -34,11 +35,10 @@ internal class SøknadApiTest {
     private val dummyUuid = UUID.randomUUID()
 
     @Test
-    fun `Skal starte søknad`() {
+    fun `Skal starte utfylling av søknad`() {
         val søknadMediatorMock = mockk<SøknadMediator>().also {
-            justRun {
-                it.behandle(any<ØnskeOmNySøknadHendelse>())
-            }
+            every { it.hentEllerOpprettSøknadsprosess(defaultDummyFodselsnummer) } returns NySøknadsProsess
+            every { it.hentEllerOpprettSøknadsprosess("12345678910") } returns PåbegyntSøknadsProsess(UUID.randomUUID())
         }
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -53,9 +53,16 @@ internal class SøknadApiTest {
                 assertEquals(HttpStatusCode.Created, this.status)
                 assertNotNull(this.headers[HttpHeaders.Location])
             }
-        }
 
-        verify(exactly = 1) { søknadMediatorMock.behandle(any<ØnskeOmNySøknadHendelse>()) }
+            autentisert(
+                endepunkt = "${Configuration.basePath}/soknad",
+                token = TestApplication.getToken("12345678910"),
+                httpMethod = HttpMethod.Post
+            ).apply {
+                assertEquals(HttpStatusCode.OK, this.status)
+                assertNotNull(this.headers[HttpHeaders.Location])
+            }
+        }
     }
 
     @Test

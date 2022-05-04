@@ -22,8 +22,9 @@ import mu.KLogger
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.auth.ident
+import no.nav.dagpenger.soknad.hendelse.NySøknadsProsess
+import no.nav.dagpenger.soknad.hendelse.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
-import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import java.util.UUID
 
 internal fun Route.api(
@@ -34,14 +35,21 @@ internal fun Route.api(
     route("${Configuration.basePath}/soknad") {
         post {
             val ident = call.ident()
-            val ønskeOmNySøknadHendelse = ØnskeOmNySøknadHendelse(ident, søknadID = UUID.randomUUID())
-            søknadMediator.behandle(ønskeOmNySøknadHendelse)
-            val svar = ønskeOmNySøknadHendelse.søknadID()
+
+            val søknadsprosess = søknadMediator.hentEllerOpprettSøknadsprosess(ident)
+            val svar = søknadsprosess.getSøknadsId()
+
+            val statuskode = when (søknadsprosess) {
+                is NySøknadsProsess -> HttpStatusCode.Created
+                is PåbegyntSøknadsProsess -> HttpStatusCode.OK
+            }
+
             call.response.header(HttpHeaders.Location, "${call.request.uri}/$svar/fakta")
-            call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.Created) {
+            call.respondText(contentType = ContentType.Application.Json, statuskode) {
                 svar.toString()
             }
         }
+
         get("/paabegynte") {
             call.respond(HttpStatusCode.OK, søknadMediator.hentPåbegynte(call.ident()))
         }
