@@ -21,7 +21,6 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 
 internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnection.StatusListener {
-    private val livsyklusRepository = LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
 
     private val rapidsConnection: RapidsConnection = RapidApplication.Builder(
         RapidApplication.RapidApplicationConfig.fromEnv(config)
@@ -37,8 +36,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
                 kontonummerOppslag = KontonummerOppslag(
                     dpProxyUrl = Configuration.dpProxyUrl,
                     tokenProvider = { Configuration.dpProxyTokenProvider.clientCredentials(Configuration.dpProxyScope).accessToken },
-                ),
-                livsyklusRepository = livsyklusRepository,
+                )
             )
         }
     }.build()
@@ -52,7 +50,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
 
     private val søknadMediator = SøknadMediator(
         rapidsConnection = rapidsConnection,
-        livsyklusRepository = livsyklusRepository,
+        livsyklusRepository = LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource),
         søknadMalRepository = søknadMalRepository,
         personObservers = listOf(
             PersonLoggerObserver

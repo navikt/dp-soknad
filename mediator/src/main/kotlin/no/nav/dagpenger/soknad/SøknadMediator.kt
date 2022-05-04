@@ -19,7 +19,7 @@ internal class SøknadMediator(
     private val livsyklusRepository: LivsyklusRepository,
     private val søknadMalRepository: SøknadMalRepository,
     private val personObservers: List<PersonObserver> = emptyList()
-) : SøknadMalRepository by søknadMalRepository {
+) : SøknadMalRepository by søknadMalRepository, LivsyklusRepository by livsyklusRepository {
     private companion object {
         val logger = KotlinLogging.logger { }
         val sikkerLogger = KotlinLogging.logger("tjenestekall")
@@ -103,10 +103,6 @@ internal class SøknadMediator(
         if (hendelse.hasErrors()) return sikkerLogger.info("aktivitetslogg inneholder errors: ${hendelse.toLogString()}")
         sikkerLogger.info("aktivitetslogg inneholder meldinger: ${hendelse.toLogString()}")
         behovMediator.håndter(hendelse)
-    }
-
-    private fun lagre(person: Person) {
-        livsyklusRepository.lagre(person)
     }
 
     private fun hentEllerOpprettPerson(hendelse: Hendelse) =
