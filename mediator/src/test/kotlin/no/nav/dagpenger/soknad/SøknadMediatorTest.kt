@@ -67,6 +67,10 @@ internal class SøknadMediatorTest {
             assertEquals(expectedSøknadsId.toString(), it.getSøknadsId().toString())
         }
         assertEquals(1, testRapid.inspektør.size)
+
+        mediator.behandle(SøknadInnsendtHendelse(UUID.fromString(søknadId(testident2)), testident2))
+        assertEquals(AvventerArkiverbarSøknad, hentOppdatertInspektør(testident2).gjeldendetilstand)
+        assertEquals(listOf("ArkiverbarSøknad"), behov(1))
     }
 
     @Test
