@@ -17,13 +17,10 @@ import no.nav.dagpenger.soknad.serder.objectMapper
 import no.nav.dagpenger.soknad.toMap
 import org.postgresql.util.PGobject
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
-class LivsyklusPostgresRepository(private val dataSource: DataSource) :
-    LivsyklusRepository,
-    VakmesterLivsyklusRepository {
+class LivsyklusPostgresRepository(private val dataSource: DataSource) : LivsyklusRepository {
 
     override fun hent(ident: String): Person? {
         val personData: PersonData? = using(sessionOf(dataSource)) { session ->
@@ -114,18 +111,6 @@ class LivsyklusPostgresRepository(private val dataSource: DataSource) :
                         PåbegyntSøknad(UUID.fromString(r.string("uuid")), r.localDate("opprettet"))
                     }
                     ).asList
-            )
-        }
-    }
-
-    override fun slettPåbegynteSøknaderEldreEnn(tidspunkt: LocalDateTime): Int {
-        return using(sessionOf(dataSource)) { session ->
-            session.run(
-                //language=PostgreSQL
-                queryOf(
-                    "DELETE FROM soknad_v1 WHERE opprettet<:tidspunkt AND tilstand=:tilstand",
-                    mapOf("tidspunkt" to tidspunkt, "tilstand" to Påbegynt.name)
-                ).asUpdate
             )
         }
     }
