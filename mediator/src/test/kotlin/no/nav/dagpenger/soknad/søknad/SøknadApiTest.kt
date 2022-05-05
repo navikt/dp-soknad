@@ -12,13 +12,13 @@ import io.mockk.slot
 import io.mockk.verify
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.Søknadsprosess.NySøknadsProsess
+import no.nav.dagpenger.soknad.Søknadsprosess.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.soknad.db.PåbegyntSøknad
 import no.nav.dagpenger.soknad.db.SøknadMal
-import no.nav.dagpenger.soknad.hendelse.NySøknadsProsess
-import no.nav.dagpenger.soknad.hendelse.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.mottak.testSøknadMalMelding
 import no.nav.dagpenger.soknad.serder.objectMapper
@@ -37,8 +37,10 @@ internal class SøknadApiTest {
     @Test
     fun `Skal starte utfylling av søknad`() {
         val søknadMediatorMock = mockk<SøknadMediator>().also {
-            every { it.hentEllerOpprettSøknadsprosess(defaultDummyFodselsnummer) } returns NySøknadsProsess
-            every { it.hentEllerOpprettSøknadsprosess("12345678910") } returns PåbegyntSøknadsProsess(UUID.randomUUID())
+            every { it.hentEllerOpprettSøknadsprosess(defaultDummyFodselsnummer) } returns NySøknadsProsess()
+            every { it.hentEllerOpprettSøknadsprosess("12345678910") } returns PåbegyntSøknadsProsess(
+                UUID.randomUUID()
+            )
         }
 
         TestApplication.withMockAuthServerAndTestApplication(

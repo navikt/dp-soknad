@@ -7,13 +7,13 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerMidlertidligJournal
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
+import no.nav.dagpenger.soknad.Søknadsprosess.NySøknadsProsess
+import no.nav.dagpenger.soknad.Søknadsprosess.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository
 import no.nav.dagpenger.soknad.db.LivsyklusRepository
 import no.nav.dagpenger.soknad.db.Postgres
 import no.nav.dagpenger.soknad.db.SøknadMalRepository
 import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
-import no.nav.dagpenger.soknad.hendelse.NySøknadsProsess
-import no.nav.dagpenger.soknad.hendelse.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.mottak.ArkiverbarSøknadMottattHendelseMottak
@@ -51,20 +51,20 @@ internal class SøknadMediatorTest {
     fun `Skal håndtere ønske om ny søknad når det finnes en påbegynt søknad`() {
         val testident2 = "12346578910"
 
-        mediator.hentEllerOpprettSøknadsprosess(testident2).also {
+        val expectedSøknadsId = mediator.hentEllerOpprettSøknadsprosess(testident2).also {
             assertTrue(it is NySøknadsProsess)
-        }
+        }.getSøknadsId()
+
         assertEquals(1, testRapid.inspektør.size)
         assertEquals(listOf("NySøknad"), behov(0))
         assertEquals(UnderOpprettelse, hentOppdatertInspektør(testident2).gjeldendetilstand)
-        val expectedSøknadsId = hentOppdatertInspektør(testident2).gjeldendeSøknadId
 
         testRapid.sendTestMessage(nySøknadBehovsløsning(søknadId(testident2), testident2))
         assertEquals(Påbegynt, hentOppdatertInspektør(testident2).gjeldendetilstand)
 
         mediator.hentEllerOpprettSøknadsprosess(testident2).also {
             assertTrue(it is PåbegyntSøknadsProsess)
-            assertEquals(expectedSøknadsId, it.getSøknadsId().toString())
+            assertEquals(expectedSøknadsId.toString(), it.getSøknadsId().toString())
         }
         assertEquals(1, testRapid.inspektør.size)
     }

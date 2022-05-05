@@ -21,9 +21,9 @@ import kotlinx.coroutines.delay
 import mu.KLogger
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.Søknadsprosess.NySøknadsProsess
+import no.nav.dagpenger.soknad.Søknadsprosess.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.auth.ident
-import no.nav.dagpenger.soknad.hendelse.NySøknadsProsess
-import no.nav.dagpenger.soknad.hendelse.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import java.util.UUID
 

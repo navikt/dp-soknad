@@ -1,22 +1,21 @@
 package no.nav.dagpenger.soknad
 
 import mu.KotlinLogging
+import no.nav.dagpenger.soknad.Søknadsprosess.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.db.LivsyklusRepository
 import no.nav.dagpenger.soknad.db.SøknadMalRepository
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
-import no.nav.dagpenger.soknad.hendelse.NySøknadsProsess
-import no.nav.dagpenger.soknad.hendelse.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
-import no.nav.dagpenger.soknad.hendelse.Søknadsprosess
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.withMDC
+import java.util.UUID
 
 internal class SøknadMediator(
     rapidsConnection: RapidsConnection,
@@ -36,11 +35,13 @@ internal class SøknadMediator(
             person.håndter(ønskeOmNySøknadHendelse)
         }
     }
+
     fun behandle(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse) {
         behandle(harPåbegyntSøknadHendelse) { person ->
             person.håndter(harPåbegyntSøknadHendelse)
         }
     }
+
     fun behandle(søknadOpprettetHendelse: SøknadOpprettetHendelse) {
         behandle(søknadOpprettetHendelse) { person ->
             person.håndter(søknadOpprettetHendelse)
@@ -76,7 +77,7 @@ internal class SøknadMediator(
             PåbegyntSøknadsProsess(it.uuid).also {
                 behandle(HarPåbegyntSøknadHendelse(ident, it.getSøknadsId()))
             }
-        } ?: NySøknadsProsess.also {
+        } ?: Søknadsprosess.NySøknadsProsess().also {
             behandle(ØnskeOmNySøknadHendelse(ident, it.getSøknadsId()))
         }
     }
@@ -125,4 +126,17 @@ internal class SøknadMediator(
 
     private fun hentEllerOpprettPerson(hendelse: Hendelse) =
         livsyklusRepository.hent(hendelse.ident()) ?: Person(hendelse.ident())
+}
+
+internal sealed class Søknadsprosess {
+    abstract fun getSøknadsId(): UUID
+
+    internal class PåbegyntSøknadsProsess(private val søknadID: UUID) : Søknadsprosess() {
+        override fun getSøknadsId(): UUID = søknadID
+    }
+
+    internal class NySøknadsProsess : Søknadsprosess() {
+        private val søknadID = UUID.randomUUID()
+        override fun getSøknadsId(): UUID = søknadID
+    }
 }

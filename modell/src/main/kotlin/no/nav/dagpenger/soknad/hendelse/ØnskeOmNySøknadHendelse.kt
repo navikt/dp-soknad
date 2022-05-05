@@ -12,19 +12,3 @@ class HarPåbegyntSøknadHendelse(ident: String, søknadID: UUID, aktivitetslogg
     SøknadHendelse(
         søknadID, ident, aktivitetslogg
     )
-
-sealed class Søknadsprosess {
-    abstract fun getSøknadsId(): UUID
-}
-
-class PåbegyntSøknadsProsess(private val søknadID: UUID) : Søknadsprosess() {
-    override fun getSøknadsId(): UUID {
-        return søknadID
-    }
-}
-
-object NySøknadsProsess : Søknadsprosess() {
-    override fun getSøknadsId(): UUID {
-        return UUID.randomUUID()
-    }
-}
