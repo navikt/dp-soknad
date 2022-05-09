@@ -43,6 +43,7 @@ spec:
     inbound:
       rules:
         - application: dp-soknadsdialog
+        - application: dp-behov-soknad-pdf
   env:
     - name: DP_PROXY_SCOPE
       value: {{dp_proxy_scope}}
