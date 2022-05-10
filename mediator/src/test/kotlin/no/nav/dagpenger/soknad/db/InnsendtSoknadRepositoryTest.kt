@@ -6,21 +6,42 @@ import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class InnsendtSoknadRepositoryTest {
+    @Language("JSON")
+    private val dummySøknad = """{ "id": "value" }"""
 
     @Test
     fun `kan lagre og hente søknad`() {
         withMigratedDb {
             val søknadId = lagRandomPersonOgSøknad()
 
-            @Language("JSON")
-            val expectedJson = """{ "id": "value" }"""
             InnsendtSoknadRepository(PostgresDataSourceBuilder.dataSource).let { db ->
-                db.lagre(søknadId, expectedJson)
+                db.lagre(søknadId, dummySøknad)
                 val actualJson = db.hent(søknadId)
-                assertJsonEquals(expectedJson, actualJson)
+                assertJsonEquals(dummySøknad, actualJson)
+            }
+        }
+    }
+
+    @Test
+    fun `kaster expetion hvis søknad ikke finnes`() {
+        assertThrows<SoknadNotFoundException> {
+            withMigratedDb {
+                InnsendtSoknadRepository(PostgresDataSourceBuilder.dataSource).hent(UUID.randomUUID())
+            }
+        }
+    }
+
+    @Test
+    fun `kaster exeption når søknaduuid allerede finnes`() {
+        assertThrows<IllegalArgumentException> {
+            withMigratedDb {
+                val søknadUUID = lagRandomPersonOgSøknad()
+                InnsendtSoknadRepository(PostgresDataSourceBuilder.dataSource).lagre(søknadUUID, dummySøknad)
+                InnsendtSoknadRepository(PostgresDataSourceBuilder.dataSource).lagre(søknadUUID, dummySøknad)
             }
         }
     }
