@@ -29,8 +29,6 @@ import no.nav.dagpenger.soknad.Configuration.appName
 import no.nav.dagpenger.soknad.auth.validator
 import no.nav.dagpenger.soknad.serder.objectMapper
 import no.nav.dagpenger.soknad.søknad.IkkeTilgangExeption
-import no.nav.dagpenger.soknad.søknad.SøknadStore
-import no.nav.dagpenger.soknad.søknad.søknadApi
 import org.slf4j.event.Level
 import java.net.URI
 
@@ -40,8 +38,7 @@ internal fun Application.api(
     jwkProvider: JwkProvider,
     issuer: String,
     clientId: String,
-    store: SøknadStore,
-    søknadMediator: SøknadMediator,
+    søknadRouteBuilder: Route.() -> Unit,
     personaliaRouteBuilder: Route.() -> Unit
 ) {
 
@@ -123,7 +120,7 @@ internal fun Application.api(
 
     routing {
         authenticate {
-            søknadApi(store, søknadMediator)
+            søknadRouteBuilder()
             personaliaRouteBuilder()
         }
     }

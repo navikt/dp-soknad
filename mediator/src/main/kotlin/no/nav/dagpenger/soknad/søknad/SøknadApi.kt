@@ -26,7 +26,13 @@ import no.nav.dagpenger.soknad.Søknadsprosess.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.auth.ident
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import java.util.UUID
+
 private val logger = KotlinLogging.logger {}
+
+internal fun søknadApiRouteBuilder(
+    store: SøknadStore,
+    søknadMediator: SøknadMediator
+): Route.() -> Unit = { søknadApi(store, søknadMediator) }
 
 internal fun Route.søknadApi(
     store: SøknadStore,
