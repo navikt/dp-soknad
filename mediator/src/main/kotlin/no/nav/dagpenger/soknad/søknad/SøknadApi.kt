@@ -18,7 +18,7 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.delay
-import mu.KLogger
+import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.Søknadsprosess.NySøknadsProsess
@@ -26,9 +26,13 @@ import no.nav.dagpenger.soknad.Søknadsprosess.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.auth.ident
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import java.util.UUID
+private val logger = KotlinLogging.logger {}
 
-internal fun Route.api(
-    logger: KLogger,
+
+
+
+
+internal fun Route.søknadApi(
     store: SøknadStore,
     søknadMediator: SøknadMediator
 ) {

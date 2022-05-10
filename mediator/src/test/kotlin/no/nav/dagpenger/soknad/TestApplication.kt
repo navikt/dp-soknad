@@ -51,7 +51,7 @@ object TestApplication {
     ): Application.() -> Unit {
 
         return fun Application.() {
-            søknadApi(
+            api(
                 jwkProvider = AuthFactory.jwkProvider,
                 issuer = AuthFactory.issuer,
                 clientId = AuthFactory.clientId,

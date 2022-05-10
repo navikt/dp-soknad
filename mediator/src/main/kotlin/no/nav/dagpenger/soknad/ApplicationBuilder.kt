@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad
 
+import io.ktor.server.routing.Route
 import no.nav.dagpenger.pdl.createPersonOppslag
 import no.nav.dagpenger.soknad.auth.AuthFactory
 import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository
@@ -15,9 +16,11 @@ import no.nav.dagpenger.soknad.mottak.SøknadsMalMottak
 import no.nav.dagpenger.soknad.observers.PersonLoggerObserver
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
+import no.nav.dagpenger.soknad.personalia.personalia2
 import no.nav.dagpenger.soknad.søknad.Mediator
 import no.nav.dagpenger.soknad.søknad.PostgresPersistence
 import no.nav.dagpenger.soknad.søknad.SøknadStore
+import no.nav.dagpenger.soknad.søknad.søknadApi
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import java.time.LocalDateTime
@@ -25,11 +28,14 @@ import kotlin.concurrent.fixedRateTimer
 
 internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnection.StatusListener {
 
+    private val søknadRouteBuilder = fun Route.() {
+        søknadApi(store(), søknadMediator())
+    }
     private val rapidsConnection: RapidsConnection = RapidApplication.Builder(
         RapidApplication.RapidApplicationConfig.fromEnv(config)
     ).withKtorModule {
         if (System.getenv()["NAIS_CLUSTER_NAME"] == "dev-gcp") {
-            søknadApi(
+            api(
                 jwkProvider = AuthFactory.jwkProvider,
                 issuer = AuthFactory.issuer,
                 clientId = AuthFactory.clientId,
@@ -39,6 +45,14 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
                 kontonummerOppslag = KontonummerOppslag(
                     dpProxyUrl = Configuration.dpProxyUrl,
                     tokenProvider = { Configuration.dpProxyTokenProvider.clientCredentials(Configuration.dpProxyScope).accessToken },
+                ),
+                routebuilders = listOf(
+                    personalia2(
+                        PersonOppslag(createPersonOppslag(Configuration.pdlUrl)), KontonummerOppslag(
+                            dpProxyUrl = Configuration.dpProxyUrl,
+                            tokenProvider = { Configuration.dpProxyTokenProvider.clientCredentials(Configuration.dpProxyScope).accessToken },
+                        )
+                    )
                 )
             )
         }
