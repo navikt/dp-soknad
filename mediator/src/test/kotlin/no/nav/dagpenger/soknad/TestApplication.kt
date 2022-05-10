@@ -15,6 +15,7 @@ import io.mockk.mockk
 import no.nav.dagpenger.soknad.auth.AuthFactory
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
+import no.nav.dagpenger.soknad.personalia.personaliaRouteBuilder
 import no.nav.dagpenger.soknad.søknad.SøknadStore
 import no.nav.security.mock.oauth2.MockOAuth2Server
 
@@ -56,9 +57,8 @@ object TestApplication {
                 issuer = AuthFactory.issuer,
                 clientId = AuthFactory.clientId,
                 store = store,
-                personOppslag,
-                kontonummerOppslag,
-                søknadMediator
+                søknadMediator,
+                personaliaRouteBuilder(personOppslag, kontonummerOppslag)
             )
         }
     }
