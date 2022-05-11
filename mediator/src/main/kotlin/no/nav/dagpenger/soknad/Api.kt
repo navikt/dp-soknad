@@ -22,30 +22,24 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.document
 import io.ktor.server.request.uri
 import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration.appName
 import no.nav.dagpenger.soknad.auth.validator
-import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
-import no.nav.dagpenger.soknad.personalia.PersonOppslag
-import no.nav.dagpenger.soknad.personalia.personalia
 import no.nav.dagpenger.soknad.serder.objectMapper
 import no.nav.dagpenger.soknad.søknad.IkkeTilgangExeption
-import no.nav.dagpenger.soknad.søknad.SøknadStore
-import no.nav.dagpenger.soknad.søknad.api
 import org.slf4j.event.Level
 import java.net.URI
 
 private val logger = KotlinLogging.logger {}
 
-internal fun Application.søknadApi(
+internal fun Application.api(
     jwkProvider: JwkProvider,
     issuer: String,
     clientId: String,
-    store: SøknadStore,
-    personOppslag: PersonOppslag,
-    kontonummerOppslag: KontonummerOppslag,
-    søknadMediator: SøknadMediator
+    søknadRouteBuilder: Route.() -> Unit,
+    personaliaRouteBuilder: Route.() -> Unit
 ) {
 
     install(CallLogging) {
@@ -126,8 +120,8 @@ internal fun Application.søknadApi(
 
     routing {
         authenticate {
-            api(logger, store, søknadMediator)
-            personalia(personOppslag, kontonummerOppslag)
+            søknadRouteBuilder()
+            personaliaRouteBuilder()
         }
     }
 }

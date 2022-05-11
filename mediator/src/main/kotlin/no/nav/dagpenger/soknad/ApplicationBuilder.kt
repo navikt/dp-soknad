@@ -15,9 +15,11 @@ import no.nav.dagpenger.soknad.mottak.SøknadsMalMottak
 import no.nav.dagpenger.soknad.observers.PersonLoggerObserver
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
+import no.nav.dagpenger.soknad.personalia.personaliaRouteBuilder
 import no.nav.dagpenger.soknad.søknad.Mediator
 import no.nav.dagpenger.soknad.søknad.PostgresPersistence
 import no.nav.dagpenger.soknad.søknad.SøknadStore
+import no.nav.dagpenger.soknad.søknad.søknadApiRouteBuilder
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import java.time.LocalDateTime
@@ -29,17 +31,18 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         RapidApplication.RapidApplicationConfig.fromEnv(config)
     ).withKtorModule {
         if (System.getenv()["NAIS_CLUSTER_NAME"] == "dev-gcp") {
-            søknadApi(
+            api(
                 jwkProvider = AuthFactory.jwkProvider,
                 issuer = AuthFactory.issuer,
                 clientId = AuthFactory.clientId,
-                store = store(),
-                personOppslag = PersonOppslag(createPersonOppslag(Configuration.pdlUrl)),
-                søknadMediator = søknadMediator(),
-                kontonummerOppslag = KontonummerOppslag(
-                    dpProxyUrl = Configuration.dpProxyUrl,
-                    tokenProvider = { Configuration.dpProxyTokenProvider.clientCredentials(Configuration.dpProxyScope).accessToken },
-                )
+                personaliaRouteBuilder = personaliaRouteBuilder(
+                    personOppslag = PersonOppslag(createPersonOppslag(Configuration.pdlUrl)),
+                    kontonummerOppslag = KontonummerOppslag(
+                        dpProxyUrl = Configuration.dpProxyUrl,
+                        tokenProvider = { Configuration.dpProxyTokenProvider.clientCredentials(Configuration.dpProxyScope).accessToken },
+                    )
+                ),
+                søknadRouteBuilder = søknadApiRouteBuilder(store(), søknadMediator())
             )
         }
     }.build()
