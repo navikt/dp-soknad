@@ -1,25 +1,26 @@
 package no.nav.dagpenger.soknad.søknad
 
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
-import io.ktor.server.request.receiveText
-import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.put
+import io.ktor.server.routing.get
 import io.ktor.util.pipeline.PipelineContext
 import no.nav.dagpenger.soknad.db.FerdigstiltSøknadRepository
 import java.util.UUID
 
-internal fun Route.innsendtSoknadApi(
+internal fun Route.ferdigstiltSøknadsApi(
     db: FerdigstiltSøknadRepository
 ) {
 
-    put("/{søknad_uuid}/ferdigstill/fulltekst") {
-        val søknadUuid = søknadUuid()
-        call.receiveText()
-        db.lagreSøknadsTekst(søknadUuid, call.receiveText())
-        call.respond(HttpStatusCode.NoContent)
+    get("/{søknad_uuid}/ferdigstilt/tekst") {
+        call.respondText(
+            contentType = ContentType.Application.Json,
+            status = HttpStatusCode.OK,
+            text = db.hentTekst(søknadUuid())
+        )
     }
 }
 
