@@ -1,7 +1,6 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.pdl.createPersonOppslag
-import no.nav.dagpenger.soknad.auth.AuthFactory
 import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder.runMigration
@@ -32,9 +31,6 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     ).withKtorModule {
         if (System.getenv()["NAIS_CLUSTER_NAME"] == "dev-gcp") {
             api(
-                jwkProvider = AuthFactory.jwkProvider,
-                issuer = AuthFactory.issuer,
-                clientId = AuthFactory.clientId,
                 personaliaRouteBuilder = personaliaRouteBuilder(
                     personOppslag = PersonOppslag(createPersonOppslag(Configuration.pdlUrl)),
                     kontonummerOppslag = KontonummerOppslag(

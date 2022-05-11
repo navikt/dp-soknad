@@ -13,26 +13,37 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.serialization.jackson.jackson
+import io.ktor.server.auth.jwt.JWTAuthenticationProvider
 import kotlinx.coroutines.runBlocking
 import no.nav.dagpenger.soknad.Configuration
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
-object AuthFactory {
+object TokenXFactory {
     private object token_x : PropertyGroup() {
         val well_known_url by stringType
         val client_id by stringType
     }
 
-    private val openIdConfiguration: AzureAdOpenIdConfiguration =
+    private val tokenXConfiguration: AzureAdOpenIdConfiguration =
         runBlocking {
             httpClient.get(Configuration.properties[token_x.well_known_url]).body()
         }
 
-    val clientId: String = Configuration.properties[token_x.client_id]
-    val issuer = openIdConfiguration.issuer
+    fun JWTAuthenticationProvider.Config.tokenX() {
+        verifier(jwkProvider, issuer) {
+            withAudience(tokenXclientId)
+        }
+        realm = Configuration.appName
+        validate { credentials ->
+            validator(credentials)
+        }
+    }
+
+    val tokenXclientId: String = Configuration.properties[token_x.client_id]
+    val issuer = tokenXConfiguration.issuer
     val jwkProvider: JwkProvider
-        get() = JwkProviderBuilder(URL(openIdConfiguration.jwksUri))
+        get() = JwkProviderBuilder(URL(tokenXConfiguration.jwksUri))
             .cached(10, 24, TimeUnit.HOURS) // cache up to 10 JWKs for 24 hours
             .rateLimited(
                 10,

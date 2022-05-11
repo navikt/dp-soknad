@@ -12,7 +12,6 @@ import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.mockk
-import no.nav.dagpenger.soknad.auth.AuthFactory
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
 import no.nav.dagpenger.soknad.personalia.personaliaRouteBuilder
@@ -54,9 +53,6 @@ object TestApplication {
 
         return fun Application.() {
             api(
-                jwkProvider = AuthFactory.jwkProvider,
-                issuer = AuthFactory.issuer,
-                clientId = AuthFactory.clientId,
                 søknadApiRouteBuilder(store, søknadMediator),
                 personaliaRouteBuilder(
                     personOppslag, kontonummerOppslag

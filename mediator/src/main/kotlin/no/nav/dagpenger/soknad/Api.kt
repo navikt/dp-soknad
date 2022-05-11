@@ -1,6 +1,5 @@
 package no.nav.dagpenger.soknad
 
-import com.auth0.jwk.JwkProvider
 import io.ktor.client.plugins.ResponseException
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -25,8 +24,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
 import mu.KotlinLogging
-import no.nav.dagpenger.soknad.Configuration.appName
-import no.nav.dagpenger.soknad.auth.validator
+import no.nav.dagpenger.soknad.auth.TokenXFactory.tokenX
 import no.nav.dagpenger.soknad.serder.objectMapper
 import no.nav.dagpenger.soknad.søknad.IkkeTilgangExeption
 import org.slf4j.event.Level
@@ -35,9 +33,6 @@ import java.net.URI
 private val logger = KotlinLogging.logger {}
 
 internal fun Application.api(
-    jwkProvider: JwkProvider,
-    issuer: String,
-    clientId: String,
     søknadRouteBuilder: Route.() -> Unit,
     personaliaRouteBuilder: Route.() -> Unit
 ) {
@@ -107,19 +102,13 @@ internal fun Application.api(
     }
 
     install(Authentication) {
-        jwt {
-            verifier(jwkProvider, issuer) {
-                withAudience(clientId)
-            }
-            realm = appName
-            validate { credentials ->
-                validator(credentials)
-            }
+        jwt(name = "tokenX") {
+            tokenX()
         }
     }
 
     routing {
-        authenticate {
+        authenticate("tokenX") {
             søknadRouteBuilder()
             personaliaRouteBuilder()
         }
