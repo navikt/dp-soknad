@@ -11,19 +11,19 @@ import javax.sql.DataSource
 
 private val logger = KotlinLogging.logger {}
 
-internal class InnsendtSoknadRepository(private val ds: DataSource) {
-    fun lagre(søknadUuid: UUID, soknad: String) {
+internal class FerdigstiltSøknadRepository(private val ds: DataSource) {
+    fun lagreSøknadsTekst(søknadUuid: UUID, søknadsTekst: String) {
         try {
 
             using(sessionOf(ds)) { session ->
                 session.run(
                     queryOf(
-                        statement = "INSERT INTO innsendt_soknad_v1(uuid,soknad_med_tekst) VALUES(:uuid,:json)",
+                        statement = "INSERT INTO soknad_tekst_v1(uuid,tekst) VALUES(:uuid,:tekst)",
                         paramMap = mapOf(
                             "uuid" to søknadUuid.toString(),
-                            "json" to PGobject().also {
+                            "tekst" to PGobject().also {
                                 it.type = "jsonb"
-                                it.value = soknad
+                                it.value = søknadsTekst
                             }
                         )
                     ).asUpdate
@@ -40,18 +40,18 @@ internal class InnsendtSoknadRepository(private val ds: DataSource) {
         }
     }
 
-    fun hent(søknadId: UUID): String {
+    fun hentTekst(søknadId: UUID): String {
         return using(sessionOf(ds)) { session ->
             session.run(
                 queryOf(
                     //language=PostgreSQL
-                    statement = "SELECT soknad_med_tekst FROM innsendt_soknad_v1 WHERE uuid = :uuid",
+                    statement = "SELECT tekst FROM  soknad_tekst_v1 WHERE uuid = :uuid",
                     paramMap = mapOf(
                         "uuid" to søknadId.toString()
                     )
-                ).map { row -> row.string("soknad_med_tekst") }.asSingle
+                ).map { row -> row.string("tekst") }.asSingle
             ) ?: throw SoknadNotFoundException(søknadId.toString()).also {
-                logger.error { "Fant ikke søknad med id: $søknadId" }
+                logger.error { "Fant ikke søknad tekst med id: $søknadId" }
             }
         }
     }

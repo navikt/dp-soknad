@@ -9,28 +9,28 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
-internal class InnsendtSoknadRepositoryTest {
+internal class FerdigstiltSøknadRepositoryTest {
     @Language("JSON")
     private val dummySøknad = """{ "id": "value" }"""
 
     @Test
-    fun `kan lagre og hente søknad`() {
+    fun `kan lagre og hente søknads tekst`() {
         withMigratedDb {
             val søknadId = lagRandomPersonOgSøknad()
 
-            InnsendtSoknadRepository(PostgresDataSourceBuilder.dataSource).let { db ->
-                db.lagre(søknadId, dummySøknad)
-                val actualJson = db.hent(søknadId)
+            FerdigstiltSøknadRepository(PostgresDataSourceBuilder.dataSource).let { db ->
+                db.lagreSøknadsTekst(søknadId, dummySøknad)
+                val actualJson = db.hentTekst(søknadId)
                 assertJsonEquals(dummySøknad, actualJson)
             }
         }
     }
 
     @Test
-    fun `kaster expetion hvis søknad ikke finnes`() {
+    fun `kaster expetion hvis søknadstekst ikke finnes`() {
         assertThrows<SoknadNotFoundException> {
             withMigratedDb {
-                InnsendtSoknadRepository(PostgresDataSourceBuilder.dataSource).hent(UUID.randomUUID())
+                FerdigstiltSøknadRepository(PostgresDataSourceBuilder.dataSource).hentTekst(UUID.randomUUID())
             }
         }
     }
@@ -40,8 +40,8 @@ internal class InnsendtSoknadRepositoryTest {
         assertThrows<IllegalArgumentException> {
             withMigratedDb {
                 val søknadUUID = lagRandomPersonOgSøknad()
-                InnsendtSoknadRepository(PostgresDataSourceBuilder.dataSource).lagre(søknadUUID, dummySøknad)
-                InnsendtSoknadRepository(PostgresDataSourceBuilder.dataSource).lagre(søknadUUID, dummySøknad)
+                FerdigstiltSøknadRepository(PostgresDataSourceBuilder.dataSource).lagreSøknadsTekst(søknadUUID, dummySøknad)
+                FerdigstiltSøknadRepository(PostgresDataSourceBuilder.dataSource).lagreSøknadsTekst(søknadUUID, dummySøknad)
             }
         }
     }

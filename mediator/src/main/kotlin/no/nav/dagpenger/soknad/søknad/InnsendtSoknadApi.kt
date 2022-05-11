@@ -8,17 +8,17 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.put
 import io.ktor.util.pipeline.PipelineContext
-import no.nav.dagpenger.soknad.db.InnsendtSoknadRepository
+import no.nav.dagpenger.soknad.db.FerdigstiltSøknadRepository
 import java.util.UUID
 
 internal fun Route.innsendtSoknadApi(
-    db: InnsendtSoknadRepository
+    db: FerdigstiltSøknadRepository
 ) {
 
     put("/{søknad_uuid}/ferdigstill/fulltekst") {
         val søknadUuid = søknadUuid()
         call.receiveText()
-        db.lagre(søknadUuid, call.receiveText())
+        db.lagreSøknadsTekst(søknadUuid, call.receiveText())
         call.respond(HttpStatusCode.NoContent)
     }
 }
