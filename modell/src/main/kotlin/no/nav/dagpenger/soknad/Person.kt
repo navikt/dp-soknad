@@ -15,7 +15,7 @@ import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 class Person private constructor(
     søknadsfunksjon: (person: Person) -> MutableList<Søknad>,
     private val ident: String,
-    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(null),
+    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : Aktivitetskontekst, PersonObserver {
 
     companion object {

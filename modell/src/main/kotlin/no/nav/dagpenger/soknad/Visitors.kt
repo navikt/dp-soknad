@@ -9,7 +9,6 @@ interface TilstandVisitor {
 }
 
 interface SøknadVisitor : TilstandVisitor {
-    fun visitSøknad(søknadId: UUID) {}
     fun visitSøknad(søknadId: UUID, person: Person, tilstand: Tilstand, dokumentLokasjon: DokumentLokasjon?, journalpostId: String?) {}
 }
 

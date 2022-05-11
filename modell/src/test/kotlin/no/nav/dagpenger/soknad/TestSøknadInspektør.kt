@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad
 
+import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
 import java.util.UUID
 
 internal class TestSøknadInspektør(person: Person) : PersonVisitor {
@@ -12,7 +13,13 @@ internal class TestSøknadInspektør(person: Person) : PersonVisitor {
         person.accept(this)
     }
 
-    override fun visitSøknad(søknadId: UUID) {
+    override fun visitSøknad(
+        søknadId: UUID,
+        person: Person,
+        tilstand: Søknad.Tilstand,
+        dokumentLokasjon: DokumentLokasjon?,
+        journalpostId: String?
+    ) {
         this.søknadId = søknadId
     }
 
