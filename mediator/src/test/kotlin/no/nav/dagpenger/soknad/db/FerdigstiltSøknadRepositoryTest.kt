@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.db
 
+import io.ktor.server.plugins.NotFoundException
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
@@ -33,7 +34,7 @@ internal class FerdigstiltSøknadRepositoryTest {
 
     @Test
     fun `kaster expetion hvis søknadstekst ikke finnes`() {
-        assertThrows<SoknadNotFoundException> {
+        assertThrows<NotFoundException> {
             withMigratedDb {
                 FerdigstiltSøknadRepository(PostgresDataSourceBuilder.dataSource).hentTekst(UUID.randomUUID())
             }
@@ -71,7 +72,7 @@ internal class FerdigstiltSøknadRepositoryTest {
     @Test
     fun `kaster exception dersom søknadsfakta ikke eksister`() {
         withMigratedDb {
-            assertThrows<SoknadNotFoundException> {
+            assertThrows<NotFoundException> {
                 FerdigstiltSøknadRepository(PostgresDataSourceBuilder.dataSource).hentFakta(UUID.randomUUID())
             }
         }

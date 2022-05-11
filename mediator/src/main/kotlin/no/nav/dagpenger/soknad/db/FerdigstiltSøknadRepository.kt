@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.db
 
+import io.ktor.server.plugins.NotFoundException
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
@@ -50,7 +51,7 @@ internal class FerdigstiltSøknadRepository(private val ds: DataSource) {
                         "uuid" to søknadId.toString()
                     )
                 ).map { row -> row.string("tekst") }.asSingle
-            ) ?: throw SoknadNotFoundException(søknadId.toString()).also {
+            ) ?: throw NotFoundException().also {
                 logger.error { "Fant ikke søknad tekst med id: $søknadId" }
             }
         }
@@ -66,11 +67,9 @@ internal class FerdigstiltSøknadRepository(private val ds: DataSource) {
                         "uuid" to søknadId.toString()
                     )
                 ).map { row -> row.string("soknad_data") }.asSingle
-            ) ?: throw SoknadNotFoundException(søknadId.toString()).also {
+            ) ?: throw NotFoundException().also {
                 logger.error { "Fant ikke søknad data med id: $søknadId" }
             }
         }
     }
 }
-
-internal class SoknadNotFoundException(id: String) : RuntimeException("Fant ikke innsendt søknad: $id")

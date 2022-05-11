@@ -31,7 +31,6 @@ internal fun Route.ferdigstiltSøknadsApi(
                 text = db.hentTekst(søknadUuid())
             )
         }
-
         get("/fakta") {
             call.respondText(
                 contentType = ContentType.Application.Json,
