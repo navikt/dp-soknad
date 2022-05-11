@@ -8,6 +8,9 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.dagpenger.soknad.Configuration
+import no.nav.dagpenger.soknad.TestApplication
+import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.db.FerdigstiltSøknadRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -17,6 +20,38 @@ import java.util.UUID
 internal class FerdigstiltSøknadApiTest {
     private val dummySøknadsTekst = """{"key": "value"}"""
     private val dummyFakta = """{"fakta1": "value1"}"""
+
+    @Test
+    fun `Skal avvise uautentiserte kall`() {
+        TestApplication.withMockAuthServerAndTestApplication() {
+            assertEquals(
+                HttpStatusCode.Unauthorized,
+                client.get("${Configuration.basePath}/${UUID.randomUUID()}/ferdigstilt/tekst").status
+            )
+            assertEquals(
+                HttpStatusCode.Unauthorized,
+                client.get("${Configuration.basePath}/${UUID.randomUUID()}/ferdigstilt/fakta").status
+            )
+        }
+    }
+
+    @Test
+    fun `autentiserte kall`() {
+        TestApplication.withMockAuthServerAndTestApplication() {
+            assertEquals(
+                HttpStatusCode.OK,
+                autentisert(
+                    endepunkt = "${Configuration.basePath}/${UUID.randomUUID()}/ferdigstilt/tekst"
+                ).status
+            )
+            assertEquals(
+                HttpStatusCode.OK,
+                autentisert(
+                    endepunkt = "${Configuration.basePath}/${UUID.randomUUID()}/ferdigstilt/tekst"
+                ).status
+            )
+        }
+    }
 
     @Test
     fun `henter tekst`() {
@@ -32,7 +67,7 @@ internal class FerdigstiltSøknadApiTest {
                 }
             }
 
-            client.get("/$søknadId/ferdigstilt/tekst").also { response ->
+            client.get("${Configuration.basePath}/$søknadId/ferdigstilt/tekst").also { response ->
                 assertJsonEquals(dummySøknadsTekst, response.bodyAsText())
                 assertEquals(HttpStatusCode.OK, response.status)
                 assertEquals("application/json; charset=UTF-8", response.contentType().toString())
@@ -54,7 +89,7 @@ internal class FerdigstiltSøknadApiTest {
                 }
             }
 
-            client.get("/$søknadId/ferdigstilt/fakta").also { response ->
+            client.get("${Configuration.basePath}/$søknadId/ferdigstilt/fakta").also { response ->
                 assertJsonEquals(dummyFakta, response.bodyAsText())
                 assertEquals(HttpStatusCode.OK, response.status)
                 assertEquals("application/json; charset=UTF-8", response.contentType().toString())

@@ -24,9 +24,12 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
 import mu.KotlinLogging
+import no.nav.dagpenger.soknad.auth.AzureAdFactory.azure
 import no.nav.dagpenger.soknad.auth.TokenXFactory.tokenX
+import no.nav.dagpenger.soknad.personalia.personaliaRouteBuilder
 import no.nav.dagpenger.soknad.serder.objectMapper
 import no.nav.dagpenger.soknad.søknad.IkkeTilgangExeption
+import org.postgresql.gss.MakeGSS.authenticate
 import org.slf4j.event.Level
 import java.net.URI
 
@@ -34,7 +37,8 @@ private val logger = KotlinLogging.logger {}
 
 internal fun Application.api(
     søknadRouteBuilder: Route.() -> Unit,
-    personaliaRouteBuilder: Route.() -> Unit
+    personaliaRouteBuilder: Route.() -> Unit,
+    ferdigstiltRouteBuilder: Route.() -> Unit
 ) {
 
     install(CallLogging) {
@@ -102,8 +106,11 @@ internal fun Application.api(
     }
 
     install(Authentication) {
-        jwt(name = "tokenX") {
+        jwt("tokenX") {
             tokenX()
+        }
+        jwt("azureAd") {
+            azure()
         }
     }
 
@@ -111,6 +118,9 @@ internal fun Application.api(
         authenticate("tokenX") {
             søknadRouteBuilder()
             personaliaRouteBuilder()
+        }
+        authenticate("azureAd") {
+            ferdigstiltRouteBuilder()
         }
     }
 }

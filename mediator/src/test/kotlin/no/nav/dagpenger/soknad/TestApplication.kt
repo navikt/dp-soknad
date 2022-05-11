@@ -16,6 +16,7 @@ import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
 import no.nav.dagpenger.soknad.personalia.personaliaRouteBuilder
 import no.nav.dagpenger.soknad.søknad.SøknadStore
+import no.nav.dagpenger.soknad.søknad.ferdigStiltSøknadRouteBuilder
 import no.nav.dagpenger.soknad.søknad.søknadApiRouteBuilder
 import no.nav.security.mock.oauth2.MockOAuth2Server
 
@@ -56,7 +57,8 @@ object TestApplication {
                 søknadApiRouteBuilder(store, søknadMediator),
                 personaliaRouteBuilder(
                     personOppslag, kontonummerOppslag
-                )
+                ),
+                ferdigStiltSøknadRouteBuilder(mockk(relaxed = true))
             )
         }
     }
@@ -67,6 +69,8 @@ object TestApplication {
     ) {
         System.setProperty("token-x.client-id", CLIENT_ID)
         System.setProperty("token-x.well-known-url", "${mockOAuth2Server.wellKnownUrl(ISSUER_ID)}")
+        System.setProperty("azure-app.client-id", CLIENT_ID)
+        System.setProperty("azure-app.well-known-url", "${mockOAuth2Server.wellKnownUrl(ISSUER_ID)}")
 
         return testApplication {
             application(moduleFunction)

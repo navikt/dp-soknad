@@ -14,6 +14,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.auth.jwt.JWTAuthenticationProvider
+import io.ktor.server.auth.jwt.JWTPrincipal
 import kotlinx.coroutines.runBlocking
 import no.nav.dagpenger.soknad.Configuration
 import java.net.URL
@@ -44,6 +45,40 @@ object TokenXFactory {
     val issuer = tokenXConfiguration.issuer
     val jwkProvider: JwkProvider
         get() = JwkProviderBuilder(URL(tokenXConfiguration.jwksUri))
+            .cached(10, 24, TimeUnit.HOURS) // cache up to 10 JWKs for 24 hours
+            .rateLimited(
+                10,
+                1,
+                TimeUnit.MINUTES
+            ) // if not cached, only allow max 10 different keys per minute to be fetched from external provider
+            .build()
+}
+
+object AzureAdFactory {
+    private object azure_app : PropertyGroup() {
+        val well_known_url by stringType
+        val client_id by stringType
+    }
+
+    private val azureConfiguration: AzureAdOpenIdConfiguration =
+        runBlocking {
+            httpClient.get(Configuration.properties[azure_app.well_known_url]).body()
+        }
+
+    fun JWTAuthenticationProvider.Config.azure() {
+        verifier(jwkProvider, issuer) {
+            withAudience(azureClientId)
+        }
+        validate { credentials ->
+            JWTPrincipal(credentials.payload)
+        }
+        realm = Configuration.appName
+    }
+
+    val azureClientId: String = Configuration.properties[azure_app.client_id]
+    val issuer = azureConfiguration.issuer
+    val jwkProvider: JwkProvider
+        get() = JwkProviderBuilder(URL(azureConfiguration.jwksUri))
             .cached(10, 24, TimeUnit.HOURS) // cache up to 10 JWKs for 24 hours
             .rateLimited(
                 10,

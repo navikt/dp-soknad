@@ -7,28 +7,38 @@ import io.ktor.server.application.call
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
+import io.ktor.server.routing.route
 import io.ktor.util.pipeline.PipelineContext
+import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.db.FerdigstiltSøknadRepository
 import java.util.UUID
+
+internal fun ferdigStiltSøknadRouteBuilder(db: FerdigstiltSøknadRepository): Route.() -> Unit {
+    return {
+        ferdigstiltSøknadsApi(db)
+    }
+}
 
 internal fun Route.ferdigstiltSøknadsApi(
     db: FerdigstiltSøknadRepository
 ) {
+    route("${Configuration.basePath}/{søknad_uuid}/ferdigstilt") {
 
-    get("/{søknad_uuid}/ferdigstilt/tekst") {
-        call.respondText(
-            contentType = ContentType.Application.Json,
-            status = HttpStatusCode.OK,
-            text = db.hentTekst(søknadUuid())
-        )
-    }
+        get("/tekst") {
+            call.respondText(
+                contentType = ContentType.Application.Json,
+                status = HttpStatusCode.OK,
+                text = db.hentTekst(søknadUuid())
+            )
+        }
 
-    get("/{søknad_uuid}/ferdigstilt/fakta") {
-        call.respondText(
-            contentType = ContentType.Application.Json,
-            status = HttpStatusCode.OK,
-            text = db.hentFakta(søknadUuid())
-        )
+        get("/fakta") {
+            call.respondText(
+                contentType = ContentType.Application.Json,
+                status = HttpStatusCode.OK,
+                text = db.hentFakta(søknadUuid())
+            )
+        }
     }
 }
 

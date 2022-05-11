@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.pdl.createPersonOppslag
+import no.nav.dagpenger.soknad.db.FerdigstiltSøknadRepository
 import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder.runMigration
@@ -18,6 +19,7 @@ import no.nav.dagpenger.soknad.personalia.personaliaRouteBuilder
 import no.nav.dagpenger.soknad.søknad.Mediator
 import no.nav.dagpenger.soknad.søknad.PostgresPersistence
 import no.nav.dagpenger.soknad.søknad.SøknadStore
+import no.nav.dagpenger.soknad.søknad.ferdigStiltSøknadRouteBuilder
 import no.nav.dagpenger.soknad.søknad.søknadApiRouteBuilder
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -38,7 +40,12 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
                         tokenProvider = { Configuration.dpProxyTokenProvider.clientCredentials(Configuration.dpProxyScope).accessToken },
                     )
                 ),
-                søknadRouteBuilder = søknadApiRouteBuilder(store(), søknadMediator())
+                søknadRouteBuilder = søknadApiRouteBuilder(store(), søknadMediator()),
+                ferdigstiltRouteBuilder = ferdigStiltSøknadRouteBuilder(
+                    FerdigstiltSøknadRepository(
+                        PostgresDataSourceBuilder.dataSource
+                    )
+                )
             )
         }
     }.build()
