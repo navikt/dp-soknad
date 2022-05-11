@@ -22,6 +22,14 @@ internal fun Route.ferdigstiltSøknadsApi(
             text = db.hentTekst(søknadUuid())
         )
     }
+
+    get("/{søknad_uuid}/ferdigstilt/fakta") {
+        call.respondText(
+            contentType = ContentType.Application.Json,
+            status = HttpStatusCode.OK,
+            text = db.hentFakta(søknadUuid())
+        )
+    }
 }
 
 private fun PipelineContext<Unit, ApplicationCall>.søknadUuid() =

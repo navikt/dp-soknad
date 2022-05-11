@@ -1,5 +1,8 @@
 package no.nav.dagpenger.soknad.db
 
+import kotliquery.queryOf
+import kotliquery.sessionOf
+import kotliquery.using
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
@@ -7,11 +10,13 @@ import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.postgresql.util.PGobject
 import java.util.UUID
 
 internal class FerdigstiltSøknadRepositoryTest {
     @Language("JSON")
-    private val dummySøknad = """{ "id": "value" }"""
+    private val dummyTekst = """{ "id": "value" }"""
+    private val dummyFakta = """{ "fakta1": "value1" }"""
 
     @Test
     fun `kan lagre og hente søknads tekst`() {
@@ -19,9 +24,9 @@ internal class FerdigstiltSøknadRepositoryTest {
             val søknadId = lagRandomPersonOgSøknad()
 
             FerdigstiltSøknadRepository(PostgresDataSourceBuilder.dataSource).let { db ->
-                db.lagreSøknadsTekst(søknadId, dummySøknad)
+                db.lagreSøknadsTekst(søknadId, dummyTekst)
                 val actualJson = db.hentTekst(søknadId)
-                assertJsonEquals(dummySøknad, actualJson)
+                assertJsonEquals(dummyTekst, actualJson)
             }
         }
     }
@@ -40,10 +45,57 @@ internal class FerdigstiltSøknadRepositoryTest {
         assertThrows<IllegalArgumentException> {
             withMigratedDb {
                 val søknadUUID = lagRandomPersonOgSøknad()
-                FerdigstiltSøknadRepository(PostgresDataSourceBuilder.dataSource).lagreSøknadsTekst(søknadUUID, dummySøknad)
-                FerdigstiltSøknadRepository(PostgresDataSourceBuilder.dataSource).lagreSøknadsTekst(søknadUUID, dummySøknad)
+                FerdigstiltSøknadRepository(PostgresDataSourceBuilder.dataSource).lagreSøknadsTekst(
+                    søknadUUID,
+                    dummyTekst
+                )
+                FerdigstiltSøknadRepository(PostgresDataSourceBuilder.dataSource).lagreSøknadsTekst(
+                    søknadUUID,
+                    dummyTekst
+                )
             }
         }
+    }
+
+    @Test
+    fun `kan hente søknadsfakta`() {
+        withMigratedDb {
+            val søknadId = lagreFakta(dummyFakta)
+            FerdigstiltSøknadRepository(PostgresDataSourceBuilder.dataSource).let { db ->
+                val actualJson = db.hentFakta(søknadId)
+                assertJsonEquals(dummyFakta, actualJson)
+            }
+        }
+    }
+
+    @Test
+    fun `kaster exception dersom søknadsfakta ikke eksister`() {
+        withMigratedDb {
+            assertThrows<SoknadNotFoundException> {
+                FerdigstiltSøknadRepository(PostgresDataSourceBuilder.dataSource).hentFakta(UUID.randomUUID())
+            }
+        }
+    }
+
+    private fun lagreFakta(fakta: String): UUID {
+        val søknadId = UUID.randomUUID()
+        using(sessionOf(PostgresDataSourceBuilder.dataSource)) { session ->
+            session.run(
+                queryOf(
+                    """INSERT INTO soknad(uuid, eier, soknad_data)
+                                    VALUES (:uuid, :eier, :soknad_data) """,
+                    mapOf(
+                        "uuid" to søknadId.toString(),
+                        "eier" to "eier",
+                        "soknad_data" to PGobject().also {
+                            it.type = "jsonb"
+                            it.value = fakta
+                        }
+                    )
+                ).asUpdate
+            )
+        }
+        return søknadId
     }
 
     private fun lagRandomPersonOgSøknad(): UUID {

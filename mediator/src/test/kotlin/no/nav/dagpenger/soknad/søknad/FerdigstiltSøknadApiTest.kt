@@ -16,6 +16,7 @@ import java.util.UUID
 
 internal class FerdigstiltSøknadApiTest {
     private val dummySøknadsTekst = """{"key": "value"}"""
+    private val dummyFakta = """{"fakta1": "value1"}"""
 
     @Test
     fun `henter tekst`() {
@@ -33,6 +34,28 @@ internal class FerdigstiltSøknadApiTest {
 
             client.get("/$søknadId/ferdigstilt/tekst").also { response ->
                 assertJsonEquals(dummySøknadsTekst, response.bodyAsText())
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals("application/json; charset=UTF-8", response.contentType().toString())
+            }
+        }
+    }
+
+    @Test
+    fun `henter fakta`() {
+        val søknadId = UUID.randomUUID()
+        testApplication {
+            application {
+                routing {
+                    ferdigstiltSøknadsApi(
+                        mockk<FerdigstiltSøknadRepository>().also {
+                            every { it.hentFakta(søknadId) } returns dummyFakta
+                        }
+                    )
+                }
+            }
+
+            client.get("/$søknadId/ferdigstilt/fakta").also { response ->
+                assertJsonEquals(dummyFakta, response.bodyAsText())
                 assertEquals(HttpStatusCode.OK, response.status)
                 assertEquals("application/json; charset=UTF-8", response.contentType().toString())
             }

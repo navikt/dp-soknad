@@ -55,6 +55,22 @@ internal class FerdigstiltSøknadRepository(private val ds: DataSource) {
             }
         }
     }
+
+    fun hentFakta(søknadId: UUID): String {
+        return using(sessionOf(ds)) { session ->
+            session.run(
+                queryOf(
+                    //language=PostgreSQL
+                    statement = "SELECT soknad_data FROM soknad WHERE uuid = :uuid",
+                    paramMap = mapOf(
+                        "uuid" to søknadId.toString()
+                    )
+                ).map { row -> row.string("soknad_data") }.asSingle
+            ) ?: throw SoknadNotFoundException(søknadId.toString()).also {
+                logger.error { "Fant ikke søknad data med id: $søknadId" }
+            }
+        }
+    }
 }
 
 internal class SoknadNotFoundException(id: String) : RuntimeException("Fant ikke innsendt søknad: $id")
