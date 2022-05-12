@@ -10,17 +10,17 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.util.pipeline.PipelineContext
 import no.nav.dagpenger.soknad.Configuration
-import no.nav.dagpenger.soknad.db.FerdigstiltSøknadRepository
+import no.nav.dagpenger.soknad.db.FerdigstiltSøknadPostgresRepository
 import java.util.UUID
 
-internal fun ferdigStiltSøknadRouteBuilder(db: FerdigstiltSøknadRepository): Route.() -> Unit {
+internal fun ferdigStiltSøknadRouteBuilder(db: FerdigstiltSøknadPostgresRepository): Route.() -> Unit {
     return {
         ferdigstiltSøknadsApi(db)
     }
 }
 
 internal fun Route.ferdigstiltSøknadsApi(
-    db: FerdigstiltSøknadRepository
+    db: FerdigstiltSøknadPostgresRepository
 ) {
     route("${Configuration.basePath}/{søknad_uuid}/ferdigstilt") {
 

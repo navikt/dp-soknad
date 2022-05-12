@@ -113,6 +113,7 @@ internal class SøknadApiTest {
         val søknadMediatorMock = mockk<SøknadMediator>().also {
             justRun {
                 it.behandle(capture(slot))
+                it.lagreSøknadsTekst(testSøknadUuid, any())
             }
         }
 
@@ -124,6 +125,7 @@ internal class SøknadApiTest {
             autentisert(
                 "${Configuration.basePath}/soknad/$testSøknadUuid/ferdigstill",
                 httpMethod = HttpMethod.Put,
+                body = "{}"
             ).apply {
                 assertEquals(HttpStatusCode.NoContent, this.status)
             }
@@ -132,6 +134,26 @@ internal class SøknadApiTest {
         assertTrue(slot.isCaptured)
         assertEquals(testSøknadUuid, slot.captured.søknadID())
         assertEquals(defaultDummyFodselsnummer, slot.captured.ident())
+    }
+
+    @Test
+    fun `Kan bare sende json`() {
+        val testSøknadUuid = UUID.randomUUID()
+        val søknadMediatorMock = mockk<SøknadMediator>()
+
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(
+                søknadMediator = søknadMediatorMock
+            )
+        ) {
+            autentisert(
+                "${Configuration.basePath}/soknad/$testSøknadUuid/ferdigstill",
+                httpMethod = HttpMethod.Put,
+                body = "Det her er ihvertall ikke json for å si det sånn"
+            ).apply {
+                assertEquals(HttpStatusCode.BadRequest, this.status)
+            }
+        }
     }
 
     @Test

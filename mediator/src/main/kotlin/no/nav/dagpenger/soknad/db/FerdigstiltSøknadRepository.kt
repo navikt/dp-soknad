@@ -1,75 +1,9 @@
 package no.nav.dagpenger.soknad.db
 
-import io.ktor.server.plugins.NotFoundException
-import kotliquery.queryOf
-import kotliquery.sessionOf
-import kotliquery.using
-import mu.KotlinLogging
-import org.postgresql.util.PGobject
-import org.postgresql.util.PSQLException
 import java.util.UUID
-import javax.sql.DataSource
 
-private val logger = KotlinLogging.logger {}
-
-internal class FerdigstiltSøknadRepository(private val ds: DataSource) {
-    fun lagreSøknadsTekst(søknadUuid: UUID, søknadsTekst: String) {
-        try {
-
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        statement = "INSERT INTO soknad_tekst_v1(uuid,tekst) VALUES(:uuid,:tekst)",
-                        paramMap = mapOf(
-                            "uuid" to søknadUuid.toString(),
-                            "tekst" to PGobject().also {
-                                it.type = "jsonb"
-                                it.value = søknadsTekst
-                            }
-                        )
-                    ).asUpdate
-                )
-            }
-        } catch (error: PSQLException) {
-            if (error.sqlState == "23505") {
-                logger.error { "Forsøk på å legge inn duplikat i innsendt søknad: $søknadUuid" }
-                throw IllegalArgumentException(error)
-            } else {
-                logger.error(error) { "Ukjent feil" }
-                throw error
-            }
-        }
-    }
-
-    fun hentTekst(søknadId: UUID): String {
-        return using(sessionOf(ds)) { session ->
-            session.run(
-                queryOf(
-                    //language=PostgreSQL
-                    statement = "SELECT tekst FROM  soknad_tekst_v1 WHERE uuid = :uuid",
-                    paramMap = mapOf(
-                        "uuid" to søknadId.toString()
-                    )
-                ).map { row -> row.string("tekst") }.asSingle
-            ) ?: throw NotFoundException().also {
-                logger.error { "Fant ikke søknad tekst med id: $søknadId" }
-            }
-        }
-    }
-
-    fun hentFakta(søknadId: UUID): String {
-        return using(sessionOf(ds)) { session ->
-            session.run(
-                queryOf(
-                    //language=PostgreSQL
-                    statement = "SELECT soknad_data FROM soknad WHERE uuid = :uuid",
-                    paramMap = mapOf(
-                        "uuid" to søknadId.toString()
-                    )
-                ).map { row -> row.string("soknad_data") }.asSingle
-            ) ?: throw NotFoundException().also {
-                logger.error { "Fant ikke søknad data med id: $søknadId" }
-            }
-        }
-    }
+interface FerdigstiltSøknadRepository {
+    fun lagreSøknadsTekst(søknadUuid: UUID, søknadsTekst: String)
+    fun hentTekst(søknadId: UUID): String
+    fun hentFakta(søknadId: UUID): String
 }

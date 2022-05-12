@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.søknad
 
+import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -89,6 +90,9 @@ internal fun Route.søknadApi(
             val søknadUuid = søknadUuid()
             val ident = call.ident()
             val søknadInnsendtHendelse = SøknadInnsendtHendelse(søknadUuid, ident)
+            call.receive<JsonNode>().let {
+                søknadMediator.lagreSøknadsTekst(søknadUuid, it.toString())
+            }
             søknadMediator.behandle(søknadInnsendtHendelse)
             call.respond(HttpStatusCode.NoContent)
         }

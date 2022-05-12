@@ -1,7 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.pdl.createPersonOppslag
-import no.nav.dagpenger.soknad.db.FerdigstiltSøknadRepository
+import no.nav.dagpenger.soknad.db.FerdigstiltSøknadPostgresRepository
 import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder.runMigration
@@ -42,9 +42,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
                 ),
                 søknadRouteBuilder = søknadApiRouteBuilder(store(), søknadMediator()),
                 ferdigstiltRouteBuilder = ferdigStiltSøknadRouteBuilder(
-                    FerdigstiltSøknadRepository(
-                        PostgresDataSourceBuilder.dataSource
-                    )
+                    ferdigstiltRepository
                 )
             )
         }
@@ -56,11 +54,15 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
 
     private val mediator = Mediator(rapidsConnection, persistence)
     private val søknadMalRepository = SøknadMalPostgresRepository(PostgresDataSourceBuilder.dataSource)
+    private val ferdigstiltRepository = FerdigstiltSøknadPostgresRepository(
+        PostgresDataSourceBuilder.dataSource
+    )
 
     private val søknadMediator = SøknadMediator(
         rapidsConnection = rapidsConnection,
         livsyklusRepository = LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource),
         søknadMalRepository = søknadMalRepository,
+        ferdigstiltSøknadRepository = ferdigstiltRepository,
         personObservers = listOf(
             PersonLoggerObserver
         )

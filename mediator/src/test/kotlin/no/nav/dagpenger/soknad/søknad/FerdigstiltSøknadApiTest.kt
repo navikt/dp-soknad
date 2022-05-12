@@ -12,7 +12,7 @@ import io.mockk.mockk
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
-import no.nav.dagpenger.soknad.db.FerdigstiltSøknadRepository
+import no.nav.dagpenger.soknad.db.FerdigstiltSøknadPostgresRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -61,7 +61,7 @@ internal class FerdigstiltSøknadApiTest {
             application {
                 routing {
                     ferdigstiltSøknadsApi(
-                        mockk<FerdigstiltSøknadRepository>().also {
+                        mockk<FerdigstiltSøknadPostgresRepository>().also {
                             every { it.hentTekst(søknadId) } returns dummySøknadsTekst
                         }
                     )
@@ -83,7 +83,7 @@ internal class FerdigstiltSøknadApiTest {
             application {
                 routing {
                     ferdigstiltSøknadsApi(
-                        mockk<FerdigstiltSøknadRepository>().also {
+                        mockk<FerdigstiltSøknadPostgresRepository>().also {
                             every { it.hentTekst(søknadId) } throws NotFoundException(søknadId.toString())
                         }
                     )
@@ -103,7 +103,7 @@ internal class FerdigstiltSøknadApiTest {
             application {
                 routing {
                     ferdigstiltSøknadsApi(
-                        mockk<FerdigstiltSøknadRepository>().also {
+                        mockk<FerdigstiltSøknadPostgresRepository>().also {
                             every { it.hentFakta(søknadId) } returns dummyFakta
                         }
                     )
@@ -125,7 +125,7 @@ internal class FerdigstiltSøknadApiTest {
             application {
                 routing {
                     ferdigstiltSøknadsApi(
-                        mockk<FerdigstiltSøknadRepository>().also {
+                        mockk<FerdigstiltSøknadPostgresRepository>().also {
                             every { it.hentFakta(søknadId) } throws NotFoundException(søknadId.toString())
                         }
                     )

@@ -14,7 +14,7 @@ import org.junit.jupiter.api.assertThrows
 import org.postgresql.util.PGobject
 import java.util.UUID
 
-internal class FerdigstiltSøknadRepositoryTest {
+internal class FerdigstiltSøknadPostgresRepositoryTest {
     @Language("JSON")
     private val dummyTekst = """{ "id": "value" }"""
     private val dummyFakta = """{ "fakta1": "value1" }"""
@@ -24,7 +24,7 @@ internal class FerdigstiltSøknadRepositoryTest {
         withMigratedDb {
             val søknadId = lagRandomPersonOgSøknad()
 
-            FerdigstiltSøknadRepository(PostgresDataSourceBuilder.dataSource).let { db ->
+            FerdigstiltSøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).let { db ->
                 db.lagreSøknadsTekst(søknadId, dummyTekst)
                 val actualJson = db.hentTekst(søknadId)
                 assertJsonEquals(dummyTekst, actualJson)
@@ -36,7 +36,7 @@ internal class FerdigstiltSøknadRepositoryTest {
     fun `kaster expetion hvis søknadstekst ikke finnes`() {
         assertThrows<NotFoundException> {
             withMigratedDb {
-                FerdigstiltSøknadRepository(PostgresDataSourceBuilder.dataSource).hentTekst(UUID.randomUUID())
+                FerdigstiltSøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).hentTekst(UUID.randomUUID())
             }
         }
     }
@@ -46,11 +46,11 @@ internal class FerdigstiltSøknadRepositoryTest {
         assertThrows<IllegalArgumentException> {
             withMigratedDb {
                 val søknadUUID = lagRandomPersonOgSøknad()
-                FerdigstiltSøknadRepository(PostgresDataSourceBuilder.dataSource).lagreSøknadsTekst(
+                FerdigstiltSøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).lagreSøknadsTekst(
                     søknadUUID,
                     dummyTekst
                 )
-                FerdigstiltSøknadRepository(PostgresDataSourceBuilder.dataSource).lagreSøknadsTekst(
+                FerdigstiltSøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).lagreSøknadsTekst(
                     søknadUUID,
                     dummyTekst
                 )
@@ -62,7 +62,7 @@ internal class FerdigstiltSøknadRepositoryTest {
     fun `kan hente søknadsfakta`() {
         withMigratedDb {
             val søknadId = lagreFakta(dummyFakta)
-            FerdigstiltSøknadRepository(PostgresDataSourceBuilder.dataSource).let { db ->
+            FerdigstiltSøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).let { db ->
                 val actualJson = db.hentFakta(søknadId)
                 assertJsonEquals(dummyFakta, actualJson)
             }
@@ -73,7 +73,7 @@ internal class FerdigstiltSøknadRepositoryTest {
     fun `kaster exception dersom søknadsfakta ikke eksister`() {
         withMigratedDb {
             assertThrows<NotFoundException> {
-                FerdigstiltSøknadRepository(PostgresDataSourceBuilder.dataSource).hentFakta(UUID.randomUUID())
+                FerdigstiltSøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).hentFakta(UUID.randomUUID())
             }
         }
     }

@@ -9,6 +9,7 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.Søknadsprosess.NySøknadsProsess
 import no.nav.dagpenger.soknad.Søknadsprosess.PåbegyntSøknadsProsess
+import no.nav.dagpenger.soknad.db.FerdigstiltSøknadRepository
 import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository
 import no.nav.dagpenger.soknad.db.LivsyklusRepository
 import no.nav.dagpenger.soknad.db.Postgres
@@ -36,11 +37,12 @@ internal class SøknadMediatorTest {
     private lateinit var mediator: SøknadMediator
     private val livsyklusRepository: LivsyklusRepository = LivsyklusPostgresRepository(Postgres.withMigratedDb())
     private val søknadMalRepositoryMock = mockk<SøknadMalRepository>()
+    private val ferdigstiltSøknadRepository = mockk<FerdigstiltSøknadRepository>()
     private val testRapid = TestRapid()
 
     @BeforeEach
     fun setup() {
-        mediator = SøknadMediator(testRapid, livsyklusRepository, søknadMalRepositoryMock)
+        mediator = SøknadMediator(testRapid, livsyklusRepository, søknadMalRepositoryMock, ferdigstiltSøknadRepository)
         SøknadOpprettetHendelseMottak(testRapid, mediator)
         ArkiverbarSøknadMottattHendelseMottak(testRapid, mediator)
         NyJournalpostMottak(testRapid, mediator)

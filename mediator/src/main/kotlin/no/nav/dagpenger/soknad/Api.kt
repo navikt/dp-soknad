@@ -13,6 +13,7 @@ import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.jwt
+import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.plugins.callloging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -79,6 +80,13 @@ internal fun Application.api(
                     logger.info(cause) { "Kunne ikke håndtere API kall - Ikke funnet" }
                     call.respond(
                         NotFound,
+                        HttpProblem(title = "Feilet", detail = cause.message)
+                    )
+                }
+                is BadRequestException -> {
+                    logger.error(cause) { "Kunne ikke håndtere API kall - feil i request" }
+                    call.respond(
+                        BadRequest,
                         HttpProblem(title = "Feilet", detail = cause.message)
                     )
                 }
