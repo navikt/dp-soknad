@@ -3,7 +3,7 @@ package no.nav.dagpenger.soknad.db
 import com.fasterxml.jackson.databind.JsonNode
 
 interface SøknadMalRepository {
-    fun lagre(søknadMal: SøknadMal)
+    fun lagre(søknadMal: SøknadMal): Int
     fun hentNyesteMal(prosessnavn: String): SøknadMal
 }
 

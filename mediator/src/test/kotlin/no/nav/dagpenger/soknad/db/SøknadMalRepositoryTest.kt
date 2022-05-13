@@ -17,14 +17,14 @@ class SøknadMalRepositoryTest {
         withMigratedDb {
             SøknadMalPostgresRepository(PostgresDataSourceBuilder.dataSource).let { repo ->
                 val expectedMal = SøknadMal("prosessnavn", 123, jacksonObjectMapper().createObjectNode())
-                repo.lagre(expectedMal)
+                assertEquals(1, repo.lagre(expectedMal))
                 assertAntallMalerIBasen(1)
 
-                repo.lagre(expectedMal)
+                assertEquals(0, repo.lagre(expectedMal))
                 assertAntallMalerIBasen(1)
 
                 val versjon2 = expectedMal.copy(prosessversjon = 456)
-                repo.lagre(versjon2)
+                assertEquals(1, repo.lagre(versjon2))
                 assertAntallMalerIBasen(2)
             }
         }
