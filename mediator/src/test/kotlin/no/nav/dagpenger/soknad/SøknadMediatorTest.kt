@@ -23,6 +23,7 @@ import no.nav.dagpenger.soknad.mottak.NyJournalpostMottak
 import no.nav.dagpenger.soknad.mottak.SøknadOpprettetHendelseMottak
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -85,8 +86,10 @@ internal class SøknadMediatorTest {
         testRapid.sendTestMessage(nySøknadBehovsløsning(søknadId()))
         assertEquals(Påbegynt, hentOppdatertInspektør().gjeldendetilstand)
 
-        mediator.behandle(SøknadInnsendtHendelse(UUID.fromString(søknadId()), testIdent))
+        val søknadID = UUID.fromString(søknadId())
+        mediator.behandle(SøknadInnsendtHendelse(søknadID, testIdent))
         assertEquals(AvventerArkiverbarSøknad, hentOppdatertInspektør().gjeldendetilstand)
+        assertNotNull(livsyklusRepository.hentInnsendtTidspunkt(søknadID))
         assertEquals(listOf("ArkiverbarSøknad"), behov(1))
 
         testRapid.sendTestMessage(arkiverbarsøknadLøsning(testIdent, søknadId(), "urn:dokument:1"))

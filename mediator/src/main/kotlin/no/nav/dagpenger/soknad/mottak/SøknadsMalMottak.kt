@@ -27,7 +27,7 @@ class SøknadsMalMottak(
         val versjonId = packet["versjon_id"].asInt()
         val søknadMal = SøknadMal(versjonNavn, versjonId, objectMapper.readTree(packet.toJson()))
 
-        if(søknadMalRepository.lagre(søknadMal) == 1) {
+        if (søknadMalRepository.lagre(søknadMal) == 1) {
             logger.info("Mottatt søknadsmal med versjon_navn $versjonNavn og versjon_id $versjonId")
             val nyMalMelding = JsonMessage.newMessage(
                 eventName = "ny_quiz_mal",
@@ -37,7 +37,6 @@ class SøknadsMalMottak(
                 )
             )
             context.publish(nyMalMelding.toJson())
-
         }
     }
 

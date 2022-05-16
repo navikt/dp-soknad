@@ -17,6 +17,7 @@ import no.nav.dagpenger.soknad.serder.objectMapper
 import no.nav.dagpenger.soknad.toMap
 import org.postgresql.util.PGobject
 import java.time.LocalDate
+import java.time.ZonedDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -111,6 +112,28 @@ class LivsyklusPostgresRepository(private val dataSource: DataSource) : Livsyklu
                         PåbegyntSøknad(UUID.fromString(r.string("uuid")), r.localDate("opprettet"))
                     }
                     ).asList
+            )
+        }
+    }
+
+    override fun lagreInnsendtTidpunkt(søknadID: UUID, innsendtidspunkt: ZonedDateTime) {
+        using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf(
+                    "INSERT INTO innsendt_soknad_v1(uuid, tidspunkt) VALUES(:uuid,:tidspunkt)",
+                    mapOf("uuid" to søknadID.toString(), "tidspunkt" to innsendtidspunkt)
+                ).asUpdate
+            )
+        }
+    }
+
+    override fun hentInnsendtTidspunkt(uuid: UUID): ZonedDateTime? {
+        return using(sessionOf(PostgresDataSourceBuilder.dataSource)) { session ->
+            session.run(
+                queryOf(
+                    "SELECT tidspunkt FROM innsendt_soknad_v1 WHERE uuid=:uuid",
+                    mapOf("uuid" to uuid.toString())
+                ).map { r -> r.zonedDateTime("tidspunkt") }.asSingle
             )
         }
     }

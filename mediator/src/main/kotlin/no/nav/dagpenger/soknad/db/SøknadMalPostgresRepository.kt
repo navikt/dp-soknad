@@ -11,7 +11,7 @@ import javax.sql.DataSource
 class SøknadMalPostgresRepository(private val dataSource: DataSource) : SøknadMalRepository {
 
     override fun lagre(søknadMal: SøknadMal): Int {
-       return using(sessionOf(dataSource)) { session: Session ->
+        return using(sessionOf(dataSource)) { session: Session ->
             session.transaction { transactionalSession ->
                 transactionalSession.run(
                     queryOf(
