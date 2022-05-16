@@ -60,14 +60,14 @@ internal fun Route.søknadApi(
         get("/paabegynte") {
             call.respond(HttpStatusCode.OK, søknadMediator.hentPåbegynte(call.ident()))
         }
-        get("/{søknad_uuid}/fakta") {
+        get("/{søknad_uuid}/neste") {
             val id = søknadUuid()
             val ident = call.ident()
-            val søknad: Søknad = hentFakta(store, id)
+            val søknad: Søknad = hentNesteSeksjon(store, id)
             if (ident != søknad.eier()) {
                 throw IkkeTilgangExeption("Ikke tilgang til søknad")
             }
-            call.respond(HttpStatusCode.OK, søknad.fakta())
+            call.respond(HttpStatusCode.OK, søknad.asFrontendformat())
         }
         put("/{søknad_uuid}/faktum/{faktumid}") {
             val søknadUuid = søknadUuid()
@@ -106,10 +106,10 @@ internal fun Route.søknadApi(
 
 class IkkeTilgangExeption(melding: String) : RuntimeException(melding)
 
-private suspend fun hentFakta(
+private suspend fun hentNesteSeksjon(
     store: SøknadStore,
     id: UUID
-) = retryIO(times = 10) { store.hentFakta(id) ?: throw NotFoundException("Fant ikke søknad med id $id") }
+) = retryIO(times = 10) { store.hentNesteSeksjon(id) ?: throw NotFoundException("Fant ikke søknad med id $id") }
 
 private fun PipelineContext<Unit, ApplicationCall>.søknadUuid() =
     call.parameters["søknad_uuid"].let { UUID.fromString(it) }

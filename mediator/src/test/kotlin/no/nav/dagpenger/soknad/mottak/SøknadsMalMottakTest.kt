@@ -1,8 +1,6 @@
 package no.nav.dagpenger.soknad.mottak
 
-import io.mockk.Runs
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
@@ -10,7 +8,6 @@ import no.nav.dagpenger.soknad.db.SøknadMal
 import no.nav.dagpenger.soknad.db.SøknadMalRepository
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -47,7 +44,6 @@ class SøknadsMalMottakTest {
             assertEquals(111, it.message(0)["versjon_id"].asInt())
             assertNotNull(it.message(0)["@opprettet"])
         }
-
     }
 }
 

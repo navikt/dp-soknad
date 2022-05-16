@@ -159,13 +159,13 @@ internal class SøknadApiTest {
     @Test
     fun `Skal hente søknad fakta`() {
         // language=JSON
-        val fakta = """{"id":"blabla"}"""
+        val frontendformat = """{"id":"blabla"}"""
         val søknad = mockk<Søknad>().also {
             every { it.eier() } returns defaultDummyFodselsnummer
-            every { it.fakta() } returns objectMapper.readTree(fakta)
+            every { it.asFrontendformat() } returns objectMapper.readTree(frontendformat)
         }
         val mockStore = mockk<SøknadStore>().also { soknadStore ->
-            every { soknadStore.hentFakta(UUID.fromString("d172a832-4f52-4e1f-ab5f-8be8348d9280")) } returns søknad
+            every { soknadStore.hentNesteSeksjon(UUID.fromString("d172a832-4f52-4e1f-ab5f-8be8348d9280")) } returns søknad
         }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -173,11 +173,11 @@ internal class SøknadApiTest {
             )
         ) {
             autentisert(
-                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/fakta",
+                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/neste",
             ).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
                 assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])
-                assertEquals(fakta, this.bodyAsText())
+                assertEquals(frontendformat, this.bodyAsText())
             }
         }
     }
@@ -186,11 +186,11 @@ internal class SøknadApiTest {
     fun `Skal avvise uautoriserte kall`() {
         val søknad = mockk<Søknad>().also {
             every { it.eier() } returns "en annen eier"
-            every { it.fakta() } returns objectMapper.nullNode()
+            every { it.asFrontendformat() } returns objectMapper.nullNode()
         }
         val id = "d172a832-4f52-4e1f-ab5f-8be8348d9280"
         val mockStore = mockk<SøknadStore>().also { soknadStore ->
-            every { soknadStore.hentFakta(UUID.fromString(id)) } returns søknad
+            every { soknadStore.hentNesteSeksjon(UUID.fromString(id)) } returns søknad
         }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -198,7 +198,7 @@ internal class SøknadApiTest {
             )
         ) {
             autentisert(
-                "${Configuration.basePath}/soknad/$id/fakta",
+                "${Configuration.basePath}/soknad/$id/neste",
             ).apply {
                 assertEquals(HttpStatusCode.Forbidden, this.status)
                 assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])
@@ -292,7 +292,7 @@ internal class SøknadApiTest {
         TestApplication.withMockAuthServerAndTestApplication() {
             assertEquals(
                 HttpStatusCode.Unauthorized,
-                client.get("${Configuration.basePath}/soknad/$dummyUuid/fakta").status
+                client.get("${Configuration.basePath}/soknad/mal").status
             )
         }
     }

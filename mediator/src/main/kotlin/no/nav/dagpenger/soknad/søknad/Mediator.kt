@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad.søknad
 import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
+import no.nav.dagpenger.soknad.serder.objectMapper
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -12,7 +13,7 @@ import java.util.UUID
 
 internal interface SøknadStore {
     fun håndter(faktumSvar: FaktumSvar)
-    fun hentFakta(søknadUuid: UUID): Søknad?
+    fun hentNesteSeksjon(søknadUuid: UUID): Søknad?
 }
 
 interface MeldingObserver {
@@ -22,11 +23,11 @@ interface MeldingObserver {
 interface Søknad {
     fun søknadUUID(): UUID
     fun eier(): String
-    fun fakta(): JsonNode
+    fun asFrontendformat(): JsonNode
     fun asJson(): String
 
     object Keys {
-        val FAKTA = "fakta"
+        val SEKSJONER = "seksjoner"
         val SØKNAD_UUID = "søknad_uuid"
         val FØDSELSNUMMER = "fødselsnummer"
     }
@@ -50,9 +51,9 @@ internal class Mediator(private val rapidsConnection: RapidsConnection, private 
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "NySøknad") }
+            validate { it.demandValue("@event_name", "søker_oppgave") }
             validate { it.rejectKey("@løsning") }
-            validate { it.requireKey(Søknad.Keys.FAKTA, Søknad.Keys.SØKNAD_UUID, Søknad.Keys.FØDSELSNUMMER, "@opprettet") }
+            validate { it.requireKey(Søknad.Keys.SEKSJONER, Søknad.Keys.SØKNAD_UUID, Søknad.Keys.FØDSELSNUMMER, "@opprettet") }
         }.register(this)
     }
 
@@ -63,7 +64,7 @@ internal class Mediator(private val rapidsConnection: RapidsConnection, private 
         logger.info { "Sendte faktum svar for ${faktumSvar.søknadUuid()}" }
     }
 
-    override fun hentFakta(søknadUuid: UUID): Søknad = persistence.hent(søknadUuid)
+    override fun hentNesteSeksjon(søknadUuid: UUID): Søknad = persistence.hent(søknadUuid)
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info { "Mottat pakke ${packet["@event_name"].asText()}" }
@@ -76,7 +77,7 @@ internal class Mediator(private val rapidsConnection: RapidsConnection, private 
     private class SøknadMelding(private val jsonMessage: JsonMessage) : Søknad {
         override fun søknadUUID(): UUID = UUID.fromString(jsonMessage[Søknad.Keys.SØKNAD_UUID].asText())
         override fun eier(): String = jsonMessage[Søknad.Keys.FØDSELSNUMMER].asText()
-        override fun fakta() = jsonMessage[Søknad.Keys.FAKTA]
+        override fun asFrontendformat(): JsonNode = objectMapper.readTree(jsonMessage.toJson())
         override fun asJson(): String = jsonMessage.toJson()
     }
 }

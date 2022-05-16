@@ -25,22 +25,34 @@ class MediatorTest {
             testRapid.reset()
             val søknadUuid = UUID.randomUUID()
             testRapid.sendTestMessage(nySøknad(søknadUuid))
-            mediator.hentFakta(søknadUuid).also {
+            mediator.hentNesteSeksjon(søknadUuid).also {
                 assertDoesNotThrow {
-                    assertEquals("fakta", it.fakta().asText())
+                    val seksjoner = it.asFrontendformat()["seksjoner"]
+                    assertEquals(1, seksjoner.size())
+                    assertEquals(0, seksjoner[0]["fakta"].size())
                     assertEquals("12345678910", it.eier())
                     assertEquals(søknadUuid, it.søknadUUID())
+                    assertEquals(false, it.asFrontendformat()["ferdig"].asBoolean())
                 }
             }
         }
     }
     //language=JSON
     private fun nySøknad(søknadUuid: UUID) = """{
-          "@event_name": "NySøknad",
-          "fakta": "fakta",
-          "fødselsnummer": "12345678910",
-          "søknad_uuid": "$søknadUuid",
-          "@opprettet": "2022-01-13T09:40:19.158310"
-        }
+  "@event_name": "søker_oppgave",
+  "fødselsnummer": "12345678910",
+  "versjon_id": 0,
+  "versjon_navn": "test",
+  "@opprettet": "2022-05-13T14:48:09.059643",
+  "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
+  "søknad_uuid": "$søknadUuid",
+  "ferdig": false,
+  "seksjoner": [
+    {
+      "beskrivendeId": "seksjon1",
+      "fakta": []
+    }
+  ]
+}
     """.trimIndent()
 }

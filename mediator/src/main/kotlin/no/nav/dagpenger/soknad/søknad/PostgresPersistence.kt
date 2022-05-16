@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.søknad
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ObjectNode
 import io.ktor.server.plugins.NotFoundException
 import kotliquery.queryOf
 import kotliquery.sessionOf
@@ -55,7 +56,12 @@ class PostgresPersistence(private val dataSource: DataSource) : Persistence {
     internal class PersistentSøknad(private val søknad: JsonNode) : Søknad {
         override fun søknadUUID(): UUID = UUID.fromString(søknad[Søknad.Keys.SØKNAD_UUID].asText())
         override fun eier(): String = søknad[Søknad.Keys.FØDSELSNUMMER].asText()
-        override fun fakta(): JsonNode = søknad[Søknad.Keys.FAKTA]
+        override fun asFrontendformat(): JsonNode {
+            søknad as ObjectNode
+            val kopiAvSøknad = søknad.deepCopy()
+            kopiAvSøknad.remove(Søknad.Keys.FØDSELSNUMMER)
+            return kopiAvSøknad
+        }
         override fun asJson(): String = søknad.toString()
     }
 }
