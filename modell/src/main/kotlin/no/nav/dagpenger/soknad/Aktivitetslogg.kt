@@ -306,6 +306,7 @@ interface Aktivitetskontekst {
 }
 
 class SpesifikkKontekst(internal val kontekstType: String, internal val kontekstMap: Map<String, String> = mapOf()) {
+
     internal fun melding() =
         kontekstType + kontekstMap.entries.joinToString(separator = ", ", prefix = " - ") { "${it.key}: ${it.value}" }
 

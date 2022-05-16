@@ -18,10 +18,10 @@ abstract class Hendelse protected constructor(
     fun ident() = ident
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst {
-        return this.javaClass.canonicalName.split('.').last().let { klassenavn ->
-            SpesifikkKontekst(klassenavn, emptyMap())
-        }
+        return SpesifikkKontekst(this.klasseNavn, emptyMap())
     }
+
+    protected val klasseNavn = this.javaClass.canonicalName.split('.').last()
 
     fun toLogString() = aktivitetslogg.toString()
 }
@@ -35,8 +35,6 @@ abstract class SøknadHendelse protected constructor(
     fun søknadID() = søknadID
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst {
-        return this.javaClass.canonicalName.split('.').last().let { klassenavn ->
-            SpesifikkKontekst(klassenavn, mapOf("søknad_uuid" to søknadID().toString()))
-        }
+        return SpesifikkKontekst(this.klasseNavn, mapOf("søknad_uuid" to søknadID().toString()))
     }
 }
