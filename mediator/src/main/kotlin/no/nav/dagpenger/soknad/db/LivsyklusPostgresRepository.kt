@@ -46,14 +46,15 @@ class LivsyklusPostgresRepository(private val dataSource: DataSource) : Livsyklu
                 session.run(
                     queryOf(
                         //language=PostgreSQL
-                        """SELECT uuid, tilstand, dokument_lokasjon, journalpost_id FROM soknad_v1 WHERE person_ident = :ident """,
+                        """SELECT uuid, tilstand, dokument_lokasjon, journalpost_id, innsendt_tidspunkt FROM soknad_v1 WHERE person_ident = :ident """,
                         mapOf("ident" to person.ident)
                     ).map { r ->
                         SøknadData(
                             UUID.fromString(r.string("uuid")),
                             r.string("tilstand"),
                             r.stringOrNull("dokument_lokasjon"),
-                            r.stringOrNull("journalpost_id")
+                            r.stringOrNull("journalpost_id"),
+                            r.zonedDateTimeOrNull("innsendt_tidspunkt")
                         )
                     }.asList
                 )
@@ -115,28 +116,6 @@ class LivsyklusPostgresRepository(private val dataSource: DataSource) : Livsyklu
             )
         }
     }
-
-    override fun lagreInnsendtTidpunkt(søknadID: UUID, innsendtidspunkt: ZonedDateTime) {
-        using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf(
-                    "INSERT INTO innsendt_soknad_v1(uuid, tidspunkt) VALUES(:uuid,:tidspunkt)",
-                    mapOf("uuid" to søknadID.toString(), "tidspunkt" to innsendtidspunkt)
-                ).asUpdate
-            )
-        }
-    }
-
-    override fun hentInnsendtTidspunkt(uuid: UUID): ZonedDateTime? {
-        return using(sessionOf(PostgresDataSourceBuilder.dataSource)) { session ->
-            session.run(
-                queryOf(
-                    "SELECT tidspunkt FROM innsendt_soknad_v1 WHERE uuid=:uuid",
-                    mapOf("uuid" to uuid.toString())
-                ).map { r -> r.zonedDateTime("tidspunkt") }.asSingle
-            )
-        }
-    }
 }
 
 private fun SøknadData.insertQuery(personIdent: String): UpdateQueryAction =
@@ -144,13 +123,14 @@ private fun SøknadData.insertQuery(personIdent: String): UpdateQueryAction =
         //language=PostgreSQL
         statement = "INSERT INTO soknad_v1(uuid,person_ident,tilstand,dokument_lokasjon,journalpost_id) " +
             "VALUES(:uuid,:person_ident,:tilstand,:dokument,:journalpostID) ON CONFLICT(uuid) DO UPDATE " +
-            "SET tilstand=:tilstand, dokument_lokasjon=:dokument, journalpost_id=:journalpostID",
+            "SET tilstand=:tilstand, dokument_lokasjon=:dokument, journalpost_id=:journalpostID, innsendt_tidspunkt = :innsendtTidspunkt",
         paramMap = mapOf(
             "uuid" to søknadsId,
             "person_ident" to personIdent,
             "tilstand" to tilstandType,
             "dokument" to dokumentLokasjon,
-            "journalpostID" to journalpostId
+            "journalpostID" to journalpostId,
+            "innsendtTidspunkt" to innsendtTidspunkt
         )
     ).asUpdate
 
@@ -180,14 +160,16 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
         person: Person,
         tilstand: Søknad.Tilstand,
         dokumentLokasjon: DokumentLokasjon?,
-        journalpostId: String?
+        journalpostId: String?,
+        innsendtTidspunkt: ZonedDateTime?
     ) {
         søknader.add(
             SøknadData(
                 søknadsId = søknadId,
                 tilstandType = tilstand.tilstandType.name,
                 dokumentLokasjon = dokumentLokasjon,
-                journalpostId = journalpostId
+                journalpostId = journalpostId,
+                innsendtTidspunkt = innsendtTidspunkt
             )
         )
     }

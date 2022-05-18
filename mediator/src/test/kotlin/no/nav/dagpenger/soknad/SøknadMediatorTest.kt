@@ -88,8 +88,9 @@ internal class SøknadMediatorTest {
 
         val søknadID = UUID.fromString(søknadId())
         mediator.behandle(SøknadInnsendtHendelse(søknadID, testIdent))
-        assertEquals(AvventerArkiverbarSøknad, hentOppdatertInspektør().gjeldendetilstand)
-        assertNotNull(livsyklusRepository.hentInnsendtTidspunkt(søknadID))
+        val oppdaterInspektør = hentOppdatertInspektør()
+        assertEquals(AvventerArkiverbarSøknad, oppdaterInspektør.gjeldendetilstand)
+        assertNotNull(oppdaterInspektør.innsendtTidspunkt)
         assertEquals(listOf("ArkiverbarSøknad"), behov(1))
 
         testRapid.sendTestMessage(arkiverbarsøknadLøsning(testIdent, søknadId(), "urn:dokument:1"))

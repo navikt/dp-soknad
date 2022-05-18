@@ -10,6 +10,7 @@ import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
+import java.time.ZonedDateTime
 import java.util.UUID
 
 class Søknad private constructor(
@@ -17,7 +18,8 @@ class Søknad private constructor(
     private val person: Person,
     private var tilstand: Tilstand,
     private var dokumentLokasjon: DokumentLokasjon?,
-    private var journalpostId: String?
+    private var journalpostId: String?,
+    private var innsendtTidspunkt: ZonedDateTime?
 ) : Aktivitetskontekst {
 
     constructor(søknadId: UUID, person: Person) : this(
@@ -25,7 +27,8 @@ class Søknad private constructor(
         person,
         UnderOpprettelse,
         dokumentLokasjon = null,
-        journalpostId = null
+        journalpostId = null,
+        innsendtTidspunkt = null
     )
 
     companion object {
@@ -41,7 +44,8 @@ class Søknad private constructor(
             person: Person,
             tilstandsType: String,
             dokumentLokasjon: DokumentLokasjon?,
-            journalpostId: String?
+            journalpostId: String?,
+            innsendtTidspunkt: ZonedDateTime?
         ): Søknad {
             val tilstand: Tilstand = when (Tilstand.Type.valueOf(tilstandsType)) {
                 Tilstand.Type.UnderOpprettelse -> Søknad.UnderOpprettelse
@@ -51,7 +55,7 @@ class Søknad private constructor(
                 Tilstand.Type.AvventerJournalføring -> Søknad.AvventerJournalføring
                 Tilstand.Type.Journalført -> Søknad.Journalført
             }
-            return Søknad(søknadId, person, tilstand, dokumentLokasjon, journalpostId)
+            return Søknad(søknadId, person, tilstand, dokumentLokasjon, journalpostId, innsendtTidspunkt)
         }
     }
 
@@ -162,6 +166,7 @@ class Søknad private constructor(
             get() = Tilstand.Type.Påbegynt
 
         override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
+            søknad.innsendtTidspunkt = søknadInnsendtHendelse.innsendtidspunkt()
             søknad.endreTilstand(AvventerArkiverbarSøknad, søknadInnsendtHendelse)
         }
 
@@ -174,10 +179,11 @@ class Søknad private constructor(
             get() = Tilstand.Type.AvventerArkiverbarSøknad
 
         override fun entering(søknadHendelse: Hendelse, søknad: Søknad) {
+            val innsendtTidspunkt = requireNotNull(søknad.innsendtTidspunkt) { "Forventer at innsendttidspunkt er satt i tilstand $tilstandType" }
             søknadHendelse.behov(
                 Behovtype.ArkiverbarSøknad, "Trenger søknad på et arkiverbart format",
                 mapOf(
-                    "innsendtTidspunkt" to (søknadHendelse as SøknadInnsendtHendelse).innsendtidspunkt().toString()
+                    "innsendtTidspunkt" to innsendtTidspunkt.toString()
                 )
             )
             // TODO: Emit en hendelse som fører til at vi besvarer faktum i quiz for når søknaden/kravet ble fremsatt
@@ -221,7 +227,7 @@ class Søknad private constructor(
     }
 
     fun accept(visitor: SøknadVisitor) {
-        visitor.visitSøknad(søknadId, person, tilstand, dokumentLokasjon, journalpostId)
+        visitor.visitSøknad(søknadId, person, tilstand, dokumentLokasjon, journalpostId, innsendtTidspunkt)
         tilstand.accept(visitor)
     }
 

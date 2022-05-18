@@ -14,9 +14,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
-import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class LivsyklusPostgresRepositoryTest {
@@ -57,7 +55,8 @@ internal class LivsyklusPostgresRepositoryTest {
                     person = it,
                     tilstandsType = "Journalført",
                     dokumentLokasjon = "urn:hubba:bubba",
-                    journalpostId = "journalpostid"
+                    journalpostId = "journalpostid",
+                    innsendtTidspunkt = ZonedDateTime.now()
                 )
             )
         }
@@ -91,14 +90,16 @@ internal class LivsyklusPostgresRepositoryTest {
                     person = it,
                     tilstandsType = "Påbegynt",
                     dokumentLokasjon = "urn:hubba:la",
-                    journalpostId = "jouhasjk"
+                    journalpostId = "jouhasjk",
+                    innsendtTidspunkt = ZonedDateTime.now()
                 ),
                 Søknad.rehydrer(
                     søknadId = UUID.randomUUID(),
                     person = it,
                     tilstandsType = "Journalført",
                     dokumentLokasjon = "urn:hubba:bubba",
-                    journalpostId = "journalpostid"
+                    journalpostId = "journalpostid",
+                    innsendtTidspunkt = ZonedDateTime.now()
                 )
             )
         }
@@ -124,7 +125,8 @@ internal class LivsyklusPostgresRepositoryTest {
                     person = it,
                     tilstandsType = "Journalført",
                     dokumentLokasjon = "urn:hubba:bubba",
-                    journalpostId = "journalpostid"
+                    journalpostId = "journalpostid",
+                    innsendtTidspunkt = ZonedDateTime.now()
                 )
             )
         }
@@ -137,25 +139,6 @@ internal class LivsyklusPostgresRepositoryTest {
 
                 val søknaderFraDatabase = TestPersonVisitor(personFraDatabase).søknader
                 assertEquals(1, søknaderFraDatabase.size)
-            }
-        }
-    }
-
-    @Test
-    fun `lagrer innsendt tidspunkt`() {
-        val søknadId = UUID.randomUUID()
-        val innsendtTidspunkt = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.SECONDS)
-        val originalPerson = Person("12345678910") {
-            mutableListOf(
-                Søknad(søknadId, it)
-            )
-        }
-
-        withMigratedDb {
-            LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
-                it.lagre(originalPerson)
-                it.lagreInnsendtTidpunkt(søknadId, innsendtTidspunkt)
-                assertEquals(innsendtTidspunkt, it.hentInnsendtTidspunkt(søknadId))
             }
         }
     }
