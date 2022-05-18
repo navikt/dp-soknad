@@ -1,5 +1,8 @@
 # dp-soknad
 
+1. Eier livsylus på søknad fra Påbegynt til Journalført. 
+2. todo
+
 ## Komme i gang
 
 Gradle brukes som byggverktøy og er bundlet inn.
