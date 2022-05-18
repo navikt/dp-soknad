@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.postgresql.util.PGobject
+import java.time.ZonedDateTime
 import java.util.UUID
 
 internal class FerdigstiltSøknadPostgresRepositoryTest {
@@ -109,7 +110,8 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
                     person = it,
                     tilstandsType = "Journalført",
                     dokumentLokasjon = "urn:hubba:bubba",
-                    journalpostId = "journalpostid"
+                    journalpostId = "journalpostid",
+                    innsendtTidspunkt = ZonedDateTime.now()
                 )
             )
         }

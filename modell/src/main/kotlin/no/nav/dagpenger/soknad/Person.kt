@@ -64,13 +64,6 @@ class Person private constructor(
         søknaden.håndter(søknadOpprettetHendelse)
     }
 
-    private fun finnSøknad(søknadHendelse: SøknadHendelse) =
-        søknader.finnSøknad(søknadHendelse.søknadID()) ?: søknadHendelse.severe("Fant ikke søknaden")
-
-    private fun finnSøknad(journalførtHendelse: JournalførtHendelse): Søknad? {
-        return søknader.finnSøknad(journalførtHendelse.journalpostId())
-    }
-
     fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
         kontekst(søknadInnsendtHendelse, "Sender inn søknaden")
         val søknaden = finnSøknad(søknadInnsendtHendelse)
@@ -117,6 +110,13 @@ class Person private constructor(
         observers.forEach {
             it.søknadTilstandEndret(event)
         }
+    }
+
+    private fun finnSøknad(søknadHendelse: SøknadHendelse) =
+        søknader.finnSøknad(søknadHendelse.søknadID()) ?: søknadHendelse.severe("Fant ikke søknaden")
+
+    private fun finnSøknad(journalførtHendelse: JournalførtHendelse): Søknad? {
+        return søknader.finnSøknad(journalførtHendelse.journalpostId())
     }
 
     private fun kontekst(hendelse: Hendelse, melding: String) {

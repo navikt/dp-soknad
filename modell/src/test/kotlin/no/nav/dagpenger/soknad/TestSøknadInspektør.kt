@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
+import java.time.ZonedDateTime
 import java.util.UUID
 
 internal class TestSøknadInspektør(person: Person) : PersonVisitor {
@@ -18,7 +19,8 @@ internal class TestSøknadInspektør(person: Person) : PersonVisitor {
         person: Person,
         tilstand: Søknad.Tilstand,
         dokumentLokasjon: DokumentLokasjon?,
-        journalpostId: String?
+        journalpostId: String?,
+        innsendtTidspunkt: ZonedDateTime?
     ) {
         this.søknadId = søknadId
     }

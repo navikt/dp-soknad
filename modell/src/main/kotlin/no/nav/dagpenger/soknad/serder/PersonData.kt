@@ -4,6 +4,7 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.SpesifikkKontekst
 import no.nav.dagpenger.soknad.Søknad
+import java.time.ZonedDateTime
 import java.util.UUID
 
 class PersonData(
@@ -23,7 +24,8 @@ class PersonData(
                     person = p,
                     tilstandsType = it.tilstandType,
                     dokumentLokasjon = it.dokumentLokasjon,
-                    journalpostId = it.journalpostId
+                    journalpostId = it.journalpostId,
+                    innsendtTidspunkt = it.innsendtTidspunkt
                 )
             }.toMutableList()
         }
@@ -33,7 +35,8 @@ class PersonData(
         val søknadsId: UUID,
         val tilstandType: String,
         val dokumentLokasjon: String?,
-        val journalpostId: String?
+        val journalpostId: String?,
+        val innsendtTidspunkt: ZonedDateTime?
     )
 
     data class AktivitetsloggData(

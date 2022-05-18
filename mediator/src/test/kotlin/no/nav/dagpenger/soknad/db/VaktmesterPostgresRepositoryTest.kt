@@ -9,6 +9,7 @@ import no.nav.dagpenger.soknad.Søknad
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -26,21 +27,24 @@ internal class VaktmesterPostgresRepositoryTest {
                     person = it,
                     tilstandsType = "Påbegynt",
                     dokumentLokasjon = "urn:hubba:la",
-                    journalpostId = "1456"
+                    journalpostId = "1456",
+                    innsendtTidspunkt = ZonedDateTime.now()
                 ),
                 Søknad.rehydrer(
                     søknadId = påbegyntSøknadIdNy,
                     person = it,
                     tilstandsType = "Påbegynt",
                     dokumentLokasjon = "urn:hubba:la",
-                    journalpostId = "jouhasjk"
+                    journalpostId = "jouhasjk",
+                    innsendtTidspunkt = ZonedDateTime.now()
                 ),
                 Søknad.rehydrer(
                     søknadId = journalførtSøknadId,
                     person = it,
                     tilstandsType = "Journalført",
                     dokumentLokasjon = "urn:hubba:bubba",
-                    journalpostId = "journalpostid"
+                    journalpostId = "journalpostid",
+                    innsendtTidspunkt = ZonedDateTime.now()
                 )
             )
         }
