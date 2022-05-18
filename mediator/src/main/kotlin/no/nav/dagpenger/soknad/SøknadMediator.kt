@@ -54,6 +54,7 @@ internal class SøknadMediator(
     }
 
     fun behandle(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
+        livsyklusRepository.lagreInnsendtTidpunkt(søknadInnsendtHendelse.søknadID(), søknadInnsendtHendelse.innsendtidspunkt())
         behandle(søknadInnsendtHendelse) { person ->
             person.håndter(søknadInnsendtHendelse)
         }

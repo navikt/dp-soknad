@@ -164,6 +164,7 @@ class Søknad private constructor(
         override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
             søknad.endreTilstand(AvventerArkiverbarSøknad, søknadInnsendtHendelse)
         }
+
         override fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse, søknad: Søknad) {
         }
     }
@@ -173,7 +174,12 @@ class Søknad private constructor(
             get() = Tilstand.Type.AvventerArkiverbarSøknad
 
         override fun entering(søknadHendelse: Hendelse, søknad: Søknad) {
-            søknadHendelse.behov(Behovtype.ArkiverbarSøknad, "Trenger søknad på et arkiverbart format")
+            søknadHendelse.behov(
+                Behovtype.ArkiverbarSøknad, "Trenger søknad på et arkiverbart format",
+                mapOf(
+                    "innsendtTidspunkt" to (søknadHendelse as SøknadInnsendtHendelse).innsendtidspunkt().toString()
+                )
+            )
             // TODO: Emit en hendelse som fører til at vi besvarer faktum i quiz for når søknaden/kravet ble fremsatt
         }
 

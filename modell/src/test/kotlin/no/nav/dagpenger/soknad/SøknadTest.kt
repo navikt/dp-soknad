@@ -43,8 +43,15 @@ internal class SøknadTest {
         håndterØnskeOmNySøknadHendelse()
         assertBehov(Behovtype.NySøknad, mapOf("ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
         håndterNySøknadOpprettet()
-        håndterSendInnSøknad()
-        assertBehov(Behovtype.ArkiverbarSøknad, mapOf("ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
+        val innsendtHendelse = håndterSendInnSøknad()
+        assertBehov(
+            Behovtype.ArkiverbarSøknad,
+            mapOf(
+                "ident" to testIdent,
+                "søknad_uuid" to inspektør.søknadId.toString(),
+                "innsendtTidspunkt" to innsendtHendelse.innsendtidspunkt().toString()
+            )
+        )
         håndterArkiverbarSøknad()
 
         val dokumenter = listOf(
@@ -59,7 +66,10 @@ internal class SøknadTest {
             )
         )
 
-        assertBehov(Behovtype.NyJournalpost, mapOf("dokumenter" to dokumenter, "ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
+        assertBehov(
+            Behovtype.NyJournalpost,
+            mapOf("dokumenter" to dokumenter, "ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString())
+        )
         håndterMidlertidigJournalførtSøknad()
         håndterJournalførtSøknad()
 
@@ -94,7 +104,14 @@ internal class SøknadTest {
     fun `en person kan kun ha én opprettet søknad av gangen`() {
         val person = Person(testIdent)
         person.håndter(ØnskeOmNySøknadHendelse(testIdent, UUID.randomUUID()))
-        assertThrows<Aktivitetslogg.AktivitetException> { person.håndter(ØnskeOmNySøknadHendelse(testIdent, UUID.randomUUID())) }
+        assertThrows<Aktivitetslogg.AktivitetException> {
+            person.håndter(
+                ØnskeOmNySøknadHendelse(
+                    testIdent,
+                    UUID.randomUUID()
+                )
+            )
+        }
     }
 
     private fun assertTilstander(vararg tilstander: Søknad.Tilstand.Type) {
@@ -116,6 +133,7 @@ internal class SøknadTest {
     private fun håndterJournalførtSøknad() {
         person.håndter(JournalførtHendelse(testJournalpostId, testIdent))
     }
+
     private fun assertBehov(behovtype: Behovtype, forventetDetaljer: Map<String, Any> = emptyMap()) {
         val behov = inspektør.personLogg.behov().find {
             it.type == behovtype
@@ -124,8 +142,10 @@ internal class SøknadTest {
         assertEquals(forventetDetaljer, behov.detaljer() + behov.kontekst())
     }
 
-    private fun håndterSendInnSøknad() {
-        person.håndter(SøknadInnsendtHendelse(inspektør.søknadId, testIdent))
+    private fun håndterSendInnSøknad(): SøknadInnsendtHendelse {
+        return SøknadInnsendtHendelse(inspektør.søknadId, testIdent).also {
+            person.håndter(it)
+        }
     }
 
     private fun håndterØnskeOmNySøknadHendelse() {
