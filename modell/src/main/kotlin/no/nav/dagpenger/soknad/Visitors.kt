@@ -1,7 +1,6 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Søknad.Tilstand
-import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -10,7 +9,7 @@ interface TilstandVisitor {
 }
 
 interface SøknadVisitor : TilstandVisitor {
-    fun visitSøknad(søknadId: UUID, person: Person, tilstand: Tilstand, dokumentLokasjon: DokumentLokasjon?, journalpostId: String?, innsendtTidspunkt: ZonedDateTime?) {}
+    fun visitSøknad(søknadId: UUID, person: Person, tilstand: Tilstand, dokument: Søknad.Dokument?, journalpostId: String?, innsendtTidspunkt: ZonedDateTime?) {}
 }
 
 interface PersonVisitor : SøknadVisitor, AktivitetsloggVisitor {

@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad.mottak
 
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.ArkiverbarSøknad
+import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -37,7 +38,11 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
         val søknadID = packet["søknad_uuid"].asUUID()
         val dokumentLokasjon = packet["@løsning"][behov].asText()
         val arkiverbarSøknadMottattHendelse =
-            ArkiverbarSøknadMottattHendelse(søknadID, packet["ident"].asText(), dokumentLokasjon)
+            ArkiverbarSøknadMottattHendelse(
+                søknadID,
+                packet["ident"].asText(),
+                Søknad.Dokument(varianter = emptyList())
+            ) // todo
         logger.info { "Fått løsning for $behov for $søknadID" }
         mediator.behandle(arkiverbarSøknadMottattHendelse)
     }

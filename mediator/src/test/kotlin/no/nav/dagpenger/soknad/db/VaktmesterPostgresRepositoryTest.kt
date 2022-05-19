@@ -26,7 +26,7 @@ internal class VaktmesterPostgresRepositoryTest {
                     søknadId = påbegyntSøknadGammel,
                     person = it,
                     tilstandsType = "Påbegynt",
-                    dokumentLokasjon = "urn:hubba:la",
+                    dokument = null,
                     journalpostId = "1456",
                     innsendtTidspunkt = ZonedDateTime.now()
                 ),
@@ -34,7 +34,7 @@ internal class VaktmesterPostgresRepositoryTest {
                     søknadId = påbegyntSøknadIdNy,
                     person = it,
                     tilstandsType = "Påbegynt",
-                    dokumentLokasjon = "urn:hubba:la",
+                    dokument = null,
                     journalpostId = "jouhasjk",
                     innsendtTidspunkt = ZonedDateTime.now()
                 ),
@@ -42,7 +42,7 @@ internal class VaktmesterPostgresRepositoryTest {
                     søknadId = journalførtSøknadId,
                     person = it,
                     tilstandsType = "Journalført",
-                    dokumentLokasjon = "urn:hubba:bubba",
+                    dokument = null,
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = ZonedDateTime.now()
                 )
@@ -90,6 +90,7 @@ internal class VaktmesterPostgresRepositoryTest {
         init {
             person?.accept(this)
         }
+
         lateinit var søknader: List<Søknad>
         override fun visitPerson(ident: String, søknader: List<Søknad>) {
             this.søknader = søknader

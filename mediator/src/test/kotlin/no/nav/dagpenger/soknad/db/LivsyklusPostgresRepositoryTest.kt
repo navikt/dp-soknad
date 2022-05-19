@@ -46,15 +46,30 @@ internal class LivsyklusPostgresRepositoryTest {
     }
 
     @Test
-    fun `Lagre og hente person med søknader og aktivitetslogg`() {
+    fun `Lagre og hente person med søknader, dokumenter og aktivitetslogg`() {
+        val søknadId1 = UUID.randomUUID()
+        val søknadId2 = UUID.randomUUID()
         val originalPerson = Person("12345678910") {
             mutableListOf(
-                Søknad(UUID.randomUUID(), it),
+                Søknad(søknadId1, it),
                 Søknad.rehydrer(
-                    søknadId = UUID.randomUUID(),
+                    søknadId = søknadId2,
                     person = it,
                     tilstandsType = "Journalført",
-                    dokumentLokasjon = "urn:hubba:bubba",
+                    dokument = Søknad.Dokument(
+                        varianter = listOf(
+                            Søknad.Dokument.Variant(
+                                urn = "urn:soknad:fil1",
+                                format = "ARKIV",
+                                type = "PDF"
+                            ),
+                            Søknad.Dokument.Variant(
+                                urn = "urn:soknad:fil2",
+                                format = "ARKIV",
+                                type = "PDF"
+                            )
+                        )
+                    ),
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = ZonedDateTime.now()
                 )
@@ -72,6 +87,8 @@ internal class LivsyklusPostgresRepositoryTest {
                 val originalVisitor = TestPersonVisitor(originalPerson)
                 val søknaderFraDatabase = fraDatabaseVisitor.søknader
                 val originalSøknader = originalVisitor.søknader
+                assertNull(fraDatabaseVisitor.dokumenter.get(søknadId1))
+                assertEquals(2, fraDatabaseVisitor.dokumenter[søknadId2]?.varianter?.size)
                 assertDeepEquals(originalSøknader.first(), søknaderFraDatabase.first())
                 assertDeepEquals(originalSøknader.last(), søknaderFraDatabase.last())
 
@@ -89,7 +106,7 @@ internal class LivsyklusPostgresRepositoryTest {
                     søknadId = UUID.randomUUID(),
                     person = it,
                     tilstandsType = "Påbegynt",
-                    dokumentLokasjon = "urn:hubba:la",
+                    dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "jouhasjk",
                     innsendtTidspunkt = ZonedDateTime.now()
                 ),
@@ -97,7 +114,7 @@ internal class LivsyklusPostgresRepositoryTest {
                     søknadId = UUID.randomUUID(),
                     person = it,
                     tilstandsType = "Journalført",
-                    dokumentLokasjon = "urn:hubba:bubba",
+                    dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = ZonedDateTime.now()
                 )
@@ -124,7 +141,7 @@ internal class LivsyklusPostgresRepositoryTest {
                     søknadId = søknadId,
                     person = it,
                     tilstandsType = "Journalført",
-                    dokumentLokasjon = "urn:hubba:bubba",
+                    dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = ZonedDateTime.now()
                 )
@@ -148,14 +165,27 @@ internal class LivsyklusPostgresRepositoryTest {
     }
 
     private class TestPersonVisitor(person: Person?) : PersonVisitor {
+        val dokumenter: MutableMap<UUID, Søknad.Dokument> = mutableMapOf()
+        lateinit var søknader: List<Søknad>
+        lateinit var aktivitetslogg: Aktivitetslogg
+
         init {
             person?.accept(this)
         }
 
-        lateinit var søknader: List<Søknad>
-        lateinit var aktivitetslogg: Aktivitetslogg
         override fun visitPerson(ident: String, søknader: List<Søknad>) {
             this.søknader = søknader
+        }
+
+        override fun visitSøknad(
+            søknadId: UUID,
+            person: Person,
+            tilstand: Søknad.Tilstand,
+            dokument: Søknad.Dokument?,
+            journalpostId: String?,
+            innsendtTidspunkt: ZonedDateTime?
+        ) {
+            dokument?.let { dokumenter[søknadId] = it }
         }
 
         override fun postVisitAktivitetslogg(aktivitetslogg: Aktivitetslogg) {

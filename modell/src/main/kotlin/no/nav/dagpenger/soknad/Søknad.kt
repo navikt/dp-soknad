@@ -2,7 +2,6 @@ package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
-import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
@@ -17,7 +16,7 @@ class Søknad private constructor(
     private val søknadId: UUID,
     private val person: Person,
     private var tilstand: Tilstand,
-    private var dokumentLokasjon: DokumentLokasjon?,
+    private var dokument: Dokument?,
     private var journalpostId: String?,
     private var innsendtTidspunkt: ZonedDateTime?
 ) : Aktivitetskontekst {
@@ -26,7 +25,7 @@ class Søknad private constructor(
         søknadId,
         person,
         UnderOpprettelse,
-        dokumentLokasjon = null,
+        dokument = null,
         journalpostId = null,
         innsendtTidspunkt = null
     )
@@ -43,7 +42,7 @@ class Søknad private constructor(
             søknadId: UUID,
             person: Person,
             tilstandsType: String,
-            dokumentLokasjon: DokumentLokasjon?,
+            dokument: Dokument?,
             journalpostId: String?,
             innsendtTidspunkt: ZonedDateTime?
         ): Søknad {
@@ -55,7 +54,7 @@ class Søknad private constructor(
                 Tilstand.Type.AvventerJournalføring -> Søknad.AvventerJournalføring
                 Tilstand.Type.Journalført -> Søknad.Journalført
             }
-            return Søknad(søknadId, person, tilstand, dokumentLokasjon, journalpostId, innsendtTidspunkt)
+            return Søknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt)
         }
     }
 
@@ -179,7 +178,8 @@ class Søknad private constructor(
             get() = Tilstand.Type.AvventerArkiverbarSøknad
 
         override fun entering(søknadHendelse: Hendelse, søknad: Søknad) {
-            val innsendtTidspunkt = requireNotNull(søknad.innsendtTidspunkt) { "Forventer at innsendttidspunkt er satt i tilstand $tilstandType" }
+            val innsendtTidspunkt =
+                requireNotNull(søknad.innsendtTidspunkt) { "Forventer at innsendttidspunkt er satt i tilstand $tilstandType" }
             søknadHendelse.behov(
                 Behovtype.ArkiverbarSøknad, "Trenger søknad på et arkiverbart format",
                 mapOf(
@@ -190,7 +190,7 @@ class Søknad private constructor(
         }
 
         override fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse, søknad: Søknad) {
-            søknad.dokumentLokasjon = arkiverbarSøknadMotattHendelse.dokumentLokasjon()
+            søknad.dokument = arkiverbarSøknadMotattHendelse.dokumentLokasjon()
             søknad.endreTilstand(AvventerMidlertidligJournalføring, arkiverbarSøknadMotattHendelse)
         }
     }
@@ -227,7 +227,7 @@ class Søknad private constructor(
     }
 
     fun accept(visitor: SøknadVisitor) {
-        visitor.visitSøknad(søknadId, person, tilstand, dokumentLokasjon, journalpostId, innsendtTidspunkt)
+        visitor.visitSøknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt)
         tilstand.accept(visitor)
     }
 
@@ -251,32 +251,20 @@ class Søknad private constructor(
     }
 
     private fun trengerNyJournalpost(søknadHendelse: Hendelse) {
-        val dokumentLokasjon = requireNotNull(dokumentLokasjon) {
-            "Forventet at variabel dokumentLokasjon var satt. Er i tilstand: $tilstand"
-        }
-
-        val dokumenter = listOf(
-            Dokument(
-                varianter = listOf(
-                    Dokument.Variant(
-                        urn = dokumentLokasjon,
-                        format = "ARKIV",
-                        type = "PDF"
-                    )
-                )
-            )
-        )
+        val dokumenter = requireNotNull(dokument) {
+            "Forventet at variabel dokumenter var satt. Er i tilstand: $tilstand"
+        }.let { listOf(it) }
 
         søknadHendelse.behov(
             Behovtype.NyJournalpost,
             "Trenger å journalføre søknad",
-            mapOf("dokumenter" to dokumenter)
+            mapOf("dokumenter" to listOf(dokumenter))
         )
     }
 
     fun deepEquals(other: Any?): Boolean =
         other is Søknad && other.søknadId == this.søknadId && other.person == this.person &&
-            other.tilstand == this.tilstand && other.dokumentLokasjon == this.dokumentLokasjon &&
+            other.tilstand == this.tilstand && other.dokument == this.dokument &&
             other.journalpostId == this.journalpostId
 
     private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: Hendelse) {

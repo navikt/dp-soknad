@@ -109,7 +109,7 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
                     søknadId = søknadId,
                     person = it,
                     tilstandsType = "Journalført",
-                    dokumentLokasjon = "urn:hubba:bubba",
+                    dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = ZonedDateTime.now()
                 )

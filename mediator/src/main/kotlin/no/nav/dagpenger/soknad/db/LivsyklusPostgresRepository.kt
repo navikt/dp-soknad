@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.db
 
+import kotliquery.Session
 import kotliquery.action.UpdateQueryAction
 import kotliquery.queryOf
 import kotliquery.sessionOf
@@ -9,7 +10,6 @@ import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
-import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.soknad.serder.PersonData
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData
@@ -24,42 +24,29 @@ import javax.sql.DataSource
 class LivsyklusPostgresRepository(private val dataSource: DataSource) : LivsyklusRepository {
 
     override fun hent(ident: String): Person? {
-        val personData: PersonData? = using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf(
-                    hentAktivitetsloggOgPersonQuery,
-                    paramMap = mapOf("ident" to ident)
-                ).map { r ->
-                    r.longOrNull("person_id")?.let {
-                        PersonData(
-                            internId = it,
-                            ident = r.string("person_ident"),
-                            aktivitetsLogg = r.binaryStream("aktivitetslogg").aktivitetslogg()
-                        )
-                    }
-                }.asSingle
-            )
-        }
-
-        return personData?.also { person ->
-            person.søknader = using(sessionOf(dataSource)) { session ->
-                session.run(
+        return using(sessionOf(dataSource)) { session ->
+            session.transaction { tx ->
+                tx.run(
                     queryOf(
                         //language=PostgreSQL
-                        """SELECT uuid, tilstand, dokument_lokasjon, journalpost_id, innsendt_tidspunkt FROM soknad_v1 WHERE person_ident = :ident """,
-                        mapOf("ident" to person.ident)
+                        """
+                                SELECT p.id AS person_id, p.ident AS person_ident, a.data AS aktivitetslogg 
+                                FROM person_v1 AS p, aktivitetslogg_v1 AS a 
+                                WHERE p.id=a.id AND p.ident=:ident
+                        """.trimIndent(),
+                        paramMap = mapOf("ident" to ident)
                     ).map { r ->
-                        SøknadData(
-                            UUID.fromString(r.string("uuid")),
-                            r.string("tilstand"),
-                            r.stringOrNull("dokument_lokasjon"),
-                            r.stringOrNull("journalpost_id"),
-                            r.zonedDateTimeOrNull("innsendt_tidspunkt")
-                        )
-                    }.asList
-                )
+                        r.stringOrNull("person_ident")?.let { ident ->
+                            PersonData(
+                                ident = r.string("person_ident"),
+                                aktivitetsLogg = r.binaryStream("aktivitetslogg").aktivitetslogg(),
+                                søknader = tx.hentSøknadsData(ident)
+                            )
+                        }
+                    }.asSingle
+                )?.createPerson()
             }
-        }?.createPerson()
+        }
     }
 
     override fun lagre(person: Person) {
@@ -97,6 +84,7 @@ class LivsyklusPostgresRepository(private val dataSource: DataSource) : Livsyklu
                 )
                 visitor.søknader.forEach {
                     tx.run(it.insertQuery(visitor.ident))
+                    it.insertDokumentQuery(tx)
                 }
             }
         }
@@ -116,23 +104,83 @@ class LivsyklusPostgresRepository(private val dataSource: DataSource) : Livsyklu
             )
         }
     }
+
+    private fun Session.hentDokumentData(søknadId: UUID): List<SøknadData.DokumentData> {
+        return this.run(
+            queryOf(
+                //language=PostgreSQL
+                statement = """
+                SELECT dokument_lokasjon FROM dokument_v1 
+                WHERE soknad_uuid = :soknadId
+                """.trimIndent(),
+                paramMap = mapOf(
+                    "soknadId" to søknadId.toString()
+                )
+            ).map { row ->
+                SøknadData.DokumentData(urn = row.string("dokument_lokasjon"))
+            }.asList
+        )
+    }
+
+    private fun Session.hentSøknadsData(ident: String): List<SøknadData> {
+        return this.run(
+            queryOf(
+                //language=PostgreSQL
+                statement = """
+                    SELECT uuid, tilstand, journalpost_id, innsendt_tidspunkt
+                    FROM  soknad_v1
+                    WHERE person_ident = :ident
+                """.trimIndent(),
+                paramMap = mapOf(
+                    "ident" to ident
+                )
+            ).map { row ->
+                val søknadsId = UUID.fromString(row.string("uuid"))
+                SøknadData(
+                    søknadsId = søknadsId,
+                    tilstandType = row.string("tilstand"),
+                    dokumenter = hentDokumentData(søknadsId),
+                    journalpostId = row.stringOrNull("journalpost_id"),
+                    innsendtTidspunkt = row.zonedDateTimeOrNull("innsendt_tidspunkt")
+                )
+            }.asList
+        )
+    }
 }
 
-private fun SøknadData.insertQuery(personIdent: String): UpdateQueryAction =
-    queryOf(
+private fun SøknadData.insertQuery(personIdent: String): UpdateQueryAction {
+    return queryOf(
         //language=PostgreSQL
-        statement = "INSERT INTO soknad_v1(uuid,person_ident,tilstand,dokument_lokasjon,journalpost_id) " +
-            "VALUES(:uuid,:person_ident,:tilstand,:dokument,:journalpostID) ON CONFLICT(uuid) DO UPDATE " +
-            "SET tilstand=:tilstand, dokument_lokasjon=:dokument, journalpost_id=:journalpostID, innsendt_tidspunkt = :innsendtTidspunkt",
+        statement = "INSERT INTO soknad_v1(uuid,person_ident,tilstand,journalpost_id) " +
+            "VALUES(:uuid,:person_ident,:tilstand,:journalpostID) ON CONFLICT(uuid) DO UPDATE " +
+            "SET tilstand=:tilstand,journalpost_id=:journalpostID, innsendt_tidspunkt = :innsendtTidspunkt",
         paramMap = mapOf(
             "uuid" to søknadsId,
             "person_ident" to personIdent,
             "tilstand" to tilstandType,
-            "dokument" to dokumentLokasjon,
             "journalpostID" to journalpostId,
             "innsendtTidspunkt" to innsendtTidspunkt
         )
     ).asUpdate
+}
+
+private fun SøknadData.insertDokumentQuery(session: Session) {
+    this.dokumenter.forEach { dokumentData ->
+        session.run(
+            queryOf(
+                //language=PostgreSQL
+                statement = """
+                 INSERT INTO dokument_v1(soknad_uuid, dokument_lokasjon)
+                     VALUES(:uuid, :urn) 
+                """.trimIndent(),
+                paramMap = mapOf(
+                    "uuid" to this.søknadsId.toString(),
+                    "urn" to dokumentData.urn
+                )
+            ).asUpdate
+        )
+    }
+}
 
 private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
     lateinit var ident: String
@@ -159,7 +207,7 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
         søknadId: UUID,
         person: Person,
         tilstand: Søknad.Tilstand,
-        dokumentLokasjon: DokumentLokasjon?,
+        dokument: Søknad.Dokument?,
         journalpostId: String?,
         innsendtTidspunkt: ZonedDateTime?
     ) {
@@ -167,20 +215,17 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
             SøknadData(
                 søknadsId = søknadId,
                 tilstandType = tilstand.tilstandType.name,
-                dokumentLokasjon = dokumentLokasjon,
+                dokumenter = dokument.toDokumentData(),
                 journalpostId = journalpostId,
                 innsendtTidspunkt = innsendtTidspunkt
             )
         )
     }
+
+    private fun Søknad.Dokument?.toDokumentData(): List<SøknadData.DokumentData> {
+        return this?.let { it.varianter.map { v -> SøknadData.DokumentData(urn = v.urn) } }
+            ?: emptyList()
+    }
 }
 
 data class PåbegyntSøknad(val uuid: UUID, val startDato: LocalDate)
-
-private val hentAktivitetsloggOgPersonQuery =
-    //language=PostgreSQL
-    """
-            SELECT p.id AS person_id, p.ident AS person_ident, a.data AS aktivitetslogg 
-            FROM person_v1 AS p, aktivitetslogg_v1 AS a 
-            WHERE p.id=a.id AND p.ident=:ident
-    """.trimIndent()

@@ -14,7 +14,6 @@ import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository
 import no.nav.dagpenger.soknad.db.LivsyklusRepository
 import no.nav.dagpenger.soknad.db.Postgres
 import no.nav.dagpenger.soknad.db.SøknadMalRepository
-import no.nav.dagpenger.soknad.hendelse.DokumentLokasjon
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.mottak.ArkiverbarSøknadMottattHendelseMottak
@@ -93,7 +92,13 @@ internal class SøknadMediatorTest {
         assertNotNull(oppdaterInspektør.innsendtTidspunkt)
         assertEquals(listOf("ArkiverbarSøknad"), behov(1))
 
-        testRapid.sendTestMessage(arkiverbarsøknadLøsning(testIdent, søknadId(), "urn:dokument:1"))
+        testRapid.sendTestMessage(
+            arkiverbarsøknadLøsning(
+                testIdent,
+                søknadId(),
+                Søknad.Dokument(varianter = emptyList())
+            )
+        )
         assertEquals(AvventerMidlertidligJournalføring, hentOppdatertInspektør().gjeldendetilstand)
 
         assertEquals(listOf("NyJournalpost"), behov(2))
@@ -147,7 +152,7 @@ internal class SøknadMediatorTest {
     }""".trimMargin()
 
     // language=JSON
-    private fun arkiverbarsøknadLøsning(ident: String, søknadUuid: String, dokumentLokasjon: DokumentLokasjon) = """
+    private fun arkiverbarsøknadLøsning(ident: String, søknadUuid: String, dokument: Søknad.Dokument) = """
     {
       "@event_name": "behov",
       "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
@@ -167,7 +172,7 @@ internal class SøknadMediatorTest {
         }
       ],
       "@løsning": {
-        "ArkiverbarSøknad": "$dokumentLokasjon"
+        "ArkiverbarSøknad": "$dokument"
       }
 }""".trimMargin()
 

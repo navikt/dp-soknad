@@ -4,11 +4,11 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.SpesifikkKontekst
 import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentData.Companion.rehydrer
 import java.time.ZonedDateTime
 import java.util.UUID
 
 class PersonData(
-    val internId: Long,
     val ident: String,
     var søknader: List<SøknadData> = listOf(),
     var aktivitetsLogg: AktivitetsloggData? = null
@@ -23,7 +23,7 @@ class PersonData(
                     søknadId = it.søknadsId,
                     person = p,
                     tilstandsType = it.tilstandType,
-                    dokumentLokasjon = it.dokumentLokasjon,
+                    dokument = it.dokumenter.rehydrer(),
                     journalpostId = it.journalpostId,
                     innsendtTidspunkt = it.innsendtTidspunkt
                 )
@@ -34,10 +34,30 @@ class PersonData(
     class SøknadData(
         val søknadsId: UUID,
         val tilstandType: String,
-        val dokumentLokasjon: String?,
+        var dokumenter: List<DokumentData>,
         val journalpostId: String?,
         val innsendtTidspunkt: ZonedDateTime?
-    )
+    ) {
+        class DokumentData(
+            val urn: String,
+        ) {
+            companion object {
+                fun List<DokumentData>.rehydrer(): Søknad.Dokument? {
+                    return if (this.isEmpty()) null else {
+                        Søknad.Dokument(
+                            varianter = this.map {
+                                Søknad.Dokument.Variant(
+                                    urn = it.urn,
+                                    format = "PDF",
+                                    type = "ARKIV"
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     data class AktivitetsloggData(
         val aktiviteter: List<AktivitetData>
