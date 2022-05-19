@@ -251,14 +251,14 @@ class Søknad private constructor(
     }
 
     private fun trengerNyJournalpost(søknadHendelse: Hendelse) {
-        val dokumenter = requireNotNull(dokument) {
+        val dokument = requireNotNull(dokument) {
             "Forventet at variabel dokumenter var satt. Er i tilstand: $tilstand"
-        }.let { listOf(it) }
+        }
 
         søknadHendelse.behov(
             Behovtype.NyJournalpost,
             "Trenger å journalføre søknad",
-            mapOf("dokumenter" to listOf(dokumenter))
+            mapOf("dokumenter" to listOf(dokument))
         )
     }
 

@@ -48,8 +48,8 @@ class PersonData(
                             varianter = this.map {
                                 Søknad.Dokument.Variant(
                                     urn = it.urn,
-                                    format = "PDF",
-                                    type = "ARKIV"
+                                    format = "ARKIV",
+                                    type = "PDF"
                                 )
                             }
                         )

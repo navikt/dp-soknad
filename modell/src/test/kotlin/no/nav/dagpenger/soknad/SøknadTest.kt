@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
+import no.nav.dagpenger.soknad.Søknad.Dokument.Variant
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerArkiverbarSøknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerJournalføring
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerMidlertidligJournalføring
@@ -57,7 +58,7 @@ internal class SøknadTest {
         val dokumenter = listOf(
             Søknad.Dokument(
                 varianter = listOf(
-                    Søknad.Dokument.Variant(
+                    Variant(
                         urn = "urn:dokument:1",
                         format = "ARKIV",
                         type = "PDF"
@@ -123,7 +124,13 @@ internal class SøknadTest {
     }
 
     private fun håndterArkiverbarSøknad() {
-        person.håndter(ArkiverbarSøknadMottattHendelse(inspektør.søknadId, testIdent, "urn:dokument:1"))
+        person.håndter(
+            ArkiverbarSøknadMottattHendelse(
+                inspektør.søknadId,
+                testIdent,
+                "urn:dokument:1".lagTestDokument()
+            )
+        )
     }
 
     private fun håndterMidlertidigJournalførtSøknad() {
@@ -156,3 +163,9 @@ internal class SøknadTest {
         plantUmlObservatør.verify(tittel)
     }
 }
+
+private fun String.lagTestDokument(): Søknad.Dokument = Søknad.Dokument(
+    varianter = listOf(
+        Variant(this, "ARKIV", "PDF")
+    )
+)
