@@ -11,7 +11,7 @@ class ArkiverbarSøknadMottattHendelse(
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 ) : SøknadHendelse(søknadID, ident, aktivitetslogg) {
 
-    internal fun dokumentLokasjon() = dokument
+    fun dokumentLokasjon() = dokument
     fun valider(): Boolean {
         return true
         // TODO: Husk å validere

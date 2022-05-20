@@ -1,8 +1,10 @@
 package no.nav.dagpenger.soknad.mottak
 
+import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.ArkiverbarSøknad
 import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.Søknad.Dokument.Variant
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -34,14 +36,22 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
         }.register(this)
     }
 
+    private fun JsonNode.dokumentVarianter(): List<Variant> = this.toList().map { node ->
+        Variant(
+            urn = node["urn"].asText(),
+            format = "ARKIV",
+            type = node["metainfo"]["filtype"].asText()
+        )
+    }
+
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val søknadID = packet["søknad_uuid"].asUUID()
-        val dokumentLokasjon = packet["@løsning"][behov].asText()
+        val dokumentVarianter: List<Variant> = packet["@løsning"][behov].dokumentVarianter()
         val arkiverbarSøknadMottattHendelse =
             ArkiverbarSøknadMottattHendelse(
                 søknadID,
                 packet["ident"].asText(),
-                Søknad.Dokument(varianter = emptyList())
+                Søknad.Dokument(varianter = dokumentVarianter)
             ) // todo
         logger.info { "Fått løsning for $behov for $søknadID" }
         mediator.behandle(arkiverbarSøknadMottattHendelse)
