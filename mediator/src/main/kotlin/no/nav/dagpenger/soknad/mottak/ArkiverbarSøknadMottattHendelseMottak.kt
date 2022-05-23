@@ -36,24 +36,30 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
         }.register(this)
     }
 
-    private fun JsonNode.dokumentVarianter(): List<Variant> = this.toList().map { node ->
-        Variant(
-            urn = node["urn"].asText(),
-            format = "ARKIV",
-            type = node["metainfo"]["filtype"].asText()
-        )
-    }
-
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val søknadID = packet["søknad_uuid"].asUUID()
-        val dokumentVarianter: List<Variant> = packet["@løsning"][behov].dokumentVarianter()
         val arkiverbarSøknadMottattHendelse =
             ArkiverbarSøknadMottattHendelse(
                 søknadID,
                 packet["ident"].asText(),
-                Søknad.Dokument(varianter = dokumentVarianter)
+                Søknad.Dokument(varianter = packet["@løsning"][behov].dokumentVarianter())
             ) // todo
         logger.info { "Fått løsning for $behov for $søknadID" }
         mediator.behandle(arkiverbarSøknadMottattHendelse)
+    }
+
+    private fun JsonNode.dokumentVarianter(): List<Variant> = this.toList().map { node ->
+        val format = when (node["metainfo"]["variant"].asText()) {
+            "NETTO" -> "ARKIV"
+            "BRUTTO" -> "FULLVERSJON"
+            else -> {
+                throw IllegalArgumentException("Ukjent joarkvariant, se https://confluence.adeo.no/display/BOA/Variantformat")
+            }
+        }
+        Variant(
+            urn = node["urn"].asText(),
+            format = format,
+            type = node["metainfo"]["filtype"].asText()
+        )
     }
 }

@@ -37,14 +37,15 @@ internal class ArkiverbarSøknadMottattHendelseMottakTest {
                 ),
                 Søknad.Dokument.Variant(
                     urn = "urn:vedlegg:soknadId/brutto.pdf",
-                    format = "ARKIV",
+                    format = "FULLVERSJON",
                     type = "PDF"
                 )
             ).sortedBy { it.urn },
-            slot.captured.dokumentLokasjon().varianter.sortedBy { it.urn }
+            slot.captured.dokument().varianter.sortedBy { it.urn }
         )
     }
 
+    //language=JSON
     private val losning = """
        {
   "@event_name": "behov",
@@ -69,21 +70,23 @@ internal class ArkiverbarSøknadMottattHendelseMottakTest {
   ],
   "@løsning": {
     "ArkiverbarSøknad": [
-      {
-        "metainfo": {
-          "innhold": "brutto.pdf",
-          "filtype": "PDF"
-        },
-        "urn": "urn:vedlegg:soknadId/brutto.pdf"
-      },
-      {
-        "metainfo": {
-          "innhold": "netto.pdf",
-          "filtype": "PDF"
-        },
-        "urn": "urn:vedlegg:soknadId/netto.pdf"
-      }
-    ]
+                  {
+                    "metainfo": {
+                      "innhold": "netto.pdf",
+                      "filtype": "PDF", 
+                      "variant": "NETTO"
+                    },
+                    "urn": "urn:vedlegg:soknadId/netto.pdf"
+                  },
+                  {
+                    "metainfo": {
+                      "innhold": "brutto.pdf",
+                      "filtype": "PDF",
+                      "variant": "BRUTTO"
+                    },
+                    "urn": "urn:vedlegg:soknadId/brutto.pdf"
+                  }
+                ]
   },
   "@forårsaket_av": {
     "id": "d29c1547-4832-4cf2-9f14-117dd2cc9110",

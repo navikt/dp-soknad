@@ -190,7 +190,7 @@ class Søknad private constructor(
         }
 
         override fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse, søknad: Søknad) {
-            søknad.dokument = arkiverbarSøknadMotattHendelse.dokumentLokasjon()
+            søknad.dokument = arkiverbarSøknadMotattHendelse.dokument()
             søknad.endreTilstand(AvventerMidlertidligJournalføring, arkiverbarSøknadMotattHendelse)
         }
     }
