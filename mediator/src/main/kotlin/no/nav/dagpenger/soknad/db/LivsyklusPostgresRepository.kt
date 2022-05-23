@@ -171,7 +171,7 @@ private fun SøknadData.insertDokumentQuery(session: Session) {
                 //language=PostgreSQL
                 statement = """
                  INSERT INTO dokument_v1(soknad_uuid, dokument_lokasjon)
-                     VALUES(:uuid, :urn) 
+                     VALUES(:uuid, :urn) ON CONFLICT (dokument_lokasjon) DO NOTHING 
                 """.trimIndent(),
                 paramMap = mapOf(
                     "uuid" to this.søknadsId.toString(),

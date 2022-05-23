@@ -102,6 +102,7 @@ internal class SøknadMediator(
             withMDC(err.kontekst()) {
                 sikkerLogger.error("alvorlig feil i aktivitetslogg: ${err.message}", err)
             }
+            throw err
         } catch (e: Exception) {
             errorHandler(e, e.message ?: "Ukjent feil")
         }
