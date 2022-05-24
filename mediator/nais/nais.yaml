@@ -44,6 +44,7 @@ spec:
       rules:
         - application: dp-soknadsdialog
         - application: dp-behov-soknad-pdf
+        - application: dp-behov-journalforing
   env:
     - name: DP_PROXY_SCOPE
       value: {{dp_proxy_scope}}
