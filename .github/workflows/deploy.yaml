@@ -111,5 +111,5 @@ jobs:
         env:
           USERNAME: "Github Actions"
           MESSAGE: "The build is broken!"
-          CHANNEL: "#team-dagpenger-quizshow"
+          CHANNEL: "#team-dagpenger-build"
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
