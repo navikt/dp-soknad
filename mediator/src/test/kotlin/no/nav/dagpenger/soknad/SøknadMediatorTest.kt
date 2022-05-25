@@ -20,12 +20,16 @@ import no.nav.dagpenger.soknad.mottak.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.dagpenger.soknad.mottak.JournalførtMottak
 import no.nav.dagpenger.soknad.mottak.NyJournalpostMottak
 import no.nav.dagpenger.soknad.mottak.SøknadOpprettetHendelseMottak
+import no.nav.dagpenger.soknad.søknad.SøkerOppgaveMottak
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 import java.util.UUID
 
 internal class SøknadMediatorTest {
@@ -43,6 +47,8 @@ internal class SøknadMediatorTest {
     @BeforeEach
     fun setup() {
         mediator = SøknadMediator(testRapid, livsyklusRepository, søknadMalRepositoryMock, ferdigstiltSøknadRepository)
+
+        SøkerOppgaveMottak(testRapid, mediator)
         SøknadOpprettetHendelseMottak(testRapid, mediator)
         ArkiverbarSøknadMottattHendelseMottak(testRapid, mediator)
         NyJournalpostMottak(testRapid, mediator)
@@ -76,17 +82,25 @@ internal class SøknadMediatorTest {
     }
 
     @Test
+    @Disabled
     fun `Skal håndtere ønske om ny søknad`() {
-        mediator.behandle(ØnskeOmNySøknadHendelse(testIdent, UUID.randomUUID()))
+
+        val søknadUuid = UUID.randomUUID()
+        mediator.behandle(ØnskeOmNySøknadHendelse(testIdent, søknadUuid))
         assertEquals(1, testRapid.inspektør.size)
         assertEquals(listOf("NySøknad"), behov(0))
         assertEquals(UnderOpprettelse, hentOppdatertInspektør().gjeldendetilstand)
 
-        testRapid.sendTestMessage(nySøknadBehovsløsning(søknadId()))
+        testRapid.sendTestMessage(nySøknadBehovsløsning(søknadUuid.toString()))
         assertEquals(Påbegynt, hentOppdatertInspektør().gjeldendetilstand)
 
-        val søknadID = UUID.fromString(søknadId())
-        mediator.behandle(SøknadInnsendtHendelse(søknadID, testIdent))
+        testRapid.sendTestMessage(faktumSvar(søknadUuid.toString()))
+        testRapid.sendTestMessage(søkerOppgave(søknadUuid.toString(), testIdent))
+        assertNotNull(livsyklusRepository.hent(søknadUuid))
+        testRapid.sendTestMessage(faktumSvar())
+        assertNull(livsyklusRepository.hent(søknadUuid))
+
+        mediator.behandle(SøknadInnsendtHendelse(søknadUuid, testIdent))
         val oppdaterInspektør = hentOppdatertInspektør()
         assertEquals(AvventerArkiverbarSøknad, oppdaterInspektør.gjeldendetilstand)
         assertNotNull(oppdaterInspektør.innsendtTidspunkt)
@@ -127,6 +141,52 @@ internal class SøknadMediatorTest {
 
     fun hentOppdatertInspektør(ident: String = testIdent) =
         TestPersonInspektør(livsyklusRepository.hent(ident)!!)
+
+    // language=JSON
+    private fun faktumSvar(søknadUuid: String = UUID.randomUUID().toString()) = """
+    {
+      "søknad_uuid": "$søknadUuid",
+      "@event_name": "faktum_svar",
+      "fakta": [
+        {
+          "id": "12345",
+          "svar": "Hest er best på maten",
+          "type": "tekst"
+        }
+      ],
+      "@opprettet": "${LocalDateTime.now()}",
+      "@id": "${UUID.randomUUID()}"
+}""".trimMargin()
+
+    // language=JSON
+    private fun søkerOppgave(søknadUuid: String, fødselsnummer: String) = """
+        {
+          "fødselsnummer" : $fødselsnummer,
+          "@event_name" : "søker_oppgave",
+          "versjon_id" : -2313,
+          "versjon_navn" : "Dagpenger",
+          "@opprettet" : "2022-05-25T15:58:42.935604",
+          "@id" : "9020622d-8b60-41d7-80d7-3405b0f2448d",
+          "søknad_uuid" : $søknadUuid,
+          "ferdig" : false,
+          "seksjoner" : [ {
+            "beskrivendeId" : "test",
+            "fakta" : [ {
+              "id" : "1",
+              "type" : "boolean",
+              "beskrivendeId" : "boolean",
+              "svar" : true,
+              "roller" : [ "søker" ],
+              "gyldigeValg" : [ "boolean.true", "boolean.false" ]
+            }, {
+              "id" : "2",
+              "type" : "int",
+              "beskrivendeId" : "heltall",
+              "roller" : [ "søker" ]
+            } ]
+          } ]
+        }
+    """.trimMargin()
 
     // language=JSON
     private fun nySøknadBehovsløsning(søknadUuid: String, ident: String = testIdent) = """
