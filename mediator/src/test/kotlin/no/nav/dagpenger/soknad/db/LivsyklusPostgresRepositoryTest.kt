@@ -9,6 +9,7 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository.PersistentSøkerOppgave
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.serder.objectMapper
 import no.nav.dagpenger.soknad.søknad.SøkerOppgave
@@ -39,6 +40,30 @@ internal class LivsyklusPostgresRepositoryTest {
                     it.lagre(expectedPerson)
                 }
             }
+        }
+    }
+
+    @Test
+    fun `Invaliderer riktig`() {
+        withMigratedDb {
+            val livssyklusRepository = LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
+            val søknadUuid = UUID.randomUUID()
+            val søknadUuid2 = UUID.randomUUID()
+            val eier = "12345678901"
+            val eier2 = "12345678902"
+            val søknad = PersistentSøkerOppgave(søknad(søknadUuid, fødselsnummer = eier))
+            val søknad2 = PersistentSøkerOppgave(søknad(søknadUuid2, fødselsnummer = eier2))
+
+            livssyklusRepository.invalider(søknadUuid, eier)
+            assertAntallRader(tabell = "SOKNAD", antallRader = 0)
+
+            livssyklusRepository.lagre(søknad)
+            livssyklusRepository.lagre(søknad2)
+
+            assertAntallRader(tabell = "SOKNAD", antallRader = 2)
+
+            livssyklusRepository.invalider(søknadUuid, eier)
+            assertAntallRader(tabell = "SOKNAD", antallRader = 1)
         }
     }
 
@@ -212,10 +237,10 @@ internal class LivsyklusPostgresRepositoryTest {
 
     @Test
     fun `Lagre søknad og hente`() {
-        Postgres.withMigratedDb {
+        withMigratedDb {
             val postgresPersistence = LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
             val søknadUuid = UUID.randomUUID()
-            val søknad = LivsyklusPostgresRepository.PersistentSøkerOppgave(søknad(søknadUuid))
+            val søknad = PersistentSøkerOppgave(søknad(søknadUuid))
             postgresPersistence.lagre(søknad)
 
             val rehydrertSøknad = postgresPersistence.hent(søknadUuid)
@@ -228,11 +253,11 @@ internal class LivsyklusPostgresRepositoryTest {
     @Test
     fun `Lagre samme søknad id flere ganger appendes på raden, men siste versjon av søknad hentes`() {
         val søknadUuid = UUID.randomUUID()
-        Postgres.withMigratedDb {
+        withMigratedDb {
             val postgresPersistence = LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
-            postgresPersistence.lagre(LivsyklusPostgresRepository.PersistentSøkerOppgave(søknad(søknadUuid)))
+            postgresPersistence.lagre(PersistentSøkerOppgave(søknad(søknadUuid)))
             postgresPersistence.lagre(
-                LivsyklusPostgresRepository.PersistentSøkerOppgave(
+                PersistentSøkerOppgave(
                     søknad(
                         søknadUuid,
                         seksjoner = "oppdatert første gang"
@@ -240,7 +265,7 @@ internal class LivsyklusPostgresRepositoryTest {
                 )
             )
             postgresPersistence.lagre(
-                LivsyklusPostgresRepository.PersistentSøkerOppgave(
+                PersistentSøkerOppgave(
                     søknad(
                         søknadUuid,
                         seksjoner = "oppdatert andre gang"
@@ -250,13 +275,16 @@ internal class LivsyklusPostgresRepositoryTest {
             val rehydrertSøknad = postgresPersistence.hent(søknadUuid)
             assertEquals(søknadUuid, rehydrertSøknad.søknadUUID())
             assertEquals("12345678910", rehydrertSøknad.eier())
-            assertEquals("oppdatert andre gang", rehydrertSøknad.asFrontendformat()[SøkerOppgave.Keys.SEKSJONER].asText())
+            assertEquals(
+                "oppdatert andre gang",
+                rehydrertSøknad.asFrontendformat()[SøkerOppgave.Keys.SEKSJONER].asText()
+            )
         }
     }
 
     @Test
     fun `Henter en søknad som ikke finnes`() {
-        Postgres.withMigratedDb {
+        withMigratedDb {
             val postgresPersistence = LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
             assertThrows<NotFoundException> { postgresPersistence.hent(UUID.randomUUID()) }
         }
@@ -265,17 +293,17 @@ internal class LivsyklusPostgresRepositoryTest {
     @Test
     fun `Fødselsnummer skal ikke komme med som en del av frontendformatet, men skal fortsatt være en del av søknaden`() {
         val søknadJson = søknad(UUID.randomUUID())
-        val søknad = LivsyklusPostgresRepository.PersistentSøkerOppgave(søknadJson)
+        val søknad = PersistentSøkerOppgave(søknadJson)
 
         val frontendformat = søknad.asFrontendformat()
         Assertions.assertFalse(frontendformat.contains(SøkerOppgave.Keys.FØDSELSNUMMER))
         assertNotNull(søknad.eier())
     }
 
-    private fun søknad(søknadUuid: UUID, seksjoner: String = "seksjoner") = objectMapper.readTree(
+    private fun søknad(søknadUuid: UUID, seksjoner: String = "seksjoner", fødselsnummer: String = "12345678910") = objectMapper.readTree(
         """{
   "@event_name": "søker_oppgave",
-  "fødselsnummer": "12345678910",
+  "fødselsnummer": $fødselsnummer,
   "versjon_id": 0,
   "versjon_navn": "test",
   "@opprettet": "2022-05-13T14:48:09.059643",

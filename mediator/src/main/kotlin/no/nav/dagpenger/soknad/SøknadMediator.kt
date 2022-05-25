@@ -80,10 +80,6 @@ internal class SøknadMediator(
         }
     }
 
-    fun behandle(søkerOppgave: SøkerOppgave) {
-        livsyklusRepository.lagre(søkerOppgave)
-    }
-
     fun behandle(faktumSvar: FaktumSvar) {
         val faktumOppdatertHendelse = FaktumOppdatertHendelse(faktumSvar.søknadUuid(), faktumSvar.eier())
         behandle(faktumOppdatertHendelse) { person ->
@@ -91,6 +87,10 @@ internal class SøknadMediator(
             rapidsConnection.publish(faktumSvar.toJson())
         }
         logger.info { "Sendte faktum svar for ${faktumSvar.søknadUuid()}" }
+    }
+
+    fun behandle(søkerOppgave: SøkerOppgave) {
+        livsyklusRepository.lagre(søkerOppgave)
     }
 
     internal fun hentEllerOpprettSøknadsprosess(ident: String): Søknadsprosess {

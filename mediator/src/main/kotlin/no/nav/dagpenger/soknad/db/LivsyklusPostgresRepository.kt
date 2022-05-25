@@ -192,6 +192,16 @@ class LivsyklusPostgresRepository(private val dataSource: DataSource) : Livsyklu
         }
     }
 
+    override fun invalider(søknadUUID: UUID, eier: String): Boolean =
+        using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf(
+                    //language=PostgreSQL
+                    "DELETE FROM SOKNAD WHERE uuid = ? AND eier = ?", søknadUUID.toString(), eier
+                ).asExecute
+            )
+        }
+
     internal class PersistentSøkerOppgave(private val søknad: JsonNode) : SøkerOppgave {
         override fun søknadUUID(): UUID = UUID.fromString(søknad[SøkerOppgave.Keys.SØKNAD_UUID].asText())
         override fun eier(): String = søknad[SøkerOppgave.Keys.FØDSELSNUMMER].asText()
@@ -201,6 +211,7 @@ class LivsyklusPostgresRepository(private val dataSource: DataSource) : Livsyklu
             kopiAvSøknad.remove(SøkerOppgave.Keys.FØDSELSNUMMER)
             return kopiAvSøknad
         }
+
         override fun asJson(): String = søknad.toString()
     }
 }

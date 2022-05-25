@@ -8,6 +8,7 @@ import java.util.UUID
 interface LivsyklusRepository {
     fun hent(ident: String): Person?
     fun hent(søknadUUID: UUID): SøkerOppgave?
+    fun invalider(søknadUUID: UUID, eier: String): Boolean
     fun lagre(søkerOppgave: SøkerOppgave)
     fun lagre(person: Person)
     fun hentPåbegynte(personIdent: String): List<PåbegyntSøknad>
