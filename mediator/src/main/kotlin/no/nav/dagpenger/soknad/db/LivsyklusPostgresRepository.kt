@@ -1,5 +1,8 @@
 package no.nav.dagpenger.soknad.db
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ObjectNode
+import io.ktor.server.plugins.NotFoundException
 import kotliquery.Session
 import kotliquery.action.UpdateQueryAction
 import kotliquery.queryOf
@@ -14,6 +17,7 @@ import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetsl
 import no.nav.dagpenger.soknad.serder.PersonData
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData
 import no.nav.dagpenger.soknad.serder.objectMapper
+import no.nav.dagpenger.soknad.søknad.SøkerOppgave
 import no.nav.dagpenger.soknad.toMap
 import org.postgresql.util.PGobject
 import java.time.LocalDate
@@ -145,6 +149,59 @@ class LivsyklusPostgresRepository(private val dataSource: DataSource) : Livsyklu
                 )
             }.asList
         )
+    }
+
+    override fun lagre(søkerOppgave: SøkerOppgave) {
+        using(sessionOf(dataSource)) { session ->
+            session.transaction { tx ->
+
+                tx.run(
+                    // language=PostgreSQL
+                    queryOf(
+                        """INSERT INTO soknad(uuid, eier, soknad_data)
+                                    VALUES (:uuid, :eier, :data)
+                                    ON CONFLICT(uuid, eier) 
+                                    DO UPDATE SET soknad_data = :data,
+                                    opprettet = (NOW() AT TIME ZONE 'utc')
+                                    """,
+                        mapOf(
+                            "uuid" to søkerOppgave.søknadUUID(),
+                            "eier" to søkerOppgave.eier(),
+                            "data" to PGobject().also {
+                                it.type = "jsonb"
+                                it.value = søkerOppgave.asJson().toString()
+                            }
+                        )
+                    ).asUpdate,
+                )
+            }
+        }
+    }
+
+    override fun hent(søknadUUID: UUID): SøkerOppgave {
+        // language=PostgreSQL
+        return using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf(
+                    "SELECT uuid, eier, soknad_data FROM SOKNAD WHERE uuid = :uuid",
+                    mapOf("uuid" to søknadUUID.toString())
+                ).map { row ->
+                    PersistentSøkerOppgave(objectMapper.readTree(row.binaryStream("soknad_data")))
+                }.asSingle
+            ) ?: throw NotFoundException("Søknad med id '$søknadUUID' ikke funnet")
+        }
+    }
+
+    internal class PersistentSøkerOppgave(private val søknad: JsonNode) : SøkerOppgave {
+        override fun søknadUUID(): UUID = UUID.fromString(søknad[SøkerOppgave.Keys.SØKNAD_UUID].asText())
+        override fun eier(): String = søknad[SøkerOppgave.Keys.FØDSELSNUMMER].asText()
+        override fun asFrontendformat(): JsonNode {
+            søknad as ObjectNode
+            val kopiAvSøknad = søknad.deepCopy()
+            kopiAvSøknad.remove(SøkerOppgave.Keys.FØDSELSNUMMER)
+            return kopiAvSøknad
+        }
+        override fun asJson(): String = søknad.toString()
     }
 }
 

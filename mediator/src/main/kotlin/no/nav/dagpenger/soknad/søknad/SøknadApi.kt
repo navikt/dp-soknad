@@ -31,12 +31,10 @@ import java.util.UUID
 private val logger = KotlinLogging.logger {}
 
 internal fun søknadApiRouteBuilder(
-    store: SøknadStore,
     søknadMediator: SøknadMediator
-): Route.() -> Unit = { søknadApi(store, søknadMediator) }
+): Route.() -> Unit = { søknadApi(søknadMediator) }
 
 internal fun Route.søknadApi(
-    store: SøknadStore,
     søknadMediator: SøknadMediator
 ) {
     route("${Configuration.basePath}/soknad") {
@@ -63,11 +61,11 @@ internal fun Route.søknadApi(
         get("/{søknad_uuid}/neste") {
             val id = søknadUuid()
             val ident = call.ident()
-            val søknad: Søknad = hentNesteSeksjon(store, id)
-            if (ident != søknad.eier()) {
+            val søkerOppgave: SøkerOppgave = hentNesteSeksjon(søknadMediator, id)
+            if (ident != søkerOppgave.eier()) {
                 throw IkkeTilgangExeption("Ikke tilgang til søknad")
             }
-            call.respond(HttpStatusCode.OK, søknad.asFrontendformat())
+            call.respond(HttpStatusCode.OK, søkerOppgave.asFrontendformat())
         }
         put("/{søknad_uuid}/faktum/{faktumid}") {
             val søknadUuid = søknadUuid()
@@ -82,7 +80,7 @@ internal fun Route.søknadApi(
                 svar = input.svarAsJson
             )
 
-            store.håndter(faktumSvar)
+            søknadMediator.behandle(faktumSvar)
             call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { """{"status": "ok"}""" }
         }
 
@@ -107,9 +105,9 @@ internal fun Route.søknadApi(
 class IkkeTilgangExeption(melding: String) : RuntimeException(melding)
 
 private suspend fun hentNesteSeksjon(
-    store: SøknadStore,
+    søknadMediator: SøknadMediator,
     id: UUID
-) = retryIO(times = 10) { store.hentNesteSeksjon(id) ?: throw NotFoundException("Fant ikke søknad med id $id") }
+) = retryIO(times = 10) { søknadMediator.hent(id) ?: throw NotFoundException("Fant ikke søknad med id $id") }
 
 private fun PipelineContext<Unit, ApplicationCall>.søknadUuid() =
     call.parameters["søknad_uuid"].let { UUID.fromString(it) }

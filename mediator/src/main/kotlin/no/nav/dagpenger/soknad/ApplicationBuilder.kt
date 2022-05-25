@@ -16,9 +16,7 @@ import no.nav.dagpenger.soknad.observers.PersonLoggerObserver
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
 import no.nav.dagpenger.soknad.personalia.personaliaRouteBuilder
-import no.nav.dagpenger.soknad.søknad.Mediator
-import no.nav.dagpenger.soknad.søknad.PostgresPersistence
-import no.nav.dagpenger.soknad.søknad.SøknadStore
+import no.nav.dagpenger.soknad.søknad.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.søknad.ferdigStiltSøknadRouteBuilder
 import no.nav.dagpenger.soknad.søknad.søknadApiRouteBuilder
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -40,7 +38,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
                         tokenProvider = { Configuration.dpProxyTokenProvider.clientCredentials(Configuration.dpProxyScope).accessToken },
                     )
                 ),
-                søknadRouteBuilder = søknadApiRouteBuilder(store(), søknadMediator()),
+                søknadRouteBuilder = søknadApiRouteBuilder(søknadMediator()),
                 ferdigstiltRouteBuilder = ferdigStiltSøknadRouteBuilder(
                     ferdigstiltRepository
                 )
@@ -48,11 +46,6 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         }
     }.build()
 
-    val persistence = PostgresPersistence(
-        PostgresDataSourceBuilder.dataSource
-    )
-
-    private val mediator = Mediator(rapidsConnection, persistence)
     private val søknadMalRepository = SøknadMalPostgresRepository(PostgresDataSourceBuilder.dataSource)
     private val ferdigstiltRepository = FerdigstiltSøknadPostgresRepository(
         PostgresDataSourceBuilder.dataSource
@@ -71,6 +64,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         ArkiverbarSøknadMottattHendelseMottak(rapidsConnection, it)
         NyJournalpostMottak(rapidsConnection, it)
         JournalførtMottak(rapidsConnection, it)
+        SøkerOppgaveMottak(rapidsConnection, it)
     }
 
     init {
@@ -94,7 +88,6 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     }
 
     override fun onShutdown(rapidsConnection: RapidsConnection) {
-        persistence.close()
     }
 
     override fun onStartup(rapidsConnection: RapidsConnection) {
@@ -102,6 +95,5 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         SøknadsMalMottak(rapidsConnection, søknadMalRepository)
     }
 
-    private fun store(): SøknadStore = mediator
     private fun søknadMediator(): SøknadMediator = søknadMediator
 }

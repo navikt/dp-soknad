@@ -160,16 +160,16 @@ internal class SøknadApiTest {
     fun `Skal hente søknad fakta`() {
         // language=JSON
         val frontendformat = """{"id":"blabla"}"""
-        val søknad = mockk<Søknad>().also {
+        val søkerOppgave = mockk<SøkerOppgave>().also {
             every { it.eier() } returns defaultDummyFodselsnummer
             every { it.asFrontendformat() } returns objectMapper.readTree(frontendformat)
         }
-        val mockStore = mockk<SøknadStore>().also { soknadStore ->
-            every { soknadStore.hentNesteSeksjon(UUID.fromString("d172a832-4f52-4e1f-ab5f-8be8348d9280")) } returns søknad
+        val mockSøknadMediator = mockk<SøknadMediator>().also { søknadMediator ->
+            every { søknadMediator.hent(UUID.fromString("d172a832-4f52-4e1f-ab5f-8be8348d9280")) } returns søkerOppgave
         }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                store = mockStore
+                søknadMediator = mockSøknadMediator
             )
         ) {
             autentisert(
@@ -184,17 +184,17 @@ internal class SøknadApiTest {
 
     @Test
     fun `Skal avvise uautoriserte kall`() {
-        val søknad = mockk<Søknad>().also {
+        val søkerOppgave = mockk<SøkerOppgave>().also {
             every { it.eier() } returns "en annen eier"
             every { it.asFrontendformat() } returns objectMapper.nullNode()
         }
         val id = "d172a832-4f52-4e1f-ab5f-8be8348d9280"
-        val mockStore = mockk<SøknadStore>().also { soknadStore ->
-            every { soknadStore.hentNesteSeksjon(UUID.fromString(id)) } returns søknad
+        val mockSøknadMediator = mockk<SøknadMediator>().also { søknadMediator ->
+            every { søknadMediator.hent(UUID.fromString(id)) } returns søkerOppgave
         }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                store = mockStore
+                søknadMediator = mockSøknadMediator
             )
         ) {
             autentisert(
@@ -222,14 +222,14 @@ internal class SøknadApiTest {
 
     @Test
     fun `Skal kunne lagre faktum`() {
-        val mockStore = mockk<SøknadStore>().also {
+        val mockSøknadMediator = mockk<SøknadMediator>().also {
             justRun {
-                it.håndter(any<FaktumSvar>())
+                it.behandle(any<FaktumSvar>())
             }
         }
 
         TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi(mockStore)
+            TestApplication.mockedSøknadApi(søknadMediator = mockSøknadMediator)
         ) {
             autentisert(
                 "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/faktum/1245",
@@ -241,7 +241,7 @@ internal class SøknadApiTest {
             }
         }
 
-        verify(exactly = 1) { mockStore.håndter(any<FaktumSvar>()) }
+        verify(exactly = 1) { mockSøknadMediator.behandle(any<FaktumSvar>()) }
     }
 
     @ParameterizedTest
@@ -260,14 +260,14 @@ internal class SøknadApiTest {
     )
     fun `test faktum svar typer`(type: String, svar: String) {
         val faktumSvar = slot<FaktumSvar>()
-        val mockStore = mockk<SøknadStore>().also {
-            justRun { it.håndter(capture(faktumSvar)) }
+        val mockSøknadMediator = mockk<SøknadMediator>().also {
+            justRun { it.behandle(capture(faktumSvar)) }
         }
 
         val jsonSvar = """{"type": "$type", "svar": $svar}"""
 
         TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi(mockStore)
+            TestApplication.mockedSøknadApi(søknadMediator = mockSøknadMediator)
         ) {
             autentisert(
                 "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/faktum/1245",

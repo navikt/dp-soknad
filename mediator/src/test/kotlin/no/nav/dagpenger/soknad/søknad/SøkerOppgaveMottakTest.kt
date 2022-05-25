@@ -1,5 +1,8 @@
 package no.nav.dagpenger.soknad.søknad
 
+import io.mockk.mockk
+import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository
 import no.nav.dagpenger.soknad.db.Postgres
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -9,7 +12,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import java.util.UUID
 
-class MediatorTest {
+class SøkerOppgaveMottakTest {
     private val testRapid = TestRapid()
 
     @AfterEach
@@ -21,13 +24,15 @@ class MediatorTest {
     fun `lese svar fra kafka`() {
 
         Postgres.withMigratedDb {
-            val mediator = Mediator(testRapid, PostgresPersistence(PostgresDataSourceBuilder.dataSource))
+            val søknadMediator = SøknadMediator(testRapid, LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource), mockk(), mockk()).also {
+                SøkerOppgaveMottak(testRapid, it)
+            }
             testRapid.reset()
             val søknadUuid = UUID.randomUUID()
             testRapid.sendTestMessage(nySøknad(søknadUuid))
-            mediator.hentNesteSeksjon(søknadUuid).also {
+            søknadMediator.hent(søknadUuid).also {
                 assertDoesNotThrow {
-                    val seksjoner = it.asFrontendformat()["seksjoner"]
+                    val seksjoner = it!!.asFrontendformat()["seksjoner"]
                     assertEquals(1, seksjoner.size())
                     assertEquals(0, seksjoner[0]["fakta"].size())
                     assertEquals("12345678910", it.eier())

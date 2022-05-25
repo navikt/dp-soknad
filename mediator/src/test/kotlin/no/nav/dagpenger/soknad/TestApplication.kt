@@ -15,7 +15,6 @@ import io.mockk.mockk
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
 import no.nav.dagpenger.soknad.personalia.personaliaRouteBuilder
-import no.nav.dagpenger.soknad.søknad.SøknadStore
 import no.nav.dagpenger.soknad.søknad.ferdigStiltSøknadRouteBuilder
 import no.nav.dagpenger.soknad.søknad.søknadApiRouteBuilder
 import no.nav.security.mock.oauth2.MockOAuth2Server
@@ -46,7 +45,6 @@ object TestApplication {
     }
 
     internal fun mockedSøknadApi(
-        store: SøknadStore = mockk(relaxed = true),
         personOppslag: PersonOppslag = mockk(relaxed = true),
         kontonummerOppslag: KontonummerOppslag = mockk(relaxed = true),
         søknadMediator: SøknadMediator = mockk(relaxed = true)
@@ -54,7 +52,7 @@ object TestApplication {
 
         return fun Application.() {
             api(
-                søknadApiRouteBuilder(store, søknadMediator),
+                søknadApiRouteBuilder(søknadMediator),
                 personaliaRouteBuilder(
                     personOppslag, kontonummerOppslag
                 ),

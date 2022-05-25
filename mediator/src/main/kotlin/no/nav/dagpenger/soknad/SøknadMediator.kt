@@ -14,12 +14,14 @@ import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
+import no.nav.dagpenger.soknad.søknad.FaktumSvar
+import no.nav.dagpenger.soknad.søknad.SøkerOppgave
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.withMDC
 import java.util.UUID
 
 internal class SøknadMediator(
-    rapidsConnection: RapidsConnection,
+    private val rapidsConnection: RapidsConnection,
     private val livsyklusRepository: LivsyklusRepository,
     private val søknadMalRepository: SøknadMalRepository,
     private val ferdigstiltSøknadRepository: FerdigstiltSøknadRepository,
@@ -75,6 +77,15 @@ internal class SøknadMediator(
         behandle(journalførtHendelse) { person ->
             person.håndter(journalførtHendelse)
         }
+    }
+
+    fun behandle(søkerOppgave: SøkerOppgave) {
+        livsyklusRepository.lagre(søkerOppgave)
+    }
+
+    fun behandle(faktumSvar: FaktumSvar) {
+        rapidsConnection.publish(faktumSvar.toJson())
+        logger.info { "Sendte faktum svar for ${faktumSvar.søknadUuid()}" }
     }
 
     internal fun hentEllerOpprettSøknadsprosess(ident: String): Søknadsprosess {
