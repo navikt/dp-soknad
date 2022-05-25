@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
+import no.nav.dagpenger.soknad.Aktivitetslogg.AktivitetException
 import no.nav.dagpenger.soknad.Søknad.Dokument.Variant
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerArkiverbarSøknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerJournalføring
@@ -9,6 +10,7 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
@@ -40,10 +42,23 @@ internal class SøknadTest {
     }
 
     @Test
+    fun `Kan ikke oppdatere faktum når søknaden er sendt inn`() {
+        håndterØnskeOmNySøknadHendelse()
+        håndterNySøknadOpprettet()
+        håndterSendInnSøknad()
+        håndterArkiverbarSøknad()
+
+        assertThrows<AktivitetException> {
+            håndterFaktumOppdatering()
+        }
+    }
+
+    @Test
     fun `Søker oppretter søknad og ferdigstiller den`() {
         håndterØnskeOmNySøknadHendelse()
         assertBehov(Behovtype.NySøknad, mapOf("ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
         håndterNySøknadOpprettet()
+        håndterFaktumOppdatering()
         val innsendtHendelse = håndterSendInnSøknad()
         assertBehov(
             Behovtype.ArkiverbarSøknad,
@@ -87,6 +102,10 @@ internal class SøknadTest {
         println(person.aktivitetslogg.toString())
     }
 
+    private fun håndterFaktumOppdatering() {
+        person.håndter(FaktumOppdatertHendelse(inspektør.søknadId, testIdent))
+    }
+
     @Test
     fun `oppretter en person `() {
         val person = Person(testIdent)
@@ -105,7 +124,7 @@ internal class SøknadTest {
     fun `en person kan kun ha én opprettet søknad av gangen`() {
         val person = Person(testIdent)
         person.håndter(ØnskeOmNySøknadHendelse(testIdent, UUID.randomUUID()))
-        assertThrows<Aktivitetslogg.AktivitetException> {
+        assertThrows<AktivitetException> {
             person.håndter(
                 ØnskeOmNySøknadHendelse(
                     testIdent,

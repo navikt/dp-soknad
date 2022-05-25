@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad
 import no.nav.dagpenger.soknad.Søknad.Companion.finnSøknad
 import no.nav.dagpenger.soknad.Søknad.Companion.harAlleredeOpprettetSøknad
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
@@ -90,6 +91,13 @@ class Person private constructor(
         when {
             søknaden != null -> søknaden.håndter(journalførtHendelse)
             else -> journalførtHendelse.info("Fant ikke søknaden for ${journalførtHendelse.journalpostId()}")
+        }
+    }
+
+    fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse) {
+        kontekst(faktumOppdatertHendelse, "Faktum oppdatert")
+        finnSøknad(faktumOppdatertHendelse).also { søknaden ->
+            søknaden.håndter(faktumOppdatertHendelse)
         }
     }
 
