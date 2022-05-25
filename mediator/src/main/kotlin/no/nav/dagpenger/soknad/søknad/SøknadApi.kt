@@ -69,6 +69,7 @@ internal fun Route.søknadApi(
         }
         put("/{søknad_uuid}/faktum/{faktumid}") {
             val søknadUuid = søknadUuid()
+            val ident = call.ident()
             val faktumId = faktumId()
             val input = Svar(call.receive())
             logger.info { "Fikk \n${input.svarAsJson}" }
@@ -77,6 +78,7 @@ internal fun Route.søknadApi(
                 søknadUuid = søknadUuid,
                 faktumId = faktumId,
                 type = input.type,
+                eier = ident,
                 svar = input.svarAsJson
             )
 

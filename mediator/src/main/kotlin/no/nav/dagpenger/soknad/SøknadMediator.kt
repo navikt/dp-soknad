@@ -6,6 +6,7 @@ import no.nav.dagpenger.soknad.db.FerdigstiltSøknadRepository
 import no.nav.dagpenger.soknad.db.LivsyklusRepository
 import no.nav.dagpenger.soknad.db.SøknadMalRepository
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
@@ -84,7 +85,11 @@ internal class SøknadMediator(
     }
 
     fun behandle(faktumSvar: FaktumSvar) {
-        rapidsConnection.publish(faktumSvar.toJson())
+        val faktumOppdatertHendelse = FaktumOppdatertHendelse(faktumSvar.søknadUuid(), faktumSvar.eier())
+        behandle(faktumOppdatertHendelse) { person ->
+            person.håndter(faktumOppdatertHendelse)
+            rapidsConnection.publish(faktumSvar.toJson())
+        }
         logger.info { "Sendte faktum svar for ${faktumSvar.søknadUuid()}" }
     }
 
