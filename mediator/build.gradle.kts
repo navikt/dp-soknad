@@ -17,8 +17,8 @@ dependencies {
     implementation(Ktor2.Client.library("content-negotiation"))
     implementation(Ktor2.Server.library("content-negotiation"))
     implementation("io.ktor:ktor-serialization-jackson:${Ktor2.version}")
-    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2022.05.02-14.21.f4e9d6da3fa8")
-    implementation("com.github.navikt.dp-biblioteker:pdl-klient:2022.05.02-14.21.f4e9d6da3fa8")
+    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2022.05.30-09.37.623ee13a49dd")
+    implementation("com.github.navikt.dp-biblioteker:pdl-klient:2022.05.30-09.37.623ee13a49dd")
     implementation("com.github.navikt:pam-geography:2.15")
 
     // DB
