@@ -15,8 +15,8 @@ import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
+import no.nav.dagpenger.soknad.mottak.SøkerOppgave
 import no.nav.dagpenger.soknad.søknad.FaktumSvar
-import no.nav.dagpenger.soknad.søknad.SøkerOppgave
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.withMDC
 import java.util.UUID

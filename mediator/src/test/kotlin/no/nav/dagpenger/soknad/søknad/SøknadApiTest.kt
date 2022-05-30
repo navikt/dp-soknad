@@ -20,6 +20,7 @@ import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.soknad.db.PåbegyntSøknad
 import no.nav.dagpenger.soknad.db.SøknadMal
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
+import no.nav.dagpenger.soknad.mottak.SøkerOppgave
 import no.nav.dagpenger.soknad.mottak.testSøknadMalMelding
 import no.nav.dagpenger.soknad.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals

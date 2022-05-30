@@ -26,6 +26,7 @@ import no.nav.dagpenger.soknad.Søknadsprosess.NySøknadsProsess
 import no.nav.dagpenger.soknad.Søknadsprosess.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.auth.ident
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
+import no.nav.dagpenger.soknad.mottak.SøkerOppgave
 import java.util.UUID
 
 private val logger = KotlinLogging.logger {}

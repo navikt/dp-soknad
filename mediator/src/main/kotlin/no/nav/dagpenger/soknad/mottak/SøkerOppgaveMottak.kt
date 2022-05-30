@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad.søknad
+package no.nav.dagpenger.soknad.mottak
 
 import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
@@ -36,7 +36,13 @@ internal class SøkerOppgaveMottak(
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "søker_oppgave") }
             validate { it.rejectKey("@løsning") }
-            validate { it.requireKey(SøkerOppgave.Keys.SEKSJONER, SøkerOppgave.Keys.SØKNAD_UUID, SøkerOppgave.Keys.FØDSELSNUMMER, "@opprettet") }
+            validate {
+                it.requireKey(
+                    SøkerOppgave.Keys.SEKSJONER,
+                    SøkerOppgave.Keys.SØKNAD_UUID,
+                    SøkerOppgave.Keys.FØDSELSNUMMER, "@opprettet"
+                )
+            }
         }.register(this)
     }
 

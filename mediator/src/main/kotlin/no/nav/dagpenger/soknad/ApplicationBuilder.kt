@@ -10,13 +10,13 @@ import no.nav.dagpenger.soknad.db.VaktmesterPostgresRepository
 import no.nav.dagpenger.soknad.mottak.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.dagpenger.soknad.mottak.JournalførtMottak
 import no.nav.dagpenger.soknad.mottak.NyJournalpostMottak
+import no.nav.dagpenger.soknad.mottak.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.mottak.SøknadOpprettetHendelseMottak
 import no.nav.dagpenger.soknad.mottak.SøknadsMalMottak
 import no.nav.dagpenger.soknad.observers.PersonLoggerObserver
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
 import no.nav.dagpenger.soknad.personalia.personaliaRouteBuilder
-import no.nav.dagpenger.soknad.søknad.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.søknad.ferdigStiltSøknadRouteBuilder
 import no.nav.dagpenger.soknad.søknad.søknadApiRouteBuilder
 import no.nav.helse.rapids_rivers.RapidApplication

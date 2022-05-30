@@ -1,7 +1,7 @@
 package no.nav.dagpenger.soknad.db
 
 import no.nav.dagpenger.soknad.Person
-import no.nav.dagpenger.soknad.søknad.SøkerOppgave
+import no.nav.dagpenger.soknad.mottak.SøkerOppgave
 import java.time.LocalDateTime
 import java.util.UUID
 
