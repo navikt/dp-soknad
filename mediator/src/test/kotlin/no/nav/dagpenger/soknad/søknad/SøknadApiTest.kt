@@ -207,7 +207,7 @@ internal class SøknadApiTest {
     }
 
     @Test
-    fun `405 på ting som ikke finnes`() {
+    fun `404 på ting som ikke finnes`() {
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi()
@@ -215,7 +215,7 @@ internal class SøknadApiTest {
             autentisert(
                 "${Configuration.basePath}/soknad/12121/neste-seksjon"
             ).apply {
-                assertEquals(HttpStatusCode.MethodNotAllowed, this.status)
+                assertEquals(HttpStatusCode.NotFound, this.status)
             }
         }
     }
@@ -307,7 +307,7 @@ internal class SøknadApiTest {
                 endepunkt = "${Configuration.basePath}/soknad/$dummyUuid/faktum/",
                 body = """{"type":"boolean","svar":true}"""
             ).apply {
-                assertEquals(HttpStatusCode.MethodNotAllowed, this.status)
+                assertEquals(HttpStatusCode.NotFound, this.status)
             }
         }
     }
