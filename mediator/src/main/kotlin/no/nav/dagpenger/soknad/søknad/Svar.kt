@@ -31,7 +31,7 @@ class Svar(json: JsonNode) {
                 svarAsJson.isTextual && kotlin.runCatching { svarAsJson.asLocalDate() }.isSuccess,
                 feilmelding()
             )
-            "double" -> require(svarAsJson.isDouble, feilmelding())
+            "double" -> require(svarAsJson.isDouble || svarAsJson.isNumber, feilmelding())
             "int" -> require(svarAsJson.isInt, feilmelding())
             "tekst" -> require(erTekst(), feilmelding())
             "land" -> require(svarAsJson.isTextual && svarAsJson.asText().length < 4, feilmelding())
@@ -50,22 +50,24 @@ class Svar(json: JsonNode) {
     private fun feilmelding(): () -> String = { "Ikke gyldig '$type' svar: '$svarAsJson'" }
 
     private fun validerGenerator() {
-        require(
-            svarAsJson is ArrayNode &&
-                kotlin.runCatching {
-                    svarAsJson.forEach { indeks ->
-                        indeks.forEach { faktum ->
-                            require(faktum.has("id")) { "id må alltid angis på generator svar, mangler i $faktum" }
-                            if (faktum["id"].asText().contains(".")) {
-                                val id = faktum["id"].asText()
-                                val idUtenIndeks = id.substring(0, id.indexOf("."))
-                                (faktum as ObjectNode).put("id", idUtenIndeks)
-                            }
-                            Svar(faktum)
-                        }
+        require(svarAsJson is ArrayNode) { feilmelding() }
+        kotlin.runCatching {
+            svarAsJson.forEach { indeks ->
+                indeks.forEach { faktum ->
+                    require(faktum.has("id")) { "id må alltid angis på generator svar, mangler i $faktum" }
+                    if (faktum["id"].asText().contains(".")) {
+                        val id = faktum["id"].asText()
+                        val idUtenIndeks = id.substring(0, id.indexOf("."))
+                        (faktum as ObjectNode).put("id", idUtenIndeks)
                     }
-                }.isSuccess,
-            feilmelding()
+                    Svar(faktum)
+                }
+            }
+        }.fold(
+            {},
+            {
+                throw IllegalArgumentException("Ikke gyldig '$type', feil i underliggende faktum ${it.message}, svar: $svarAsJson")
+            }
         )
     }
 

@@ -18,6 +18,7 @@ class SvarTest {
         "boolean | true",
         """localdate | "2022-01-15"""",
         "double | 3.0",
+        "double | 2",
         """envalg | "valg1"""",
         """flervalg | ["valg1"]""",
         """int | 5""",
