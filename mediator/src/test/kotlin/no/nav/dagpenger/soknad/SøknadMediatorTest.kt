@@ -1,5 +1,7 @@
 package no.nav.dagpenger.soknad
 
+import com.fasterxml.jackson.databind.node.BooleanNode
+import io.ktor.server.plugins.NotFoundException
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerArkiverbarSøknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerJournalføring
@@ -20,16 +22,16 @@ import no.nav.dagpenger.soknad.mottak.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.dagpenger.soknad.mottak.JournalførtMottak
 import no.nav.dagpenger.soknad.mottak.NyJournalpostMottak
 import no.nav.dagpenger.soknad.mottak.SøknadOpprettetHendelseMottak
+import no.nav.dagpenger.soknad.søknad.FaktumSvar
 import no.nav.dagpenger.soknad.søknad.SøkerOppgaveMottak
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helse.rapids_rivers.toUUID
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
+import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class SøknadMediatorTest {
@@ -65,10 +67,10 @@ internal class SøknadMediatorTest {
 
         assertEquals(1, testRapid.inspektør.size)
         assertEquals(listOf("NySøknad"), behov(0))
-        assertEquals(UnderOpprettelse, hentOppdatertInspektør(testident2).gjeldendetilstand)
+        assertEquals(UnderOpprettelse, oppdatertInspektør(testident2).gjeldendetilstand)
 
         testRapid.sendTestMessage(nySøknadBehovsløsning(søknadId(testident2), testident2))
-        assertEquals(Påbegynt, hentOppdatertInspektør(testident2).gjeldendetilstand)
+        assertEquals(Påbegynt, oppdatertInspektør(testident2).gjeldendetilstand)
 
         mediator.hentEllerOpprettSøknadsprosess(testident2).also {
             assertTrue(it is PåbegyntSøknadsProsess)
@@ -77,34 +79,32 @@ internal class SøknadMediatorTest {
         assertEquals(1, testRapid.inspektør.size)
 
         mediator.behandle(SøknadInnsendtHendelse(UUID.fromString(søknadId(testident2)), testident2))
-        assertEquals(AvventerArkiverbarSøknad, hentOppdatertInspektør(testident2).gjeldendetilstand)
+        assertEquals(AvventerArkiverbarSøknad, oppdatertInspektør(testident2).gjeldendetilstand)
         assertEquals(listOf("ArkiverbarSøknad"), behov(1))
     }
 
     @Test
-    @Disabled
-    fun `Skal håndtere ønske om ny søknad`() {
-
+    fun `Søknaden går gjennom livsyklusen med alle tilstander`() {
         val søknadUuid = UUID.randomUUID()
         mediator.behandle(ØnskeOmNySøknadHendelse(testIdent, søknadUuid))
         assertEquals(1, testRapid.inspektør.size)
         assertEquals(listOf("NySøknad"), behov(0))
-        assertEquals(UnderOpprettelse, hentOppdatertInspektør().gjeldendetilstand)
+        assertEquals(UnderOpprettelse, oppdatertInspektør().gjeldendetilstand)
 
         testRapid.sendTestMessage(nySøknadBehovsløsning(søknadUuid.toString()))
-        assertEquals(Påbegynt, hentOppdatertInspektør().gjeldendetilstand)
+        assertEquals(Påbegynt, oppdatertInspektør().gjeldendetilstand)
 
-        testRapid.sendTestMessage(faktumSvar(søknadUuid.toString()))
-        testRapid.sendTestMessage(søkerOppgave(søknadUuid.toString(), testIdent))
-        assertNotNull(livsyklusRepository.hent(søknadUuid))
-        testRapid.sendTestMessage(faktumSvar())
-        assertNull(livsyklusRepository.hent(søknadUuid))
+        testRapid.sendTestMessage(søkerOppgave(søknadUuid.toString().toUUID(), testIdent))
+
+        mediator.behandle(FaktumSvar(søknadUuid, "1234", "boolean", testIdent, BooleanNode.TRUE))
+        assertTrue("faktum_svar" in testRapid.inspektør.message(1).toString())
+        assertSøknadInvalidert(søknadUuid)
 
         mediator.behandle(SøknadInnsendtHendelse(søknadUuid, testIdent))
-        val oppdaterInspektør = hentOppdatertInspektør()
-        assertEquals(AvventerArkiverbarSøknad, oppdaterInspektør.gjeldendetilstand)
-        assertNotNull(oppdaterInspektør.innsendtTidspunkt)
-        assertEquals(listOf("ArkiverbarSøknad"), behov(1))
+
+        assertEquals(AvventerArkiverbarSøknad, oppdatertInspektør().gjeldendetilstand)
+        assertNotNull(oppdatertInspektør().innsendtTidspunkt)
+        assertEquals(listOf("ArkiverbarSøknad"), behov(2))
 
         testRapid.sendTestMessage(
             arkiverbarsøknadLøsning(
@@ -113,9 +113,8 @@ internal class SøknadMediatorTest {
                 Søknad.Dokument(varianter = emptyList())
             )
         )
-        assertEquals(AvventerMidlertidligJournalføring, hentOppdatertInspektør().gjeldendetilstand)
-
-        assertEquals(listOf("NyJournalpost"), behov(2))
+        assertEquals(AvventerMidlertidligJournalføring, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(listOf("NyJournalpost"), behov(3))
 
         testRapid.sendTestMessage(
             nyJournalpostLøsning(
@@ -124,69 +123,44 @@ internal class SøknadMediatorTest {
                 journalpostId = testJournalpostId
             )
         )
-        assertEquals(AvventerJournalføring, hentOppdatertInspektør().gjeldendetilstand)
+        assertEquals(AvventerJournalføring, oppdatertInspektør().gjeldendetilstand)
 
         testRapid.sendTestMessage(søknadJournalførtHendelse(ident = testIdent, journalpostId = testJournalpostId))
-        assertEquals(Journalført, hentOppdatertInspektør().gjeldendetilstand)
+        assertEquals(Journalført, oppdatertInspektør().gjeldendetilstand)
     }
+
+    private fun assertSøknadInvalidert(søknadUuid: UUID) =
+        assertThrows<NotFoundException> { livsyklusRepository.hent(søknadUuid) }
 
     @Test
     fun `Hva skjer om en får JournalførtHendelse som ikke er tilknyttet en søknad`() {
         testRapid.sendTestMessage(søknadJournalførtHendelse(ident = testIdent, journalpostId = "UKJENT"))
     }
 
-    private fun søknadId(ident: String = testIdent) = hentOppdatertInspektør(ident).gjeldendeSøknadId
+    private fun søknadId(ident: String = testIdent) = oppdatertInspektør(ident).gjeldendeSøknadId
 
     private fun behov(indeks: Int) = testRapid.inspektør.message(indeks)["@behov"].map { it.asText() }
 
-    fun hentOppdatertInspektør(ident: String = testIdent) =
-        TestPersonInspektør(livsyklusRepository.hent(ident)!!)
+    fun oppdatertInspektør(ident: String = testIdent) = TestPersonInspektør(livsyklusRepository.hent(ident)!!)
 
     // language=JSON
-    private fun faktumSvar(søknadUuid: String = UUID.randomUUID().toString()) = """
+    private fun søkerOppgave(søknadUuid: UUID, ident: String) = """{
+  "@event_name": "søker_oppgave",
+  "fødselsnummer": $ident,
+  "versjon_id": 0,
+  "versjon_navn": "test",
+  "@opprettet": "2022-05-13T14:48:09.059643",
+  "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
+  "søknad_uuid": "$søknadUuid",
+  "ferdig": false,
+  "seksjoner": [
     {
-      "søknad_uuid": "$søknadUuid",
-      "@event_name": "faktum_svar",
-      "fakta": [
-        {
-          "id": "12345",
-          "svar": "Hest er best på maten",
-          "type": "tekst"
-        }
-      ],
-      "@opprettet": "${LocalDateTime.now()}",
-      "@id": "${UUID.randomUUID()}"
-}""".trimMargin()
-
-    // language=JSON
-    private fun søkerOppgave(søknadUuid: String, fødselsnummer: String) = """
-        {
-          "fødselsnummer" : $fødselsnummer,
-          "@event_name" : "søker_oppgave",
-          "versjon_id" : -2313,
-          "versjon_navn" : "Dagpenger",
-          "@opprettet" : "2022-05-25T15:58:42.935604",
-          "@id" : "9020622d-8b60-41d7-80d7-3405b0f2448d",
-          "søknad_uuid" : $søknadUuid,
-          "ferdig" : false,
-          "seksjoner" : [ {
-            "beskrivendeId" : "test",
-            "fakta" : [ {
-              "id" : "1",
-              "type" : "boolean",
-              "beskrivendeId" : "boolean",
-              "svar" : true,
-              "roller" : [ "søker" ],
-              "gyldigeValg" : [ "boolean.true", "boolean.false" ]
-            }, {
-              "id" : "2",
-              "type" : "int",
-              "beskrivendeId" : "heltall",
-              "roller" : [ "søker" ]
-            } ]
-          } ]
-        }
-    """.trimMargin()
+      "beskrivendeId": "seksjon1",
+      "fakta": []
+    }
+  ]
+}
+    """.trimIndent()
 
     // language=JSON
     private fun nySøknadBehovsløsning(søknadUuid: String, ident: String = testIdent) = """

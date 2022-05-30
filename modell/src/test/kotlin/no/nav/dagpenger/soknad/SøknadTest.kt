@@ -99,7 +99,6 @@ internal class SøknadTest {
         )
 
         assertPuml("Søker oppretter søknad og ferdigstiller den")
-        println(person.aktivitetslogg.toString())
     }
 
     private fun håndterFaktumOppdatering() {
