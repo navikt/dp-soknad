@@ -1,7 +1,6 @@
 package no.nav.dagpenger.soknad
 
 import mu.KotlinLogging
-import no.nav.dagpenger.soknad.Søknadsprosess.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.db.FerdigstiltSøknadRepository
 import no.nav.dagpenger.soknad.db.LivsyklusRepository
 import no.nav.dagpenger.soknad.db.SøknadMalRepository
@@ -95,13 +94,16 @@ internal class SøknadMediator(
     }
 
     internal fun hentEllerOpprettSøknadsprosess(ident: String): Søknadsprosess {
-        return hentPåbegynte(ident).singleOrNull()?.let {
-            PåbegyntSøknadsProsess(it.uuid).also {
-                behandle(HarPåbegyntSøknadHendelse(ident, it.getSøknadsId()))
-            }
-        } ?: Søknadsprosess.NySøknadsProsess().also {
+        return Søknadsprosess.NySøknadsProsess().also {
             behandle(ØnskeOmNySøknadHendelse(ident, it.getSøknadsId()))
         }
+        // return hentPåbegynte(ident).singleOrNull()?.let {
+        //     PåbegyntSøknadsProsess(it.uuid).also {
+        //         behandle(HarPåbegyntSøknadHendelse(ident, it.getSøknadsId()))
+        //     }
+        // } ?: Søknadsprosess.NySøknadsProsess().also {
+        //     behandle(ØnskeOmNySøknadHendelse(ident, it.getSøknadsId()))
+        // }
     }
 
     private fun behandle(hendelse: Hendelse, håndter: (Person) -> Unit) {

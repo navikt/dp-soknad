@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID
@@ -57,7 +58,7 @@ internal class SøknadMediatorTest {
         JournalførtMottak(testRapid, mediator)
     }
 
-    @Test
+    @Test @Disabled("Skrudde av uthenting av påbegynte søknad og fortsette med det. Vi må løse opp i migrering til nye versjoner i quiz.")
     fun `Skal håndtere ønske om ny søknad når det finnes en påbegynt søknad`() {
         val testident2 = "12346578910"
 
