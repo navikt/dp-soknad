@@ -4,10 +4,8 @@ import no.nav.dagpenger.pdl.createPersonOppslag
 import no.nav.dagpenger.soknad.db.FerdigstiltSøknadPostgresRepository
 import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
-import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder.clean
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder.runMigration
 import no.nav.dagpenger.soknad.db.SøknadMalPostgresRepository
-import no.nav.dagpenger.soknad.db.VaktmesterPostgresRepository
 import no.nav.dagpenger.soknad.mottak.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.dagpenger.soknad.mottak.JournalførtMottak
 import no.nav.dagpenger.soknad.mottak.NyJournalpostMottak
@@ -22,8 +20,6 @@ import no.nav.dagpenger.soknad.søknad.ferdigStiltSøknadRouteBuilder
 import no.nav.dagpenger.soknad.søknad.søknadApiRouteBuilder
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import java.time.LocalDateTime
-import kotlin.concurrent.fixedRateTimer
 
 internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnection.StatusListener {
 
@@ -74,18 +70,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
 
     fun start() {
         rapidsConnection.start()
-        // todo ekstraher til egnet sted
-        fixedRateTimer(
-            name = "Påbegynte søknader vaktmester",
-            daemon = true,
-            initialDelay = 300000L,
-            period = 86400000,
-            action = {
-                VaktmesterPostgresRepository(PostgresDataSourceBuilder.dataSource).slettPåbegynteSøknaderEldreEnn(
-                    LocalDateTime.now().minusDays(7)
-                )
-            }
-        )
+        UtdaterteSøknaderJob.sletterutine()
     }
 
     override fun onShutdown(rapidsConnection: RapidsConnection) {
