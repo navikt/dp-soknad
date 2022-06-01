@@ -134,8 +134,7 @@ suspend fun <T> retryIO(
         try {
             return block()
         } catch (e: Exception) {
-            // you can log an error here and/or make a more finer-grained
-            // analysis of the cause to see if retry is needed
+            logger.error { "Forsøker å hente neste seksjon. Error: ${e.stackTrace}" }
         }
         delay(currentDelay)
         currentDelay = (currentDelay * factor).toLong().coerceAtMost(maxDelay)
