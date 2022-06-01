@@ -32,6 +32,7 @@ internal class SøkerOppgaveMottak(
 
     private companion object {
         val logger = KotlinLogging.logger {}
+        val sikkerLogger = KotlinLogging.logger("tjenestekall")
     }
 
     init {
@@ -51,6 +52,7 @@ internal class SøkerOppgaveMottak(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         logger.info { "Mottat pakke ${packet["@event_name"].asText()}" }
+        sikkerLogger.info { "Mottatt pakke ${packet.toJson()}" }
         søknadMediator.behandle(SøkerOppgaveMelding(packet))
     }
 
