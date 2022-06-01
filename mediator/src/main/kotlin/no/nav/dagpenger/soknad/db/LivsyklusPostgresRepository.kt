@@ -205,6 +205,8 @@ class LivsyklusPostgresRepository(private val dataSource: DataSource) : Livsyklu
     internal class PersistentSøkerOppgave(private val søknad: JsonNode) : SøkerOppgave {
         override fun søknadUUID(): UUID = UUID.fromString(søknad[SøkerOppgave.Keys.SØKNAD_UUID].asText())
         override fun eier(): String = søknad[SøkerOppgave.Keys.FØDSELSNUMMER].asText()
+        override fun ferdig(): Boolean = søknad[SøkerOppgave.Keys.FERDIG].asBoolean()
+
         override fun asFrontendformat(): JsonNode {
             søknad as ObjectNode
             val kopiAvSøknad = søknad.deepCopy()

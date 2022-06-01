@@ -13,6 +13,7 @@ import java.util.UUID
 interface SøkerOppgave {
     fun søknadUUID(): UUID
     fun eier(): String
+    fun ferdig(): Boolean
     fun asFrontendformat(): JsonNode
     fun asJson(): String
 
@@ -20,6 +21,7 @@ interface SøkerOppgave {
         val SEKSJONER = "seksjoner"
         val SØKNAD_UUID = "søknad_uuid"
         val FØDSELSNUMMER = "fødselsnummer"
+        val FERDIG = "ferdig"
     }
 }
 
@@ -40,7 +42,8 @@ internal class SøkerOppgaveMottak(
                 it.requireKey(
                     SøkerOppgave.Keys.SEKSJONER,
                     SøkerOppgave.Keys.SØKNAD_UUID,
-                    SøkerOppgave.Keys.FØDSELSNUMMER, "@opprettet"
+                    SøkerOppgave.Keys.FØDSELSNUMMER, "@opprettet",
+                    SøkerOppgave.Keys.FERDIG
                 )
             }
         }.register(this)
@@ -54,6 +57,7 @@ internal class SøkerOppgaveMottak(
     internal class SøkerOppgaveMelding(private val jsonMessage: JsonMessage) : SøkerOppgave {
         override fun søknadUUID(): UUID = UUID.fromString(jsonMessage[SøkerOppgave.Keys.SØKNAD_UUID].asText())
         override fun eier(): String = jsonMessage[SøkerOppgave.Keys.FØDSELSNUMMER].asText()
+        override fun ferdig(): Boolean = jsonMessage[SøkerOppgave.Keys.FERDIG].asBoolean()
         override fun asFrontendformat(): JsonNode = objectMapper.readTree(jsonMessage.toJson())
         override fun asJson(): String = jsonMessage.toJson()
     }
