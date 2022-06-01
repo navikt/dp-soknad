@@ -100,6 +100,7 @@ internal class SøknadMediatorTest {
         assertTrue("faktum_svar" in testRapid.inspektør.message(1).toString())
         assertSøknadInvalidert(søknadUuid)
 
+        testRapid.sendTestMessage(ferdigSøkerOppgave(søknadUuid.toString().toUUID(), testIdent))
         mediator.behandle(SøknadInnsendtHendelse(søknadUuid, testIdent))
 
         assertEquals(AvventerArkiverbarSøknad, oppdatertInspektør().gjeldendetilstand)
@@ -153,6 +154,24 @@ internal class SøknadMediatorTest {
   "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
   "søknad_uuid": "$søknadUuid",
   "ferdig": false,
+  "seksjoner": [
+    {
+      "beskrivendeId": "seksjon1",
+      "fakta": []
+    }
+  ]
+}
+    """.trimIndent()
+    // language=JSON
+    private fun ferdigSøkerOppgave(søknadUuid: UUID, ident: String) = """{
+  "@event_name": "søker_oppgave",
+  "fødselsnummer": $ident,
+  "versjon_id": 0,
+  "versjon_navn": "test",
+  "@opprettet": "2022-05-13T14:48:09.059643",
+  "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
+  "søknad_uuid": "$søknadUuid",
+  "ferdig": true,
   "seksjoner": [
     {
       "beskrivendeId": "seksjon1",
