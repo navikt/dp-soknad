@@ -4,6 +4,7 @@ import no.nav.dagpenger.pdl.createPersonOppslag
 import no.nav.dagpenger.soknad.db.FerdigstiltSøknadPostgresRepository
 import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
+import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder.clean
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder.runMigration
 import no.nav.dagpenger.soknad.db.SøknadMalPostgresRepository
 import no.nav.dagpenger.soknad.db.VaktmesterPostgresRepository
@@ -91,6 +92,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     }
 
     override fun onStartup(rapidsConnection: RapidsConnection) {
+        clean()
         runMigration()
         SøknadsMalMottak(rapidsConnection, søknadMalRepository)
     }
