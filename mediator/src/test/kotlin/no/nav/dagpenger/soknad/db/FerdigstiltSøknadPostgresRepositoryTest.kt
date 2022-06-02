@@ -7,8 +7,8 @@ import kotliquery.using
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
-import no.nav.dagpenger.soknad.søknad.db.FerdigstiltSøknadPostgresRepository
 import no.nav.dagpenger.soknad.søknad.db.LivsyklusPostgresRepository
+import no.nav.dagpenger.soknad.søknad.ferdigstilling.FerdigstiltSøknadPostgresRepository
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

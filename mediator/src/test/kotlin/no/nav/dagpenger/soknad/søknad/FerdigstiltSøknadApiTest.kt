@@ -12,7 +12,7 @@ import io.mockk.mockk
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
-import no.nav.dagpenger.soknad.søknad.db.FerdigstiltSøknadPostgresRepository
+import no.nav.dagpenger.soknad.søknad.ferdigstilling.FerdigstiltSøknadPostgresRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

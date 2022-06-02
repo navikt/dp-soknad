@@ -1,6 +1,5 @@
 package no.nav.dagpenger.soknad.søknad
 
-import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -25,8 +24,8 @@ import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.Søknadsprosess.NySøknadsProsess
 import no.nav.dagpenger.soknad.Søknadsprosess.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.auth.ident
-import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.mottak.SøkerOppgave
+import no.nav.dagpenger.soknad.søknad.ferdigstilling.ferdigstillingRoute
 import no.nav.dagpenger.soknad.søknad.mal.nyesteMalRoute
 import java.util.UUID
 
@@ -88,16 +87,7 @@ internal fun Route.søknadApi(
             call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { """{"status": "ok"}""" }
         }
 
-        put("/{søknad_uuid}/ferdigstill") {
-            val søknadUuid = søknadUuid()
-            val ident = call.ident()
-            val søknadInnsendtHendelse = SøknadInnsendtHendelse(søknadUuid, ident)
-            call.receive<JsonNode>().let {
-                søknadMediator.lagreSøknadsTekst(søknadUuid, it.toString())
-            }
-            søknadMediator.behandle(søknadInnsendtHendelse)
-            call.respond(HttpStatusCode.NoContent)
-        }
+        ferdigstillingRoute(søknadMediator)
 
         nyesteMalRoute(søknadMediator)
     }

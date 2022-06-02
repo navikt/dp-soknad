@@ -14,9 +14,9 @@ import no.nav.dagpenger.soknad.personalia.PersonOppslag
 import no.nav.dagpenger.soknad.personalia.personaliaRouteBuilder
 import no.nav.dagpenger.soknad.sletterutine.UtdaterteSøknaderJob
 import no.nav.dagpenger.soknad.søknad.cache.SøknadCachePostgresRepository
-import no.nav.dagpenger.soknad.søknad.db.FerdigstiltSøknadPostgresRepository
 import no.nav.dagpenger.soknad.søknad.db.LivsyklusPostgresRepository
 import no.nav.dagpenger.soknad.søknad.ferdigStiltSøknadRouteBuilder
+import no.nav.dagpenger.soknad.søknad.ferdigstilling.FerdigstiltSøknadPostgresRepository
 import no.nav.dagpenger.soknad.søknad.mal.SøknadMalPostgresRepository
 import no.nav.dagpenger.soknad.søknad.mal.SøknadsMalMottak
 import no.nav.dagpenger.soknad.søknad.søknadApiRouteBuilder
