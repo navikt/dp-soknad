@@ -10,6 +10,12 @@ import org.postgresql.util.PGobject
 import java.util.UUID
 import javax.sql.DataSource
 
+interface SøknadCacheRepository {
+    fun lagre(søkerOppgave: SøkerOppgave)
+    fun slett(søknadUUID: UUID, eier: String): Boolean
+    fun hent(søknadUUID: UUID): SøkerOppgave?
+}
+
 class SøknadCachePostgresRepository(private val dataSource: DataSource) : SøknadCacheRepository {
 
     override fun lagre(søkerOppgave: SøkerOppgave) {

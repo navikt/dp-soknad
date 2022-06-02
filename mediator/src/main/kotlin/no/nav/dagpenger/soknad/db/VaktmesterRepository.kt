@@ -7,6 +7,10 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type
 import java.time.LocalDateTime
 import javax.sql.DataSource
 
+interface VakmesterLivsyklusRepository {
+    fun slettPåbegynteSøknaderEldreEnn(tidspunkt: LocalDateTime): Int
+}
+
 class VaktmesterPostgresRepository(private val dataSource: DataSource) : VakmesterLivsyklusRepository {
     companion object {
         private val låseNøkkel = 123123

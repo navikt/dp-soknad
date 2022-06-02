@@ -6,7 +6,7 @@ import kotliquery.using
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Søknad
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
@@ -59,17 +59,17 @@ internal class VaktmesterPostgresRepositoryTest {
                 editOpprettet(påbegyntSøknadGammel, nå.minusDays(30), PostgresDataSourceBuilder.dataSource)
                 editOpprettet(journalførtSøknadId, nå.minusDays(30), PostgresDataSourceBuilder.dataSource)
                 it.slettPåbegynteSøknaderEldreEnn(nå.minusDays(7L)).also { rader ->
-                    Assertions.assertEquals(1, rader)
+                    assertEquals(1, rader)
                 }
                 livsyklusRepository.hent(person.ident()).also { oppdatertPerson ->
-                    Assertions.assertEquals(
+                    assertEquals(
                         2,
                         TestPersonVisitor(oppdatertPerson).søknader.size
                     )
                 }
                 livsyklusRepository.hentPåbegynte(person.ident()).also { påbegynteSøknader ->
-                    Assertions.assertEquals(1, påbegynteSøknader.size)
-                    Assertions.assertEquals(påbegyntSøknadIdNy, påbegynteSøknader.first().uuid)
+                    assertEquals(1, påbegynteSøknader.size)
+                    assertEquals(påbegyntSøknadIdNy, påbegynteSøknader.first().uuid)
                 }
             }
         }
