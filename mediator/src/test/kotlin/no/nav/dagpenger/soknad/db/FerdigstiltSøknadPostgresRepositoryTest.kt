@@ -84,7 +84,7 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
         using(sessionOf(PostgresDataSourceBuilder.dataSource)) { session ->
             session.run(
                 queryOf(
-                    """INSERT INTO soknad(uuid, eier, soknad_data)
+                    """INSERT INTO soknad_cache(uuid, eier, soknad_data)
                                     VALUES (:uuid, :eier, :soknad_data) """,
                     mapOf(
                         "uuid" to søknadId.toString(),

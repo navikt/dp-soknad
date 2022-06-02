@@ -55,15 +55,15 @@ internal class LivsyklusPostgresRepositoryTest {
             val søknad2 = PersistentSøkerOppgave(søknad(søknadUuid2, fødselsnummer = eier2))
 
             livssyklusRepository.invalider(søknadUuid, eier)
-            assertAntallRader(tabell = "SOKNAD", antallRader = 0)
+            assertAntallRader(tabell = "soknad_cache", antallRader = 0)
 
             livssyklusRepository.lagre(søknad)
             livssyklusRepository.lagre(søknad2)
 
-            assertAntallRader(tabell = "SOKNAD", antallRader = 2)
+            assertAntallRader(tabell = "soknad_cache", antallRader = 2)
 
             livssyklusRepository.invalider(søknadUuid, eier)
-            assertAntallRader(tabell = "SOKNAD", antallRader = 1)
+            assertAntallRader(tabell = "soknad_cache", antallRader = 1)
         }
     }
 

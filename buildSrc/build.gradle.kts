@@ -10,7 +10,6 @@ repositories {
 dependencies {
     implementation(kotlin("gradle-plugin"))
     implementation("com.diffplug.spotless:spotless-plugin-gradle:5.11.0")
-
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

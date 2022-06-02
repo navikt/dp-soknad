@@ -158,7 +158,7 @@ class LivsyklusPostgresRepository(private val dataSource: DataSource) : Livsyklu
                 tx.run(
                     // language=PostgreSQL
                     queryOf(
-                        """INSERT INTO soknad(uuid, eier, soknad_data)
+                        """INSERT INTO soknad_cache(uuid, eier, soknad_data)
                                     VALUES (:uuid, :eier, :data)
                                     ON CONFLICT(uuid, eier) 
                                     DO UPDATE SET soknad_data = :data,
@@ -183,7 +183,7 @@ class LivsyklusPostgresRepository(private val dataSource: DataSource) : Livsyklu
         return using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf(
-                    "SELECT uuid, eier, soknad_data FROM SOKNAD WHERE uuid = :uuid",
+                    "SELECT uuid, eier, soknad_data FROM soknad_cache WHERE uuid = :uuid",
                     mapOf("uuid" to søknadUUID.toString())
                 ).map { row ->
                     PersistentSøkerOppgave(objectMapper.readTree(row.binaryStream("soknad_data")))
@@ -197,7 +197,7 @@ class LivsyklusPostgresRepository(private val dataSource: DataSource) : Livsyklu
             session.run(
                 queryOf(
                     //language=PostgreSQL
-                    "DELETE FROM SOKNAD WHERE uuid = ? AND eier = ?", søknadUUID.toString(), eier
+                    "DELETE FROM soknad_cache WHERE uuid = ? AND eier = ?", søknadUUID.toString(), eier
                 ).asExecute
             )
         }

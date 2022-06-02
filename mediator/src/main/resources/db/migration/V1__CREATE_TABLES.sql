@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS soknad
+CREATE TABLE IF NOT EXISTS soknad_cache
 (
     uuid        VARCHAR(36)              NOT NULL,
     eier        VARCHAR(20)              NOT NULL,

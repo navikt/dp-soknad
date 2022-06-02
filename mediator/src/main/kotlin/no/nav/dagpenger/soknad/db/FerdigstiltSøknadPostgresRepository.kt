@@ -62,7 +62,7 @@ internal class FerdigstiltSøknadPostgresRepository(private val ds: DataSource) 
             session.run(
                 queryOf(
                     //language=PostgreSQL
-                    statement = "SELECT soknad_data FROM soknad WHERE uuid = :uuid",
+                    statement = "SELECT soknad_data FROM soknad_cache WHERE uuid = :uuid",
                     paramMap = mapOf(
                         "uuid" to søknadId.toString()
                     )
