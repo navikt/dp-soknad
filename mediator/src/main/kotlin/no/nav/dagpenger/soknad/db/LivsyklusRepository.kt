@@ -5,11 +5,14 @@ import no.nav.dagpenger.soknad.mottak.SøkerOppgave
 import java.time.LocalDateTime
 import java.util.UUID
 
+interface SøknadCacheRepository {
+    fun lagre(søkerOppgave: SøkerOppgave)
+    fun slett(søknadUUID: UUID, eier: String): Boolean
+    fun hent(søknadUUID: UUID): SøkerOppgave?
+}
+
 interface LivsyklusRepository {
     fun hent(ident: String): Person?
-    fun hent(søknadUUID: UUID): SøkerOppgave?
-    fun invalider(søknadUUID: UUID, eier: String): Boolean
-    fun lagre(søkerOppgave: SøkerOppgave)
     fun lagre(person: Person)
     fun hentPåbegynte(personIdent: String): List<PåbegyntSøknad>
 }

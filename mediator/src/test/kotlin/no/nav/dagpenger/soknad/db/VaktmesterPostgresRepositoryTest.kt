@@ -56,8 +56,8 @@ internal class VaktmesterPostgresRepositoryTest {
             }
 
             VaktmesterPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
-                editoOprettet(påbegyntSøknadGammel, nå.minusDays(30), PostgresDataSourceBuilder.dataSource)
-                editoOprettet(journalførtSøknadId, nå.minusDays(30), PostgresDataSourceBuilder.dataSource)
+                editOpprettet(påbegyntSøknadGammel, nå.minusDays(30), PostgresDataSourceBuilder.dataSource)
+                editOpprettet(journalførtSøknadId, nå.minusDays(30), PostgresDataSourceBuilder.dataSource)
                 it.slettPåbegynteSøknaderEldreEnn(nå.minusDays(7L)).also { rader ->
                     Assertions.assertEquals(1, rader)
                 }
@@ -75,7 +75,7 @@ internal class VaktmesterPostgresRepositoryTest {
         }
     }
 
-    private fun editoOprettet(søknadId: UUID, opprettetDato: LocalDateTime, ds: DataSource): Int {
+    private fun editOpprettet(søknadId: UUID, opprettetDato: LocalDateTime, ds: DataSource): Int {
         return using(sessionOf(ds)) {
             it.run(
                 queryOf(

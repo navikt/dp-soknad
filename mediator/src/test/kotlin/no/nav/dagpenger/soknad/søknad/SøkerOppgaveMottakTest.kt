@@ -2,9 +2,9 @@ package no.nav.dagpenger.soknad.søknad
 
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository
 import no.nav.dagpenger.soknad.db.Postgres
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
+import no.nav.dagpenger.soknad.db.SøknadCachePostgresRepository
 import no.nav.dagpenger.soknad.mottak.SøkerOppgaveMottak
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.AfterEach
@@ -25,7 +25,7 @@ class SøkerOppgaveMottakTest {
     fun `lese svar fra kafka`() {
 
         Postgres.withMigratedDb {
-            val søknadMediator = SøknadMediator(testRapid, LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource), mockk(), mockk()).also {
+            val søknadMediator = SøknadMediator(testRapid, SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource), mockk(), mockk(), mockk()).also {
                 SøkerOppgaveMottak(testRapid, it)
             }
             testRapid.reset()

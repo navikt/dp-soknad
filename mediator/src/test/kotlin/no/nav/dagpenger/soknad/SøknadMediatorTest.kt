@@ -13,8 +13,8 @@ import no.nav.dagpenger.soknad.Søknadsprosess.NySøknadsProsess
 import no.nav.dagpenger.soknad.Søknadsprosess.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.db.FerdigstiltSøknadRepository
 import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository
-import no.nav.dagpenger.soknad.db.LivsyklusRepository
 import no.nav.dagpenger.soknad.db.Postgres
+import no.nav.dagpenger.soknad.db.SøknadCachePostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadMalRepository
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
@@ -42,14 +42,15 @@ internal class SøknadMediatorTest {
     }
 
     private lateinit var mediator: SøknadMediator
-    private val livsyklusRepository: LivsyklusRepository = LivsyklusPostgresRepository(Postgres.withMigratedDb())
+    private val søknadCacheRepository = SøknadCachePostgresRepository(Postgres.withMigratedDb())
+    private val livsyklusRepository = LivsyklusPostgresRepository(Postgres.withMigratedDb())
     private val søknadMalRepositoryMock = mockk<SøknadMalRepository>()
     private val ferdigstiltSøknadRepository = mockk<FerdigstiltSøknadRepository>()
     private val testRapid = TestRapid()
 
     @BeforeEach
     fun setup() {
-        mediator = SøknadMediator(testRapid, livsyklusRepository, søknadMalRepositoryMock, ferdigstiltSøknadRepository)
+        mediator = SøknadMediator(testRapid, søknadCacheRepository, livsyklusRepository, søknadMalRepositoryMock, ferdigstiltSøknadRepository)
 
         SøkerOppgaveMottak(testRapid, mediator)
         SøknadOpprettetHendelseMottak(testRapid, mediator)
@@ -99,7 +100,7 @@ internal class SøknadMediatorTest {
 
         mediator.behandle(FaktumSvar(søknadUuid, "1234", "boolean", testIdent, BooleanNode.TRUE))
         assertTrue("faktum_svar" in testRapid.inspektør.message(1).toString())
-        assertSøknadInvalidert(søknadUuid)
+        assertSøknadCacheInvalidert(søknadUuid)
 
         testRapid.sendTestMessage(ferdigSøkerOppgave(søknadUuid.toString().toUUID(), testIdent))
         mediator.behandle(SøknadInnsendtHendelse(søknadUuid, testIdent))
@@ -131,8 +132,8 @@ internal class SøknadMediatorTest {
         assertEquals(Journalført, oppdatertInspektør().gjeldendetilstand)
     }
 
-    private fun assertSøknadInvalidert(søknadUuid: UUID) =
-        assertThrows<NotFoundException> { livsyklusRepository.hent(søknadUuid) }
+    private fun assertSøknadCacheInvalidert(søknadUuid: UUID) =
+        assertThrows<NotFoundException> { søknadCacheRepository.hent(søknadUuid) }
 
     @Test
     fun `Hva skjer om en får JournalførtHendelse som ikke er tilknyttet en søknad`() {

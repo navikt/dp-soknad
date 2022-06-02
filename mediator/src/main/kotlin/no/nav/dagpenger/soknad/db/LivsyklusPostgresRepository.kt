@@ -2,7 +2,6 @@ package no.nav.dagpenger.soknad.db
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
-import io.ktor.server.plugins.NotFoundException
 import kotliquery.Session
 import kotliquery.action.UpdateQueryAction
 import kotliquery.queryOf
@@ -150,57 +149,6 @@ class LivsyklusPostgresRepository(private val dataSource: DataSource) : Livsyklu
             }.asList
         )
     }
-
-    override fun lagre(søkerOppgave: SøkerOppgave) {
-        using(sessionOf(dataSource)) { session ->
-            session.transaction { tx ->
-
-                tx.run(
-                    // language=PostgreSQL
-                    queryOf(
-                        """INSERT INTO soknad_cache(uuid, eier, soknad_data)
-                                    VALUES (:uuid, :eier, :data)
-                                    ON CONFLICT(uuid, eier) 
-                                    DO UPDATE SET soknad_data = :data,
-                                    opprettet = (NOW() AT TIME ZONE 'utc')
-                                    """,
-                        mapOf(
-                            "uuid" to søkerOppgave.søknadUUID(),
-                            "eier" to søkerOppgave.eier(),
-                            "data" to PGobject().also {
-                                it.type = "jsonb"
-                                it.value = søkerOppgave.asJson().toString()
-                            }
-                        )
-                    ).asUpdate,
-                )
-            }
-        }
-    }
-
-    override fun hent(søknadUUID: UUID): SøkerOppgave {
-        // language=PostgreSQL
-        return using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf(
-                    "SELECT uuid, eier, soknad_data FROM soknad_cache WHERE uuid = :uuid",
-                    mapOf("uuid" to søknadUUID.toString())
-                ).map { row ->
-                    PersistentSøkerOppgave(objectMapper.readTree(row.binaryStream("soknad_data")))
-                }.asSingle
-            ) ?: throw NotFoundException("Søknad med id '$søknadUUID' ikke funnet")
-        }
-    }
-
-    override fun invalider(søknadUUID: UUID, eier: String): Boolean =
-        using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf(
-                    //language=PostgreSQL
-                    "DELETE FROM soknad_cache WHERE uuid = ? AND eier = ?", søknadUUID.toString(), eier
-                ).asExecute
-            )
-        }
 
     internal class PersistentSøkerOppgave(private val søknad: JsonNode) : SøkerOppgave {
         override fun søknadUUID(): UUID = UUID.fromString(søknad[SøkerOppgave.Keys.SØKNAD_UUID].asText())

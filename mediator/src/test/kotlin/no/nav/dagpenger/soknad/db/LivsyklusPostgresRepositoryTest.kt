@@ -1,7 +1,6 @@
 package no.nav.dagpenger.soknad.db
 
 import com.fasterxml.jackson.module.kotlin.contains
-import io.ktor.server.plugins.NotFoundException
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
@@ -13,14 +12,13 @@ import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository.PersistentSøkerOp
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.mottak.SøkerOppgave
 import no.nav.dagpenger.soknad.serder.objectMapper
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
-import org.junit.jupiter.api.assertThrows
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -40,30 +38,6 @@ internal class LivsyklusPostgresRepositoryTest {
                     it.lagre(expectedPerson)
                 }
             }
-        }
-    }
-
-    @Test
-    fun `Invaliderer riktig`() {
-        withMigratedDb {
-            val livssyklusRepository = LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
-            val søknadUuid = UUID.randomUUID()
-            val søknadUuid2 = UUID.randomUUID()
-            val eier = "12345678901"
-            val eier2 = "12345678902"
-            val søknad = PersistentSøkerOppgave(søknad(søknadUuid, fødselsnummer = eier))
-            val søknad2 = PersistentSøkerOppgave(søknad(søknadUuid2, fødselsnummer = eier2))
-
-            livssyklusRepository.invalider(søknadUuid, eier)
-            assertAntallRader(tabell = "soknad_cache", antallRader = 0)
-
-            livssyklusRepository.lagre(søknad)
-            livssyklusRepository.lagre(søknad2)
-
-            assertAntallRader(tabell = "soknad_cache", antallRader = 2)
-
-            livssyklusRepository.invalider(søknadUuid, eier)
-            assertAntallRader(tabell = "soknad_cache", antallRader = 1)
         }
     }
 
@@ -191,6 +165,16 @@ internal class LivsyklusPostgresRepositoryTest {
         }
     }
 
+    @Test
+    fun `Fødselsnummer skal ikke komme med som en del av frontendformatet, men skal fortsatt være en del av søknaden`() {
+        val søknadJson = søknad(UUID.randomUUID())
+        val søknad = PersistentSøkerOppgave(søknadJson)
+
+        val frontendformat = søknad.asFrontendformat()
+        assertFalse(frontendformat.contains(SøkerOppgave.Keys.FØDSELSNUMMER))
+        assertNotNull(søknad.eier())
+    }
+
     private fun assertDeepEquals(expected: Søknad, result: Søknad) {
         assertTrue(expected.deepEquals(result), "Søknadene var ikke like")
     }
@@ -198,6 +182,7 @@ internal class LivsyklusPostgresRepositoryTest {
     private class TestPersonVisitor(person: Person?) : PersonVisitor {
         val dokumenter: MutableMap<UUID, Søknad.Dokument> = mutableMapOf()
         lateinit var søknader: List<Søknad>
+
         lateinit var aktivitetslogg: Aktivitetslogg
 
         init {
@@ -235,73 +220,9 @@ internal class LivsyklusPostgresRepositoryTest {
         assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: $tabell")
     }
 
-    @Test
-    fun `Lagre søknad og hente`() {
-        withMigratedDb {
-            val postgresPersistence = LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
-            val søknadUuid = UUID.randomUUID()
-            val søknad = PersistentSøkerOppgave(søknad(søknadUuid))
-            postgresPersistence.lagre(søknad)
-
-            val rehydrertSøknad = postgresPersistence.hent(søknadUuid)
-            assertEquals(søknad.søknadUUID(), rehydrertSøknad.søknadUUID())
-            assertEquals(søknad.eier(), rehydrertSøknad.eier())
-            assertEquals(søknad.asFrontendformat(), rehydrertSøknad.asFrontendformat())
-        }
-    }
-
-    @Test
-    fun `Lagre samme søknad id flere ganger appendes på raden, men siste versjon av søknad hentes`() {
-        val søknadUuid = UUID.randomUUID()
-        withMigratedDb {
-            val postgresPersistence = LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
-            postgresPersistence.lagre(PersistentSøkerOppgave(søknad(søknadUuid)))
-            postgresPersistence.lagre(
-                PersistentSøkerOppgave(
-                    søknad(
-                        søknadUuid,
-                        seksjoner = "oppdatert første gang"
-                    )
-                )
-            )
-            postgresPersistence.lagre(
-                PersistentSøkerOppgave(
-                    søknad(
-                        søknadUuid,
-                        seksjoner = "oppdatert andre gang"
-                    )
-                )
-            )
-            val rehydrertSøknad = postgresPersistence.hent(søknadUuid)
-            assertEquals(søknadUuid, rehydrertSøknad.søknadUUID())
-            assertEquals("12345678910", rehydrertSøknad.eier())
-            assertEquals(
-                "oppdatert andre gang",
-                rehydrertSøknad.asFrontendformat()[SøkerOppgave.Keys.SEKSJONER].asText()
-            )
-        }
-    }
-
-    @Test
-    fun `Henter en søknad som ikke finnes`() {
-        withMigratedDb {
-            val postgresPersistence = LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
-            assertThrows<NotFoundException> { postgresPersistence.hent(UUID.randomUUID()) }
-        }
-    }
-
-    @Test
-    fun `Fødselsnummer skal ikke komme med som en del av frontendformatet, men skal fortsatt være en del av søknaden`() {
-        val søknadJson = søknad(UUID.randomUUID())
-        val søknad = PersistentSøkerOppgave(søknadJson)
-
-        val frontendformat = søknad.asFrontendformat()
-        Assertions.assertFalse(frontendformat.contains(SøkerOppgave.Keys.FØDSELSNUMMER))
-        assertNotNull(søknad.eier())
-    }
-
-    private fun søknad(søknadUuid: UUID, seksjoner: String = "seksjoner", fødselsnummer: String = "12345678910") = objectMapper.readTree(
-        """{
+    private fun søknad(søknadUuid: UUID, seksjoner: String = "seksjoner", fødselsnummer: String = "12345678910") =
+        objectMapper.readTree(
+            """{
   "@event_name": "søker_oppgave",
   "fødselsnummer": $fødselsnummer,
   "versjon_id": 0,
@@ -312,5 +233,5 @@ internal class LivsyklusPostgresRepositoryTest {
   "ferdig": false,
   "seksjoner": "$seksjoner"
 }"""
-    )
+        )
 }

@@ -12,11 +12,10 @@ import javax.sql.DataSource
 
 private val logger = KotlinLogging.logger {}
 
-internal class FerdigstiltSøknadPostgresRepository(private val ds: DataSource) : FerdigstiltSøknadRepository {
+internal class FerdigstiltSøknadPostgresRepository(private val dataSource: DataSource) : FerdigstiltSøknadRepository {
     override fun lagreSøknadsTekst(søknadUuid: UUID, søknadsTekst: String) {
         try {
-
-            using(sessionOf(ds)) { session ->
+            using(sessionOf(dataSource)) { session ->
                 session.run(
                     queryOf(
                         statement = "INSERT INTO soknad_tekst_v1(uuid,tekst) VALUES(:uuid,:tekst)",
@@ -42,7 +41,7 @@ internal class FerdigstiltSøknadPostgresRepository(private val ds: DataSource) 
     }
 
     override fun hentTekst(søknadId: UUID): String {
-        return using(sessionOf(ds)) { session ->
+        return using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf(
                     //language=PostgreSQL
@@ -58,7 +57,7 @@ internal class FerdigstiltSøknadPostgresRepository(private val ds: DataSource) 
     }
 
     override fun hentFakta(søknadId: UUID): String {
-        return using(sessionOf(ds)) { session ->
+        return using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf(
                     //language=PostgreSQL

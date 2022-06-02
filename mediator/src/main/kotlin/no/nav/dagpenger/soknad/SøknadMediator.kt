@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.db.FerdigstiltSøknadRepository
 import no.nav.dagpenger.soknad.db.LivsyklusRepository
+import no.nav.dagpenger.soknad.db.SøknadCacheRepository
 import no.nav.dagpenger.soknad.db.SøknadMalRepository
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
@@ -22,11 +23,13 @@ import java.util.UUID
 
 internal class SøknadMediator(
     private val rapidsConnection: RapidsConnection,
+    private val søknadCacheRepository: SøknadCacheRepository,
     private val livsyklusRepository: LivsyklusRepository,
     private val søknadMalRepository: SøknadMalRepository,
     private val ferdigstiltSøknadRepository: FerdigstiltSøknadRepository,
     private val personObservers: List<PersonObserver> = emptyList()
-) : SøknadMalRepository by søknadMalRepository,
+) : SøknadCacheRepository by søknadCacheRepository,
+    SøknadMalRepository by søknadMalRepository,
     LivsyklusRepository by livsyklusRepository,
     FerdigstiltSøknadRepository by ferdigstiltSøknadRepository {
 
@@ -83,14 +86,14 @@ internal class SøknadMediator(
         val faktumOppdatertHendelse = FaktumOppdatertHendelse(faktumSvar.søknadUuid(), faktumSvar.eier())
         behandle(faktumOppdatertHendelse) { person ->
             person.håndter(faktumOppdatertHendelse)
-            livsyklusRepository.invalider(faktumSvar.søknadUuid(), faktumSvar.eier())
+            søknadCacheRepository.slett(faktumSvar.søknadUuid(), faktumSvar.eier())
             rapidsConnection.publish(faktumSvar.toJson())
         }
         logger.info { "Sendte faktum svar for ${faktumSvar.søknadUuid()}" }
     }
 
     fun behandle(søkerOppgave: SøkerOppgave) {
-        livsyklusRepository.lagre(søkerOppgave)
+        søknadCacheRepository.lagre(søkerOppgave)
     }
 
     internal fun hentEllerOpprettSøknadsprosess(ident: String): Søknadsprosess {
