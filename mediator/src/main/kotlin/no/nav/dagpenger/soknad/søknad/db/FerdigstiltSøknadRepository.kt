@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad.db
+package no.nav.dagpenger.soknad.søknad.db
 
 import io.ktor.server.plugins.NotFoundException
 import kotliquery.queryOf

@@ -6,6 +6,9 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.serder.objectMapper
+import no.nav.dagpenger.soknad.søknad.db.IngenMalFunnetException
+import no.nav.dagpenger.soknad.søknad.db.SøknadMal
+import no.nav.dagpenger.soknad.søknad.db.SøknadMalPostgresRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test

@@ -17,12 +17,12 @@ import no.nav.dagpenger.soknad.Søknadsprosess.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
-import no.nav.dagpenger.soknad.db.PåbegyntSøknad
-import no.nav.dagpenger.soknad.db.SøknadMal
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.mottak.SøkerOppgave
 import no.nav.dagpenger.soknad.mottak.testSøknadMalMelding
 import no.nav.dagpenger.soknad.serder.objectMapper
+import no.nav.dagpenger.soknad.søknad.db.PåbegyntSøknad
+import no.nav.dagpenger.soknad.søknad.db.SøknadMal
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue

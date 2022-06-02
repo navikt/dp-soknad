@@ -6,9 +6,9 @@ import kotliquery.using
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Søknad
-import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository
 import no.nav.dagpenger.soknad.db.Postgres
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
+import no.nav.dagpenger.soknad.søknad.db.LivsyklusPostgresRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime

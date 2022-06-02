@@ -1,12 +1,8 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.pdl.createPersonOppslag
-import no.nav.dagpenger.soknad.db.FerdigstiltSøknadPostgresRepository
-import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder.runMigration
-import no.nav.dagpenger.soknad.db.SøknadCachePostgresRepository
-import no.nav.dagpenger.soknad.db.SøknadMalPostgresRepository
 import no.nav.dagpenger.soknad.mottak.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.dagpenger.soknad.mottak.JournalførtMottak
 import no.nav.dagpenger.soknad.mottak.NyJournalpostMottak
@@ -18,6 +14,10 @@ import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
 import no.nav.dagpenger.soknad.personalia.personaliaRouteBuilder
 import no.nav.dagpenger.soknad.sletterutine.UtdaterteSøknaderJob
+import no.nav.dagpenger.soknad.søknad.cache.SøknadCachePostgresRepository
+import no.nav.dagpenger.soknad.søknad.db.FerdigstiltSøknadPostgresRepository
+import no.nav.dagpenger.soknad.søknad.db.LivsyklusPostgresRepository
+import no.nav.dagpenger.soknad.søknad.db.SøknadMalPostgresRepository
 import no.nav.dagpenger.soknad.søknad.ferdigStiltSøknadRouteBuilder
 import no.nav.dagpenger.soknad.søknad.søknadApiRouteBuilder
 import no.nav.helse.rapids_rivers.RapidApplication

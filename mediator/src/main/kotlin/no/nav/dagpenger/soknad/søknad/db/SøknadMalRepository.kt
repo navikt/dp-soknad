@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad.db
+package no.nav.dagpenger.soknad.søknad.db
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper

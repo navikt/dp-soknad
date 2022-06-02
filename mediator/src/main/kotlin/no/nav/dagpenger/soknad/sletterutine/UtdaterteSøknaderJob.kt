@@ -1,7 +1,7 @@
 package no.nav.dagpenger.soknad.sletterutine
 
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
-import java.time.LocalDateTime
+import java.time.LocalDateTime.now
 import kotlin.concurrent.fixedRateTimer
 
 object UtdaterteSøknaderJob {
@@ -13,7 +13,7 @@ object UtdaterteSøknaderJob {
             period = 86400000,
             action = {
                 VaktmesterPostgresRepository(PostgresDataSourceBuilder.dataSource).slettPåbegynteSøknaderEldreEnn(
-                    LocalDateTime.now().minusDays(7)
+                    now().minusDays(7)
                 )
             }
         )

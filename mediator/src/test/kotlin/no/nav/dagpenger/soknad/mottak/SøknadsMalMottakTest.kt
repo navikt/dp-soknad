@@ -4,8 +4,8 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import no.nav.dagpenger.soknad.db.SøknadMal
-import no.nav.dagpenger.soknad.db.SøknadMalRepository
+import no.nav.dagpenger.soknad.søknad.db.SøknadMal
+import no.nav.dagpenger.soknad.søknad.db.SøknadMalRepository
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull

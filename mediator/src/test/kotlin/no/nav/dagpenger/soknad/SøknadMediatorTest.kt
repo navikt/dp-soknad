@@ -11,11 +11,7 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.Søknadsprosess.NySøknadsProsess
 import no.nav.dagpenger.soknad.Søknadsprosess.PåbegyntSøknadsProsess
-import no.nav.dagpenger.soknad.db.FerdigstiltSøknadRepository
-import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository
 import no.nav.dagpenger.soknad.db.Postgres
-import no.nav.dagpenger.soknad.db.SøknadCachePostgresRepository
-import no.nav.dagpenger.soknad.db.SøknadMalRepository
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.mottak.ArkiverbarSøknadMottattHendelseMottak
@@ -24,6 +20,10 @@ import no.nav.dagpenger.soknad.mottak.NyJournalpostMottak
 import no.nav.dagpenger.soknad.mottak.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.mottak.SøknadOpprettetHendelseMottak
 import no.nav.dagpenger.soknad.søknad.FaktumSvar
+import no.nav.dagpenger.soknad.søknad.cache.SøknadCachePostgresRepository
+import no.nav.dagpenger.soknad.søknad.db.FerdigstiltSøknadRepository
+import no.nav.dagpenger.soknad.søknad.db.LivsyklusPostgresRepository
+import no.nav.dagpenger.soknad.søknad.db.SøknadMalRepository
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.rapids_rivers.toUUID
 import org.junit.jupiter.api.Assertions.assertEquals

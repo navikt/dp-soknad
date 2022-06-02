@@ -10,7 +10,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.util.pipeline.PipelineContext
 import no.nav.dagpenger.soknad.Configuration
-import no.nav.dagpenger.soknad.db.FerdigstiltSøknadPostgresRepository
+import no.nav.dagpenger.soknad.søknad.db.FerdigstiltSøknadPostgresRepository
 import java.util.UUID
 
 internal fun ferdigStiltSøknadRouteBuilder(db: FerdigstiltSøknadPostgresRepository): Route.() -> Unit {

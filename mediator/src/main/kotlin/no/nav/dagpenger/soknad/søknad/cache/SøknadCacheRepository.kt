@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad.db
+package no.nav.dagpenger.soknad.søknad.cache
 
 import io.ktor.server.plugins.NotFoundException
 import kotliquery.queryOf
@@ -6,6 +6,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.mottak.SøkerOppgave
 import no.nav.dagpenger.soknad.serder.objectMapper
+import no.nav.dagpenger.soknad.søknad.db.LivsyklusPostgresRepository
 import org.postgresql.util.PGobject
 import java.util.UUID
 import javax.sql.DataSource

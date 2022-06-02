@@ -1,9 +1,9 @@
 package no.nav.dagpenger.soknad.mottak
 
 import mu.KotlinLogging
-import no.nav.dagpenger.soknad.db.SøknadMal
-import no.nav.dagpenger.soknad.db.SøknadMalRepository
 import no.nav.dagpenger.soknad.serder.objectMapper
+import no.nav.dagpenger.soknad.søknad.db.SøknadMal
+import no.nav.dagpenger.soknad.søknad.db.SøknadMalRepository
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
