@@ -16,7 +16,7 @@ import no.nav.dagpenger.soknad.søknad.FaktumSvar
 import no.nav.dagpenger.soknad.søknad.cache.SøknadCacheRepository
 import no.nav.dagpenger.soknad.søknad.db.FerdigstiltSøknadRepository
 import no.nav.dagpenger.soknad.søknad.db.LivsyklusRepository
-import no.nav.dagpenger.soknad.søknad.db.SøknadMalRepository
+import no.nav.dagpenger.soknad.søknad.mal.SøknadMalRepository
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.withMDC
 import java.util.UUID

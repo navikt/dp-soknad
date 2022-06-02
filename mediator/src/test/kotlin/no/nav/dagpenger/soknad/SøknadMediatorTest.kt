@@ -23,7 +23,7 @@ import no.nav.dagpenger.soknad.søknad.FaktumSvar
 import no.nav.dagpenger.soknad.søknad.cache.SøknadCachePostgresRepository
 import no.nav.dagpenger.soknad.søknad.db.FerdigstiltSøknadRepository
 import no.nav.dagpenger.soknad.søknad.db.LivsyklusPostgresRepository
-import no.nav.dagpenger.soknad.søknad.db.SøknadMalRepository
+import no.nav.dagpenger.soknad.søknad.mal.SøknadMalRepository
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.rapids_rivers.toUUID
 import org.junit.jupiter.api.Assertions.assertEquals

@@ -22,7 +22,7 @@ import no.nav.dagpenger.soknad.mottak.SøkerOppgave
 import no.nav.dagpenger.soknad.mottak.testSøknadMalMelding
 import no.nav.dagpenger.soknad.serder.objectMapper
 import no.nav.dagpenger.soknad.søknad.db.PåbegyntSøknad
-import no.nav.dagpenger.soknad.søknad.db.SøknadMal
+import no.nav.dagpenger.soknad.søknad.mal.SøknadMal
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue

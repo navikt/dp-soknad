@@ -27,6 +27,7 @@ import no.nav.dagpenger.soknad.Søknadsprosess.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.auth.ident
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.mottak.SøkerOppgave
+import no.nav.dagpenger.soknad.søknad.mal.nyesteMalRoute
 import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
@@ -98,10 +99,7 @@ internal fun Route.søknadApi(
             call.respond(HttpStatusCode.NoContent)
         }
 
-        get("/mal") {
-            val nyesteMal = søknadMediator.hentNyesteMal("Dagpenger")
-            call.respond(nyesteMal.mal)
-        }
+        nyesteMalRoute(søknadMediator)
     }
 }
 
