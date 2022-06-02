@@ -1,7 +1,6 @@
-package no.nav.dagpenger.soknad
+package no.nav.dagpenger.soknad.sletterutine
 
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
-import no.nav.dagpenger.soknad.db.VaktmesterPostgresRepository
 import java.time.LocalDateTime
 import kotlin.concurrent.fixedRateTimer
 

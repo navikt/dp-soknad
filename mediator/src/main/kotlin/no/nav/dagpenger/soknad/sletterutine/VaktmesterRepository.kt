@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad.db
+package no.nav.dagpenger.soknad.sletterutine
 
 import kotliquery.queryOf
 import kotliquery.sessionOf

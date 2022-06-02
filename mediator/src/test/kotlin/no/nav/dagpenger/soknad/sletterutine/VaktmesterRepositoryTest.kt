@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad.db
+package no.nav.dagpenger.soknad.sletterutine
 
 import kotliquery.queryOf
 import kotliquery.sessionOf
@@ -6,6 +6,9 @@ import kotliquery.using
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.db.LivsyklusPostgresRepository
+import no.nav.dagpenger.soknad.db.Postgres
+import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -13,7 +16,7 @@ import java.time.ZonedDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
-internal class VaktmesterPostgresRepositoryTest {
+internal class VaktmesterRepositoryTest {
     @Test
     fun `Sletter gamle søknader etter gitt tidsinterval`() {
         val påbegyntSøknadGammel = UUID.randomUUID()
