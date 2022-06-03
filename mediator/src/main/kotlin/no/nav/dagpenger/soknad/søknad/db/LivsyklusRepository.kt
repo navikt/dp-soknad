@@ -11,10 +11,10 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Søknad
-import no.nav.dagpenger.soknad.mottak.SøkerOppgave
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.soknad.serder.PersonData
 import no.nav.dagpenger.soknad.serder.objectMapper
+import no.nav.dagpenger.soknad.søknad.faktumflyt.SøkerOppgave
 import no.nav.dagpenger.soknad.toMap
 import org.postgresql.util.PGobject
 import java.time.LocalDate

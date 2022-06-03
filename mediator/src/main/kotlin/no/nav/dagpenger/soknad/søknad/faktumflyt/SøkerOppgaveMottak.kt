@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad.mottak
+package no.nav.dagpenger.soknad.søknad.faktumflyt
 
 import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging

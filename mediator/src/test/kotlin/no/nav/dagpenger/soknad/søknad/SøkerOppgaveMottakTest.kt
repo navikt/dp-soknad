@@ -4,8 +4,8 @@ import io.mockk.mockk
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.db.Postgres
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
-import no.nav.dagpenger.soknad.mottak.SøkerOppgaveMottak
-import no.nav.dagpenger.soknad.søknad.cache.SøknadCachePostgresRepository
+import no.nav.dagpenger.soknad.søknad.faktumflyt.SøkerOppgaveMottak
+import no.nav.dagpenger.soknad.søknad.faktumflyt.SøknadCachePostgresRepository
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
