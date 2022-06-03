@@ -21,6 +21,7 @@ import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.mottak.testSøknadMalMelding
 import no.nav.dagpenger.soknad.serder.objectMapper
 import no.nav.dagpenger.soknad.søknad.db.PåbegyntSøknad
+import no.nav.dagpenger.soknad.søknad.faktumflyt.FaktumSvar
 import no.nav.dagpenger.soknad.søknad.faktumflyt.SøkerOppgave
 import no.nav.dagpenger.soknad.søknad.mal.SøknadMal
 import org.junit.jupiter.api.Assertions.assertEquals

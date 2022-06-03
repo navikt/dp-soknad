@@ -18,8 +18,8 @@ import no.nav.dagpenger.soknad.mottak.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.dagpenger.soknad.mottak.JournalførtMottak
 import no.nav.dagpenger.soknad.mottak.NyJournalpostMottak
 import no.nav.dagpenger.soknad.mottak.SøknadOpprettetHendelseMottak
-import no.nav.dagpenger.soknad.søknad.FaktumSvar
 import no.nav.dagpenger.soknad.søknad.db.LivsyklusPostgresRepository
+import no.nav.dagpenger.soknad.søknad.faktumflyt.FaktumSvar
 import no.nav.dagpenger.soknad.søknad.faktumflyt.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.søknad.faktumflyt.SøknadCachePostgresRepository
 import no.nav.dagpenger.soknad.søknad.ferdigstilling.FerdigstiltSøknadRepository

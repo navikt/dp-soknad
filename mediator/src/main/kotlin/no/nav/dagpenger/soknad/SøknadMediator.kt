@@ -11,8 +11,8 @@ import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
-import no.nav.dagpenger.soknad.søknad.FaktumSvar
 import no.nav.dagpenger.soknad.søknad.db.LivsyklusRepository
+import no.nav.dagpenger.soknad.søknad.faktumflyt.FaktumSvar
 import no.nav.dagpenger.soknad.søknad.faktumflyt.SøkerOppgave
 import no.nav.dagpenger.soknad.søknad.faktumflyt.SøknadCacheRepository
 import no.nav.dagpenger.soknad.søknad.ferdigstilling.FerdigstiltSøknadRepository

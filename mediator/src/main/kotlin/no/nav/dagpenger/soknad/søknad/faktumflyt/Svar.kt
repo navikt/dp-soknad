@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad.søknad
+package no.nav.dagpenger.soknad.søknad.faktumflyt
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode

@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.søknad
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import no.nav.dagpenger.soknad.søknad.faktumflyt.Svar
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test

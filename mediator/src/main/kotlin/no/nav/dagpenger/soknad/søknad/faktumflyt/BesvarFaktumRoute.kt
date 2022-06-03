@@ -12,8 +12,6 @@ import io.ktor.util.pipeline.PipelineContext
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.auth.ident
-import no.nav.dagpenger.soknad.søknad.FaktumSvar
-import no.nav.dagpenger.soknad.søknad.Svar
 import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
