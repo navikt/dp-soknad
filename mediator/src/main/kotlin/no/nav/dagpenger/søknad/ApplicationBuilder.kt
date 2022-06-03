@@ -2,6 +2,7 @@ package no.nav.dagpenger.søknad
 
 import no.nav.dagpenger.pdl.createPersonOppslag
 import no.nav.dagpenger.søknad.db.PostgresDataSourceBuilder
+import no.nav.dagpenger.søknad.db.PostgresDataSourceBuilder.clean
 import no.nav.dagpenger.søknad.db.PostgresDataSourceBuilder.runMigration
 import no.nav.dagpenger.søknad.faktumflyt.SøkerOppgaveMottak
 import no.nav.dagpenger.søknad.faktumflyt.SøknadCachePostgresRepository
@@ -79,6 +80,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     }
 
     override fun onStartup(rapidsConnection: RapidsConnection) {
+        clean()
         runMigration()
         SøknadsMalMottak(rapidsConnection, søknadMalRepository)
     }
