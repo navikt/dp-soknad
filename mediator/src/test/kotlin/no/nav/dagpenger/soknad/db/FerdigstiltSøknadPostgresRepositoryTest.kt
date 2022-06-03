@@ -7,7 +7,7 @@ import kotliquery.using
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
-import no.nav.dagpenger.soknad.søknad.db.LivsyklusPostgresRepository
+import no.nav.dagpenger.soknad.søknad.db.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.søknad.ferdigstilling.FerdigstiltSøknadPostgresRepository
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -117,7 +117,7 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
                 )
             )
         }
-        LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).lagre(originalPerson)
+        LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).lagre(originalPerson)
         return søknadId
     }
 

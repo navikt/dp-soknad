@@ -11,7 +11,7 @@ import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
-import no.nav.dagpenger.soknad.søknad.db.LivsyklusRepository
+import no.nav.dagpenger.soknad.søknad.db.LivssyklusRepository
 import no.nav.dagpenger.soknad.søknad.faktumflyt.FaktumSvar
 import no.nav.dagpenger.soknad.søknad.faktumflyt.SøkerOppgave
 import no.nav.dagpenger.soknad.søknad.faktumflyt.SøknadCacheRepository
@@ -24,13 +24,13 @@ import java.util.UUID
 internal class SøknadMediator(
     private val rapidsConnection: RapidsConnection,
     private val søknadCacheRepository: SøknadCacheRepository,
-    private val livsyklusRepository: LivsyklusRepository,
+    private val livssyklusRepository: LivssyklusRepository,
     private val søknadMalRepository: SøknadMalRepository,
     private val ferdigstiltSøknadRepository: FerdigstiltSøknadRepository,
     private val personObservers: List<PersonObserver> = emptyList()
 ) : SøknadCacheRepository by søknadCacheRepository,
     SøknadMalRepository by søknadMalRepository,
-    LivsyklusRepository by livsyklusRepository,
+    LivssyklusRepository by livssyklusRepository,
     FerdigstiltSøknadRepository by ferdigstiltSøknadRepository {
 
     private companion object {
@@ -153,7 +153,7 @@ internal class SøknadMediator(
     }
 
     private fun hentEllerOpprettPerson(hendelse: Hendelse) =
-        livsyklusRepository.hent(hendelse.ident()) ?: Person(hendelse.ident())
+        livssyklusRepository.hent(hendelse.ident()) ?: Person(hendelse.ident())
 }
 
 internal sealed class Søknadsprosess {

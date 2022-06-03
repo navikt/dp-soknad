@@ -10,8 +10,8 @@ import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.serder.objectMapper
-import no.nav.dagpenger.soknad.søknad.db.LivsyklusPostgresRepository
-import no.nav.dagpenger.soknad.søknad.db.LivsyklusPostgresRepository.PersistentSøkerOppgave
+import no.nav.dagpenger.soknad.søknad.db.LivssyklusPostgresRepository
+import no.nav.dagpenger.soknad.søknad.db.LivssyklusPostgresRepository.PersistentSøkerOppgave
 import no.nav.dagpenger.soknad.søknad.faktumflyt.SøkerOppgave
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -23,11 +23,11 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import java.time.ZonedDateTime
 import java.util.UUID
 
-internal class LivsyklusPostgresRepositoryTest {
+internal class LivssyklusPostgresRepositoryTest {
     @Test
     fun `Lagre og hente person uten søknader`() {
         withMigratedDb {
-            LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
+            LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
                 val expectedPerson = Person("12345678910")
                 it.lagre(expectedPerson)
                 val person = it.hent("12345678910")
@@ -45,7 +45,7 @@ internal class LivsyklusPostgresRepositoryTest {
     @Test
     fun `Hent person som ikke finnes`() {
         withMigratedDb {
-            LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
+            LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
                 assertNull(it.hent("finnes ikke"))
             }
         }
@@ -83,7 +83,7 @@ internal class LivsyklusPostgresRepositoryTest {
         }
 
         withMigratedDb {
-            LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
+            LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
                 it.lagre(originalPerson)
                 val personFraDatabase = it.hent("12345678910")
                 assertNotNull(personFraDatabase)
@@ -128,7 +128,7 @@ internal class LivsyklusPostgresRepositoryTest {
         }
 
         withMigratedDb {
-            LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
+            LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
                 it.lagre(person)
                 assertEquals(1, it.hentPåbegynte(person.ident()).size)
 
@@ -155,7 +155,7 @@ internal class LivsyklusPostgresRepositoryTest {
         }
 
         withMigratedDb {
-            LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
+            LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
                 it.lagre(originalPerson)
                 val personFraDatabase = it.hent("12345678910")
                 assertNotNull(personFraDatabase)

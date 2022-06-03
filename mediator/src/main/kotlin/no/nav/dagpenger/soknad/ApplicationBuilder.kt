@@ -12,7 +12,7 @@ import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
 import no.nav.dagpenger.soknad.personalia.personaliaRouteBuilder
 import no.nav.dagpenger.soknad.sletterutine.UtdaterteSøknaderJob
-import no.nav.dagpenger.soknad.søknad.db.LivsyklusPostgresRepository
+import no.nav.dagpenger.soknad.søknad.db.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.søknad.faktumflyt.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.søknad.faktumflyt.SøknadCachePostgresRepository
 import no.nav.dagpenger.soknad.søknad.ferdigStiltSøknadRouteBuilder
@@ -53,7 +53,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     private val søknadMediator = SøknadMediator(
         rapidsConnection = rapidsConnection,
         søknadCacheRepository = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource),
-        livsyklusRepository = LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource),
+        livssyklusRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource),
         søknadMalRepository = søknadMalRepository,
         ferdigstiltSøknadRepository = ferdigstiltRepository,
         personObservers = listOf(

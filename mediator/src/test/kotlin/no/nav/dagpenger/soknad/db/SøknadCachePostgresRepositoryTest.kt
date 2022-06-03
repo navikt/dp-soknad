@@ -6,7 +6,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.serder.objectMapper
-import no.nav.dagpenger.soknad.søknad.db.LivsyklusPostgresRepository
+import no.nav.dagpenger.soknad.søknad.db.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.søknad.faktumflyt.SøkerOppgave
 import no.nav.dagpenger.soknad.søknad.faktumflyt.SøknadCachePostgresRepository
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -21,7 +21,7 @@ class SøknadCachePostgresRepositoryTest {
         withMigratedDb {
             val søknadCache = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource)
             val søknadUuid = UUID.randomUUID()
-            val søknad = LivsyklusPostgresRepository.PersistentSøkerOppgave(søknad(søknadUuid))
+            val søknad = LivssyklusPostgresRepository.PersistentSøkerOppgave(søknad(søknadUuid))
             søknadCache.lagre(søknad)
 
             val rehydrertSøknad = søknadCache.hent(søknadUuid)
@@ -36,9 +36,9 @@ class SøknadCachePostgresRepositoryTest {
         val søknadUuid = UUID.randomUUID()
         withMigratedDb {
             val søknadCache = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource)
-            søknadCache.lagre(LivsyklusPostgresRepository.PersistentSøkerOppgave(søknad(søknadUuid)))
+            søknadCache.lagre(LivssyklusPostgresRepository.PersistentSøkerOppgave(søknad(søknadUuid)))
             søknadCache.lagre(
-                LivsyklusPostgresRepository.PersistentSøkerOppgave(
+                LivssyklusPostgresRepository.PersistentSøkerOppgave(
                     søknad(
                         søknadUuid,
                         seksjoner = "oppdatert første gang"
@@ -46,7 +46,7 @@ class SøknadCachePostgresRepositoryTest {
                 )
             )
             søknadCache.lagre(
-                LivsyklusPostgresRepository.PersistentSøkerOppgave(
+                LivssyklusPostgresRepository.PersistentSøkerOppgave(
                     søknad(
                         søknadUuid,
                         seksjoner = "oppdatert andre gang"
@@ -78,8 +78,8 @@ class SøknadCachePostgresRepositoryTest {
             val søknadUuid2 = UUID.randomUUID()
             val eier = "12345678901"
             val eier2 = "12345678902"
-            val søknad = LivsyklusPostgresRepository.PersistentSøkerOppgave(søknad(søknadUuid, fødselsnummer = eier))
-            val søknad2 = LivsyklusPostgresRepository.PersistentSøkerOppgave(søknad(søknadUuid2, fødselsnummer = eier2))
+            val søknad = LivssyklusPostgresRepository.PersistentSøkerOppgave(søknad(søknadUuid, fødselsnummer = eier))
+            val søknad2 = LivssyklusPostgresRepository.PersistentSøkerOppgave(søknad(søknadUuid2, fødselsnummer = eier2))
 
             søknadCache.slett(søknadUuid, eier)
             assertAntallRader(antallRader = 0)

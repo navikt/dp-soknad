@@ -18,7 +18,7 @@ import no.nav.dagpenger.soknad.mottak.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.dagpenger.soknad.mottak.JournalførtMottak
 import no.nav.dagpenger.soknad.mottak.NyJournalpostMottak
 import no.nav.dagpenger.soknad.mottak.SøknadOpprettetHendelseMottak
-import no.nav.dagpenger.soknad.søknad.db.LivsyklusPostgresRepository
+import no.nav.dagpenger.soknad.søknad.db.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.søknad.faktumflyt.FaktumSvar
 import no.nav.dagpenger.soknad.søknad.faktumflyt.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.søknad.faktumflyt.SøknadCachePostgresRepository
@@ -43,14 +43,14 @@ internal class SøknadMediatorTest {
 
     private lateinit var mediator: SøknadMediator
     private val søknadCacheRepository = SøknadCachePostgresRepository(Postgres.withMigratedDb())
-    private val livsyklusRepository = LivsyklusPostgresRepository(Postgres.withMigratedDb())
+    private val livssyklusRepository = LivssyklusPostgresRepository(Postgres.withMigratedDb())
     private val søknadMalRepositoryMock = mockk<SøknadMalRepository>()
     private val ferdigstiltSøknadRepository = mockk<FerdigstiltSøknadRepository>()
     private val testRapid = TestRapid()
 
     @BeforeEach
     fun setup() {
-        mediator = SøknadMediator(testRapid, søknadCacheRepository, livsyklusRepository, søknadMalRepositoryMock, ferdigstiltSøknadRepository)
+        mediator = SøknadMediator(testRapid, søknadCacheRepository, livssyklusRepository, søknadMalRepositoryMock, ferdigstiltSøknadRepository)
 
         SøkerOppgaveMottak(testRapid, mediator)
         SøknadOpprettetHendelseMottak(testRapid, mediator)
@@ -86,7 +86,7 @@ internal class SøknadMediatorTest {
     }
 
     @Test
-    fun `Søknaden går gjennom livsyklusen med alle tilstander`() {
+    fun `Søknaden går gjennom livssyklusen med alle tilstander`() {
         val søknadUuid = UUID.randomUUID()
         mediator.behandle(ØnskeOmNySøknadHendelse(testIdent, søknadUuid))
         assertEquals(1, testRapid.inspektør.size)
@@ -144,7 +144,7 @@ internal class SøknadMediatorTest {
 
     private fun behov(indeks: Int) = testRapid.inspektør.message(indeks)["@behov"].map { it.asText() }
 
-    fun oppdatertInspektør(ident: String = testIdent) = TestPersonInspektør(livsyklusRepository.hent(ident)!!)
+    fun oppdatertInspektør(ident: String = testIdent) = TestPersonInspektør(livssyklusRepository.hent(ident)!!)
 
     // language=JSON
     private fun søkerOppgave(søknadUuid: UUID, ident: String) = """{

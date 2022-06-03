@@ -5,7 +5,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.serder.objectMapper
-import no.nav.dagpenger.soknad.søknad.db.LivsyklusPostgresRepository
+import no.nav.dagpenger.soknad.søknad.db.LivssyklusPostgresRepository
 import org.postgresql.util.PGobject
 import java.util.UUID
 import javax.sql.DataSource
@@ -51,7 +51,7 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
                     "SELECT uuid, eier, soknad_data FROM soknad_cache WHERE uuid = :uuid",
                     mapOf("uuid" to søknadUUID.toString())
                 ).map { row ->
-                    LivsyklusPostgresRepository.PersistentSøkerOppgave(objectMapper.readTree(row.binaryStream("soknad_data")))
+                    LivssyklusPostgresRepository.PersistentSøkerOppgave(objectMapper.readTree(row.binaryStream("soknad_data")))
                 }.asSingle
             ) ?: throw NotFoundException("Søknad med id '$søknadUUID' ikke funnet")
         }

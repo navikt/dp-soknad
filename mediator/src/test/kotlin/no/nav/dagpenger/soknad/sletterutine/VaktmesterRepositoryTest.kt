@@ -8,7 +8,7 @@ import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.db.Postgres
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
-import no.nav.dagpenger.soknad.søknad.db.LivsyklusPostgresRepository
+import no.nav.dagpenger.soknad.søknad.db.LivssyklusPostgresRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -54,7 +54,7 @@ internal class VaktmesterRepositoryTest {
 
         Postgres.withMigratedDb {
             val nå = LocalDateTime.now()
-            val livsyklusRepository = LivsyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).also {
+            val livssyklusRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).also {
                 it.lagre(person)
             }
 
@@ -64,13 +64,13 @@ internal class VaktmesterRepositoryTest {
                 it.slettPåbegynteSøknaderEldreEnn(nå.minusDays(7L)).also { rader ->
                     assertEquals(1, rader)
                 }
-                livsyklusRepository.hent(person.ident()).also { oppdatertPerson ->
+                livssyklusRepository.hent(person.ident()).also { oppdatertPerson ->
                     assertEquals(
                         2,
                         TestPersonVisitor(oppdatertPerson).søknader.size
                     )
                 }
-                livsyklusRepository.hentPåbegynte(person.ident()).also { påbegynteSøknader ->
+                livssyklusRepository.hentPåbegynte(person.ident()).also { påbegynteSøknader ->
                     assertEquals(1, påbegynteSøknader.size)
                     assertEquals(påbegyntSøknadIdNy, påbegynteSøknader.first().uuid)
                 }

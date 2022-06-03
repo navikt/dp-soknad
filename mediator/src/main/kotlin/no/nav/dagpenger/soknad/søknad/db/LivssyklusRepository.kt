@@ -22,13 +22,13 @@ import java.time.ZonedDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
-interface LivsyklusRepository {
+interface LivssyklusRepository {
     fun hent(ident: String): Person?
     fun lagre(person: Person)
     fun hentPåbegynte(personIdent: String): List<PåbegyntSøknad>
 }
 
-class LivsyklusPostgresRepository(private val dataSource: DataSource) : LivsyklusRepository {
+class LivssyklusPostgresRepository(private val dataSource: DataSource) : LivssyklusRepository {
 
     override fun hent(ident: String): Person? {
         return using(sessionOf(dataSource)) { session ->
