@@ -4,7 +4,9 @@ import io.ktor.server.plugins.NotFoundException
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
+import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.serder.objectMapper
 import no.nav.dagpenger.soknad.søknad.db.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.søknad.faktumflyt.SøkerOppgave
@@ -21,6 +23,7 @@ class SøknadCachePostgresRepositoryTest {
         withMigratedDb {
             val søknadCache = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource)
             val søknadUuid = UUID.randomUUID()
+            lagrePersonMedSøknad(søknadUuid)
             val søknad = LivssyklusPostgresRepository.PersistentSøkerOppgave(søknad(søknadUuid))
             søknadCache.lagre(søknad)
 
@@ -35,6 +38,7 @@ class SøknadCachePostgresRepositoryTest {
     fun `Lagre samme søknad id flere ganger appendes på raden, men siste versjon av søknad hentes`() {
         val søknadUuid = UUID.randomUUID()
         withMigratedDb {
+            lagrePersonMedSøknad(søknadUuid)
             val søknadCache = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource)
             søknadCache.lagre(LivssyklusPostgresRepository.PersistentSøkerOppgave(søknad(søknadUuid)))
             søknadCache.lagre(
@@ -74,22 +78,25 @@ class SøknadCachePostgresRepositoryTest {
     fun `Kan slette cache`() {
         withMigratedDb {
             val søknadCache = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource)
-            val søknadUuid = UUID.randomUUID()
+            val søknadUuid1 = UUID.randomUUID()
             val søknadUuid2 = UUID.randomUUID()
-            val eier = "12345678901"
+
+            val eier1 = "12345678901"
             val eier2 = "12345678902"
-            val søknad = LivssyklusPostgresRepository.PersistentSøkerOppgave(søknad(søknadUuid, fødselsnummer = eier))
+            lagrePersonMedSøknad(søknadUuid1, eier1)
+            lagrePersonMedSøknad(søknadUuid2, eier2)
+            val søknad1 = LivssyklusPostgresRepository.PersistentSøkerOppgave(søknad(søknadUuid1, fødselsnummer = eier1))
             val søknad2 = LivssyklusPostgresRepository.PersistentSøkerOppgave(søknad(søknadUuid2, fødselsnummer = eier2))
 
-            søknadCache.slett(søknadUuid, eier)
+            søknadCache.slett(søknadUuid1, eier1)
             assertAntallRader(antallRader = 0)
 
-            søknadCache.lagre(søknad)
+            søknadCache.lagre(søknad1)
             søknadCache.lagre(søknad2)
 
             assertAntallRader(antallRader = 2)
 
-            søknadCache.slett(søknadUuid, eier)
+            søknadCache.slett(søknadUuid1, eier1)
             assertAntallRader(antallRader = 1)
         }
     }
@@ -118,4 +125,11 @@ class SøknadCachePostgresRepositoryTest {
           "ferdig": false,
           "seksjoner": "$seksjoner"}"""
         )
+
+    private fun lagrePersonMedSøknad(søknadUuid: UUID, ident: String = "01234567891") {
+        val person = Person(ident)
+        person.håndter(ØnskeOmNySøknadHendelse(ident, søknadUuid))
+        val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
+        livssyklusPostgresRepository.lagre(person)
+    }
 }

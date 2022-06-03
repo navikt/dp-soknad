@@ -1,19 +1,19 @@
 package no.nav.dagpenger.soknad.db
 
+import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.server.plugins.NotFoundException
-import kotliquery.queryOf
-import kotliquery.sessionOf
-import kotliquery.using
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
+import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.søknad.db.LivssyklusPostgresRepository
+import no.nav.dagpenger.soknad.søknad.faktumflyt.SøkerOppgave
+import no.nav.dagpenger.soknad.søknad.faktumflyt.SøknadCachePostgresRepository
 import no.nav.dagpenger.soknad.søknad.ferdigstilling.FerdigstiltSøknadPostgresRepository
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.postgresql.util.PGobject
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -83,23 +83,30 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
 
     private fun lagreFakta(fakta: String): UUID {
         val søknadId = UUID.randomUUID()
-        using(sessionOf(PostgresDataSourceBuilder.dataSource)) { session ->
-            session.run(
-                queryOf(
-                    """INSERT INTO soknad_cache(uuid, eier, soknad_data)
-                                    VALUES (:uuid, :eier, :soknad_data) """,
-                    mapOf(
-                        "uuid" to søknadId.toString(),
-                        "eier" to "eier",
-                        "soknad_data" to PGobject().also {
-                            it.type = "jsonb"
-                            it.value = fakta
-                        }
-                    )
-                ).asUpdate
-            )
-        }
+        val ident = "01234567891"
+        val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
+        val person = Person(ident)
+        person.håndter(ØnskeOmNySøknadHendelse(ident, søknadId))
+        livssyklusPostgresRepository.lagre(person)
+        val søknadCachePostgresRepository = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource)
+        søknadCachePostgresRepository.lagre(TestSøkerOppgave(søknadId, ident, fakta))
         return søknadId
+    }
+
+    private class TestSøkerOppgave(private val søknadUUID: UUID, private val eier: String, private val json: String) : SøkerOppgave {
+        override fun søknadUUID(): UUID = søknadUUID
+
+        override fun eier(): String = eier
+
+        override fun ferdig(): Boolean {
+            TODO("not implemented")
+        }
+
+        override fun asFrontendformat(): JsonNode {
+            TODO("not implemented")
+        }
+
+        override fun asJson(): String = json
     }
 
     private fun lagRandomPersonOgSøknad(): UUID {

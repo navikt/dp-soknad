@@ -1,9 +1,12 @@
 package no.nav.dagpenger.soknad.søknad
 
 import io.mockk.mockk
+import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.db.Postgres
 import no.nav.dagpenger.soknad.db.PostgresDataSourceBuilder
+import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
+import no.nav.dagpenger.soknad.søknad.db.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.søknad.faktumflyt.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.søknad.faktumflyt.SøknadCachePostgresRepository
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -30,13 +33,15 @@ class SøkerOppgaveMottakTest {
             }
             testRapid.reset()
             val søknadUuid = UUID.randomUUID()
-            testRapid.sendTestMessage(nySøknad(søknadUuid))
+            val ident = "01234567891"
+            lagrePersonMedSøknad(søknadUuid, ident)
+            testRapid.sendTestMessage(nySøknad(søknadUuid, ident))
             søknadMediator.hent(søknadUuid).also {
                 assertDoesNotThrow {
                     val seksjoner = it!!.asFrontendformat()["seksjoner"]
                     assertEquals(1, seksjoner.size())
                     assertEquals(0, seksjoner[0]["fakta"].size())
-                    assertEquals("12345678910", it.eier())
+                    assertEquals(ident, it.eier())
                     assertEquals(søknadUuid, it.søknadUUID())
                     assertEquals(false, it.asFrontendformat()["ferdig"].asBoolean())
                 }
@@ -44,9 +49,9 @@ class SøkerOppgaveMottakTest {
         }
     }
     //language=JSON
-    private fun nySøknad(søknadUuid: UUID) = """{
+    private fun nySøknad(søknadUuid: UUID, ident: String) = """{
   "@event_name": "søker_oppgave",
-  "fødselsnummer": "12345678910",
+  "fødselsnummer": "$ident",
   "versjon_id": 0,
   "versjon_navn": "test",
   "@opprettet": "2022-05-13T14:48:09.059643",
@@ -61,4 +66,11 @@ class SøkerOppgaveMottakTest {
   ]
 }
     """.trimIndent()
+
+    private fun lagrePersonMedSøknad(søknadUuid: UUID, ident: String = "01234567891") {
+        val person = Person(ident)
+        person.håndter(ØnskeOmNySøknadHendelse(ident, søknadUuid))
+        val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
+        livssyklusPostgresRepository.lagre(person)
+    }
 }
