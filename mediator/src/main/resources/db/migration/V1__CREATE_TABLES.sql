@@ -1,12 +1,3 @@
-CREATE TABLE IF NOT EXISTS soknad_cache
-(
-    uuid        VARCHAR(36)              NOT NULL,
-    eier        VARCHAR(20)              NOT NULL,
-    soknad_data JSONB                    NOT NULL,
-    opprettet   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
-    PRIMARY KEY (uuid, eier)
-);
-
 CREATE TABLE IF NOT EXISTS person_v1
 (
     id    BIGSERIAL PRIMARY KEY,
@@ -23,6 +14,15 @@ CREATE TABLE IF NOT EXISTS soknad_v1
     journalpost_id     VARCHAR(32) UNIQUE                       NULL,
     opprettet          TIMESTAMP WITH TIME ZONE                 NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
     innsendt_tidspunkt TIMESTAMP WITH TIME ZONE                 NULL
+);
+
+CREATE TABLE IF NOT EXISTS soknad_cache
+(
+    uuid        VARCHAR(36) REFERENCES soknad_v1 (uuid) NOT NULL,
+    eier        VARCHAR(20)                             NOT NULL,
+    soknad_data JSONB                                   NOT NULL,
+    opprettet   TIMESTAMP WITH TIME ZONE                NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc'),
+    PRIMARY KEY (uuid, eier)
 );
 
 CREATE TABLE IF NOT EXISTS soknadmal
