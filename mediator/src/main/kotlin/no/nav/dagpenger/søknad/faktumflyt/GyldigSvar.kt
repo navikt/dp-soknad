@@ -6,13 +6,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.isMissingOrNull
 
-class Svar(json: JsonNode) {
+class GyldigSvar(json: JsonNode) {
 
     val svarAsJson: JsonNode
     val type: String
 
     init {
-        require(json.has("type")) { " Ingen 'type' definert, ugyldig faktumsvar" }
+        require(json.has("type")) { "Ingen 'type' definert, ugyldig faktumsvar" }
         require(json.has("svar")) { "Ingen 'svar' definert, ugyldig faktumsvar" }
         svarAsJson = json["svar"]
         type = json["type"].asText()
@@ -60,7 +60,7 @@ class Svar(json: JsonNode) {
                         val idUtenIndeks = id.substring(0, id.indexOf("."))
                         (faktum as ObjectNode).put("id", idUtenIndeks)
                     }
-                    Svar(faktum)
+                    GyldigSvar(faktum)
                 }
             }
         }.fold(

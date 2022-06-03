@@ -9,7 +9,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 
-class SvarTest {
+class GyldigSvarTest {
 
     private val objectMapper = jacksonObjectMapper()
 
@@ -32,7 +32,7 @@ class SvarTest {
     fun `Skal kunne opprette boolean type svar `(type: String, forventetSvar: String) {
         val jsonSvar = objectMapper.readTree("""{"type": "$type", "svar": $forventetSvar}""")
         assertDoesNotThrow {
-            val svar = Svar(jsonSvar)
+            val svar = GyldigSvar(jsonSvar)
             assertEquals(type, svar.type)
             assertEquals(forventetSvar, svar.svarAsJson.toString())
         }
@@ -56,7 +56,7 @@ class SvarTest {
     fun `Skal validere svar i henhold til type`(type: String, forventetSvar: String) {
         val jsonSvar = objectMapper.readTree("""{"type": "$type", "svar": $forventetSvar}""")
         assertThrows<IllegalArgumentException> {
-            Svar(jsonSvar)
+            GyldigSvar(jsonSvar)
         }
     }
 
@@ -64,7 +64,7 @@ class SvarTest {
     fun `Skal kunne opprette et generator svar`() {
         val jsonSvar = objectMapper.readTree(generatorSvar)
         assertDoesNotThrow {
-            val svar = Svar(jsonSvar)
+            val svar = GyldigSvar(jsonSvar)
             assertEquals("generator", svar.type)
             assertEquals(jsonSvar["svar"].toString(), svar.svarAsJson.toString())
         }
@@ -74,7 +74,7 @@ class SvarTest {
     fun `Skal ikke kunne opprette et ugyldig generator svar`() {
         val jsonSvar = objectMapper.readTree(ugyldigGeneratorSvar)
         assertThrows<IllegalArgumentException> {
-            Svar(jsonSvar)
+            GyldigSvar(jsonSvar)
         }
     }
 
@@ -82,7 +82,7 @@ class SvarTest {
     fun `Skal fjerne indeks fra generator svar `() {
         val jsonSvar = objectMapper.readTree(generatorSvarMedIndeks)
         assertDoesNotThrow {
-            val svar = Svar(jsonSvar)
+            val svar = GyldigSvar(jsonSvar)
             svar.svarAsJson.forEach { indeks ->
                 indeks.forEach { faktum ->
                     assertFalse(faktum["id"].asText().contains("."), "Faktum $faktum id inneholder indeks")

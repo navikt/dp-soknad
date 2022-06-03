@@ -21,7 +21,7 @@ internal fun Route.besvarFaktumRoute(søknadMediator: SøknadMediator) {
         val søknadUuid = søknadUuid()
         val ident = call.ident()
         val faktumId = faktumId()
-        val input = Svar(call.receive())
+        val input = GyldigSvar(call.receive())
         logger.info { "Fikk \n${input.svarAsJson}" }
 
         val faktumSvar = FaktumSvar(
