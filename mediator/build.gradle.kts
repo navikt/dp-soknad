@@ -37,7 +37,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("no.nav.dagpenger.soknad.AppKt")
+    mainClass.set("no.nav.dagpenger.søknad.AppKt")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
