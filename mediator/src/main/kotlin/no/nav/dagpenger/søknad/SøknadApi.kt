@@ -2,9 +2,9 @@ package no.nav.dagpenger.søknad
 
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
-import no.nav.dagpenger.søknad.faktumflyt.besvarFaktumRoute
-import no.nav.dagpenger.søknad.faktumflyt.nesteSøkeroppgaveRoute
 import no.nav.dagpenger.søknad.livssyklus.ferdigstilling.ferdigstillSøknadRoute
+import no.nav.dagpenger.søknad.livssyklus.påbegynt.besvarFaktumRoute
+import no.nav.dagpenger.søknad.livssyklus.påbegynt.nesteSøkeroppgaveRoute
 import no.nav.dagpenger.søknad.livssyklus.påbegynteSøknaderRoute
 import no.nav.dagpenger.søknad.livssyklus.startSøknadRoute
 import no.nav.dagpenger.søknad.mal.nyesteMalRoute

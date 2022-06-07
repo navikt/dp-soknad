@@ -1,4 +1,4 @@
-package no.nav.dagpenger.søknad.livssyklus
+package no.nav.dagpenger.søknad.livssyklus.start
 
 import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging

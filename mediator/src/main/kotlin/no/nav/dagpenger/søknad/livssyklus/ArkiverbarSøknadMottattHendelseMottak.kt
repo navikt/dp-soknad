@@ -11,6 +11,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import java.util.UUID
 
 internal class ArkiverbarSøknadMottattHendelseMottak(
     rapidsConnection: RapidsConnection,
@@ -63,3 +64,5 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
         )
     }
 }
+
+internal fun JsonNode.asUUID(): UUID = this.asText().let { UUID.fromString(it) }

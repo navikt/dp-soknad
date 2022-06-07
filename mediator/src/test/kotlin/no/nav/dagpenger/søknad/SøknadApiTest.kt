@@ -14,10 +14,10 @@ import no.nav.dagpenger.søknad.Søknadsprosess.NySøknadsProsess
 import no.nav.dagpenger.søknad.Søknadsprosess.PåbegyntSøknadsProsess
 import no.nav.dagpenger.søknad.TestApplication.autentisert
 import no.nav.dagpenger.søknad.TestApplication.defaultDummyFodselsnummer
-import no.nav.dagpenger.søknad.faktumflyt.FaktumSvar
-import no.nav.dagpenger.søknad.faktumflyt.SøkerOppgave
 import no.nav.dagpenger.søknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.søknad.livssyklus.PåbegyntSøknad
+import no.nav.dagpenger.søknad.livssyklus.påbegynt.FaktumSvar
+import no.nav.dagpenger.søknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.søknad.mal.SøknadMal
 import no.nav.dagpenger.søknad.mal.testSøknadMalMelding
 import no.nav.dagpenger.søknad.utils.serder.objectMapper

@@ -1,4 +1,4 @@
-package no.nav.dagpenger.søknad.faktumflyt
+package no.nav.dagpenger.søknad.livssyklus.påbegynt
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall

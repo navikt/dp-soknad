@@ -1,14 +1,14 @@
 package no.nav.dagpenger.søknad
 
 import no.nav.dagpenger.pdl.createPersonOppslag
-import no.nav.dagpenger.søknad.faktumflyt.SøkerOppgaveMottak
-import no.nav.dagpenger.søknad.faktumflyt.SøknadCachePostgresRepository
 import no.nav.dagpenger.søknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.dagpenger.søknad.livssyklus.JournalførtMottak
 import no.nav.dagpenger.søknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.søknad.livssyklus.NyJournalpostMottak
-import no.nav.dagpenger.søknad.livssyklus.SøknadOpprettetHendelseMottak
 import no.nav.dagpenger.søknad.livssyklus.ferdigstilling.FerdigstiltSøknadPostgresRepository
+import no.nav.dagpenger.søknad.livssyklus.påbegynt.SøkerOppgaveMottak
+import no.nav.dagpenger.søknad.livssyklus.påbegynt.SøknadCachePostgresRepository
+import no.nav.dagpenger.søknad.livssyklus.start.SøknadOpprettetHendelseMottak
 import no.nav.dagpenger.søknad.mal.SøknadMalPostgresRepository
 import no.nav.dagpenger.søknad.mal.SøknadsMalMottak
 import no.nav.dagpenger.søknad.observers.PersonLoggerObserver

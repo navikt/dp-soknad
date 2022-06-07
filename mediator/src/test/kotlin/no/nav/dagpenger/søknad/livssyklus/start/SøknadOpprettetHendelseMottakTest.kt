@@ -1,4 +1,4 @@
-package no.nav.dagpenger.søknad.livssyklus
+package no.nav.dagpenger.søknad.livssyklus.start
 
 import io.mockk.Runs
 import io.mockk.every

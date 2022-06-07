@@ -1,4 +1,4 @@
-package no.nav.dagpenger.søknad.faktumflyt
+package no.nav.dagpenger.søknad.livssyklus.påbegynt
 
 import com.fasterxml.jackson.databind.node.BooleanNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper

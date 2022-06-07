@@ -1,9 +1,6 @@
 package no.nav.dagpenger.søknad
 
 import mu.KotlinLogging
-import no.nav.dagpenger.søknad.faktumflyt.FaktumSvar
-import no.nav.dagpenger.søknad.faktumflyt.SøkerOppgave
-import no.nav.dagpenger.søknad.faktumflyt.SøknadCacheRepository
 import no.nav.dagpenger.søknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.søknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.søknad.hendelse.HarPåbegyntSøknadHendelse
@@ -16,6 +13,9 @@ import no.nav.dagpenger.søknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.søknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.søknad.livssyklus.LivssyklusRepository
 import no.nav.dagpenger.søknad.livssyklus.ferdigstilling.FerdigstiltSøknadRepository
+import no.nav.dagpenger.søknad.livssyklus.påbegynt.FaktumSvar
+import no.nav.dagpenger.søknad.livssyklus.påbegynt.SøkerOppgave
+import no.nav.dagpenger.søknad.livssyklus.påbegynt.SøknadCacheRepository
 import no.nav.dagpenger.søknad.mal.SøknadMalRepository
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.withMDC

@@ -1,4 +1,4 @@
-package no.nav.dagpenger.søknad.faktumflyt
+package no.nav.dagpenger.søknad.livssyklus.påbegynt
 
 import io.mockk.mockk
 import no.nav.dagpenger.søknad.Person

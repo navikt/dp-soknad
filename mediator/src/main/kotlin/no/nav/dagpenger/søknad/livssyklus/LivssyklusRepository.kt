@@ -11,7 +11,7 @@ import no.nav.dagpenger.søknad.Aktivitetslogg
 import no.nav.dagpenger.søknad.Person
 import no.nav.dagpenger.søknad.PersonVisitor
 import no.nav.dagpenger.søknad.Søknad
-import no.nav.dagpenger.søknad.faktumflyt.SøkerOppgave
+import no.nav.dagpenger.søknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.søknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.søknad.serder.PersonData
 import no.nav.dagpenger.søknad.toMap
@@ -32,8 +32,8 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
 
     override fun hent(ident: String): Person? {
         return using(sessionOf(dataSource)) { session ->
-            session.transaction { tx ->
-                tx.run(
+            session.transaction { transactionalSession ->
+                transactionalSession.run(
                     queryOf(
                         //language=PostgreSQL
                         """
@@ -42,12 +42,12 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                                 WHERE p.id=a.id AND p.ident=:ident
                         """.trimIndent(),
                         paramMap = mapOf("ident" to ident)
-                    ).map { r ->
-                        r.stringOrNull("person_ident")?.let { ident ->
+                    ).map { row ->
+                        row.stringOrNull("person_ident")?.let { ident ->
                             PersonData(
-                                ident = r.string("person_ident"),
-                                aktivitetsLogg = r.binaryStream("aktivitetslogg").aktivitetslogg(),
-                                søknader = tx.hentSøknadsData(ident)
+                                ident = row.string("person_ident"),
+                                aktivitetsLogg = row.binaryStream("aktivitetslogg").aktivitetslogg(),
+                                søknader = transactionalSession.hentSøknadsData(ident)
                             )
                         }
                     }.asSingle
@@ -59,14 +59,14 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
     override fun lagre(person: Person) {
         val visitor = PersonPersistenceVisitor(person)
         using(sessionOf(dataSource)) { session ->
-            session.transaction { tx ->
-                val internId: Long = tx.run(
+            session.transaction { transactionalSession ->
+                val internId: Long = transactionalSession.run(
                     queryOf(
                         //language=PostgreSQL
                         "SELECT id FROM person_v1 WHERE ident=:ident",
                         mapOf("ident" to person.ident())
                     ).map { row -> row.longOrNull("id") }.asSingle
-                ) ?: tx.run(
+                ) ?: transactionalSession.run(
                     queryOf(
                         //language=PostgreSQL
                         "INSERT INTO person_v1(ident) VALUES(:ident) ON CONFLICT DO NOTHING RETURNING id",
@@ -76,7 +76,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     }.asSingle
                 )!!
 
-                tx.run(
+                transactionalSession.run(
                     queryOf(
                         //language=PostgreSQL
                         statement = "INSERT INTO aktivitetslogg_v1 (id, data ) VALUES (:id, :data ) ON CONFLICT(id) DO UPDATE SET data =:data",
@@ -90,8 +90,8 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     ).asUpdate
                 )
                 visitor.søknader.forEach {
-                    tx.run(it.insertQuery(visitor.ident))
-                    it.insertDokumentQuery(tx)
+                    transactionalSession.run(it.insertQuery(visitor.ident))
+                    it.insertDokumentQuery(transactionalSession)
                 }
             }
         }
@@ -104,8 +104,8 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     queryOf(
                         "SELECT uuid, opprettet FROM soknad_v1 WHERE person_ident=:ident AND tilstand=:paabegyntTilstand",
                         mapOf("ident" to personIdent, "paabegyntTilstand" to Søknad.Tilstand.Type.Påbegynt.name)
-                    ).map { r ->
-                        PåbegyntSøknad(UUID.fromString(r.string("uuid")), r.localDate("opprettet"))
+                    ).map { row ->
+                        PåbegyntSøknad(UUID.fromString(row.string("uuid")), row.localDate("opprettet"))
                     }
                     ).asList
             )

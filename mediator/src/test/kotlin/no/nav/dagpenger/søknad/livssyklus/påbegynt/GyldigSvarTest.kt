@@ -1,4 +1,4 @@
-package no.nav.dagpenger.søknad.faktumflyt
+package no.nav.dagpenger.søknad.livssyklus.påbegynt
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
