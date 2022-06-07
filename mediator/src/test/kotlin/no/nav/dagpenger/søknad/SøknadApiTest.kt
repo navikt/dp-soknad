@@ -20,7 +20,7 @@ import no.nav.dagpenger.søknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.søknad.livssyklus.PåbegyntSøknad
 import no.nav.dagpenger.søknad.mal.SøknadMal
 import no.nav.dagpenger.søknad.mal.testSøknadMalMelding
-import no.nav.dagpenger.søknad.serder.objectMapper
+import no.nav.dagpenger.søknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue

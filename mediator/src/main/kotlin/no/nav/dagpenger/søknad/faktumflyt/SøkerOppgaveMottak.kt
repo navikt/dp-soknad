@@ -3,7 +3,7 @@ package no.nav.dagpenger.søknad.faktumflyt
 import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
 import no.nav.dagpenger.søknad.SøknadMediator
-import no.nav.dagpenger.søknad.serder.objectMapper
+import no.nav.dagpenger.søknad.utils.serder.objectMapper
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection

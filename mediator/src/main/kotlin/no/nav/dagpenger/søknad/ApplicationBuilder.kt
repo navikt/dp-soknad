@@ -1,8 +1,6 @@
 package no.nav.dagpenger.søknad
 
 import no.nav.dagpenger.pdl.createPersonOppslag
-import no.nav.dagpenger.søknad.db.PostgresDataSourceBuilder
-import no.nav.dagpenger.søknad.db.PostgresDataSourceBuilder.runMigration
 import no.nav.dagpenger.søknad.faktumflyt.SøkerOppgaveMottak
 import no.nav.dagpenger.søknad.faktumflyt.SøknadCachePostgresRepository
 import no.nav.dagpenger.søknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
@@ -19,6 +17,8 @@ import no.nav.dagpenger.søknad.personalia.PersonOppslag
 import no.nav.dagpenger.søknad.personalia.personaliaRouteBuilder
 import no.nav.dagpenger.søknad.sletterutine.UtdaterteSøknaderJob
 import no.nav.dagpenger.søknad.søknad.ferdigStiltSøknadRouteBuilder
+import no.nav.dagpenger.søknad.utils.db.PostgresDataSourceBuilder
+import no.nav.dagpenger.søknad.utils.db.PostgresDataSourceBuilder.runMigration
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 

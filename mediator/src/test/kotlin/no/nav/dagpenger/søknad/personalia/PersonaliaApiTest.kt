@@ -14,7 +14,7 @@ import no.nav.dagpenger.søknad.Configuration
 import no.nav.dagpenger.søknad.HttpProblem
 import no.nav.dagpenger.søknad.TestApplication
 import no.nav.dagpenger.søknad.TestApplication.autentisert
-import no.nav.dagpenger.søknad.serder.objectMapper
+import no.nav.dagpenger.søknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate

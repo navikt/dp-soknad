@@ -1,4 +1,4 @@
-package no.nav.dagpenger.søknad.db
+package no.nav.dagpenger.søknad.utils.db
 
 import ch.qos.logback.core.util.OptionHelper.getEnv
 import ch.qos.logback.core.util.OptionHelper.getSystemProperty

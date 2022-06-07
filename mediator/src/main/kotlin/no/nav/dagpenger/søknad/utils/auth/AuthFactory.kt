@@ -1,4 +1,4 @@
-package no.nav.dagpenger.søknad.auth
+package no.nav.dagpenger.søknad.utils.auth
 
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder

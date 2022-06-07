@@ -7,8 +7,8 @@ import no.nav.dagpenger.søknad.Person
 import no.nav.dagpenger.søknad.PersonVisitor
 import no.nav.dagpenger.søknad.Søknad
 import no.nav.dagpenger.søknad.db.Postgres
-import no.nav.dagpenger.søknad.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.søknad.livssyklus.LivssyklusPostgresRepository
+import no.nav.dagpenger.søknad.utils.db.PostgresDataSourceBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime

@@ -1,4 +1,4 @@
-package no.nav.dagpenger.søknad.serder
+package no.nav.dagpenger.søknad.utils.serder
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule

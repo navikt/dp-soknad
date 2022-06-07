@@ -14,8 +14,8 @@ import no.nav.dagpenger.søknad.Søknad
 import no.nav.dagpenger.søknad.faktumflyt.SøkerOppgave
 import no.nav.dagpenger.søknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.søknad.serder.PersonData
-import no.nav.dagpenger.søknad.serder.objectMapper
 import no.nav.dagpenger.søknad.toMap
+import no.nav.dagpenger.søknad.utils.serder.objectMapper
 import org.postgresql.util.PGobject
 import java.time.LocalDate
 import java.time.ZonedDateTime

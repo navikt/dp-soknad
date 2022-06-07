@@ -11,7 +11,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.dagpenger.søknad.SøknadMediator
 import no.nav.dagpenger.søknad.Søknadsprosess
-import no.nav.dagpenger.søknad.auth.ident
+import no.nav.dagpenger.søknad.utils.auth.ident
 
 internal fun Route.startSøknadRoute(søknadMediator: SøknadMediator) {
     post {

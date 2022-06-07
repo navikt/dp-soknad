@@ -4,9 +4,9 @@ import io.mockk.mockk
 import no.nav.dagpenger.søknad.Person
 import no.nav.dagpenger.søknad.SøknadMediator
 import no.nav.dagpenger.søknad.db.Postgres
-import no.nav.dagpenger.søknad.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.søknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.søknad.livssyklus.LivssyklusPostgresRepository
+import no.nav.dagpenger.søknad.utils.db.PostgresDataSourceBuilder
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals

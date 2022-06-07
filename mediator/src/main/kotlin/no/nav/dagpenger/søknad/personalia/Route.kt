@@ -9,8 +9,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import no.nav.dagpenger.søknad.Configuration
-import no.nav.dagpenger.søknad.auth.ident
-import no.nav.dagpenger.søknad.auth.jwt
+import no.nav.dagpenger.søknad.utils.auth.ident
+import no.nav.dagpenger.søknad.utils.auth.jwt
 import kotlin.coroutines.CoroutineContext
 
 internal fun personaliaRouteBuilder(

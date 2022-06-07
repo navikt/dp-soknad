@@ -25,9 +25,9 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
 import mu.KotlinLogging
-import no.nav.dagpenger.søknad.auth.AzureAdFactory.azure
-import no.nav.dagpenger.søknad.auth.TokenXFactory.tokenX
-import no.nav.dagpenger.søknad.serder.objectMapper
+import no.nav.dagpenger.søknad.utils.auth.AzureAdFactory.azure
+import no.nav.dagpenger.søknad.utils.auth.TokenXFactory.tokenX
+import no.nav.dagpenger.søknad.utils.serder.objectMapper
 import org.slf4j.event.Level
 import java.net.URI
 
@@ -129,6 +129,8 @@ internal fun Application.api(
         }
     }
 }
+
+class IkkeTilgangExeption(melding: String) : RuntimeException(melding)
 
 // As of https://tools.ietf.org/html/rfc7807
 data class HttpProblem(

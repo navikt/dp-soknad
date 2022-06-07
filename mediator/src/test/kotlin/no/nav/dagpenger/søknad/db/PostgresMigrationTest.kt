@@ -1,7 +1,7 @@
 package no.nav.dagpenger.søknad.db
 
 import no.nav.dagpenger.søknad.db.Postgres.withCleanDb
-import no.nav.dagpenger.søknad.db.PostgresDataSourceBuilder.runMigration
+import no.nav.dagpenger.søknad.utils.db.PostgresDataSourceBuilder.runMigration
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

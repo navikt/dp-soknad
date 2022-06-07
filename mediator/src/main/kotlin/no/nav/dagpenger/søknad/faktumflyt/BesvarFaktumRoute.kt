@@ -11,7 +11,7 @@ import io.ktor.server.routing.put
 import io.ktor.util.pipeline.PipelineContext
 import mu.KotlinLogging
 import no.nav.dagpenger.søknad.SøknadMediator
-import no.nav.dagpenger.søknad.auth.ident
+import no.nav.dagpenger.søknad.utils.auth.ident
 import java.util.UUID
 
 private val logger = KotlinLogging.logger {}

@@ -10,11 +10,11 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.put
 import io.ktor.util.pipeline.PipelineContext
 import no.nav.dagpenger.søknad.SøknadMediator
-import no.nav.dagpenger.søknad.auth.ident
 import no.nav.dagpenger.søknad.hendelse.SøknadInnsendtHendelse
+import no.nav.dagpenger.søknad.utils.auth.ident
 import java.util.UUID
 
-internal fun Route.ferdigstillingRoute(søknadMediator: SøknadMediator) {
+internal fun Route.ferdigstillSøknadRoute(søknadMediator: SøknadMediator) {
     put("/{søknad_uuid}/ferdigstill") {
         val søknadUuid = søknadUuid()
         val ident = call.ident()

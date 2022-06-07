@@ -1,4 +1,4 @@
-package no.nav.dagpenger.søknad.auth
+package no.nav.dagpenger.søknad.utils.auth
 
 import io.ktor.http.auth.HttpAuthHeader
 import io.ktor.server.application.ApplicationCall

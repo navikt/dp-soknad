@@ -10,10 +10,10 @@ import io.ktor.server.routing.get
 import io.ktor.util.pipeline.PipelineContext
 import no.nav.dagpenger.søknad.IkkeTilgangExeption
 import no.nav.dagpenger.søknad.SøknadMediator
-import no.nav.dagpenger.søknad.auth.ident
+import no.nav.dagpenger.søknad.utils.auth.ident
 import java.util.UUID
 
-internal fun Route.nesteSøkerOppgaveRoute(søknadMediator: SøknadMediator) {
+internal fun Route.nesteSøkeroppgaveRoute(søknadMediator: SøknadMediator) {
     get("/{søknad_uuid}/neste") {
         val id = søknadUuid()
         val ident = call.ident()

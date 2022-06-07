@@ -5,11 +5,11 @@ import io.ktor.server.plugins.NotFoundException
 import no.nav.dagpenger.søknad.Person
 import no.nav.dagpenger.søknad.Søknad
 import no.nav.dagpenger.søknad.db.Postgres.withMigratedDb
-import no.nav.dagpenger.søknad.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.søknad.faktumflyt.SøkerOppgave
 import no.nav.dagpenger.søknad.faktumflyt.SøknadCachePostgresRepository
 import no.nav.dagpenger.søknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.søknad.livssyklus.LivssyklusPostgresRepository
+import no.nav.dagpenger.søknad.utils.db.PostgresDataSourceBuilder
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

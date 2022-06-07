@@ -5,7 +5,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.søknad.livssyklus.LivssyklusPostgresRepository
-import no.nav.dagpenger.søknad.serder.objectMapper
+import no.nav.dagpenger.søknad.utils.serder.objectMapper
 import org.postgresql.util.PGobject
 import java.util.UUID
 import javax.sql.DataSource

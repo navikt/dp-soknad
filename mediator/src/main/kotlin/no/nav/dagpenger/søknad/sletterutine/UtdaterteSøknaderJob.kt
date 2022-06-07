@@ -1,6 +1,6 @@
 package no.nav.dagpenger.søknad.sletterutine
 
-import no.nav.dagpenger.søknad.db.PostgresDataSourceBuilder
+import no.nav.dagpenger.søknad.utils.db.PostgresDataSourceBuilder
 import java.time.LocalDateTime.now
 import kotlin.concurrent.fixedRateTimer
 

@@ -1,6 +1,7 @@
 package no.nav.dagpenger.søknad.db
 
 import com.zaxxer.hikari.HikariDataSource
+import no.nav.dagpenger.søknad.utils.db.PostgresDataSourceBuilder
 import org.testcontainers.containers.PostgreSQLContainer
 
 internal object Postgres {

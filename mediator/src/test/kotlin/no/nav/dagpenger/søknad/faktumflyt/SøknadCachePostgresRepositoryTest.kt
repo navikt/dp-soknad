@@ -6,10 +6,10 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.søknad.Person
 import no.nav.dagpenger.søknad.db.Postgres.withMigratedDb
-import no.nav.dagpenger.søknad.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.søknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.søknad.livssyklus.LivssyklusPostgresRepository
-import no.nav.dagpenger.søknad.serder.objectMapper
+import no.nav.dagpenger.søknad.utils.db.PostgresDataSourceBuilder
+import no.nav.dagpenger.søknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

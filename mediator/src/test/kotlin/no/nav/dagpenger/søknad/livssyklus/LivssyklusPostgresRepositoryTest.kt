@@ -9,10 +9,10 @@ import no.nav.dagpenger.søknad.Person
 import no.nav.dagpenger.søknad.PersonVisitor
 import no.nav.dagpenger.søknad.Søknad
 import no.nav.dagpenger.søknad.db.Postgres.withMigratedDb
-import no.nav.dagpenger.søknad.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.søknad.faktumflyt.SøkerOppgave
 import no.nav.dagpenger.søknad.livssyklus.LivssyklusPostgresRepository.PersistentSøkerOppgave
-import no.nav.dagpenger.søknad.serder.objectMapper
+import no.nav.dagpenger.søknad.utils.db.PostgresDataSourceBuilder
+import no.nav.dagpenger.søknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull

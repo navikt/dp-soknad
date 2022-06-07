@@ -6,9 +6,9 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.dagpenger.søknad.SøknadMediator
-import no.nav.dagpenger.søknad.auth.ident
+import no.nav.dagpenger.søknad.utils.auth.ident
 
-internal fun Route.påbegynteRoute(søknadMediator: SøknadMediator) {
+internal fun Route.påbegynteSøknaderRoute(søknadMediator: SøknadMediator) {
     get("/paabegynte") {
         call.respond(HttpStatusCode.OK, søknadMediator.hentPåbegynte(call.ident()))
     }
