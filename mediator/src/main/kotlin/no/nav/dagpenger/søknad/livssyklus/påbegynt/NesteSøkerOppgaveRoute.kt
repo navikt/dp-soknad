@@ -17,16 +17,20 @@ internal fun Route.nesteSøkeroppgaveRoute(søknadMediator: SøknadMediator) {
     get("/{søknad_uuid}/neste") {
         val id = søknadUuid()
         val ident = call.ident()
-        val søkerOppgave: SøkerOppgave = hentNesteSøkerOppgave(søknadMediator, id)
-        if (ident != søkerOppgave.eier()) {
-            throw IkkeTilgangExeption("Ikke tilgang til søknad")
+        try {
+            val søkerOppgave: SøkerOppgave = hentNesteSøkerOppgave(søknadMediator, id)
+            if (ident != søkerOppgave.eier()) {
+                throw IkkeTilgangExeption("Ikke tilgang til søknad")
+            }
+            call.respond(HttpStatusCode.OK, søkerOppgave.asFrontendformat())
+        } catch (e: NotFoundException) {
+            throw e
         }
-        call.respond(HttpStatusCode.OK, søkerOppgave.asFrontendformat())
     }
 }
 
 private suspend fun hentNesteSøkerOppgave(søknadMediator: SøknadMediator, id: UUID) =
-    retryIO(times = 10) { søknadMediator.hent(id) ?: throw NotFoundException("Fant ikke søknad med id $id") }
+    retryIO(times = 15) { søknadMediator.hent(id) ?: throw NotFoundException("Fant ikke søker_oppgave for søknad med id $id") }
 
 private fun PipelineContext<Unit, ApplicationCall>.søknadUuid() =
     call.parameters["søknad_uuid"].let { UUID.fromString(it) }
