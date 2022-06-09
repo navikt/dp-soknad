@@ -18,16 +18,16 @@ internal fun Route.startSøknadRoute(søknadMediator: SøknadMediator) {
         val ident = call.ident()
 
         val søknadsprosess = søknadMediator.hentEllerOpprettSøknadsprosess(ident)
-        val svar = søknadsprosess.getSøknadsId()
+        val søknadUuid = søknadsprosess.getSøknadsId()
 
         val statuskode = when (søknadsprosess) {
             is Søknadsprosess.NySøknadsProsess -> HttpStatusCode.Created
             is Søknadsprosess.PåbegyntSøknadsProsess -> HttpStatusCode.OK
         }
 
-        call.response.header(HttpHeaders.Location, "${call.request.uri}/$svar/fakta")
+        call.response.header(HttpHeaders.Location, "${call.request.uri}/$søknadUuid/fakta")
         call.respondText(contentType = ContentType.Application.Json, statuskode) {
-            svar.toString()
+            søknadUuid.toString()
         }
     }
 }
