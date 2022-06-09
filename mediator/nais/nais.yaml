@@ -61,6 +61,8 @@ spec:
         tier: {{db_tier}}
         diskType: SSD
         highAvailability: true
+        pointInTimeRecovery: true
+        retainedBackups: {{ point_in_time_recovery_days }}
         diskSize: {{db_size}}
         diskAutoresize: true
         autoBackupHour: 3
