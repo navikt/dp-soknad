@@ -64,7 +64,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         ArkiverbarSøknadMottattHendelseMottak(rapidsConnection, it)
         NyJournalpostMottak(rapidsConnection, it)
         JournalførtMottak(rapidsConnection, it)
-        SøkerOppgaveMottak(rapidsConnection, it)
+        // SøkerOppgaveMottak(rapidsConnection, it)
     }
 
     init {

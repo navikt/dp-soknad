@@ -31,8 +31,8 @@ class BehovMediator(
                         .toSet().size
                 ) { "Kan ikke produsere samme behov på samme kontekst" }
             }
-            .forEach { (kontekst, liste) ->
-                val behovMap: Map<String, Map<String, Any>> = liste.associate { behov -> behov.type.name to behov.detaljer() }
+            .forEach { (kontekst, behov) ->
+                val behovMap: Map<String, Map<String, Any>> = behov.associate { behov -> behov.type.name to behov.detaljer() }
                 val behovParametere = behovMap.values.fold<Map<String, Any>, Map<String, Any>>(emptyMap()) { acc, map -> acc + map }
                 (kontekst + behovMap + behovParametere).let { JsonMessage.newNeed(behovMap.keys, it) }
                     .also { message ->
