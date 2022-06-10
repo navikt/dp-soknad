@@ -74,12 +74,14 @@ class GyldigSvar(json: JsonNode) {
     private fun validerPeriode() {
         require(
             svarAsJson is ObjectNode && kotlin.runCatching {
-                svarAsJson["fom"].asLocalDate()
+                val fom = svarAsJson["fom"].asLocalDate()
                 if (svarAsJson.has("tom")) {
-                    val tom = svarAsJson["tom"]
-                    if (!tom.isMissingOrNull()) {
-                        tom.asLocalDate()
+                    val tomJsonNode = svarAsJson["tom"]
+                    if (!tomJsonNode.isMissingOrNull()) {
+                        val tom = tomJsonNode.asLocalDate()
+                        require(fom <= tom) {"'fom' fra-og-med-dato må være før 'tom' til-og-med-dato "}
                     }
+
                 }
             }.isSuccess,
             feilmelding()

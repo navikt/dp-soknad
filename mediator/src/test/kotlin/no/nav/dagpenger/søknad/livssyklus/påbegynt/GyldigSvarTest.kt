@@ -50,6 +50,7 @@ class GyldigSvarTest {
         """int | "tekst"""",
         """periode | {"fom":"2022231-01-15"}""",
         """periode | {"fom":"2022-01-15", "tom": "blabla"}""",
+        """periode | {"fom":"2022-01-15", "tom": "2022-01-14"}""",
         """land | "NORWAY"""",
         delimiter = '|'
     )
