@@ -60,10 +60,10 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
             PersonLoggerObserver
         )
     ).also {
-        SøknadOpprettetHendelseMottak(rapidsConnection, it)
-        ArkiverbarSøknadMottattHendelseMottak(rapidsConnection, it)
-        NyJournalpostMottak(rapidsConnection, it)
-        JournalførtMottak(rapidsConnection, it)
+        // SøknadOpprettetHendelseMottak(rapidsConnection, it)
+        // ArkiverbarSøknadMottattHendelseMottak(rapidsConnection, it)
+        // NyJournalpostMottak(rapidsConnection, it)
+        // JournalførtMottak(rapidsConnection, it)
         // SøkerOppgaveMottak(rapidsConnection, it)
     }
 
