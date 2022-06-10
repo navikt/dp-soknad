@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
+import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -106,15 +107,17 @@ internal class LivssyklusPostgresRepositoryTest {
 
     @Test
     fun `Henter påbegynte søknader`() {
+        val påbegyntSøknadUuid = UUID.randomUUID()
+        val innsendtTidspunkt = ZonedDateTime.now()
         val person = Person("12345678910") {
             mutableListOf(
                 Søknad.rehydrer(
-                    søknadId = UUID.randomUUID(),
+                    søknadId = påbegyntSøknadUuid,
                     person = it,
                     tilstandsType = "Påbegynt",
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "jouhasjk",
-                    innsendtTidspunkt = ZonedDateTime.now()
+                    innsendtTidspunkt = innsendtTidspunkt
                 ),
                 Søknad.rehydrer(
                     søknadId = UUID.randomUUID(),
@@ -122,7 +125,7 @@ internal class LivssyklusPostgresRepositoryTest {
                     tilstandsType = "Journalført",
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
-                    innsendtTidspunkt = ZonedDateTime.now()
+                    innsendtTidspunkt = innsendtTidspunkt
                 )
             )
         }
@@ -130,9 +133,11 @@ internal class LivssyklusPostgresRepositoryTest {
         withMigratedDb {
             LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
                 it.lagre(person)
-                assertEquals(1, it.hentPåbegyntSøknad(person.ident()).size)
+                val påbegyntSøknad = it.hentPåbegyntSøknad(person.ident())!!
+                assertEquals(påbegyntSøknadUuid, påbegyntSøknad.uuid)
+                assertEquals(LocalDate.from(innsendtTidspunkt), påbegyntSøknad.startDato)
 
-                assertEquals(0, it.hentPåbegyntSøknad("hubbba").size)
+                assertEquals(null, it.hentPåbegyntSøknad("hubbba"))
             }
         }
     }

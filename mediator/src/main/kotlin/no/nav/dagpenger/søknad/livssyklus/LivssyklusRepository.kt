@@ -25,7 +25,7 @@ import javax.sql.DataSource
 interface LivssyklusRepository {
     fun hent(ident: String): Person?
     fun lagre(person: Person)
-    fun hentPåbegyntSøknad(personIdent: String): List<PåbegyntSøknad>
+    fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad?
 }
 
 class LivssyklusPostgresRepository(private val dataSource: DataSource) : LivssyklusRepository {
@@ -97,17 +97,16 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
         }
     }
 
-    override fun hentPåbegyntSøknad(personIdent: String): List<PåbegyntSøknad> {
+    override fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad? {
         return using(sessionOf(dataSource)) { session ->
             session.run(
-                (
-                    queryOf(
-                        "SELECT uuid, opprettet FROM soknad_v1 WHERE person_ident=:ident AND tilstand=:paabegyntTilstand",
-                        mapOf("ident" to personIdent, "paabegyntTilstand" to Søknad.Tilstand.Type.Påbegynt.name)
-                    ).map { row ->
-                        PåbegyntSøknad(UUID.fromString(row.string("uuid")), row.localDate("opprettet"))
-                    }
-                    ).asList
+                queryOf(
+                    //language=PostgreSQL
+                    "SELECT uuid, opprettet FROM soknad_v1 WHERE person_ident=:ident AND tilstand=:paabegyntTilstand",
+                    mapOf("ident" to personIdent, "paabegyntTilstand" to Søknad.Tilstand.Type.Påbegynt.name)
+                ).map { row ->
+                    PåbegyntSøknad(UUID.fromString(row.string("uuid")), row.localDate("opprettet"))
+                }.asSingle
             )
         }
     }

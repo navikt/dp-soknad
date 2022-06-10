@@ -71,8 +71,7 @@ internal class VaktmesterRepositoryTest {
                     )
                 }
                 livssyklusRepository.hentPåbegyntSøknad(person.ident()).also { påbegynteSøknader ->
-                    assertEquals(1, påbegynteSøknader.size)
-                    assertEquals(påbegyntSøknadIdNy, påbegynteSøknader.first().uuid)
+                    assertEquals(påbegyntSøknadIdNy, påbegynteSøknader!!.uuid)
                 }
             }
         }
