@@ -79,9 +79,8 @@ class GyldigSvar(json: JsonNode) {
                     val tomJsonNode = svarAsJson["tom"]
                     if (!tomJsonNode.isMissingOrNull()) {
                         val tom = tomJsonNode.asLocalDate()
-                        require(fom <= tom) {"'fom' fra-og-med-dato må være før 'tom' til-og-med-dato "}
+                        require(fom <= tom) { "'fom' fra-og-med-dato må være før 'tom' til-og-med-dato " }
                     }
-
                 }
             }.isSuccess,
             feilmelding()

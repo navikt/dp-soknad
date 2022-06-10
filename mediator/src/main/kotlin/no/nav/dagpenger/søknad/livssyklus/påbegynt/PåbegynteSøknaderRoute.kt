@@ -10,6 +10,12 @@ import no.nav.dagpenger.søknad.utils.auth.ident
 
 internal fun Route.påbegyntSøknadRoute(søknadMediator: SøknadMediator) {
     get("/paabegynt") {
-        call.respond(HttpStatusCode.OK, søknadMediator.hentPåbegyntSøknad(call.ident()))
+        val påbegyntSøknad = søknadMediator.hentPåbegyntSøknad(call.ident())
+
+        if (påbegyntSøknad != null) {
+            call.respond(HttpStatusCode.OK, påbegyntSøknad)
+        } else {
+            call.respond(HttpStatusCode.NotFound)
+        }
     }
 }
