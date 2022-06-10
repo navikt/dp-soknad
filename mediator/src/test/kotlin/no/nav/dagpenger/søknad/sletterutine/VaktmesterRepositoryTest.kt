@@ -70,7 +70,7 @@ internal class VaktmesterRepositoryTest {
                         TestPersonVisitor(oppdatertPerson).søknader.size
                     )
                 }
-                livssyklusRepository.hentPåbegynte(person.ident()).also { påbegynteSøknader ->
+                livssyklusRepository.hentPåbegyntSøknad(person.ident()).also { påbegynteSøknader ->
                     assertEquals(1, påbegynteSøknader.size)
                     assertEquals(påbegyntSøknadIdNy, påbegynteSøknader.first().uuid)
                 }

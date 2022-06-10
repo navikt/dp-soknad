@@ -25,7 +25,7 @@ import javax.sql.DataSource
 interface LivssyklusRepository {
     fun hent(ident: String): Person?
     fun lagre(person: Person)
-    fun hentPåbegynte(personIdent: String): List<PåbegyntSøknad>
+    fun hentPåbegyntSøknad(personIdent: String): List<PåbegyntSøknad>
 }
 
 class LivssyklusPostgresRepository(private val dataSource: DataSource) : LivssyklusRepository {
@@ -97,7 +97,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
         }
     }
 
-    override fun hentPåbegynte(personIdent: String): List<PåbegyntSøknad> {
+    override fun hentPåbegyntSøknad(personIdent: String): List<PåbegyntSøknad> {
         return using(sessionOf(dataSource)) { session ->
             session.run(
                 (

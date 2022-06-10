@@ -130,9 +130,9 @@ internal class LivssyklusPostgresRepositoryTest {
         withMigratedDb {
             LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
                 it.lagre(person)
-                assertEquals(1, it.hentPåbegynte(person.ident()).size)
+                assertEquals(1, it.hentPåbegyntSøknad(person.ident()).size)
 
-                assertEquals(0, it.hentPåbegynte("hubbba").size)
+                assertEquals(0, it.hentPåbegyntSøknad("hubbba").size)
             }
         }
     }

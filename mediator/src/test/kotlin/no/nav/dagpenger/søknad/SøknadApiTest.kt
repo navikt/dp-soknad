@@ -78,13 +78,13 @@ internal class SøknadApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentPåbegynte("ingensoknad") } returns emptyList()
-                    every { it.hentPåbegynte("harsoknad") } returns expectedSoknader
+                    every { it.hentPåbegyntSøknad("ingensoknad") } returns emptyList()
+                    every { it.hentPåbegyntSøknad("harsoknad") } returns expectedSoknader
                 }
             )
         ) {
             autentisert(
-                endepunkt = "${Configuration.basePath}/soknad/paabegynte",
+                endepunkt = "${Configuration.basePath}/soknad/paabegynt",
                 token = TestApplication.getToken("ingensoknad"),
                 httpMethod = HttpMethod.Get,
             ).apply {
@@ -94,7 +94,7 @@ internal class SøknadApiTest {
             }
 
             autentisert(
-                endepunkt = "${Configuration.basePath}/soknad/paabegynte",
+                endepunkt = "${Configuration.basePath}/soknad/paabegynt",
                 token = TestApplication.getToken("harsoknad"),
                 httpMethod = HttpMethod.Get,
             ).apply {
