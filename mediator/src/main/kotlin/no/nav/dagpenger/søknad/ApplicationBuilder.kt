@@ -80,6 +80,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     }
 
     override fun onStartup(rapidsConnection: RapidsConnection) {
+        clean()
         runMigration()
         SøknadsMalMottak(rapidsConnection, søknadMalRepository)
     }
