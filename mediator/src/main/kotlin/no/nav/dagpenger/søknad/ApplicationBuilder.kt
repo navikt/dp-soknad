@@ -18,7 +18,6 @@ import no.nav.dagpenger.søknad.personalia.personaliaRouteBuilder
 import no.nav.dagpenger.søknad.sletterutine.UtdaterteSøknaderJob
 import no.nav.dagpenger.søknad.søknad.ferdigStiltSøknadRouteBuilder
 import no.nav.dagpenger.søknad.utils.db.PostgresDataSourceBuilder
-import no.nav.dagpenger.søknad.utils.db.PostgresDataSourceBuilder.clean
 import no.nav.dagpenger.søknad.utils.db.PostgresDataSourceBuilder.runMigration
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -60,11 +59,11 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
             PersonLoggerObserver
         )
     ).also {
-        // SøknadOpprettetHendelseMottak(rapidsConnection, it)
-        // ArkiverbarSøknadMottattHendelseMottak(rapidsConnection, it)
-        // NyJournalpostMottak(rapidsConnection, it)
-        // JournalførtMottak(rapidsConnection, it)
-        // SøkerOppgaveMottak(rapidsConnection, it)
+        SøknadOpprettetHendelseMottak(rapidsConnection, it)
+        ArkiverbarSøknadMottattHendelseMottak(rapidsConnection, it)
+        NyJournalpostMottak(rapidsConnection, it)
+        JournalførtMottak(rapidsConnection, it)
+        SøkerOppgaveMottak(rapidsConnection, it)
     }
 
     init {
@@ -80,7 +79,6 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     }
 
     override fun onStartup(rapidsConnection: RapidsConnection) {
-        clean()
         runMigration()
         SøknadsMalMottak(rapidsConnection, søknadMalRepository)
     }
