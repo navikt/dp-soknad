@@ -6,6 +6,7 @@ import no.nav.dagpenger.søknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.søknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.søknad.hendelse.Hendelse
 import no.nav.dagpenger.søknad.hendelse.JournalførtHendelse
+import no.nav.dagpenger.søknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadOpprettetHendelse
@@ -48,12 +49,13 @@ class Søknad private constructor(
             innsendtTidspunkt: ZonedDateTime?
         ): Søknad {
             val tilstand: Tilstand = when (Tilstand.Type.valueOf(tilstandsType)) {
-                Tilstand.Type.UnderOpprettelse -> Søknad.UnderOpprettelse
-                Tilstand.Type.Påbegynt -> Søknad.Påbegynt
-                Tilstand.Type.AvventerArkiverbarSøknad -> Søknad.AvventerArkiverbarSøknad
-                Tilstand.Type.AvventerMidlertidligJournalføring -> Søknad.AvventerMidlertidligJournalføring
-                Tilstand.Type.AvventerJournalføring -> Søknad.AvventerJournalføring
-                Tilstand.Type.Journalført -> Søknad.Journalført
+                Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
+                Tilstand.Type.Påbegynt -> Påbegynt
+                Tilstand.Type.AvventerArkiverbarSøknad -> AvventerArkiverbarSøknad
+                Tilstand.Type.AvventerMidlertidligJournalføring -> AvventerMidlertidligJournalføring
+                Tilstand.Type.AvventerJournalføring -> AvventerJournalføring
+                Tilstand.Type.Journalført -> Journalført
+                Tilstand.Type.Slettet -> throw IllegalArgumentException("Kan ikke rehydrere slettet søknad med id $søknadId")
             }
             return Søknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt)
         }
@@ -107,6 +109,11 @@ class Søknad private constructor(
         }
     }
 
+    fun håndter(slettSøknadHendelse: SlettSøknadHendelse) {
+        kontekst(slettSøknadHendelse)
+        tilstand.håndter(slettSøknadHendelse, this)
+    }
+
     interface Tilstand : Aktivitetskontekst {
 
         val tilstandType: Type
@@ -118,6 +125,7 @@ class Søknad private constructor(
 
         fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse, søknad: Søknad) =
             harPåbegyntSøknadHendelse.`kan ikke håndteres i denne tilstanden`()
+
         fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse, søknad: Søknad) =
             søknadOpprettetHendelse.`kan ikke håndteres i denne tilstanden`()
 
@@ -135,6 +143,10 @@ class Søknad private constructor(
 
         fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse, søknad: Søknad) =
             faktumOppdatertHendelse.`kan ikke håndteres i denne tilstanden`()
+
+        fun håndter(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
+            slettSøknadHendelse.severe("Kan ikke slette søknad i tilstand $tilstandType")
+        }
 
         private fun Hendelse.`kan ikke håndteres i denne tilstanden`() =
             this.warn("Kan ikke håndtere ${this.javaClass.simpleName} i tilstand $tilstandType")
@@ -155,7 +167,8 @@ class Søknad private constructor(
             AvventerArkiverbarSøknad,
             AvventerMidlertidligJournalføring,
             AvventerJournalføring,
-            Journalført
+            Journalført,
+            Slettet
         }
     }
 
@@ -163,7 +176,6 @@ class Søknad private constructor(
 
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.UnderOpprettelse
-
         override fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) {
             ønskeOmNySøknadHendelse.behov(Behovtype.NySøknad, "Behov for å starte søknadsprosess")
         }
@@ -184,8 +196,26 @@ class Søknad private constructor(
 
         override fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse, søknad: Søknad) {
         }
+
         override fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse, søknad: Søknad) {
         }
+
+        override fun håndter(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
+            søknad.endreTilstand(Slettet, slettSøknadHendelse)
+        }
+    }
+
+    private object Slettet : Tilstand {
+        override val tilstandType: Tilstand.Type
+            get() = Tilstand.Type.Slettet
+
+        override fun entering(søknadHendelse: Hendelse, søknad: Søknad) {
+            søknad.slettet()
+        }
+    }
+
+    private fun slettet() {
+        person.søknadSlettet(PersonObserver.SøknadSlettetEvent(this.søknadId))
     }
 
     private object AvventerArkiverbarSøknad : Tilstand {
@@ -214,7 +244,6 @@ class Søknad private constructor(
 
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.AvventerMidlertidligJournalføring
-
         override fun entering(søknadHendelse: Hendelse, søknad: Søknad) {
             søknad.trengerNyJournalpost(søknadHendelse)
         }
@@ -228,7 +257,6 @@ class Søknad private constructor(
     }
 
     private object AvventerJournalføring : Tilstand {
-
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.AvventerJournalføring
         override fun håndter(journalførtHendelse: JournalførtHendelse, søknad: Søknad) {

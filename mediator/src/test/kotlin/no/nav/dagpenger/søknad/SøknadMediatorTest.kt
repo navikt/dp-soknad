@@ -88,7 +88,7 @@ internal class SøknadMediatorTest {
     @Test
     fun `Søknaden går gjennom livssyklusen med alle tilstander`() {
         val søknadUuid = UUID.randomUUID()
-        mediator.behandle(ØnskeOmNySøknadHendelse(testIdent, søknadUuid))
+        mediator.behandle(ØnskeOmNySøknadHendelse(søknadUuid, testIdent))
         assertEquals(1, testRapid.inspektør.size)
         assertEquals(listOf("NySøknad"), behov(0))
         assertEquals(UnderOpprettelse, oppdatertInspektør().gjeldendetilstand)

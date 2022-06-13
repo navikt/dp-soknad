@@ -8,15 +8,18 @@ import no.nav.dagpenger.søknad.Søknad.Tilstand.Type.AvventerJournalføring
 import no.nav.dagpenger.søknad.Søknad.Tilstand.Type.AvventerMidlertidligJournalføring
 import no.nav.dagpenger.søknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.søknad.Søknad.Tilstand.Type.Påbegynt
+import no.nav.dagpenger.søknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.søknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.søknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.søknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.søknad.hendelse.JournalførtHendelse
+import no.nav.dagpenger.søknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.søknad.hendelse.ØnskeOmNySøknadHendelse
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -28,14 +31,14 @@ private const val testJournalpostId = "J123"
 internal class SøknadTest {
 
     private lateinit var person: Person
-    private lateinit var observatør: TestPersonObserver
+    private lateinit var personObserver: TestPersonObserver
     private lateinit var plantUmlObservatør: PlantUmlObservatør
     private val inspektør get() = TestSøknadInspektør(person)
 
     @BeforeEach
     internal fun setUp() {
         person = Person(testIdent)
-        observatør = TestPersonObserver().also { person.addObserver(it) }
+        personObserver = TestPersonObserver().also { person.addObserver(it) }
         plantUmlObservatør = PlantUmlObservatør().also {
             person.addObserver(it)
         }
@@ -120,27 +123,46 @@ internal class SøknadTest {
     }
 
     @Test
+    fun `Slett søknad for person`() {
+        håndterØnskeOmNySøknadHendelse()
+        håndterNySøknadOpprettet()
+        håndterSlettet()
+
+        assertTrue(personObserver.slettet)
+
+        assertTilstander(
+            UnderOpprettelse,
+            Påbegynt,
+            Slettet
+        )
+    }
+
+    @Test
     fun `en person kan kun ha én opprettet eller påbegynt søknad av gangen`() {
         val person = Person(testIdent)
         val søknadID = UUID.randomUUID()
-        person.håndter(ØnskeOmNySøknadHendelse(testIdent, søknadID))
+        person.håndter(ØnskeOmNySøknadHendelse(søknadID, testIdent))
         assertThrows<AktivitetException> {
-            person.håndter(ØnskeOmNySøknadHendelse(testIdent, søknadID))
+            person.håndter(ØnskeOmNySøknadHendelse(søknadID, testIdent))
         }
 
         person.håndter(SøknadOpprettetHendelse(søknadID, testIdent))
 
         assertThrows<AktivitetException> {
-            person.håndter(ØnskeOmNySøknadHendelse(testIdent, søknadID))
+            person.håndter(ØnskeOmNySøknadHendelse(søknadID, testIdent))
         }
     }
 
     private fun assertTilstander(vararg tilstander: Søknad.Tilstand.Type) {
-        assertEquals(tilstander.asList(), observatør.tilstander)
+        assertEquals(tilstander.asList(), personObserver.tilstander)
     }
 
     private fun håndterNySøknadOpprettet() {
         person.håndter(SøknadOpprettetHendelse(inspektør.søknadId, testIdent))
+    }
+
+    private fun håndterSlettet() {
+        person.håndter(SlettSøknadHendelse(inspektør.søknadId, testIdent))
     }
 
     private fun håndterArkiverbarSøknad() {
@@ -176,7 +198,7 @@ internal class SøknadTest {
     }
 
     private fun håndterØnskeOmNySøknadHendelse() {
-        person.håndter(ØnskeOmNySøknadHendelse(testIdent, UUID.randomUUID()))
+        person.håndter(ØnskeOmNySøknadHendelse(UUID.randomUUID(), testIdent))
     }
 
     private fun assertPuml(tittel: String) {

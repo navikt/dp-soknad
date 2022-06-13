@@ -67,7 +67,7 @@ class SøkerOppgaveMottakTest {
 
     private fun lagrePersonMedSøknad(søknadUuid: UUID, ident: String = "01234567891") {
         val person = Person(ident)
-        person.håndter(ØnskeOmNySøknadHendelse(ident, søknadUuid))
+        person.håndter(ØnskeOmNySøknadHendelse(søknadUuid, ident))
         val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
         livssyklusPostgresRepository.lagre(person)
     }

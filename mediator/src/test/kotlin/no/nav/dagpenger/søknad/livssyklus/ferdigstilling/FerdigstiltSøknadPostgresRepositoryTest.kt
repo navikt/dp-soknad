@@ -86,7 +86,7 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
         val ident = "01234567891"
         val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
         val person = Person(ident)
-        person.håndter(ØnskeOmNySøknadHendelse(ident, søknadId))
+        person.håndter(ØnskeOmNySøknadHendelse(søknadId, ident))
         livssyklusPostgresRepository.lagre(person)
         val søknadCachePostgresRepository = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource)
         søknadCachePostgresRepository.lagre(TestSøkerOppgave(søknadId, ident, fakta))

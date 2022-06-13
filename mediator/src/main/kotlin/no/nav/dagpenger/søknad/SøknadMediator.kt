@@ -84,7 +84,9 @@ internal class SøknadMediator(
     }
 
     fun behandle(slettSøknadHendelse: SlettSøknadHendelse) {
-        throw NotImplementedError("Start her")
+        behandle(slettSøknadHendelse) { person ->
+            person.håndter(slettSøknadHendelse)
+        }
     }
 
     fun behandle(faktumSvar: FaktumSvar) {
@@ -103,7 +105,7 @@ internal class SøknadMediator(
 
     internal fun hentEllerOpprettSøknadsprosess(ident: String): Søknadsprosess {
         return Søknadsprosess.NySøknadsProsess().also {
-            behandle(ØnskeOmNySøknadHendelse(ident, it.getSøknadsId()))
+            behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident))
         }
         // return hentPåbegynte(ident).singleOrNull()?.let {
         //     PåbegyntSøknadsProsess(it.uuid).also {

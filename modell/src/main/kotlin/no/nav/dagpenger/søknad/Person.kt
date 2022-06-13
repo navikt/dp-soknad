@@ -7,6 +7,7 @@ import no.nav.dagpenger.søknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.søknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.søknad.hendelse.Hendelse
 import no.nav.dagpenger.søknad.hendelse.JournalførtHendelse
+import no.nav.dagpenger.søknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadMidlertidigJournalførtHendelse
@@ -101,6 +102,13 @@ class Person private constructor(
         }
     }
 
+    fun håndter(slettSøknadHendelse: SlettSøknadHendelse) {
+        kontekst(slettSøknadHendelse, "Forsøker å slette søknad med ${slettSøknadHendelse.søknadID}")
+        finnSøknad(slettSøknadHendelse).also { søknaden ->
+            søknaden.håndter(slettSøknadHendelse)
+        }
+    }
+
     fun accept(visitor: PersonVisitor) {
         visitor.visitPerson(ident)
         visitor.visitPerson(ident, søknader)
@@ -117,6 +125,12 @@ class Person private constructor(
     override fun søknadTilstandEndret(event: PersonObserver.SøknadEndretTilstandEvent) {
         observers.forEach {
             it.søknadTilstandEndret(event)
+        }
+    }
+
+    override fun søknadSlettet(event: PersonObserver.SøknadSlettetEvent) {
+        observers.forEach {
+            it.søknadSlettet(event)
         }
     }
 
