@@ -120,16 +120,18 @@ internal class SøknadTest {
     }
 
     @Test
-    fun `en person kan kun ha én opprettet søknad av gangen`() {
+    fun `en person kan kun ha én opprettet eller påbegynt søknad av gangen`() {
         val person = Person(testIdent)
-        person.håndter(ØnskeOmNySøknadHendelse(testIdent, UUID.randomUUID()))
+        val søknadID = UUID.randomUUID()
+        person.håndter(ØnskeOmNySøknadHendelse(testIdent, søknadID))
         assertThrows<AktivitetException> {
-            person.håndter(
-                ØnskeOmNySøknadHendelse(
-                    testIdent,
-                    UUID.randomUUID()
-                )
-            )
+            person.håndter(ØnskeOmNySøknadHendelse(testIdent, søknadID))
+        }
+
+        person.håndter(SøknadOpprettetHendelse(søknadID, testIdent))
+
+        assertThrows<AktivitetException> {
+            person.håndter(ØnskeOmNySøknadHendelse(testIdent, søknadID))
         }
     }
 
