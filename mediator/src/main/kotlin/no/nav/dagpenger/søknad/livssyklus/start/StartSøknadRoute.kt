@@ -1,4 +1,4 @@
-package no.nav.dagpenger.søknad.livssyklus
+package no.nav.dagpenger.søknad.livssyklus.start
 
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders

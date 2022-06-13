@@ -11,8 +11,8 @@ import io.ktor.server.routing.put
 import io.ktor.util.pipeline.PipelineContext
 import mu.KotlinLogging
 import no.nav.dagpenger.søknad.SøknadMediator
+import no.nav.dagpenger.søknad.søknadUuid
 import no.nav.dagpenger.søknad.utils.auth.ident
-import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
 
@@ -36,10 +36,6 @@ internal fun Route.besvarFaktumRoute(søknadMediator: SøknadMediator) {
         call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { """{"status": "ok"}""" }
     }
 }
-
-private fun PipelineContext<Unit, ApplicationCall>.søknadUuid() =
-    call.parameters["søknad_uuid"].let { UUID.fromString(it) }
-        ?: throw IllegalArgumentException("Må ha med id i parameter")
 
 private fun PipelineContext<Unit, ApplicationCall>.faktumId(): String {
     val faktumId = call.parameters["faktumid"] ?: throw IllegalArgumentException("Må ha med id i parameter")

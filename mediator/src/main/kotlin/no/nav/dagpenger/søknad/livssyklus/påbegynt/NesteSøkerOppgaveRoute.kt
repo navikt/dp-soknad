@@ -1,15 +1,14 @@
 package no.nav.dagpenger.søknad.livssyklus.påbegynt
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import io.ktor.util.pipeline.PipelineContext
 import no.nav.dagpenger.søknad.IkkeTilgangExeption
 import no.nav.dagpenger.søknad.SøknadMediator
+import no.nav.dagpenger.søknad.søknadUuid
 import no.nav.dagpenger.søknad.utils.auth.ident
 import java.util.UUID
 
@@ -31,7 +30,3 @@ internal fun Route.nesteSøkeroppgaveRoute(søknadMediator: SøknadMediator) {
 
 private suspend fun hentNesteSøkerOppgave(søknadMediator: SøknadMediator, id: UUID) =
     retryIO(times = 15) { søknadMediator.hent(id) ?: throw NotFoundException("Fant ikke søker_oppgave for søknad med id $id") }
-
-private fun PipelineContext<Unit, ApplicationCall>.søknadUuid() =
-    call.parameters["søknad_uuid"].let { UUID.fromString(it) }
-        ?: throw IllegalArgumentException("Må ha med id i parameter")

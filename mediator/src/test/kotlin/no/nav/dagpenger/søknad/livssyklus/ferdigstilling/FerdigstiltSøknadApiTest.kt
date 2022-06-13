@@ -12,8 +12,6 @@ import io.mockk.mockk
 import no.nav.dagpenger.søknad.Configuration
 import no.nav.dagpenger.søknad.TestApplication
 import no.nav.dagpenger.søknad.TestApplication.autentisert
-import no.nav.dagpenger.søknad.søknad.ferdigstiltSøknadsApi
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -140,6 +138,6 @@ internal class FerdigstiltSøknadApiTest {
 
     private fun assertJsonEquals(expected: String, actual: String) {
         fun String.removeWhitespace(): String = this.replace("\\s".toRegex(), "")
-        Assertions.assertEquals(expected.removeWhitespace(), actual.removeWhitespace())
+        assertEquals(expected.removeWhitespace(), actual.removeWhitespace())
     }
 }

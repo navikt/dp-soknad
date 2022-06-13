@@ -6,6 +6,7 @@ import no.nav.dagpenger.søknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.søknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.søknad.hendelse.Hendelse
 import no.nav.dagpenger.søknad.hendelse.JournalførtHendelse
+import no.nav.dagpenger.søknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadMidlertidigJournalførtHendelse
@@ -80,6 +81,10 @@ internal class SøknadMediator(
         behandle(journalførtHendelse) { person ->
             person.håndter(journalførtHendelse)
         }
+    }
+
+    fun behandle(slettSøknadHendelse: SlettSøknadHendelse) {
+        throw NotImplementedError("Start her")
     }
 
     fun behandle(faktumSvar: FaktumSvar) {

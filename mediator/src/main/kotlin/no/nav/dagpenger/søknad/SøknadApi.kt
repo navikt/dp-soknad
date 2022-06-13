@@ -1,13 +1,18 @@
 package no.nav.dagpenger.søknad
 
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
+import io.ktor.util.pipeline.PipelineContext
 import no.nav.dagpenger.søknad.livssyklus.ferdigstilling.ferdigstillSøknadRoute
 import no.nav.dagpenger.søknad.livssyklus.påbegynt.besvarFaktumRoute
 import no.nav.dagpenger.søknad.livssyklus.påbegynt.nesteSøkeroppgaveRoute
 import no.nav.dagpenger.søknad.livssyklus.påbegyntSøknadRoute
-import no.nav.dagpenger.søknad.livssyklus.startSøknadRoute
+import no.nav.dagpenger.søknad.livssyklus.slett.slettSøknadRoute
+import no.nav.dagpenger.søknad.livssyklus.start.startSøknadRoute
 import no.nav.dagpenger.søknad.mal.nyesteMalRoute
+import java.util.UUID
 
 internal fun søknadApiRouteBuilder(søknadMediator: SøknadMediator): Route.() -> Unit = { søknadApi(søknadMediator) }
 
@@ -19,5 +24,10 @@ internal fun Route.søknadApi(søknadMediator: SøknadMediator) {
         nesteSøkeroppgaveRoute(søknadMediator)
         besvarFaktumRoute(søknadMediator)
         nyesteMalRoute(søknadMediator)
+        slettSøknadRoute(søknadMediator)
     }
 }
+
+internal fun PipelineContext<Unit, ApplicationCall>.søknadUuid() =
+    call.parameters["søknad_uuid"].let { UUID.fromString(it) }
+        ?: throw IllegalArgumentException("Må ha med id i parameter")

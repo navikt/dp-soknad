@@ -14,6 +14,7 @@ import no.nav.dagpenger.søknad.Søknadsprosess.NySøknadsProsess
 import no.nav.dagpenger.søknad.Søknadsprosess.PåbegyntSøknadsProsess
 import no.nav.dagpenger.søknad.TestApplication.autentisert
 import no.nav.dagpenger.søknad.TestApplication.defaultDummyFodselsnummer
+import no.nav.dagpenger.søknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.søknad.livssyklus.påbegynt.FaktumSvar
 import no.nav.dagpenger.søknad.livssyklus.påbegynt.SøkerOppgave
@@ -200,6 +201,36 @@ internal class SøknadApiTest {
         }
 
         verify(exactly = 1) { mockSøknadMediator.behandle(any<FaktumSvar>()) }
+    }
+
+    @Test
+    fun `Skal kunne slette påbegynt søknad`() {
+        val søknadUuid = UUID.fromString("d172a832-4f52-4e1f-ab5f-8be8348d9280")
+        val mockSøknadMediator = mockk<SøknadMediator>().also {
+            justRun {
+                it.behandle(any<SlettSøknadHendelse>())
+            }
+        }
+
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(søknadMediator = mockSøknadMediator)
+        ) {
+            autentisert(
+                "${Configuration.basePath}/soknad/$søknadUuid",
+                httpMethod = HttpMethod.Delete,
+            ).apply {
+                assertEquals(HttpStatusCode.OK, this.status)
+            }
+        }
+
+        verify(exactly = 1) {
+            mockSøknadMediator.behandle(
+                SlettSøknadHendelse(
+                    søknadUuid,
+                    ident = defaultDummyFodselsnummer
+                )
+            )
+        }
     }
 
     @ParameterizedTest

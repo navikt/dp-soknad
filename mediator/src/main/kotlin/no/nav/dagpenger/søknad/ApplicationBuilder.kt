@@ -6,6 +6,7 @@ import no.nav.dagpenger.søknad.livssyklus.JournalførtMottak
 import no.nav.dagpenger.søknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.søknad.livssyklus.NyJournalpostMottak
 import no.nav.dagpenger.søknad.livssyklus.ferdigstilling.FerdigstiltSøknadPostgresRepository
+import no.nav.dagpenger.søknad.livssyklus.ferdigstilling.ferdigStiltSøknadRouteBuilder
 import no.nav.dagpenger.søknad.livssyklus.påbegynt.SøkerOppgaveMottak
 import no.nav.dagpenger.søknad.livssyklus.påbegynt.SøknadCachePostgresRepository
 import no.nav.dagpenger.søknad.livssyklus.start.SøknadOpprettetHendelseMottak
@@ -16,7 +17,6 @@ import no.nav.dagpenger.søknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.søknad.personalia.PersonOppslag
 import no.nav.dagpenger.søknad.personalia.personaliaRouteBuilder
 import no.nav.dagpenger.søknad.sletterutine.UtdaterteSøknaderJob
-import no.nav.dagpenger.søknad.søknad.ferdigStiltSøknadRouteBuilder
 import no.nav.dagpenger.søknad.utils.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.søknad.utils.db.PostgresDataSourceBuilder.runMigration
 import no.nav.helse.rapids_rivers.RapidApplication

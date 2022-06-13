@@ -1,17 +1,14 @@
-package no.nav.dagpenger.søknad.søknad
+package no.nav.dagpenger.søknad.livssyklus.ferdigstilling
 
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
-import io.ktor.util.pipeline.PipelineContext
 import no.nav.dagpenger.søknad.Configuration
-import no.nav.dagpenger.søknad.livssyklus.ferdigstilling.FerdigstiltSøknadPostgresRepository
-import java.util.UUID
+import no.nav.dagpenger.søknad.søknadUuid
 
 internal fun ferdigStiltSøknadRouteBuilder(ferdigstiltSøknadDb: FerdigstiltSøknadPostgresRepository): Route.() -> Unit {
     return {
@@ -38,7 +35,3 @@ internal fun Route.ferdigstiltSøknadsApi(ferdigstiltSøknadDb: FerdigstiltSøkn
         }
     }
 }
-
-private fun PipelineContext<Unit, ApplicationCall>.søknadUuid() =
-    call.parameters["søknad_uuid"].let { UUID.fromString(it) }
-        ?: throw IllegalArgumentException("Må ha med id i parameter")

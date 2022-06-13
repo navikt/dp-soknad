@@ -12,10 +12,10 @@ import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.mockk
+import no.nav.dagpenger.søknad.livssyklus.ferdigstilling.ferdigStiltSøknadRouteBuilder
 import no.nav.dagpenger.søknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.søknad.personalia.PersonOppslag
 import no.nav.dagpenger.søknad.personalia.personaliaRouteBuilder
-import no.nav.dagpenger.søknad.søknad.ferdigStiltSøknadRouteBuilder
 import no.nav.security.mock.oauth2.MockOAuth2Server
 
 object TestApplication {
