@@ -70,21 +70,21 @@ internal fun Application.api(
                 is IllegalArgumentException -> {
                     call.respond(
                         BadRequest,
-                        HttpProblem(title = "Feilet", detail = cause.message)
+                        HttpProblem(title = "Feilet", detail = cause.message, status = 400)
                     )
                 }
                 is NotFoundException -> {
                     logger.info(cause) { "Kunne ikke håndtere API kall - Ikke funnet" }
                     call.respond(
                         NotFound,
-                        HttpProblem(title = "Feilet", detail = cause.message)
+                        HttpProblem(title = "Feilet", detail = cause.message, status = 404)
                     )
                 }
                 is BadRequestException -> {
                     logger.error(cause) { "Kunne ikke håndtere API kall - feil i request" }
                     call.respond(
                         BadRequest,
-                        HttpProblem(title = "Feilet", detail = cause.message)
+                        HttpProblem(title = "Feilet", detail = cause.message, status = 400)
                     )
                 }
                 is IkkeTilgangExeption -> {

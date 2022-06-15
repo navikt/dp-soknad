@@ -179,8 +179,15 @@ internal class SøknadApiTest {
         }
     }
 
-    @Test
-    fun `Skal kunne lagre faktum`() {
+    @ParameterizedTest
+    @CsvSource(
+        "1234    | 200",
+        "1234.1  | 200",
+        "1234.XX | 400",
+        "blabla  | 400",
+        delimiter = '|'
+    )
+    fun `Skal kunne lagre faktum`(id: String, status: Int) {
         val mockSøknadMediator = mockk<SøknadMediator>().also {
             justRun {
                 it.behandle(any<FaktumSvar>())
@@ -191,11 +198,40 @@ internal class SøknadApiTest {
             TestApplication.mockedSøknadApi(søknadMediator = mockSøknadMediator)
         ) {
             autentisert(
-                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/faktum/1245",
+                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/faktum/$id",
                 httpMethod = HttpMethod.Put,
                 body = """{"type": "boolean", "svar": true}"""
             ).apply {
-                assertEquals(HttpStatusCode.OK, this.status)
+                assertEquals(HttpStatusCode.fromValue(status), this.status)
+                assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])
+            }
+        }
+
+        verify(exactly = 1) { mockSøknadMediator.behandle(any<FaktumSvar>()) }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "1234   | 200",
+        "1234.1 | 200",
+        delimiter = '|'
+    )
+    fun `Skal kunne lagre faktum med indeks`(id: String, status: Int) {
+        val mockSøknadMediator = mockk<SøknadMediator>().also {
+            justRun {
+                it.behandle(any<FaktumSvar>())
+            }
+        }
+
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(søknadMediator = mockSøknadMediator)
+        ) {
+            autentisert(
+                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/faktum/$id",
+                httpMethod = HttpMethod.Put,
+                body = """{"type": "boolean", "svar": true}"""
+            ).apply {
+                assertEquals(HttpStatusCode.fromValue(status), this.status)
                 assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])
             }
         }

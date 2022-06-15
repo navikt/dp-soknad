@@ -39,6 +39,6 @@ internal fun Route.besvarFaktumRoute(søknadMediator: SøknadMediator) {
 
 private fun PipelineContext<Unit, ApplicationCall>.faktumId(): String {
     val faktumId = call.parameters["faktumid"] ?: throw IllegalArgumentException("Må ha med id i parameter")
-    require(kotlin.runCatching { faktumId.toInt() }.isSuccess) { "FaktumId må være et heltall" }
+    require(kotlin.runCatching { faktumId.toDouble() }.isSuccess) { "FaktumId må være et heltall eller desimaltall. Var '$faktumId'" }
     return faktumId
 }
