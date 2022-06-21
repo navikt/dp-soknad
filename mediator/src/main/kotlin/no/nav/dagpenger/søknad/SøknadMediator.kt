@@ -125,26 +125,31 @@ internal class SøknadMediator(
         // }
     }
 
-    private fun behandle(hendelse: Hendelse, håndter: (Person) -> Unit) = onBehandleHendelse.labels(hendelse.javaClass.simpleName).time {
-        try {
-            val person = hentEllerOpprettPerson(hendelse)
-            personObservers.forEach { personObserver ->
-                person.addObserver(personObserver)
+    private fun behandle(hendelse: Hendelse, håndter: (Person) -> Unit) =
+        onBehandleHendelse.labels(hendelse.javaClass.simpleName, "total").time {
+            try {
+                onBehandleHendelse.labels(hendelse.javaClass.simpleName, "hentEllerOpprett").time {
+                    val person = hentEllerOpprettPerson(hendelse)
+                    personObservers.forEach { personObserver ->
+                        person.addObserver(personObserver)
+                    }
+                    håndter(person)
+                    onBehandleHendelse.labels(hendelse.javaClass.simpleName, "finalize").time {
+                        finalize(person, hendelse)
+                    }
+                }
+            } catch (err: Aktivitetslogg.AktivitetException) {
+                withMDC(kontekst(hendelse)) {
+                    logger.error("alvorlig feil i aktivitetslogg (se sikkerlogg for detaljer)")
+                }
+                withMDC(err.kontekst()) {
+                    sikkerLogger.error("alvorlig feil i aktivitetslogg: ${err.message}", err)
+                }
+                throw err
+            } catch (e: Exception) {
+                errorHandler(e, e.message ?: "Ukjent feil")
             }
-            håndter(person)
-            finalize(person, hendelse)
-        } catch (err: Aktivitetslogg.AktivitetException) {
-            withMDC(kontekst(hendelse)) {
-                logger.error("alvorlig feil i aktivitetslogg (se sikkerlogg for detaljer)")
-            }
-            withMDC(err.kontekst()) {
-                sikkerLogger.error("alvorlig feil i aktivitetslogg: ${err.message}", err)
-            }
-            throw err
-        } catch (e: Exception) {
-            errorHandler(e, e.message ?: "Ukjent feil")
         }
-    }
 
     private fun kontekst(hendelse: Hendelse): Map<String, String> =
         when (hendelse) {

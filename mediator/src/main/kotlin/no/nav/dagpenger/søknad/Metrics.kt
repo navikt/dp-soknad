@@ -7,9 +7,8 @@ object Metrics {
         .namespace("dp_soknad")
         .name("behandle_hendelse")
         .help("Hvor lang det tar å behandle en hendelse")
-        .labelNames("hendelse_navn")
+        .labelNames("hendelse_navn", "fase")
         .register()
-
     val onFaktumSvar: Histogram = Histogram.build()
         .namespace("dp_soknad")
         .name("faktum_svar")
