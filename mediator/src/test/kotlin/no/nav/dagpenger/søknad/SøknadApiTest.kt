@@ -5,6 +5,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.isSuccess
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
@@ -202,12 +203,14 @@ internal class SøknadApiTest {
                 httpMethod = HttpMethod.Put,
                 body = """{"type": "boolean", "svar": true}"""
             ).apply {
-                assertEquals(HttpStatusCode.fromValue(status), this.status)
+                val expectedStatusCode = HttpStatusCode.fromValue(status)
+                assertEquals(expectedStatusCode, this.status)
                 assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])
+                if (expectedStatusCode.isSuccess()) {
+                    verify(exactly = 1) { mockSøknadMediator.behandle(any<FaktumSvar>()) }
+                }
             }
         }
-
-        verify(exactly = 1) { mockSøknadMediator.behandle(any<FaktumSvar>()) }
     }
 
     @Test
