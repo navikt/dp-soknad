@@ -24,6 +24,7 @@ internal class FerdigstiltSøknadPostgresRepository(private val dataSource: Data
             using(sessionOf(dataSource)) { session ->
                 session.run(
                     queryOf(
+                        //language=PostgreSQL
                         statement = "INSERT INTO soknad_tekst_v1(uuid,tekst) VALUES(:uuid,:tekst)",
                         paramMap = mapOf(
                             "uuid" to søknadUuid.toString(),
@@ -51,7 +52,7 @@ internal class FerdigstiltSøknadPostgresRepository(private val dataSource: Data
             session.run(
                 queryOf(
                     //language=PostgreSQL
-                    statement = "SELECT tekst FROM  soknad_tekst_v1 WHERE uuid = :uuid",
+                    statement = "SELECT tekst FROM soknad_tekst_v1 WHERE uuid = :uuid",
                     paramMap = mapOf(
                         "uuid" to søknadId.toString()
                     )

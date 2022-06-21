@@ -1,6 +1,8 @@
 package no.nav.dagpenger.søknad
 
 import mu.KotlinLogging
+import no.nav.dagpenger.søknad.Metrics.onBehandleHendelse
+import no.nav.dagpenger.søknad.Metrics.onFaktumSvar
 import no.nav.dagpenger.søknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.søknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.søknad.hendelse.HarPåbegyntSøknadHendelse
@@ -33,7 +35,6 @@ internal class SøknadMediator(
     SøknadMalRepository by søknadMalRepository,
     LivssyklusRepository by livssyklusRepository,
     FerdigstiltSøknadRepository by ferdigstiltSøknadRepository {
-
     private companion object {
         val logger = KotlinLogging.logger { }
         val sikkerLogger = KotlinLogging.logger("tjenestekall")
@@ -92,9 +93,17 @@ internal class SøknadMediator(
     fun behandle(faktumSvar: FaktumSvar) {
         val faktumOppdatertHendelse = FaktumOppdatertHendelse(faktumSvar.søknadUuid(), faktumSvar.eier())
         behandle(faktumOppdatertHendelse) { person ->
-            person.håndter(faktumOppdatertHendelse)
-            søknadCacheRepository.slett(faktumSvar.søknadUuid(), faktumSvar.eier())
-            rapidsConnection.publish(faktumSvar.toJson())
+            onFaktumSvar.labels("personHaandter").time {
+                person.håndter(faktumOppdatertHendelse)
+            }
+
+            onFaktumSvar.labels("slettCache").time {
+                søknadCacheRepository.slett(faktumSvar.søknadUuid(), faktumSvar.eier())
+            }
+
+            onFaktumSvar.labels("publishSvar").time {
+                rapidsConnection.publish(faktumSvar.toJson())
+            }
         }
         logger.info { "Sendte faktum svar for ${faktumSvar.søknadUuid()}" }
     }
@@ -116,7 +125,7 @@ internal class SøknadMediator(
         // }
     }
 
-    private fun behandle(hendelse: Hendelse, håndter: (Person) -> Unit) {
+    private fun behandle(hendelse: Hendelse, håndter: (Person) -> Unit) = onBehandleHendelse.labels(hendelse.javaClass.simpleName).time {
         try {
             val person = hentEllerOpprettPerson(hendelse)
             personObservers.forEach { personObserver ->
