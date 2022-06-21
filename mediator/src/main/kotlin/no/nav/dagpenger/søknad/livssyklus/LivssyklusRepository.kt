@@ -8,7 +8,6 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.søknad.Aktivitetslogg
-import no.nav.dagpenger.søknad.Metrics.insertAktivitetslogg
 import no.nav.dagpenger.søknad.Metrics.insertAktivitetsloggSize
 import no.nav.dagpenger.søknad.Person
 import no.nav.dagpenger.søknad.PersonVisitor
@@ -77,22 +76,22 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     }.asSingle
                 )!!
 
-                insertAktivitetslogg.time {
-                    transactionalSession.run(
-                        queryOf(
-                            //language=PostgreSQL
-                            statement = "INSERT INTO aktivitetslogg_v1 (id, data ) VALUES (:id, :data ) ON CONFLICT(id) DO UPDATE SET data =:data",
-                            paramMap = mapOf(
-                                "id" to internId,
-                                "data" to PGobject().apply {
-                                    type = "jsonb"
-                                    value = objectMapper.writeValueAsString(visitor.aktivitetslogg.toMap())
-                                }
-                            )
-                        ).asUpdate
-                    )
-                    insertAktivitetsloggSize.observe(visitor.aktivitetslogg.toMap().size.toDouble())
-                }
+                val aktivitetsloggMap = visitor.aktivitetslogg.toMap()
+                transactionalSession.run(
+                    queryOf(
+                        //language=PostgreSQL
+                        statement = "INSERT INTO aktivitetslogg_v1 (id, data ) VALUES (:id, :data ) ON CONFLICT(id) DO UPDATE SET data =:data",
+                        paramMap = mapOf(
+                            "id" to internId,
+                            "data" to PGobject().apply {
+                                type = "jsonb"
+                                value = objectMapper.writeValueAsString(aktivitetsloggMap)
+                            }
+                        )
+                    ).asUpdate
+                )
+                aktivitetsloggMap["aktiviteter"]?.size?.toDouble()
+                    ?.let { insertAktivitetsloggSize.observe(it) }
 
                 visitor.søknader.forEach {
                     transactionalSession.run(it.insertQuery(visitor.ident))

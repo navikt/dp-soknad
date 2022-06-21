@@ -1,8 +1,6 @@
 package no.nav.dagpenger.søknad
 
 import mu.KotlinLogging
-import no.nav.dagpenger.søknad.Metrics.onBehandleHendelse
-import no.nav.dagpenger.søknad.Metrics.onFaktumSvar
 import no.nav.dagpenger.søknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.søknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.søknad.hendelse.HarPåbegyntSøknadHendelse
@@ -93,17 +91,9 @@ internal class SøknadMediator(
     fun behandle(faktumSvar: FaktumSvar) {
         val faktumOppdatertHendelse = FaktumOppdatertHendelse(faktumSvar.søknadUuid(), faktumSvar.eier())
         behandle(faktumOppdatertHendelse) { person ->
-            onFaktumSvar.labels("personHaandter").time {
-                person.håndter(faktumOppdatertHendelse)
-            }
-
-            onFaktumSvar.labels("slettCache").time {
-                søknadCacheRepository.slett(faktumSvar.søknadUuid(), faktumSvar.eier())
-            }
-
-            onFaktumSvar.labels("publishSvar").time {
-                rapidsConnection.publish(faktumSvar.toJson())
-            }
+            person.håndter(faktumOppdatertHendelse)
+            søknadCacheRepository.slett(faktumSvar.søknadUuid(), faktumSvar.eier())
+            rapidsConnection.publish(faktumSvar.toJson())
         }
         logger.info { "Sendte faktum svar for ${faktumSvar.søknadUuid()}" }
     }
@@ -126,29 +116,23 @@ internal class SøknadMediator(
     }
 
     private fun behandle(hendelse: Hendelse, håndter: (Person) -> Unit) =
-        onBehandleHendelse.labels(hendelse.javaClass.simpleName, "total").time {
-            try {
-                onBehandleHendelse.labels(hendelse.javaClass.simpleName, "hentEllerOpprett").time {
-                    val person = hentEllerOpprettPerson(hendelse)
-                    personObservers.forEach { personObserver ->
-                        person.addObserver(personObserver)
-                    }
-                    håndter(person)
-                    onBehandleHendelse.labels(hendelse.javaClass.simpleName, "finalize").time {
-                        finalize(person, hendelse)
-                    }
-                }
-            } catch (err: Aktivitetslogg.AktivitetException) {
-                withMDC(kontekst(hendelse)) {
-                    logger.error("alvorlig feil i aktivitetslogg (se sikkerlogg for detaljer)")
-                }
-                withMDC(err.kontekst()) {
-                    sikkerLogger.error("alvorlig feil i aktivitetslogg: ${err.message}", err)
-                }
-                throw err
-            } catch (e: Exception) {
-                errorHandler(e, e.message ?: "Ukjent feil")
+        try {
+            val person = hentEllerOpprettPerson(hendelse)
+            personObservers.forEach { personObserver ->
+                person.addObserver(personObserver)
             }
+            håndter(person)
+            finalize(person, hendelse)
+        } catch (err: Aktivitetslogg.AktivitetException) {
+            withMDC(kontekst(hendelse)) {
+                logger.error("alvorlig feil i aktivitetslogg (se sikkerlogg for detaljer)")
+            }
+            withMDC(err.kontekst()) {
+                sikkerLogger.error("alvorlig feil i aktivitetslogg: ${err.message}", err)
+            }
+            throw err
+        } catch (e: Exception) {
+            errorHandler(e, e.message ?: "Ukjent feil")
         }
 
     private fun kontekst(hendelse: Hendelse): Map<String, String> =

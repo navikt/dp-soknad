@@ -15,7 +15,6 @@ object Metrics {
         .help("Hvor lang det å håndtere svar på faktum")
         .labelNames("fase")
         .register()
-
     val insertAktivitetslogg: Histogram = Histogram.build()
         .namespace("dp_soknad")
         .name("insert_aktivitetslogg")
