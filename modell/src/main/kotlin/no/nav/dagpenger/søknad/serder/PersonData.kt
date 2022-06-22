@@ -10,7 +10,7 @@ import java.util.UUID
 
 class PersonData(
     val ident: String,
-    var søknader: List<SøknadData> = listOf(),
+    var søknader: List<SøknadData> = emptyList(),
     var aktivitetsLogg: AktivitetsloggData? = null
 ) {
     fun createPerson(): Person {
@@ -88,7 +88,6 @@ class PersonData(
         fun konverterTilAktivitetslogg(): Aktivitetslogg = konverterTilAktivitetslogg(this)
 
         private fun konverterTilAktivitetslogg(aktivitetsloggData: AktivitetsloggData): Aktivitetslogg {
-
             val aktiviteter = mutableListOf<Aktivitetslogg.Aktivitet>()
             aktivitetsloggData.aktiviteter.forEach {
                 val kontekster = it.kontekster.map { spesifikkKontekstData ->

@@ -86,7 +86,7 @@ internal class LivssyklusPostgresRepositoryTest {
         withMigratedDb {
             LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
                 it.lagre(originalPerson)
-                val personFraDatabase = it.hent("12345678910")
+                val personFraDatabase = it.hent("12345678910", true)
                 assertNotNull(personFraDatabase)
                 assertEquals(originalPerson, personFraDatabase)
 
@@ -94,12 +94,12 @@ internal class LivssyklusPostgresRepositoryTest {
                 val originalVisitor = TestPersonVisitor(originalPerson)
                 val søknaderFraDatabase = fraDatabaseVisitor.søknader
                 val originalSøknader = originalVisitor.søknader
-                assertNull(fraDatabaseVisitor.dokumenter.get(søknadId1))
+                assertNull(fraDatabaseVisitor.dokumenter[søknadId1])
                 assertEquals(2, fraDatabaseVisitor.dokumenter[søknadId2]?.varianter?.size)
                 assertDeepEquals(originalSøknader.first(), søknaderFraDatabase.first())
                 assertDeepEquals(originalSøknader.last(), søknaderFraDatabase.last())
 
-                assertAntallRader("aktivitetslogg_v1", 1)
+                assertAntallRader("aktivitetslogg_v2", 1)
                 assertEquals(originalVisitor.aktivitetslogg.toString(), fraDatabaseVisitor.aktivitetslogg.toString())
             }
         }

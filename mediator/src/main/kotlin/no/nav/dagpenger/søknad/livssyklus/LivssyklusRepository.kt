@@ -8,7 +8,6 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.søknad.Aktivitetslogg
-import no.nav.dagpenger.søknad.Metrics.insertAktivitetsloggSize
 import no.nav.dagpenger.søknad.Person
 import no.nav.dagpenger.søknad.PersonVisitor
 import no.nav.dagpenger.søknad.Søknad
@@ -24,31 +23,33 @@ import java.util.UUID
 import javax.sql.DataSource
 
 interface LivssyklusRepository {
-    fun hent(ident: String): Person?
+    fun hent(ident: String, komplettAktivitetslogg: Boolean = false): Person?
     fun lagre(person: Person)
     fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad?
 }
 
 class LivssyklusPostgresRepository(private val dataSource: DataSource) : LivssyklusRepository {
-    override fun hent(ident: String): Person? {
+    override fun hent(ident: String, komplettAktivitetslogg: Boolean): Person? {
         return using(sessionOf(dataSource)) { session ->
             session.transaction { transactionalSession ->
                 transactionalSession.run(
                     queryOf(
                         //language=PostgreSQL
                         """
-                                SELECT p.id AS person_id, p.ident AS person_ident, a.data AS aktivitetslogg 
-                                FROM person_v1 AS p, aktivitetslogg_v1 AS a 
-                                WHERE p.id=a.id AND p.ident=:ident
+                        SELECT p.id AS person_id, p.ident AS person_ident
+                        FROM person_v1 AS p
+                        WHERE p.ident = :ident
                         """.trimIndent(),
                         paramMap = mapOf("ident" to ident)
                     ).map { row ->
                         row.stringOrNull("person_ident")?.let { ident ->
                             PersonData(
                                 ident = row.string("person_ident"),
-                                aktivitetsLogg = row.binaryStream("aktivitetslogg").aktivitetslogg(),
-                                søknader = transactionalSession.hentSøknadsData(ident)
-                            )
+                                søknader = transactionalSession.hentSøknadsData(ident),
+                            ).also {
+                                if (!komplettAktivitetslogg) return@also
+                                it.aktivitetsLogg = transactionalSession.hentAktivitetslogg(row.int("person_id"))
+                            }
                         }
                     }.asSingle
                 )?.createPerson()
@@ -76,22 +77,19 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     }.asSingle
                 )!!
 
-                val aktivitetsloggMap = visitor.aktivitetslogg.toMap()
                 transactionalSession.run(
                     queryOf(
                         //language=PostgreSQL
-                        statement = "INSERT INTO aktivitetslogg_v1 (id, data ) VALUES (:id, :data ) ON CONFLICT(id) DO UPDATE SET data =:data",
+                        statement = "INSERT INTO aktivitetslogg_v2 (person_id, data) VALUES (:person_id, :data)",
                         paramMap = mapOf(
-                            "id" to internId,
+                            "person_id" to internId,
                             "data" to PGobject().apply {
                                 type = "jsonb"
-                                value = objectMapper.writeValueAsString(aktivitetsloggMap)
+                                value = objectMapper.writeValueAsString(visitor.aktivitetslogg.toMap())
                             }
                         )
                     ).asUpdate
                 )
-                aktivitetsloggMap["aktiviteter"]?.size?.toDouble()
-                    ?.let { insertAktivitetsloggSize.observe(it) }
 
                 visitor.søknader.forEach {
                     transactionalSession.run(it.insertQuery(visitor.ident))
@@ -130,6 +128,25 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                 PersonData.SøknadData.DokumentData(urn = row.string("dokument_lokasjon"))
             }.asList
         )
+    }
+
+    private fun Session.hentAktivitetslogg(ident: Int): PersonData.AktivitetsloggData = run(
+        queryOf(
+            //language=PostgreSQL
+            statement = """
+                SELECT a.data AS aktivitetslogg
+                FROM aktivitetslogg_v2 AS a
+                WHERE a.person_id = :ident
+                ORDER BY id ASC
+            """.trimIndent(),
+            paramMap = mapOf(
+                "ident" to ident
+            )
+        ).map { row ->
+            row.binaryStream("aktivitetslogg").aktivitetslogg()
+        }.asList
+    ).fold(PersonData.AktivitetsloggData(mutableListOf())) { acc, data ->
+        PersonData.AktivitetsloggData(acc.aktiviteter + data.aktiviteter)
     }
 
     private fun Session.hentSøknadsData(ident: String): List<PersonData.SøknadData> {
