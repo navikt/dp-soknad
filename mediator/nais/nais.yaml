@@ -27,12 +27,13 @@ spec:
     cpuThresholdPercentage: 75
   kafka:
      pool: {{ kafka_pool }}
-  limits:
-    cpu: "512m"
-    memory: "512Mi"
-  requests:
-    cpu: "400m"
-    memory: "256Mi"
+  resources:
+    limits:
+      cpu: "1024m"
+      memory: "512Mi"
+    requests:
+      cpu: "512m"
+      memory: "256Mi"
   {{ ingresses }}
   tokenx:
     enabled: true
