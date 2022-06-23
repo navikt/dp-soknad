@@ -104,7 +104,7 @@ internal class SøknadMediator(
 
     internal fun hentEllerOpprettSøknadsprosess(ident: String, språk: String): Søknadsprosess {
         return Søknadsprosess.NySøknadsProsess().also {
-            behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), språk, ident))
+            behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident, språk))
         }
         // return hentPåbegynte(ident).singleOrNull()?.let {
         //     PåbegyntSøknadsProsess(it.uuid).also {
