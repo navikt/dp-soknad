@@ -17,6 +17,8 @@ import java.util.UUID
 
 class SøknadCachePostgresRepositoryTest {
 
+    private val språkVerdi = "NO"
+
     @Test
     fun `Lagre søknad og hente`() {
         withMigratedDb {
@@ -127,7 +129,7 @@ class SøknadCachePostgresRepositoryTest {
 
     private fun lagrePersonMedSøknad(søknadUuid: UUID, ident: String = "01234567891") {
         val person = Person(ident)
-        person.håndter(ØnskeOmNySøknadHendelse(søknadUuid, ident))
+        person.håndter(ØnskeOmNySøknadHendelse(søknadUuid, ident, språkVerdi))
         val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
         livssyklusPostgresRepository.lagre(person)
     }

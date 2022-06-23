@@ -35,9 +35,11 @@ internal class SøknadApiTest {
 
     @Test
     fun `Skal starte utfylling av søknad`() {
+        val egenvalgtSpråk = slot<String>()
+        val defaultSpråk = slot<String>()
         val søknadMediatorMock = mockk<SøknadMediator>().also {
-            every { it.hentEllerOpprettSøknadsprosess(defaultDummyFodselsnummer) } returns NySøknadsProsess()
-            every { it.hentEllerOpprettSøknadsprosess("12345678910") } returns PåbegyntSøknadsProsess(
+            every { it.hentEllerOpprettSøknadsprosess(defaultDummyFodselsnummer, capture(egenvalgtSpråk)) } returns NySøknadsProsess()
+            every { it.hentEllerOpprettSøknadsprosess("12345678910", capture(defaultSpråk)) } returns PåbegyntSøknadsProsess(
                 UUID.randomUUID()
             )
         }
@@ -48,11 +50,12 @@ internal class SøknadApiTest {
             )
         ) {
             autentisert(
-                "${Configuration.basePath}/soknad",
+                "${Configuration.basePath}/soknad?spraak=NY",
                 httpMethod = HttpMethod.Post,
             ).apply {
                 assertEquals(HttpStatusCode.Created, this.status)
                 assertNotNull(this.headers[HttpHeaders.Location])
+                assertEquals("NY", egenvalgtSpråk.captured)
             }
 
             autentisert(
@@ -62,6 +65,7 @@ internal class SøknadApiTest {
             ).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
                 assertNotNull(this.headers[HttpHeaders.Location])
+                assertEquals("NB", defaultSpråk.captured)
             }
         }
     }

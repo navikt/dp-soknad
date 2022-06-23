@@ -3,6 +3,7 @@ package no.nav.dagpenger.søknad.livssyklus.ferdigstilling
 import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.server.plugins.NotFoundException
 import no.nav.dagpenger.søknad.Person
+import no.nav.dagpenger.søknad.Språk
 import no.nav.dagpenger.søknad.Søknad
 import no.nav.dagpenger.søknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.søknad.hendelse.ØnskeOmNySøknadHendelse
@@ -18,6 +19,8 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 internal class FerdigstiltSøknadPostgresRepositoryTest {
+    private val språkVerdi = "NO"
+
     @Language("JSON")
     private val dummyTekst = """{ "id": "value" }"""
     private val dummyFakta = """{ "fakta1": "value1" }"""
@@ -86,7 +89,7 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
         val ident = "01234567891"
         val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
         val person = Person(ident)
-        person.håndter(ØnskeOmNySøknadHendelse(søknadId, ident))
+        person.håndter(ØnskeOmNySøknadHendelse(søknadId, ident, språkVerdi))
         livssyklusPostgresRepository.lagre(person)
         val søknadCachePostgresRepository = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource)
         søknadCachePostgresRepository.lagre(TestSøkerOppgave(søknadId, ident, fakta))
@@ -114,14 +117,15 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
         val søknadId = UUID.randomUUID()
         val originalPerson = Person("12345678910") {
             mutableListOf(
-                Søknad(søknadId, it),
+                Søknad(søknadId, Språk(språkVerdi), it),
                 Søknad.rehydrer(
                     søknadId = søknadId,
                     person = it,
                     tilstandsType = "Journalført",
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
-                    innsendtTidspunkt = ZonedDateTime.now()
+                    innsendtTidspunkt = ZonedDateTime.now(),
+                    Språk(språkVerdi)
                 )
             )
         }

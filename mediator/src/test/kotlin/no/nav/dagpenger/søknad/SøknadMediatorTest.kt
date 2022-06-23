@@ -43,6 +43,7 @@ internal class SøknadMediatorTest {
     companion object {
         private const val testIdent = "12345678912"
         private const val testJournalpostId = "123455PDS"
+        private val språkVerdi = "NO"
     }
 
     private lateinit var mediator: SøknadMediator
@@ -73,7 +74,7 @@ internal class SøknadMediatorTest {
     @Disabled("Skrudde av uthenting av påbegynte søknad og fortsette med det. Vi må løse opp i migrering til nye versjoner i quiz.")
     fun `Skal håndtere ønske om ny søknad når det finnes en påbegynt søknad`() {
         val testident2 = "12346578910"
-        val expectedSøknadsId = mediator.hentEllerOpprettSøknadsprosess(testident2).also {
+        val expectedSøknadsId = mediator.hentEllerOpprettSøknadsprosess(testident2, språkVerdi).also {
             assertTrue(it is NySøknadsProsess)
         }.getSøknadsId()
 
@@ -84,7 +85,7 @@ internal class SøknadMediatorTest {
         testRapid.sendTestMessage(nySøknadBehovsløsning(søknadId(testident2), testident2))
         assertEquals(Påbegynt, oppdatertInspektør(testident2).gjeldendetilstand)
 
-        mediator.hentEllerOpprettSøknadsprosess(testident2).also {
+        mediator.hentEllerOpprettSøknadsprosess(testident2, språkVerdi).also {
             assertTrue(it is PåbegyntSøknadsProsess)
             assertEquals(expectedSøknadsId.toString(), it.getSøknadsId().toString())
         }
@@ -98,7 +99,7 @@ internal class SøknadMediatorTest {
     @Test
     fun `Søknaden går gjennom livssyklusen med alle tilstander`() {
         val søknadUuid = UUID.randomUUID()
-        mediator.behandle(ØnskeOmNySøknadHendelse(søknadUuid, testIdent))
+        mediator.behandle(ØnskeOmNySøknadHendelse(søknadUuid, testIdent, språkVerdi))
         assertEquals(1, testRapid.inspektør.size)
         assertEquals(listOf("NySøknad"), behov(0))
         assertEquals(UnderOpprettelse, oppdatertInspektør().gjeldendetilstand)

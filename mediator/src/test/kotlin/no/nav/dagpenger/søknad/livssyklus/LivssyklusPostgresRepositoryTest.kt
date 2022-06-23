@@ -7,6 +7,7 @@ import kotliquery.using
 import no.nav.dagpenger.søknad.Aktivitetslogg
 import no.nav.dagpenger.søknad.Person
 import no.nav.dagpenger.søknad.PersonVisitor
+import no.nav.dagpenger.søknad.Språk
 import no.nav.dagpenger.søknad.Søknad
 import no.nav.dagpenger.søknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.søknad.livssyklus.LivssyklusPostgresRepository.PersistentSøkerOppgave
@@ -25,6 +26,7 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 internal class LivssyklusPostgresRepositoryTest {
+    private val språk = Språk("NO")
     @Test
     fun `Lagre og hente person uten søknader`() {
         withMigratedDb {
@@ -58,7 +60,7 @@ internal class LivssyklusPostgresRepositoryTest {
         val søknadId2 = UUID.randomUUID()
         val originalPerson = Person("12345678910") {
             mutableListOf(
-                Søknad(søknadId1, it),
+                Søknad(søknadId1, språk, it),
                 Søknad.rehydrer(
                     søknadId = søknadId2,
                     person = it,
@@ -78,7 +80,8 @@ internal class LivssyklusPostgresRepositoryTest {
                         )
                     ),
                     journalpostId = "journalpostid",
-                    innsendtTidspunkt = ZonedDateTime.now()
+                    innsendtTidspunkt = ZonedDateTime.now(),
+                    språk
                 )
             )
         }
@@ -117,7 +120,8 @@ internal class LivssyklusPostgresRepositoryTest {
                     tilstandsType = "Påbegynt",
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "jouhasjk",
-                    innsendtTidspunkt = innsendtTidspunkt
+                    innsendtTidspunkt = innsendtTidspunkt,
+                    språk
                 ),
                 Søknad.rehydrer(
                     søknadId = UUID.randomUUID(),
@@ -125,7 +129,8 @@ internal class LivssyklusPostgresRepositoryTest {
                     tilstandsType = "Journalført",
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
-                    innsendtTidspunkt = innsendtTidspunkt
+                    innsendtTidspunkt = innsendtTidspunkt,
+                    språk
                 )
             )
         }
@@ -147,14 +152,15 @@ internal class LivssyklusPostgresRepositoryTest {
         val søknadId = UUID.randomUUID()
         val originalPerson = Person("12345678910") {
             mutableListOf(
-                Søknad(søknadId, it),
+                Søknad(søknadId, språk, it),
                 Søknad.rehydrer(
                     søknadId = søknadId,
                     person = it,
                     tilstandsType = "Journalført",
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
-                    innsendtTidspunkt = ZonedDateTime.now()
+                    innsendtTidspunkt = ZonedDateTime.now(),
+                    språk
                 )
             )
         }
@@ -205,7 +211,8 @@ internal class LivssyklusPostgresRepositoryTest {
             tilstand: Søknad.Tilstand,
             dokument: Søknad.Dokument?,
             journalpostId: String?,
-            innsendtTidspunkt: ZonedDateTime?
+            innsendtTidspunkt: ZonedDateTime?,
+            språk: Språk
         ) {
             dokument?.let { dokumenter[søknadId] = it }
         }

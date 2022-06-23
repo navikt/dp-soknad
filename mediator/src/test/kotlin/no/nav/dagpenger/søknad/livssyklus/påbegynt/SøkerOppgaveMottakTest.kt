@@ -16,6 +16,7 @@ import java.util.UUID
 
 class SøkerOppgaveMottakTest {
     private val testRapid = TestRapid()
+    private val språkVerdi = "NO"
 
     @AfterEach
     fun reset() {
@@ -67,7 +68,7 @@ class SøkerOppgaveMottakTest {
 
     private fun lagrePersonMedSøknad(søknadUuid: UUID, ident: String = "01234567891") {
         val person = Person(ident)
-        person.håndter(ØnskeOmNySøknadHendelse(søknadUuid, ident))
+        person.håndter(ØnskeOmNySøknadHendelse(søknadUuid, ident, språkVerdi))
         val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
         livssyklusPostgresRepository.lagre(person)
     }

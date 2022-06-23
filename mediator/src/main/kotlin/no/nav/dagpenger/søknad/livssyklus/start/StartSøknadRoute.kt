@@ -16,8 +16,9 @@ import no.nav.dagpenger.søknad.utils.auth.ident
 internal fun Route.startSøknadRoute(søknadMediator: SøknadMediator) {
     post {
         val ident = call.ident()
+        val språk = call.request.queryParameters["spraak"] ?: "NB"
 
-        val søknadsprosess = søknadMediator.hentEllerOpprettSøknadsprosess(ident)
+        val søknadsprosess = søknadMediator.hentEllerOpprettSøknadsprosess(ident, språk)
         val søknadUuid = søknadsprosess.getSøknadsId()
 
         val statuskode = when (søknadsprosess) {

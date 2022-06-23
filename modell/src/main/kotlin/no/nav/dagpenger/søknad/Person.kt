@@ -47,7 +47,7 @@ class Person private constructor(
         // }
         kontekst(ønskeOmNySøknadHendelse, "Ønske om søknad registrert")
         søknader.add(
-            Søknad(ønskeOmNySøknadHendelse.søknadID(), this).also {
+            Søknad(ønskeOmNySøknadHendelse.søknadID(), ønskeOmNySøknadHendelse.språk(), this).also {
                 it.håndter(ønskeOmNySøknadHendelse)
             }
         )

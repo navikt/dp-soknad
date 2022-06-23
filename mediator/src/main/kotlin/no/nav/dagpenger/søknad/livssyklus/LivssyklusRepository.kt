@@ -10,10 +10,12 @@ import kotliquery.using
 import no.nav.dagpenger.søknad.Aktivitetslogg
 import no.nav.dagpenger.søknad.Person
 import no.nav.dagpenger.søknad.PersonVisitor
+import no.nav.dagpenger.søknad.Språk
 import no.nav.dagpenger.søknad.Søknad
 import no.nav.dagpenger.søknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.søknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.søknad.serder.PersonData
+import no.nav.dagpenger.søknad.serder.PersonData.SøknadData.SpråkData
 import no.nav.dagpenger.søknad.toMap
 import no.nav.dagpenger.søknad.utils.serder.objectMapper
 import org.postgresql.util.PGobject
@@ -154,7 +156,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
             queryOf(
                 //language=PostgreSQL
                 statement = """
-                    SELECT uuid, tilstand, journalpost_id, innsendt_tidspunkt
+                    SELECT uuid, tilstand, journalpost_id, innsendt_tidspunkt, spraak
                     FROM  soknad_v1
                     WHERE person_ident = :ident
                 """.trimIndent(),
@@ -168,7 +170,8 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     tilstandType = row.string("tilstand"),
                     dokumenter = hentDokumentData(søknadsId),
                     journalpostId = row.stringOrNull("journalpost_id"),
-                    innsendtTidspunkt = row.zonedDateTimeOrNull("innsendt_tidspunkt")
+                    innsendtTidspunkt = row.zonedDateTimeOrNull("innsendt_tidspunkt"),
+                    språkData = SpråkData(row.string("spraak"))
                 )
             }.asList
         )
@@ -193,15 +196,16 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
 private fun PersonData.SøknadData.insertQuery(personIdent: String): UpdateQueryAction {
     return queryOf(
         //language=PostgreSQL
-        statement = "INSERT INTO soknad_v1(uuid,person_ident,tilstand,journalpost_id) " +
-            "VALUES(:uuid,:person_ident,:tilstand,:journalpostID) ON CONFLICT(uuid) DO UPDATE " +
+        statement = "INSERT INTO soknad_v1(uuid,person_ident,tilstand,journalpost_id, spraak) " +
+            "VALUES(:uuid,:person_ident,:tilstand,:journalpostID, :spraak) ON CONFLICT(uuid) DO UPDATE " +
             "SET tilstand=:tilstand,journalpost_id=:journalpostID, innsendt_tidspunkt = :innsendtTidspunkt",
         paramMap = mapOf(
             "uuid" to søknadsId,
             "person_ident" to personIdent,
             "tilstand" to tilstandType,
             "journalpostID" to journalpostId,
-            "innsendtTidspunkt" to innsendtTidspunkt
+            "innsendtTidspunkt" to innsendtTidspunkt,
+            "spraak" to språkData.verdi
         )
     ).asUpdate
 }
@@ -251,7 +255,8 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
         tilstand: Søknad.Tilstand,
         dokument: Søknad.Dokument?,
         journalpostId: String?,
-        innsendtTidspunkt: ZonedDateTime?
+        innsendtTidspunkt: ZonedDateTime?,
+        språk: Språk
     ) {
         søknader.add(
             PersonData.SøknadData(
@@ -259,7 +264,8 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
                 tilstandType = tilstand.tilstandType.name,
                 dokumenter = dokument.toDokumentData(),
                 journalpostId = journalpostId,
-                innsendtTidspunkt = innsendtTidspunkt
+                innsendtTidspunkt = innsendtTidspunkt,
+                språkData = SpråkData(språk.verdi)
             )
         )
     }

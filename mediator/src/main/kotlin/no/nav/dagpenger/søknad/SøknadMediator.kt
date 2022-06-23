@@ -102,9 +102,9 @@ internal class SøknadMediator(
         søknadCacheRepository.lagre(søkerOppgave)
     }
 
-    internal fun hentEllerOpprettSøknadsprosess(ident: String): Søknadsprosess {
+    internal fun hentEllerOpprettSøknadsprosess(ident: String, språk: String): Søknadsprosess {
         return Søknadsprosess.NySøknadsProsess().also {
-            behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident))
+            behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), språk, ident))
         }
         // return hentPåbegynte(ident).singleOrNull()?.let {
         //     PåbegyntSøknadsProsess(it.uuid).also {

@@ -5,6 +5,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.søknad.Person
 import no.nav.dagpenger.søknad.PersonVisitor
+import no.nav.dagpenger.søknad.Språk
 import no.nav.dagpenger.søknad.Søknad
 import no.nav.dagpenger.søknad.db.Postgres
 import no.nav.dagpenger.søknad.livssyklus.LivssyklusPostgresRepository
@@ -17,6 +18,8 @@ import java.util.UUID
 import javax.sql.DataSource
 
 internal class VaktmesterRepositoryTest {
+    private val språk = Språk("NO")
+
     @Test
     fun `Sletter gamle søknader etter gitt tidsinterval`() {
         val påbegyntSøknadGammel = UUID.randomUUID()
@@ -31,7 +34,8 @@ internal class VaktmesterRepositoryTest {
                     tilstandsType = "Påbegynt",
                     dokument = null,
                     journalpostId = "1456",
-                    innsendtTidspunkt = ZonedDateTime.now()
+                    innsendtTidspunkt = ZonedDateTime.now(),
+                    språk
                 ),
                 Søknad.rehydrer(
                     søknadId = påbegyntSøknadIdNy,
@@ -39,7 +43,8 @@ internal class VaktmesterRepositoryTest {
                     tilstandsType = "Påbegynt",
                     dokument = null,
                     journalpostId = "jouhasjk",
-                    innsendtTidspunkt = ZonedDateTime.now()
+                    innsendtTidspunkt = ZonedDateTime.now(),
+                    språk
                 ),
                 Søknad.rehydrer(
                     søknadId = journalførtSøknadId,
@@ -47,7 +52,8 @@ internal class VaktmesterRepositoryTest {
                     tilstandsType = "Journalført",
                     dokument = null,
                     journalpostId = "journalpostid",
-                    innsendtTidspunkt = ZonedDateTime.now()
+                    innsendtTidspunkt = ZonedDateTime.now(),
+                    språk
                 )
             )
         }

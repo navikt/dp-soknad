@@ -35,6 +35,7 @@ internal class SøknadTest {
     private lateinit var personObserver: TestPersonObserver
     private lateinit var plantUmlObservatør: PlantUmlObservatør
     private val inspektør get() = TestSøknadInspektør(person)
+    private val språk = "NO"
 
     @BeforeEach
     internal fun setUp() {
@@ -143,15 +144,15 @@ internal class SøknadTest {
     fun `en person kan kun ha én opprettet eller påbegynt søknad av gangen`() {
         val person = Person(testIdent)
         val søknadID = UUID.randomUUID()
-        person.håndter(ØnskeOmNySøknadHendelse(søknadID, testIdent))
+        person.håndter(ØnskeOmNySøknadHendelse(søknadID, språk, testIdent))
         assertThrows<AktivitetException> {
-            person.håndter(ØnskeOmNySøknadHendelse(søknadID, testIdent))
+            person.håndter(ØnskeOmNySøknadHendelse(søknadID, språk, testIdent))
         }
 
         person.håndter(SøknadOpprettetHendelse(søknadID, testIdent))
 
         assertThrows<AktivitetException> {
-            person.håndter(ØnskeOmNySøknadHendelse(søknadID, testIdent))
+            person.håndter(ØnskeOmNySøknadHendelse(søknadID, språk, testIdent))
         }
     }
 
@@ -200,7 +201,7 @@ internal class SøknadTest {
     }
 
     private fun håndterØnskeOmNySøknadHendelse() {
-        person.håndter(ØnskeOmNySøknadHendelse(UUID.randomUUID(), testIdent))
+        person.håndter(ØnskeOmNySøknadHendelse(UUID.randomUUID(), språk, testIdent))
     }
 
     private fun assertPuml(tittel: String) {

@@ -3,9 +3,11 @@ package no.nav.dagpenger.søknad.serder
 import no.nav.dagpenger.søknad.Aktivitetslogg
 import no.nav.dagpenger.søknad.Person
 import no.nav.dagpenger.søknad.SpesifikkKontekst
+import no.nav.dagpenger.søknad.Språk
 import no.nav.dagpenger.søknad.Søknad
 import no.nav.dagpenger.søknad.serder.PersonData.SøknadData.DokumentData.Companion.rehydrer
 import java.time.ZonedDateTime
+import java.util.Locale
 import java.util.UUID
 
 class PersonData(
@@ -25,7 +27,8 @@ class PersonData(
                     tilstandsType = it.tilstandType,
                     dokument = it.dokumenter.rehydrer(),
                     journalpostId = it.journalpostId,
-                    innsendtTidspunkt = it.innsendtTidspunkt
+                    innsendtTidspunkt = it.innsendtTidspunkt,
+                    språk = it.språkData.somSpråk()
                 )
             }.toMutableList()
         }
@@ -36,7 +39,8 @@ class PersonData(
         val tilstandType: String,
         var dokumenter: List<DokumentData>,
         val journalpostId: String?,
-        val innsendtTidspunkt: ZonedDateTime?
+        val innsendtTidspunkt: ZonedDateTime?,
+        val språkData: SpråkData
     ) {
         class DokumentData(
             val urn: String,
@@ -56,6 +60,11 @@ class PersonData(
                     }
                 }
             }
+        }
+
+        class SpråkData(val verdi: String) {
+            constructor(språk: Locale) : this(språk.toLanguageTag())
+            fun somSpråk() = Språk(verdi)
         }
     }
 

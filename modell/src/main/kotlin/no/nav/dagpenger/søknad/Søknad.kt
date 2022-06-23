@@ -20,16 +20,18 @@ class Søknad private constructor(
     private var tilstand: Tilstand,
     private var dokument: Dokument?,
     private var journalpostId: String?,
-    private var innsendtTidspunkt: ZonedDateTime?
+    private var innsendtTidspunkt: ZonedDateTime?,
+    private val språk: Språk
 ) : Aktivitetskontekst {
 
-    constructor(søknadId: UUID, person: Person) : this(
+    constructor(søknadId: UUID, språk: Språk, person: Person) : this(
         søknadId,
         person,
         UnderOpprettelse,
         dokument = null,
         journalpostId = null,
-        innsendtTidspunkt = null
+        innsendtTidspunkt = null,
+        språk
     )
 
     companion object {
@@ -46,7 +48,8 @@ class Søknad private constructor(
             tilstandsType: String,
             dokument: Dokument?,
             journalpostId: String?,
-            innsendtTidspunkt: ZonedDateTime?
+            innsendtTidspunkt: ZonedDateTime?,
+            språk: Språk
         ): Søknad {
             val tilstand: Tilstand = when (Tilstand.Type.valueOf(tilstandsType)) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
@@ -57,7 +60,7 @@ class Søknad private constructor(
                 Tilstand.Type.Journalført -> Journalført
                 Tilstand.Type.Slettet -> throw IllegalArgumentException("Kan ikke rehydrere slettet søknad med id $søknadId")
             }
-            return Søknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt)
+            return Søknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt, språk)
         }
     }
 
@@ -270,7 +273,7 @@ class Søknad private constructor(
     }
 
     fun accept(visitor: SøknadVisitor) {
-        visitor.visitSøknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt)
+        visitor.visitSøknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt, språk)
         tilstand.accept(visitor)
     }
 
