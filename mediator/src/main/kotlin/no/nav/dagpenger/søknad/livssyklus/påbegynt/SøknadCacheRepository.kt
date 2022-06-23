@@ -17,18 +17,17 @@ interface SøknadCacheRepository {
 }
 
 class SøknadCachePostgresRepository(private val dataSource: DataSource) : SøknadCacheRepository {
-
     override fun lagre(søkerOppgave: SøkerOppgave) {
         using(sessionOf(dataSource)) { session ->
             session.transaction { tx ->
                 tx.run(
-                    // language=PostgreSQL
                     queryOf(
+                        // language=PostgreSQL
                         """INSERT INTO soknad_cache(uuid, eier, soknad_data)
-                                    VALUES (:uuid, :eier, :data)
-                                    ON CONFLICT(uuid, eier) 
-                                    DO UPDATE SET soknad_data = :data,
-                                    opprettet = (NOW() AT TIME ZONE 'utc')""",
+                                VALUES (:uuid, :eier, :data)
+                                ON CONFLICT(uuid, eier) 
+                                DO UPDATE SET soknad_data = :data,
+                                opprettet = (NOW() AT TIME ZONE 'utc')""",
                         mapOf(
                             "uuid" to søkerOppgave.søknadUUID(),
                             "eier" to søkerOppgave.eier(),
@@ -44,10 +43,10 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
     }
 
     override fun hent(søknadUUID: UUID): SøkerOppgave {
-        // language=PostgreSQL
         return using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf(
+                    // language=PostgreSQL
                     "SELECT uuid, eier, soknad_data FROM soknad_cache WHERE uuid = :uuid",
                     mapOf("uuid" to søknadUUID.toString())
                 ).map { row ->
