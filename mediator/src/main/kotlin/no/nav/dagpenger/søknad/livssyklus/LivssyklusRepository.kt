@@ -106,10 +106,10 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
             session.run(
                 queryOf(
                     //language=PostgreSQL
-                    "SELECT uuid, opprettet FROM soknad_v1 WHERE person_ident=:ident AND tilstand=:paabegyntTilstand",
+                    "SELECT uuid, opprettet, spraak FROM soknad_v1 WHERE person_ident=:ident AND tilstand=:paabegyntTilstand",
                     mapOf("ident" to personIdent, "paabegyntTilstand" to Søknad.Tilstand.Type.Påbegynt.name)
                 ).map { row ->
-                    PåbegyntSøknad(UUID.fromString(row.string("uuid")), row.localDate("opprettet"))
+                    PåbegyntSøknad(UUID.fromString(row.string("uuid")), row.localDate("opprettet"), row.string("spraak"))
                 }.asSingle
             )
         }
@@ -276,4 +276,4 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
     }
 }
 
-data class PåbegyntSøknad(val uuid: UUID, val startDato: LocalDate)
+data class PåbegyntSøknad(val uuid: UUID, val startDato: LocalDate, val språk: String)

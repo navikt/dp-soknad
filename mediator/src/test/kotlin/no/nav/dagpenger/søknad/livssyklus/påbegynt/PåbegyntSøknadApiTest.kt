@@ -21,7 +21,8 @@ class PåbegyntSøknadApiTest {
     fun `Skal hente påbegynt søknad`() {
         val expectedSoknad = PåbegyntSøknad(
             UUID.fromString("258b2f1b-bdda-4bed-974c-c4ddb206e4f4"),
-            LocalDate.of(2021, 10, 3)
+            LocalDate.of(2021, 10, 3),
+            språk = "NO"
         )
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -37,7 +38,7 @@ class PåbegyntSøknadApiTest {
                 token = TestApplication.getToken("harsoknad"),
                 httpMethod = HttpMethod.Get,
             ).apply {
-                val expectedJson = """{"uuid":"258b2f1b-bdda-4bed-974c-c4ddb206e4f4","startDato":"2021-10-03"}"""
+                val expectedJson = """{"uuid":"258b2f1b-bdda-4bed-974c-c4ddb206e4f4","startDato":"2021-10-03","språk":"NO"}"""
                 assertEquals(HttpStatusCode.OK, this.status)
                 assertEquals(expectedJson, this.bodyAsText().trimIndent())
             }
