@@ -11,4 +11,10 @@ object PersonLoggerObserver : PersonObserver {
             "Søknad ${event.søknadId} endret tilstand fra ${event.forrigeTilstand.name} til ${event.gjeldendeTilstand.name}"
         }
     }
+
+    override fun søknadSlettet(event: PersonObserver.SøknadSlettetEvent) {
+        log.info {
+            "Søknad ${event.søknadId} slettet"
+        }
+    }
 }

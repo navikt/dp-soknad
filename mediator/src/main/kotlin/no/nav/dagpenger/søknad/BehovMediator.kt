@@ -32,7 +32,7 @@ class BehovMediator(
                 ) { "Kan ikke produsere samme behov på samme kontekst" }
             }
             .forEach { (kontekst, behov) ->
-                val behovMap: Map<String, Map<String, Any>> = behov.associate { behov -> behov.type.name to behov.detaljer() }
+                val behovMap: Map<String, Map<String, Any>> = behov.associate { enkeltBehov -> enkeltBehov.type.name to enkeltBehov.detaljer() }
                 val behovParametere = behovMap.values.fold<Map<String, Any>, Map<String, Any>>(emptyMap()) { acc, map -> acc + map }
                 (kontekst + behovMap + behovParametere).let { JsonMessage.newNeed(behovMap.keys, it) }
                     .also { message ->

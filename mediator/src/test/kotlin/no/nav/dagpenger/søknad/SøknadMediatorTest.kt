@@ -155,6 +155,11 @@ internal class SøknadMediatorTest {
         }
     }
 
+    @Test
+    fun `Hva skjer om en får JournalførtHendelse som ikke er tilknyttet en søknad`() {
+        testRapid.sendTestMessage(søknadJournalførtHendelse(ident = testIdent, journalpostId = "UKJENT"))
+    }
+
     private fun assertAntallRader(tabell: String, antallRader: Int) {
         val faktiskeRader = using(sessionOf(PostgresDataSourceBuilder.dataSource)) { session ->
             session.run(
@@ -168,11 +173,6 @@ internal class SøknadMediatorTest {
 
     private fun assertSøknadCacheInvalidert(søknadUuid: UUID) =
         assertThrows<NotFoundException> { søknadCacheRepository.hent(søknadUuid) }
-
-    @Test
-    fun `Hva skjer om en får JournalførtHendelse som ikke er tilknyttet en søknad`() {
-        testRapid.sendTestMessage(søknadJournalførtHendelse(ident = testIdent, journalpostId = "UKJENT"))
-    }
 
     private fun søknadId(ident: String = testIdent) = oppdatertInspektør(ident).gjeldendeSøknadId
 
