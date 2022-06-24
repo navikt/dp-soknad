@@ -33,29 +33,27 @@ interface LivssyklusRepository {
 class LivssyklusPostgresRepository(private val dataSource: DataSource) : LivssyklusRepository {
     override fun hent(ident: String, komplettAktivitetslogg: Boolean): Person? {
         return using(sessionOf(dataSource)) { session ->
-            session.transaction { transactionalSession ->
-                transactionalSession.run(
-                    queryOf(
-                        //language=PostgreSQL
-                        """
+            session.run(
+                queryOf(
+                    //language=PostgreSQL
+                    """
                         SELECT p.id AS person_id, p.ident AS person_ident
                         FROM person_v1 AS p
                         WHERE p.ident = :ident
-                        """.trimIndent(),
-                        paramMap = mapOf("ident" to ident)
-                    ).map { row ->
-                        row.stringOrNull("person_ident")?.let { ident ->
-                            PersonData(
-                                ident = row.string("person_ident"),
-                                søknader = transactionalSession.hentSøknadsData(ident),
-                            ).also {
-                                if (!komplettAktivitetslogg) return@also
-                                it.aktivitetsLogg = transactionalSession.hentAktivitetslogg(row.int("person_id"))
-                            }
+                    """.trimIndent(),
+                    paramMap = mapOf("ident" to ident)
+                ).map { row ->
+                    row.stringOrNull("person_ident")?.let { ident ->
+                        PersonData(
+                            ident = row.string("person_ident"),
+                            søknader = session.hentSøknadsData(ident),
+                        ).also {
+                            if (!komplettAktivitetslogg) return@also
+                            it.aktivitetsLogg = session.hentAktivitetslogg(row.int("person_id"))
                         }
-                    }.asSingle
-                )?.createPerson()
-            }
+                    }
+                }.asSingle
+            )?.createPerson()
         }
     }
 
@@ -92,8 +90,10 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                         )
                     ).asUpdate
                 )
-
-                visitor.søknader.forEach {
+                visitor.slettedeSøknader().forEach {
+                    transactionalSession.run(it.deleteQuery(visitor.ident))
+                }
+                visitor.søknader().forEach {
                     transactionalSession.run(it.insertQuery(visitor.ident))
                     it.insertDokumentQuery(transactionalSession)
                 }
@@ -109,7 +109,11 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     "SELECT uuid, opprettet, spraak FROM soknad_v1 WHERE person_ident=:ident AND tilstand=:paabegyntTilstand",
                     mapOf("ident" to personIdent, "paabegyntTilstand" to Søknad.Tilstand.Type.Påbegynt.name)
                 ).map { row ->
-                    PåbegyntSøknad(UUID.fromString(row.string("uuid")), row.localDate("opprettet"), row.string("spraak"))
+                    PåbegyntSøknad(
+                        UUID.fromString(row.string("uuid")),
+                        row.localDate("opprettet"),
+                        row.string("spraak")
+                    )
                 }.asSingle
             )
         }
@@ -167,7 +171,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                 val søknadsId = UUID.fromString(row.string("uuid"))
                 PersonData.SøknadData(
                     søknadsId = søknadsId,
-                    tilstandType = row.string("tilstand"),
+                    tilstandType = PersonData.SøknadData.TilstandData.rehydrer(row.string("tilstand")),
                     dokumenter = hentDokumentData(søknadsId),
                     journalpostId = row.stringOrNull("journalpost_id"),
                     innsendtTidspunkt = row.zonedDateTimeOrNull("innsendt_tidspunkt"),
@@ -195,17 +199,28 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
 
 private fun PersonData.SøknadData.insertQuery(personIdent: String): UpdateQueryAction {
     return queryOf(
-        //language=PostgreSQL
+        // language=PostgreSQL
         statement = "INSERT INTO soknad_v1(uuid,person_ident,tilstand,journalpost_id, spraak) " +
             "VALUES(:uuid,:person_ident,:tilstand,:journalpostID, :spraak) ON CONFLICT(uuid) DO UPDATE " +
             "SET tilstand=:tilstand,journalpost_id=:journalpostID, innsendt_tidspunkt = :innsendtTidspunkt",
         paramMap = mapOf(
             "uuid" to søknadsId,
             "person_ident" to personIdent,
-            "tilstand" to tilstandType,
+            "tilstand" to tilstandType.name,
             "journalpostID" to journalpostId,
             "innsendtTidspunkt" to innsendtTidspunkt,
             "spraak" to språkData.verdi
+        )
+    ).asUpdate
+}
+
+private fun PersonData.SøknadData.deleteQuery(personIdent: String): UpdateQueryAction {
+    return queryOf(
+        // language=PostgreSQL
+        statement = "DELETE FROM soknad_v1 WHERE uuid=:id AND person_ident = :person_ident",
+        paramMap = mapOf(
+            "id" to søknadsId.toString(),
+            "person_ident" to personIdent,
         )
     ).asUpdate
 }
@@ -230,7 +245,13 @@ private fun PersonData.SøknadData.insertDokumentQuery(session: Session) {
 
 private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
     lateinit var ident: String
-    val søknader: MutableList<PersonData.SøknadData> = mutableListOf()
+    fun søknader() = søknader.filterNot(slettet())
+    fun slettedeSøknader() = søknader.filter(slettet())
+    private fun slettet(): (PersonData.SøknadData) -> Boolean =
+        { it.tilstandType == PersonData.SøknadData.TilstandData.Slettet }
+
+    private val søknader: MutableList<PersonData.SøknadData> = mutableListOf()
+
     lateinit var aktivitetslogg: Aktivitetslogg
 
     init {
@@ -261,7 +282,15 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
         søknader.add(
             PersonData.SøknadData(
                 søknadsId = søknadId,
-                tilstandType = tilstand.tilstandType.name,
+                tilstandType = when (tilstand.tilstandType) {
+                    Søknad.Tilstand.Type.UnderOpprettelse -> PersonData.SøknadData.TilstandData.UnderOpprettelse
+                    Søknad.Tilstand.Type.Påbegynt -> PersonData.SøknadData.TilstandData.Påbegynt
+                    Søknad.Tilstand.Type.AvventerArkiverbarSøknad -> PersonData.SøknadData.TilstandData.AvventerArkiverbarSøknad
+                    Søknad.Tilstand.Type.AvventerMidlertidligJournalføring -> PersonData.SøknadData.TilstandData.AvventerMidlertidligJournalføring
+                    Søknad.Tilstand.Type.AvventerJournalføring -> PersonData.SøknadData.TilstandData.AvventerJournalføring
+                    Søknad.Tilstand.Type.Journalført -> PersonData.SøknadData.TilstandData.Journalført
+                    Søknad.Tilstand.Type.Slettet -> PersonData.SøknadData.TilstandData.Slettet
+                },
                 dokumenter = dokument.toDokumentData(),
                 journalpostId = journalpostId,
                 innsendtTidspunkt = innsendtTidspunkt,

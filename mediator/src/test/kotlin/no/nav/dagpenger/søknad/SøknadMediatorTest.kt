@@ -15,6 +15,7 @@ import no.nav.dagpenger.søknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.søknad.Søknadsprosess.NySøknadsProsess
 import no.nav.dagpenger.søknad.Søknadsprosess.PåbegyntSøknadsProsess
 import no.nav.dagpenger.søknad.db.Postgres
+import no.nav.dagpenger.søknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.søknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.søknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
@@ -31,6 +32,7 @@ import no.nav.dagpenger.søknad.utils.db.PostgresDataSourceBuilder
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.rapids_rivers.toUUID
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -154,6 +156,36 @@ internal class SøknadMediatorTest {
             }
         }
     }
+
+    @Test
+    fun `Skal kunne slette søknad`()  {
+        val søknadUuid = UUID.randomUUID()
+        val ident = "23456789111"
+        mediator.behandle(ØnskeOmNySøknadHendelse(søknadUuid, ident, språkVerdi))
+        assertEquals(UnderOpprettelse, oppdatertInspektør(ident).gjeldendetilstand)
+
+        testRapid.sendTestMessage(nySøknadBehovsløsning(søknadUuid.toString(), ident))
+        assertEquals(Påbegynt, oppdatertInspektør(ident).gjeldendetilstand)
+
+        mediator.behandle(SlettSøknadHendelse(søknadUuid, ident))
+
+        with(oppdatertInspektør(ident)) {
+            assertEquals(0, antallSøknader)
+        }
+
+        using(sessionOf( PostgresDataSourceBuilder.dataSource) ) {
+           assertFalse(it.run(
+                //language=PostgreSQL
+                queryOf(
+                    statement = "SELECT EXISTS(SELECT 1 FROM soknad_v1 WHERE uuid=:id)",
+                    paramMap = mapOf("id" to søknadUuid.toString())
+                ).map { rad ->
+                    rad.boolean(1)
+                }.asSingle
+            )!!) {"Forventet at $søknadUuid ikke eksisterer i databasen etter at den er slettet!" }
+        }
+    }
+
 
     @Test
     fun `Hva skjer om en får JournalførtHendelse som ikke er tilknyttet en søknad`() {

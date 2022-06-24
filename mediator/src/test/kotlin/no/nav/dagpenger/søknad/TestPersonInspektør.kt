@@ -8,6 +8,7 @@ internal class TestPersonInspektør(person: Person) : PersonVisitor {
     lateinit var gjeldendeSøknadId: String
     var innsendtTidspunkt: ZonedDateTime? = null
     var aktivitetslogg: Map<String, List<Map<String, Any>>> = emptyMap()
+    var antallSøknader = 0
 
     init {
         person.accept(this)
@@ -24,6 +25,7 @@ internal class TestPersonInspektør(person: Person) : PersonVisitor {
     ) {
         this.gjeldendeSøknadId = søknadId.toString()
         this.innsendtTidspunkt = innsendtTidspunkt
+        this.antallSøknader++
     }
 
     override fun visitTilstand(tilstand: Søknad.Tilstand.Type) {

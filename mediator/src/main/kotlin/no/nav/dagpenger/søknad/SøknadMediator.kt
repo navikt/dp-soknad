@@ -121,7 +121,7 @@ internal class SøknadMediator(
             personObservers.forEach { personObserver ->
                 person.addObserver(personObserver)
             }
-            håndter(person)
+            håndter(person) // slettet tilstand
             finalize(person, hendelse)
         } catch (err: Aktivitetslogg.AktivitetException) {
             withMDC(kontekst(hendelse)) {

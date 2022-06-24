@@ -24,7 +24,7 @@ class PersonData(
                 Søknad.rehydrer(
                     søknadId = it.søknadsId,
                     person = p,
-                    tilstandsType = it.tilstandType,
+                    tilstandsType = it.tilstandType.name,
                     dokument = it.dokumenter.rehydrer(),
                     journalpostId = it.journalpostId,
                     innsendtTidspunkt = it.innsendtTidspunkt,
@@ -36,7 +36,7 @@ class PersonData(
 
     class SøknadData(
         val søknadsId: UUID,
-        val tilstandType: String,
+        val tilstandType: TilstandData,
         var dokumenter: List<DokumentData>,
         val journalpostId: String?,
         val innsendtTidspunkt: ZonedDateTime?,
@@ -65,6 +65,22 @@ class PersonData(
         class SpråkData(val verdi: String) {
             constructor(språk: Locale) : this(språk.toLanguageTag())
             fun somSpråk() = Språk(verdi)
+        }
+
+        enum class TilstandData {
+            UnderOpprettelse,
+            Påbegynt,
+            AvventerArkiverbarSøknad,
+            AvventerMidlertidligJournalføring,
+            AvventerJournalføring,
+            Journalført,
+            Slettet;
+
+            companion object {
+                fun rehydrer(dbTilstand: String): TilstandData {
+                    return TilstandData.valueOf(dbTilstand)
+                }
+            }
         }
     }
 
