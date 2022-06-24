@@ -23,6 +23,7 @@ internal class SøknadSlettetObserverTest {
 
         with(testRapid.inspektør) {
             assertEquals("søknad_slettet", field(0, "@event_name").asText())
+            assertEquals(personIdent, key(0))
             assertNotNull(field(0, "@id").also { UUID.fromString(it.asText()) })
             assertNotNull(field(0, "@opprettet").also { LocalDateTime.parse(it.asText()) })
             assertNotNull(field(0, "søknad_uuid").also { UUID.fromString(it.asText()) })
