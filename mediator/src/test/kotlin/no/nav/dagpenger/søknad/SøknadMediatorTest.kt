@@ -158,7 +158,7 @@ internal class SøknadMediatorTest {
     }
 
     @Test
-    fun `Skal kunne slette søknad`()  {
+    fun `Skal kunne slette søknad`() {
         val søknadUuid = UUID.randomUUID()
         val ident = "23456789111"
         mediator.behandle(ØnskeOmNySøknadHendelse(søknadUuid, ident, språkVerdi))
@@ -167,25 +167,35 @@ internal class SøknadMediatorTest {
         testRapid.sendTestMessage(nySøknadBehovsløsning(søknadUuid.toString(), ident))
         assertEquals(Påbegynt, oppdatertInspektør(ident).gjeldendetilstand)
 
+        mediator.behandle(TestSøkerOppgave(søknadUuid, ident, "{}"))
+
         mediator.behandle(SlettSøknadHendelse(søknadUuid, ident))
 
         with(oppdatertInspektør(ident)) {
             assertEquals(0, antallSøknader)
         }
 
-        using(sessionOf( PostgresDataSourceBuilder.dataSource) ) {
-           assertFalse(it.run(
-                //language=PostgreSQL
-                queryOf(
-                    statement = "SELECT EXISTS(SELECT 1 FROM soknad_v1 WHERE uuid=:id)",
-                    paramMap = mapOf("id" to søknadUuid.toString())
-                ).map { rad ->
-                    rad.boolean(1)
-                }.asSingle
-            )!!) {"Forventet at $søknadUuid ikke eksisterer i databasen etter at den er slettet!" }
-        }
+        assertSlettet(søknadUuid, "soknad_v1")
+        assertSlettet(søknadUuid, "soknad_cache")
+        assertSlettet(søknadUuid, "soknad_tekst_v1")
+        // assertSlettet(søknadUuid, "dokument_v1")
     }
 
+    private fun assertSlettet(søknadUuid: UUID, tabellNavn: String) {
+        using(sessionOf(PostgresDataSourceBuilder.dataSource)) {
+            assertFalse(
+                it.run(
+                    //language=PostgreSQL
+                    queryOf(
+                        statement = "SELECT EXISTS(SELECT 1 FROM $tabellNavn WHERE uuid=:id)",
+                        paramMap = mapOf("id" to søknadUuid.toString())
+                    ).map { rad ->
+                        rad.boolean(1)
+                    }.asSingle
+                )!!
+            ) { "Forventet at $søknadUuid ikke eksisterer i $tabellNavn etter at den er slettet!" }
+        }
+    }
 
     @Test
     fun `Hva skjer om en får JournalførtHendelse som ikke er tilknyttet en søknad`() {

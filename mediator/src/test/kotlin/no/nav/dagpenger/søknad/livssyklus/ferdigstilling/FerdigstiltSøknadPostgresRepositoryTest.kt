@@ -1,14 +1,13 @@
 package no.nav.dagpenger.søknad.livssyklus.ferdigstilling
 
-import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.server.plugins.NotFoundException
 import no.nav.dagpenger.søknad.Person
 import no.nav.dagpenger.søknad.Språk
 import no.nav.dagpenger.søknad.Søknad
+import no.nav.dagpenger.søknad.TestSøkerOppgave
 import no.nav.dagpenger.søknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.søknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.søknad.livssyklus.LivssyklusPostgresRepository
-import no.nav.dagpenger.søknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.søknad.livssyklus.påbegynt.SøknadCachePostgresRepository
 import no.nav.dagpenger.søknad.utils.db.PostgresDataSourceBuilder
 import org.intellij.lang.annotations.Language
@@ -94,23 +93,6 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
         val søknadCachePostgresRepository = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource)
         søknadCachePostgresRepository.lagre(TestSøkerOppgave(søknadId, ident, fakta))
         return søknadId
-    }
-
-    private class TestSøkerOppgave(private val søknadUUID: UUID, private val eier: String, private val json: String) :
-        SøkerOppgave {
-        override fun søknadUUID(): UUID = søknadUUID
-
-        override fun eier(): String = eier
-
-        override fun ferdig(): Boolean {
-            TODO("not implemented")
-        }
-
-        override fun asFrontendformat(): JsonNode {
-            TODO("not implemented")
-        }
-
-        override fun asJson(): String = json
     }
 
     private fun lagRandomPersonOgSøknad(): UUID {
