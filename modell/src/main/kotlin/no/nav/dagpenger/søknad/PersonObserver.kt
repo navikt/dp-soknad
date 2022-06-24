@@ -14,6 +14,7 @@ interface PersonObserver {
     )
 
     data class SøknadSlettetEvent(
-        val søknadId: UUID
+        val søknadId: UUID,
+        val ident: String
     )
 }

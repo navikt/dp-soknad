@@ -1,6 +1,7 @@
 package no.nav.dagpenger.søknad
 
 import no.nav.dagpenger.søknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
+import no.nav.dagpenger.søknad.PersonObserver.SøknadSlettetEvent
 import no.nav.dagpenger.søknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.søknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.søknad.hendelse.HarPåbegyntSøknadHendelse
@@ -218,7 +219,7 @@ class Søknad private constructor(
     }
 
     private fun slettet() {
-        person.søknadSlettet(PersonObserver.SøknadSlettetEvent(this.søknadId))
+        person.søknadSlettet(SøknadSlettetEvent(søknadId, person.ident()))
     }
 
     private object AvventerArkiverbarSøknad : Tilstand {

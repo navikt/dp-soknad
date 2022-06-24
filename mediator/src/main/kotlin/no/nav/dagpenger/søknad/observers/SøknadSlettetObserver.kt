@@ -10,7 +10,7 @@ import java.util.UUID
 class SøknadSlettetObserver(private val rapidsConnection: RapidsConnection) : PersonObserver {
 
     override fun søknadSlettet(event: SøknadSlettetEvent) =
-        rapidsConnection.publish(søknadSlettetEvent(event.søknadId))
+        rapidsConnection.publish(event.ident, søknadSlettetEvent(event.søknadId))
 
     private fun søknadSlettetEvent(søknadUuid: UUID) = JsonMessage.newMessage(
         mapOf(

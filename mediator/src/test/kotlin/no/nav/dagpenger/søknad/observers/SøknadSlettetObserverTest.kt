@@ -1,6 +1,6 @@
 package no.nav.dagpenger.søknad.observers
 
-import no.nav.dagpenger.søknad.PersonObserver
+import no.nav.dagpenger.søknad.PersonObserver.SøknadSlettetEvent
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -12,11 +12,12 @@ internal class SøknadSlettetObserverTest {
 
     val testRapid = TestRapid()
     val søknadUuid = UUID.randomUUID()
+    val personIdent = "12345678901"
 
     @Test
     fun `Skal sende slettet søknad event på kafka`() {
         val søknadSlettetObserver = SøknadSlettetObserver(testRapid)
-        søknadSlettetObserver.søknadSlettet(PersonObserver.SøknadSlettetEvent(søknadUuid))
+        søknadSlettetObserver.søknadSlettet(SøknadSlettetEvent(søknadUuid, personIdent))
 
         assertEquals(1, testRapid.inspektør.size)
 
