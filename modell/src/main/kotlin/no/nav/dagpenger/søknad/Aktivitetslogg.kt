@@ -192,7 +192,8 @@ class Aktivitetslogg private constructor(
             enum class Behovtype {
                 NySøknad,
                 ArkiverbarSøknad,
-                NyJournalpost
+                NyJournalpost,
+                NyInnsending
             }
         }
 

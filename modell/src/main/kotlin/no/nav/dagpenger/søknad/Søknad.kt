@@ -11,6 +11,7 @@ import no.nav.dagpenger.søknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadOpprettetHendelse
+import no.nav.dagpenger.søknad.hendelse.ØnskeOmNyInnsendingHendelse
 import no.nav.dagpenger.søknad.hendelse.ØnskeOmNySøknadHendelse
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -70,6 +71,11 @@ class Søknad private constructor(
         tilstand.håndter(ønskeOmNySøknadHendelse, this)
     }
 
+    fun håndter(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse) {
+        kontekst(ønskeOmNyInnsendingHendelse)
+        tilstand.håndter(ønskeOmNyInnsendingHendelse, this)
+    }
+
     fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse) {
         kontekst(harPåbegyntSøknadHendelse)
         tilstand.håndter(harPåbegyntSøknadHendelse, this)
@@ -127,6 +133,9 @@ class Søknad private constructor(
         fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) =
             ønskeOmNySøknadHendelse.`kan ikke håndteres i denne tilstanden`()
 
+        fun håndter(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse, søknad: Søknad) =
+            ønskeOmNyInnsendingHendelse.`kan ikke håndteres i denne tilstanden`()
+
         fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse, søknad: Søknad) =
             harPåbegyntSøknadHendelse.`kan ikke håndteres i denne tilstanden`()
 
@@ -182,6 +191,9 @@ class Søknad private constructor(
             get() = Tilstand.Type.UnderOpprettelse
         override fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) {
             ønskeOmNySøknadHendelse.behov(Behovtype.NySøknad, "Behov for å starte søknadsprosess")
+        }
+        override fun håndter(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse, søknad: Søknad) {
+            ønskeOmNyInnsendingHendelse.behov(Behovtype.NyInnsending, "Behov for å starte ny innsending")
         }
         override fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse, søknad: Søknad) {
             søknad.endreTilstand(Påbegynt, søknadOpprettetHendelse)

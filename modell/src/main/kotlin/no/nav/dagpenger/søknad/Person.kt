@@ -11,6 +11,7 @@ import no.nav.dagpenger.søknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadOpprettetHendelse
+import no.nav.dagpenger.søknad.hendelse.ØnskeOmNyInnsendingHendelse
 import no.nav.dagpenger.søknad.hendelse.ØnskeOmNySøknadHendelse
 
 class Person private constructor(
@@ -27,6 +28,7 @@ class Person private constructor(
         ): Person = Person(søknadsfunksjon, ident, aktivitetslogg)
     }
 
+    // Navneforslag: Dialog? --> Må kunne finne ut av type
     private val søknader: MutableList<Søknad>
 
     init {
@@ -49,6 +51,15 @@ class Person private constructor(
         søknader.add(
             Søknad(ønskeOmNySøknadHendelse.søknadID(), ønskeOmNySøknadHendelse.språk(), this).also {
                 it.håndter(ønskeOmNySøknadHendelse)
+            }
+        )
+    }
+
+    fun håndter(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse) {
+        kontekst(ønskeOmNyInnsendingHendelse, "Ønske om innsending registrert")
+        søknader.add(
+            Søknad(ønskeOmNyInnsendingHendelse.søknadID(), ønskeOmNyInnsendingHendelse.språk(), this).also {
+                it.håndter(ønskeOmNyInnsendingHendelse)
             }
         )
     }

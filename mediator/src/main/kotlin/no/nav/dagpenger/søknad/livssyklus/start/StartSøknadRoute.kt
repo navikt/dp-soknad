@@ -9,6 +9,7 @@ import io.ktor.server.response.header
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.dagpenger.søknad.ProsessType
 import no.nav.dagpenger.søknad.SøknadMediator
 import no.nav.dagpenger.søknad.Søknadsprosess
 import no.nav.dagpenger.søknad.utils.auth.ident
@@ -17,8 +18,10 @@ internal fun Route.startSøknadRoute(søknadMediator: SøknadMediator) {
     post {
         val ident = call.ident()
         val språk = call.request.queryParameters["spraak"] ?: "NB"
+        val prosessType =
+            call.request.queryParameters["prosessType"]?.let { ProsessType.valueOf(it) } ?: ProsessType.Søknad
 
-        val søknadsprosess = søknadMediator.hentEllerOpprettSøknadsprosess(ident, språk)
+        val søknadsprosess = søknadMediator.hentEllerOpprettSøknadsprosess(ident, språk, prosessType)
         val søknadUuid = søknadsprosess.getSøknadsId()
 
         val statuskode = when (søknadsprosess) {

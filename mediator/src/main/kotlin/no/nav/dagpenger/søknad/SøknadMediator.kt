@@ -11,6 +11,7 @@ import no.nav.dagpenger.søknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.søknad.hendelse.SøknadOpprettetHendelse
+import no.nav.dagpenger.søknad.hendelse.ØnskeOmNyInnsendingHendelse
 import no.nav.dagpenger.søknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.søknad.livssyklus.LivssyklusRepository
 import no.nav.dagpenger.søknad.livssyklus.ferdigstilling.FerdigstiltSøknadRepository
@@ -43,6 +44,12 @@ internal class SøknadMediator(
     fun behandle(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         behandle(ønskeOmNySøknadHendelse) { person ->
             person.håndter(ønskeOmNySøknadHendelse)
+        }
+    }
+
+    private fun behandle(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse) {
+        behandle(ønskeOmNyInnsendingHendelse) { person ->
+            person.håndter(ønskeOmNyInnsendingHendelse)
         }
     }
 
@@ -102,10 +109,20 @@ internal class SøknadMediator(
         søknadCacheRepository.lagre(søkerOppgave)
     }
 
-    internal fun hentEllerOpprettSøknadsprosess(ident: String, språk: String): Søknadsprosess {
-        return Søknadsprosess.NySøknadsProsess().also {
-            behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident, språk))
+    internal fun hentEllerOpprettSøknadsprosess(
+        ident: String,
+        språk: String,
+        prosesstype: ProsessType = ProsessType.Søknad
+    ): Søknadsprosess {
+        return when (prosesstype) {
+            ProsessType.Søknad -> Søknadsprosess.NySøknadsProsess().also {
+                behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident, språk))
+            }
+            ProsessType.Innsending -> Søknadsprosess.NySøknadsProsess().also {
+                behandle(ØnskeOmNyInnsendingHendelse(it.getSøknadsId(), ident, språk))
+            }
         }
+
         // return hentPåbegynte(ident).singleOrNull()?.let {
         //     PåbegyntSøknadsProsess(it.uuid).also {
         //         behandle(HarPåbegyntSøknadHendelse(ident, it.getSøknadsId()))
@@ -159,6 +176,10 @@ internal class SøknadMediator(
 
     private fun hentEllerOpprettPerson(hendelse: Hendelse) =
         livssyklusRepository.hent(hendelse.ident()) ?: Person(hendelse.ident())
+}
+
+enum class ProsessType {
+    Søknad, Innsending
 }
 
 internal sealed class Søknadsprosess {
