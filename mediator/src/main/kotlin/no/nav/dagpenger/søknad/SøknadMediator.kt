@@ -112,13 +112,13 @@ internal class SøknadMediator(
     internal fun hentEllerOpprettSøknadsprosess(
         ident: String,
         språk: String,
-        prosesstype: ProsessType = ProsessType.Søknad
+        prosesstype: Prosesstype = Prosesstype.Søknad
     ): Søknadsprosess {
         return when (prosesstype) {
-            ProsessType.Søknad -> Søknadsprosess.NySøknadsProsess().also {
+            Prosesstype.Søknad -> Søknadsprosess.NySøknadsProsess().also {
                 behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident, språk))
             }
-            ProsessType.Innsending -> Søknadsprosess.NySøknadsProsess().also {
+            Prosesstype.Innsending -> Søknadsprosess.NySøknadsProsess().also {
                 behandle(ØnskeOmNyInnsendingHendelse(it.getSøknadsId(), ident, språk))
             }
         }
@@ -178,7 +178,7 @@ internal class SøknadMediator(
         livssyklusRepository.hent(hendelse.ident()) ?: Person(hendelse.ident())
 }
 
-enum class ProsessType {
+enum class Prosesstype {
     Søknad, Innsending
 }
 
