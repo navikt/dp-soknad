@@ -25,7 +25,7 @@ internal class SøknadOpprettetHendelseMottak(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "behov") }
-            validate { it.demandAny("@behov", behov) }
+            validate { it.demandAllOrAny("@behov", behov) }
             validate { it.requireKey("søknad_uuid", "ident", "@løsning") }
             validate { it.requireKey("@løsning") }
         }.register(this)
