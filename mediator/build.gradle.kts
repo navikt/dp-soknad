@@ -22,7 +22,6 @@ dependencies {
     implementation("com.github.navikt:pam-geography:2.15")
 
     implementation("com.fasterxml.jackson.module:jackson-module-blackbird:2.13.3")
-
     // DB
     implementation("org.flywaydb:flyway-core:8.5.0") // @todo update flyway in service-template
     implementation("com.zaxxer:HikariCP:5.0.1") //  @todo update HikariCP in service-template
@@ -39,9 +38,9 @@ dependencies {
 }
 
 application {
-    mainClass.set("no.nav.dagpenger.søknad.AppKt")
+    mainClass.set("no.nav.dagpenger.soknad.AppKt")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString()
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_17.toString()
 }
