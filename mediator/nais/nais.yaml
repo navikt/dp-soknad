@@ -74,3 +74,8 @@ spec:
           - name: dp-soknad
             envVarPrefix: DB
         cascadingDelete: false
+    permissions:
+      - resource:
+          apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
+          kind: Project
+        role: roles/cloudprofiler.agent

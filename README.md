@@ -1,6 +1,6 @@
 # dp-soknad
 
-1. Eier livsylus på søknad fra Påbegynt til Journalført. 
+1. Eier livsylus på søknad fra Påbegynt til Journalført.
 2. todo
 
 ## Komme i gang
@@ -9,6 +9,14 @@ Gradle brukes som byggverktøy og er bundlet inn.
 
 `./gradlew build`
 
+## Profiling
+
+Legg til i app manifest:
+
+```
+ - name: JAVA_OPTS
+   value: -agentpath:/opt/cprof/profiler_java_agent.so=-cprof_service=dp-soknad,-cprof_enable_heap_sampling=true,-logtostderr,-minloglevel=0,-cprof_project_id=teamdagpenger-dev-885f
+ ```
 
 # Henvendelser
 
