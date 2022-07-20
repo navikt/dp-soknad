@@ -24,7 +24,7 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.util.UUID
 import javax.sql.DataSource
-import kotlin.system.measureNanoTime
+import kotlin.system.measureTimeMillis
 
 private val logger = KotlinLogging.logger { }
 
@@ -63,7 +63,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
 
     override fun lagre(person: Person) {
         val visitor = PersonPersistenceVisitor(person)
-        val lagreTid = measureNanoTime {
+        val lagreTid = measureTimeMillis {
             using(sessionOf(dataSource)) { session ->
                 session.transaction { transactionalSession ->
                     val internId: Long = transactionalSession.run(
@@ -81,7 +81,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                             row.long("id")
                         }.asSingle
                     )!!
-                    val aktivitetsloggLagring = measureNanoTime {
+                    val aktivitetsloggLagring = measureTimeMillis {
                         transactionalSession.run(
                             queryOf(
                                 //language=PostgreSQL
@@ -96,24 +96,25 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                             ).asUpdate
                         )
                     }
-                    logger.info { "Brukte $aktivitetsloggLagring nanonsekunder på å lagre aktivitetslogg" }
-                    val slettSøknader = measureNanoTime {
+                    logger.info { "Brukte $aktivitetsloggLagring ms på å lagre aktivitetslogg" }
+                    val slettSøknader = measureTimeMillis {
                         visitor.slettedeSøknader().forEach {
                             transactionalSession.run(it.deleteQuery(visitor.ident))
                         }
                     }
-                    logger.info { "Brukte $slettSøknader nanonsekunder på å slette søknader" }
-                    val lagreSøknader = measureNanoTime {
+                    logger.info { "Brukte $slettSøknader ms på å slette søknader" }
+                    val lagreSøknader = measureTimeMillis {
+                        logger.info { "Lagrer ${visitor.søknader().size} søknader" }
                         visitor.søknader().forEach {
                             transactionalSession.run(it.insertQuery(visitor.ident))
                             it.insertDokumentQuery(transactionalSession)
                         }
                     }
-                    logger.info { "Brukte $lagreSøknader nanonsekunder på å lagre søknader" }
+                    logger.info { "Brukte $lagreSøknader ms på å lagre søknader" }
                 }
             }
         }
-        logger.info { "Brukte $lagreTid på å lagre person" }
+        logger.info { "Brukte $lagreTid ms på å lagre person" }
     }
 
     override fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad? {
