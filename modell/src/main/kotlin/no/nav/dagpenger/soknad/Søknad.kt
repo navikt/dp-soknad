@@ -276,6 +276,7 @@ class Søknad private constructor(
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.AvventerJournalføring
         override fun håndter(journalførtHendelse: JournalførtHendelse, søknad: Søknad) {
+            // TODO: Legg til sjekk om at det er DENNE søknaden som er journalført.
             søknad.endreTilstand(Journalført, journalførtHendelse)
         }
     }
