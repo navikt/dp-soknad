@@ -31,7 +31,7 @@ private val logger = KotlinLogging.logger { }
 interface LivssyklusRepository {
     fun hent(ident: String, komplettAktivitetslogg: Boolean = false): Person?
     fun lagre(person: Person)
-    fun hentPåbegyntSøknad(personIdent: String): LivssyklusPostgresRepository.PåbegyntSøknad?
+    fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad?
 }
 
 class LivssyklusPostgresRepository(private val dataSource: DataSource) : LivssyklusRepository {
