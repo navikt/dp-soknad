@@ -7,6 +7,7 @@ import kotliquery.action.UpdateQueryAction
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
@@ -23,11 +24,14 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.util.UUID
 import javax.sql.DataSource
+import kotlin.system.measureNanoTime
+
+private val logger = KotlinLogging.logger { }
 
 interface LivssyklusRepository {
     fun hent(ident: String, komplettAktivitetslogg: Boolean = false): Person?
     fun lagre(person: Person)
-    fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad?
+    fun hentPåbegyntSøknad(personIdent: String): LivssyklusPostgresRepository.PåbegyntSøknad?
 }
 
 class LivssyklusPostgresRepository(private val dataSource: DataSource) : LivssyklusRepository {
@@ -46,7 +50,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     row.stringOrNull("person_ident")?.let { ident ->
                         PersonData(
                             ident = row.string("person_ident"),
-                            søknader = session.hentSøknadsData(ident),
+                            søknader = session.hentSøknadsData(ident)
                         ).also {
                             if (!komplettAktivitetslogg) return@also
                             it.aktivitetsLogg = session.hentAktivitetslogg(row.int("person_id"))
@@ -59,46 +63,57 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
 
     override fun lagre(person: Person) {
         val visitor = PersonPersistenceVisitor(person)
-        using(sessionOf(dataSource)) { session ->
-            session.transaction { transactionalSession ->
-                val internId: Long = transactionalSession.run(
-                    queryOf(
-                        //language=PostgreSQL
-                        "SELECT id FROM person_v1 WHERE ident=:ident",
-                        mapOf("ident" to person.ident())
-                    ).map { row -> row.longOrNull("id") }.asSingle
-                ) ?: transactionalSession.run(
-                    queryOf(
-                        //language=PostgreSQL
-                        "INSERT INTO person_v1(ident) VALUES(:ident) ON CONFLICT DO NOTHING RETURNING id",
-                        paramMap = mapOf("ident" to visitor.ident)
-                    ).map { row ->
-                        row.long("id")
-                    }.asSingle
-                )!!
-
-                transactionalSession.run(
-                    queryOf(
-                        //language=PostgreSQL
-                        statement = "INSERT INTO aktivitetslogg_v2 (person_id, data) VALUES (:person_id, :data)",
-                        paramMap = mapOf(
-                            "person_id" to internId,
-                            "data" to PGobject().apply {
-                                type = "jsonb"
-                                value = objectMapper.writeValueAsString(visitor.aktivitetslogg.toMap())
-                            }
+        val lagreTid = measureNanoTime {
+            using(sessionOf(dataSource)) { session ->
+                session.transaction { transactionalSession ->
+                    val internId: Long = transactionalSession.run(
+                        queryOf(
+                            //language=PostgreSQL
+                            "SELECT id FROM person_v1 WHERE ident=:ident",
+                            mapOf("ident" to person.ident())
+                        ).map { row -> row.longOrNull("id") }.asSingle
+                    ) ?: transactionalSession.run(
+                        queryOf(
+                            //language=PostgreSQL
+                            "INSERT INTO person_v1(ident) VALUES(:ident) ON CONFLICT DO NOTHING RETURNING id",
+                            paramMap = mapOf("ident" to visitor.ident)
+                        ).map { row ->
+                            row.long("id")
+                        }.asSingle
+                    )!!
+                    val aktivitetsloggLagring = measureNanoTime {
+                        transactionalSession.run(
+                            queryOf(
+                                //language=PostgreSQL
+                                statement = "INSERT INTO aktivitetslogg_v2 (person_id, data) VALUES (:person_id, :data)",
+                                paramMap = mapOf(
+                                    "person_id" to internId,
+                                    "data" to PGobject().apply {
+                                        type = "jsonb"
+                                        value = objectMapper.writeValueAsString(visitor.aktivitetslogg.toMap())
+                                    }
+                                )
+                            ).asUpdate
                         )
-                    ).asUpdate
-                )
-                visitor.slettedeSøknader().forEach {
-                    transactionalSession.run(it.deleteQuery(visitor.ident))
-                }
-                visitor.søknader().forEach {
-                    transactionalSession.run(it.insertQuery(visitor.ident))
-                    it.insertDokumentQuery(transactionalSession)
+                    }
+                    logger.info { "Brukte $aktivitetsloggLagring nanonsekunder på å lagre aktivitetslogg" }
+                    val slettSøknader = measureNanoTime {
+                        visitor.slettedeSøknader().forEach {
+                            transactionalSession.run(it.deleteQuery(visitor.ident))
+                        }
+                    }
+                    logger.info { "Brukte $slettSøknader nanonsekunder på å slette søknader" }
+                    val lagreSøknader = measureNanoTime {
+                        visitor.søknader().forEach {
+                            transactionalSession.run(it.insertQuery(visitor.ident))
+                            it.insertDokumentQuery(transactionalSession)
+                        }
+                    }
+                    logger.info { "Brukte $lagreSøknader nanonsekunder på å lagre søknader" }
                 }
             }
         }
+        logger.info { "Brukte $lagreTid på å lagre person" }
     }
 
     override fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad? {
@@ -215,12 +230,13 @@ private fun PersonData.SøknadData.insertQuery(personIdent: String): UpdateQuery
 }
 
 private fun PersonData.SøknadData.deleteQuery(personIdent: String): UpdateQueryAction {
+    logger.info { "Prøver å slette søknad: $søknadsId" }
     return queryOf(
         // language=PostgreSQL
         statement = "DELETE FROM soknad_v1 WHERE uuid=:id AND person_ident = :person_ident",
         paramMap = mapOf(
             "id" to søknadsId.toString(),
-            "person_ident" to personIdent,
+            "person_ident" to personIdent
         )
     ).asUpdate
 }
@@ -251,7 +267,6 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
         { it.tilstandType == PersonData.SøknadData.TilstandData.Slettet }
 
     private val søknader: MutableList<PersonData.SøknadData> = mutableListOf()
-
     lateinit var aktivitetslogg: Aktivitetslogg
 
     init {
