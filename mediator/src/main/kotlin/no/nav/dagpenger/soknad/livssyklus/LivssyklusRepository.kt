@@ -105,8 +105,8 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     logger.info { "Brukte $slettSøknader ms på å slette søknader" }
                     val lagreSøknader = measureTimeMillis {
                         logger.info { "Lagrer ${visitor.søknader().size} søknader" }
+                        visitor.søknader().insertQuery(visitor.ident, transactionalSession)
                         visitor.søknader().forEach {
-                            transactionalSession.run(it.insertQuery(visitor.ident))
                             it.insertDokumentQuery(transactionalSession)
                         }
                     }
@@ -213,22 +213,27 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
     }
 }
 
-private fun PersonData.SøknadData.insertQuery(personIdent: String): UpdateQueryAction {
-    return queryOf(
+private fun List<PersonData.SøknadData>.insertQuery(personIdent: String, session: Session) =
+    session.batchPreparedNamedStatement(
         // language=PostgreSQL
-        statement = "INSERT INTO soknad_v1(uuid,person_ident,tilstand,journalpost_id, spraak) " +
-            "VALUES(:uuid,:person_ident,:tilstand,:journalpostID, :spraak) ON CONFLICT(uuid) DO UPDATE " +
-            "SET tilstand=:tilstand,journalpost_id=:journalpostID, innsendt_tidspunkt = :innsendtTidspunkt",
-        paramMap = mapOf(
-            "uuid" to søknadsId,
-            "person_ident" to personIdent,
-            "tilstand" to tilstandType.name,
-            "journalpostID" to journalpostId,
-            "innsendtTidspunkt" to innsendtTidspunkt,
-            "spraak" to språkData.verdi
-        )
-    ).asUpdate
-}
+        statement = """
+            INSERT INTO soknad_v1(uuid, person_ident, tilstand, journalpost_id, spraak)
+            VALUES (:uuid, :person_ident, :tilstand, :journalpostID, :spraak)
+            ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
+                                            journalpost_id=:journalpostID,
+                                            innsendt_tidspunkt = :innsendtTidspunkt
+        """.trimIndent(),
+        params = map {
+            mapOf<String, Any?>(
+                "uuid" to it.søknadsId,
+                "person_ident" to personIdent,
+                "tilstand" to it.tilstandType.name,
+                "journalpostID" to it.journalpostId,
+                "innsendtTidspunkt" to it.innsendtTidspunkt,
+                "spraak" to it.språkData.verdi
+            )
+        }
+    )
 
 private fun PersonData.SøknadData.deleteQuery(personIdent: String): UpdateQueryAction {
     logger.info { "Prøver å slette søknad: $søknadsId" }
@@ -242,23 +247,20 @@ private fun PersonData.SøknadData.deleteQuery(personIdent: String): UpdateQuery
     ).asUpdate
 }
 
-private fun PersonData.SøknadData.insertDokumentQuery(session: Session) {
-    this.dokumenter.forEach { dokumentData ->
-        session.run(
-            queryOf(
-                //language=PostgreSQL
-                statement = """
-                 INSERT INTO dokument_v1(soknad_uuid, dokument_lokasjon)
-                     VALUES(:uuid, :urn) ON CONFLICT (dokument_lokasjon) DO NOTHING 
-                """.trimIndent(),
-                paramMap = mapOf(
-                    "uuid" to this.søknadsId.toString(),
-                    "urn" to dokumentData.urn
-                )
-            ).asUpdate
-        )
-    }
-}
+private fun PersonData.SøknadData.insertDokumentQuery(session: Session) =
+    session.batchPreparedNamedStatement(
+        //language=PostgreSQL
+        statement = """
+             INSERT INTO dokument_v1(soknad_uuid, dokument_lokasjon)
+                 VALUES(:uuid, :urn) ON CONFLICT (dokument_lokasjon) DO NOTHING 
+        """.trimIndent(),
+        params = dokumenter.map {
+            mapOf(
+                "uuid" to this.søknadsId.toString(),
+                "urn" to it.urn
+            )
+        }
+    )
 
 private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
     lateinit var ident: String
