@@ -38,7 +38,6 @@ internal fun Application.api(
     personaliaRouteBuilder: Route.() -> Unit,
     ferdigstiltRouteBuilder: Route.() -> Unit
 ) {
-
     install(CallLogging) {
         level = Level.DEBUG
         disableDefaultColors()
