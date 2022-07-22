@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.livssyklus
 
 import mu.KotlinLogging
+import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyJournalpost
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
@@ -13,7 +14,6 @@ internal class NyJournalpostMottak(
     rapidsConnection: RapidsConnection,
     private val mediator: SøknadMediator
 ) : River.PacketListener {
-
     companion object {
         private val logger = KotlinLogging.logger {}
     }
@@ -36,9 +36,12 @@ internal class NyJournalpostMottak(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val søknadID = packet["søknad_uuid"].asUUID()
         val journalpostId = packet["@løsning"][behov].asText()
-        val søknadMidlertidigJournalførtHendelse =
-            SøknadMidlertidigJournalførtHendelse(søknadID, packet["ident"].asText(), journalpostId)
-        logger.info { "Fått løsning for $behov for $søknadID med journalpostId $journalpostId" }
-        mediator.behandle(søknadMidlertidigJournalførtHendelse)
+
+        withLoggingContext("søknadId" to søknadID.toString()) {
+            val søknadMidlertidigJournalførtHendelse =
+                SøknadMidlertidigJournalførtHendelse(søknadID, packet["ident"].asText(), journalpostId)
+            logger.info { "Fått løsning for $behov for $søknadID med journalpostId $journalpostId" }
+            mediator.behandle(søknadMidlertidigJournalførtHendelse)
+        }
     }
 }

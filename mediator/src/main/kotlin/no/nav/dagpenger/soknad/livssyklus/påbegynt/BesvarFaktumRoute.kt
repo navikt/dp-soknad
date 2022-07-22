@@ -10,6 +10,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.put
 import io.ktor.util.pipeline.PipelineContext
 import mu.KotlinLogging
+import mu.withLoggingContext
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.ident
@@ -21,18 +22,19 @@ internal fun Route.besvarFaktumRoute(søknadMediator: SøknadMediator) {
         val søknadUuid = søknadUuid()
         val ident = call.ident()
         val faktumId = faktumId()
-        val input = GyldigSvar(call.receive())
-        logger.info { "Fikk \n${input.svarAsJson}" }
+        withLoggingContext("søknadid" to søknadUuid.toString()) {
+            val input = GyldigSvar(call.receive())
+            logger.info { "Fikk \n${input.svarAsJson}" }
+            val faktumSvar = FaktumSvar(
+                søknadUuid = søknadUuid,
+                faktumId = faktumId,
+                type = input.type,
+                eier = ident,
+                svar = input.svarAsJson
+            )
 
-        val faktumSvar = FaktumSvar(
-            søknadUuid = søknadUuid,
-            faktumId = faktumId,
-            type = input.type,
-            eier = ident,
-            svar = input.svarAsJson
-        )
-
-        søknadMediator.behandle(faktumSvar)
+            søknadMediator.behandle(faktumSvar)
+        }
         call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { """{"status": "ok"}""" }
     }
 }

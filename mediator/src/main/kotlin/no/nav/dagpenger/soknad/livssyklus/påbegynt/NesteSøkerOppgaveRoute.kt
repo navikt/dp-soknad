@@ -19,7 +19,7 @@ internal fun Route.nesteSøkeroppgaveRoute(søknadMediator: SøknadMediator) {
         try {
             val søkerOppgave: SøkerOppgave = hentNesteSøkerOppgave(søknadMediator, id)
             if (ident != søkerOppgave.eier()) {
-                throw IkkeTilgangExeption("Ikke tilgang til søknad")
+                throw IkkeTilgangExeption("Ikke tilgang til søknad $id")
             }
             call.respond(HttpStatusCode.OK, søkerOppgave.asFrontendformat())
         } catch (e: NotFoundException) {
@@ -29,4 +29,6 @@ internal fun Route.nesteSøkeroppgaveRoute(søknadMediator: SøknadMediator) {
 }
 
 private suspend fun hentNesteSøkerOppgave(søknadMediator: SøknadMediator, id: UUID) =
-    retryIO(times = 15) { søknadMediator.hent(id) ?: throw NotFoundException("Fant ikke søker_oppgave for søknad med id $id") }
+    retryIO(times = 15) {
+        søknadMediator.hent(id) ?: throw NotFoundException("Fant ikke søker_oppgave for søknad med id $id")
+    }

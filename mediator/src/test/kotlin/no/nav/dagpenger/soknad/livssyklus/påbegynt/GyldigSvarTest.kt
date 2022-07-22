@@ -10,7 +10,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 
 class GyldigSvarTest {
-
     private val objectMapper = jacksonObjectMapper()
 
     @ParameterizedTest
@@ -109,18 +108,7 @@ class GyldigSvarTest {
               "type": "localdate"
             }
           ],
-          [
-            {
-              "id": "11",
-              "svar": "Kari Nordmann",
-              "type": "tekst"
-            },
-            {
-              "id": "12",
-              "svar": "2015-04-16",
-              "type": "localdate"
-            }
-          ]
+          []
         ]
       }
     """.trimIndent()

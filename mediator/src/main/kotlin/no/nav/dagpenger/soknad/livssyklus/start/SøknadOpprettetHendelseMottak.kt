@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad.livssyklus.start
 
 import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
+import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyInnsending
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NySøknad
 import no.nav.dagpenger.soknad.SøknadMediator
@@ -34,10 +35,12 @@ internal class SøknadOpprettetHendelseMottak(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val behov = packet["@behov"].single().asText()
         val søknadID = packet["@løsning"][behov].asUUID()
-        val søknadOpprettetHendelse =
-            SøknadOpprettetHendelse(søknadID, packet["ident"].asText())
-        logger.info { "Fått løsning for '$behov' for $søknadID" }
-        mediator.behandle(søknadOpprettetHendelse)
+        withLoggingContext("søknadId" to søknadID.toString()) {
+            val søknadOpprettetHendelse =
+                SøknadOpprettetHendelse(søknadID, packet["ident"].asText())
+            logger.info { "Fått løsning for '$behov' for $søknadID" }
+            mediator.behandle(søknadOpprettetHendelse)
+        }
     }
 }
 

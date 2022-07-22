@@ -9,10 +9,13 @@ import io.ktor.server.response.header
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Prosesstype
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.Søknadsprosess
 import no.nav.dagpenger.soknad.utils.auth.ident
+
+private val logger = KotlinLogging.logger {}
 
 internal fun Route.startSøknadRoute(søknadMediator: SøknadMediator) {
     post {
@@ -20,10 +23,10 @@ internal fun Route.startSøknadRoute(søknadMediator: SøknadMediator) {
         val språk = call.request.queryParameters["spraak"] ?: "NB"
         val prosesstype =
             call.request.queryParameters["prosesstype"]?.let { Prosesstype.valueOf(it) } ?: Prosesstype.Søknad
-
         val søknadsprosess = søknadMediator.hentEllerOpprettSøknadsprosess(ident, språk, prosesstype)
         val søknadUuid = søknadsprosess.getSøknadsId()
 
+        logger.info { "Opprettet søknadsprosess med id: $søknadUuid" }
         val statuskode = when (søknadsprosess) {
             is Søknadsprosess.NySøknadsProsess -> HttpStatusCode.Created
             is Søknadsprosess.PåbegyntSøknadsProsess -> HttpStatusCode.OK
