@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad.livssyklus
+package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call

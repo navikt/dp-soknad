@@ -8,7 +8,7 @@ import io.ktor.util.pipeline.PipelineContext
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.ferdigstillSøknadRoute
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.besvarFaktumRoute
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.nesteSøkeroppgaveRoute
-import no.nav.dagpenger.soknad.livssyklus.påbegyntSøknadRoute
+import no.nav.dagpenger.soknad.livssyklus.påbegynt.påbegyntSøknadRoute
 import no.nav.dagpenger.soknad.livssyklus.slett.slettSøknadRoute
 import no.nav.dagpenger.soknad.livssyklus.start.startSøknadRoute
 import no.nav.dagpenger.soknad.mal.nyesteMalRoute
