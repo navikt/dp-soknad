@@ -4,6 +4,7 @@ on: [push]
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}:${{ github.sha }}
+  LATEST_IMAGE: ghcr.io/${{ github.repository }}/dp-soknad:latest
 
 jobs:
   build:
@@ -38,7 +39,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: mediator
-          tags: ${{ env.IMAGE }}
+          tags: ${{ env.IMAGE }},${{ env.LATEST_IMAGE }}
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
