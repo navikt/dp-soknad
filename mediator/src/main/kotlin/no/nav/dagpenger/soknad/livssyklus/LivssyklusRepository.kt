@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad.livssyklus
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import kotliquery.Session
+import kotliquery.TransactionalSession
 import kotliquery.action.UpdateQueryAction
 import kotliquery.queryOf
 import kotliquery.sessionOf
@@ -24,7 +25,6 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.util.UUID
 import javax.sql.DataSource
-import kotlin.system.measureTimeMillis
 
 private val logger = KotlinLogging.logger { }
 
@@ -63,59 +63,64 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
 
     override fun lagre(person: Person) {
         val visitor = PersonPersistenceVisitor(person)
-        val lagreTid = measureTimeMillis {
-            using(sessionOf(dataSource)) { session ->
-                session.transaction { transactionalSession ->
-                    val internId: Long = transactionalSession.run(
-                        queryOf(
-                            //language=PostgreSQL
-                            "SELECT id FROM person_v1 WHERE ident=:ident",
-                            mapOf("ident" to person.ident())
-                        ).map { row -> row.longOrNull("id") }.asSingle
-                    ) ?: transactionalSession.run(
-                        queryOf(
-                            //language=PostgreSQL
-                            "INSERT INTO person_v1(ident) VALUES(:ident) ON CONFLICT DO NOTHING RETURNING id",
-                            paramMap = mapOf("ident" to visitor.ident)
-                        ).map { row ->
-                            row.long("id")
-                        }.asSingle
-                    )!!
-                    val aktivitetsloggLagring = measureTimeMillis {
-                        transactionalSession.run(
-                            queryOf(
-                                //language=PostgreSQL
-                                statement = "INSERT INTO aktivitetslogg_v2 (person_id, data) VALUES (:person_id, :data)",
-                                paramMap = mapOf(
-                                    "person_id" to internId,
-                                    "data" to PGobject().apply {
-                                        type = "jsonb"
-                                        value = objectMapper.writeValueAsString(visitor.aktivitetslogg.toMap())
-                                    }
-                                )
-                            ).asUpdate
-                        )
-                    }
-                    logger.info { "Brukte $aktivitetsloggLagring ms på å lagre aktivitetslogg" }
-                    val slettSøknader = measureTimeMillis {
-                        visitor.slettedeSøknader().forEach {
-                            transactionalSession.run(it.deleteQuery(visitor.ident))
-                        }
-                    }
-                    logger.info { "Brukte $slettSøknader ms på å slette søknader" }
-                    val lagreSøknader = measureTimeMillis {
-                        logger.info { "Lagrer ${visitor.søknader().size} søknader" }
-                        visitor.søknader().insertQuery(visitor.ident, transactionalSession)
-                        visitor.søknader().forEach {
-                            it.insertDokumentQuery(transactionalSession)
-                        }
-                    }
-                    logger.info { "Brukte $lagreSøknader ms på å lagre søknader" }
+        using(sessionOf(dataSource)) { session ->
+            session.transaction { transactionalSession ->
+                val internId = hentInternPersonId(transactionalSession, person) ?: lagrePerson(transactionalSession, visitor)!!
+
+                lagreAktivitetslogg(transactionalSession, internId, visitor)
+
+                visitor.slettedeSøknader().forEach {
+                    transactionalSession.run(it.deleteQuery(visitor.ident))
+                }
+
+                logger.info { "Lagrer ${visitor.søknader().size} søknader" }
+                visitor.søknader().insertQuery(visitor.ident, transactionalSession)
+                visitor.søknader().forEach {
+                    it.insertDokumentQuery(transactionalSession)
                 }
             }
         }
-        logger.info { "Brukte $lagreTid ms på å lagre person" }
     }
+
+    private fun lagreAktivitetslogg(
+        transactionalSession: TransactionalSession,
+        internId: Long,
+        visitor: PersonPersistenceVisitor
+    ) {
+        transactionalSession.run(
+            queryOf(
+                //language=PostgreSQL
+                statement = "INSERT INTO aktivitetslogg_v2 (person_id, data) VALUES (:person_id, :data)",
+                paramMap = mapOf(
+                    "person_id" to internId,
+                    "data" to PGobject().apply {
+                        type = "jsonb"
+                        value = objectMapper.writeValueAsString(visitor.aktivitetslogg.toMap())
+                    }
+                )
+            ).asUpdate
+        )
+    }
+
+    private fun lagrePerson(transactionalSession: TransactionalSession, visitor: PersonPersistenceVisitor) =
+        transactionalSession.run(
+            queryOf(
+                //language=PostgreSQL
+                "INSERT INTO person_v1(ident) VALUES(:ident) ON CONFLICT DO NOTHING RETURNING id",
+                paramMap = mapOf("ident" to visitor.ident)
+            ).map { row ->
+                row.long("id")
+            }.asSingle
+        )
+
+    private fun hentInternPersonId(transactionalSession: TransactionalSession, person: Person) =
+        transactionalSession.run(
+            queryOf(
+                //language=PostgreSQL
+                "SELECT id FROM person_v1 WHERE ident=:ident",
+                mapOf("ident" to person.ident())
+            ).map { row -> row.longOrNull("id") }.asSingle
+        )
 
     override fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad? {
         return using(sessionOf(dataSource)) { session ->
