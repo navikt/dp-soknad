@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad
 
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
@@ -73,6 +74,10 @@ object TestApplication {
             application(moduleFunction)
             test()
         }
+    }
+
+    internal fun HttpRequestBuilder.autentisert(token: String = testOAuthToken) {
+        this.header(HttpHeaders.Authorization, "Bearer $token")
     }
 
     internal suspend fun ApplicationTestBuilder.autentisert(

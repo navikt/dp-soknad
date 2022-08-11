@@ -5,6 +5,7 @@ import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 import io.ktor.util.pipeline.PipelineContext
+import no.nav.dagpenger.soknad.dokumentasjonskrav.dokumentasjonkravRoute
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.ferdigstillSøknadRoute
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.besvarFaktumRoute
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.nesteSøkeroppgaveRoute
@@ -25,6 +26,7 @@ internal fun Route.søknadApi(søknadMediator: SøknadMediator) {
         besvarFaktumRoute(søknadMediator)
         nyesteMalRoute(søknadMediator)
         slettSøknadRoute(søknadMediator)
+        dokumentasjonkravRoute()
     }
 }
 
