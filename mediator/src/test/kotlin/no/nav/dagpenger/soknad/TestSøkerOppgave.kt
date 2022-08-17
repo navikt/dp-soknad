@@ -19,4 +19,7 @@ internal class TestSøkerOppgave(private val søknadUUID: UUID, private val eier
     }
 
     override fun asJson(): String = json
+    override fun sannsynliggjøringer(): List<Sannsynliggjøring> {
+        TODO("not implemented")
+    }
 }

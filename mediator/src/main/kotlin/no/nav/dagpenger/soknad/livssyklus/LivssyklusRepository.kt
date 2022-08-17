@@ -12,6 +12,7 @@ import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
+import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
@@ -215,6 +216,9 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
         }
 
         override fun asJson(): String = søknad.toString()
+        override fun sannsynliggjøringer(): List<Sannsynliggjøring> {
+            TODO("not implemented")
+        }
     }
 }
 

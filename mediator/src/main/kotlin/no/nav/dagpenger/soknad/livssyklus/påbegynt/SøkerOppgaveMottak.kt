@@ -3,6 +3,8 @@ package no.nav.dagpenger.soknad.livssyklus.påbegynt
 import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
 import mu.withLoggingContext
+import no.nav.dagpenger.soknad.Faktum
+import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -17,6 +19,7 @@ interface SøkerOppgave {
     fun ferdig(): Boolean
     fun asFrontendformat(): JsonNode
     fun asJson(): String
+    fun sannsynliggjøringer(): List<Sannsynliggjøring>
 
     object Keys {
         val SEKSJONER = "seksjoner"
@@ -66,4 +69,41 @@ internal class SøkerOppgaveMelding(private val jsonMessage: JsonMessage) : Søk
     override fun ferdig(): Boolean = jsonMessage[SøkerOppgave.Keys.FERDIG].asBoolean()
     override fun asFrontendformat(): JsonNode = objectMapper.readTree(jsonMessage.toJson())
     override fun asJson(): String = jsonMessage.toJson()
+    override fun sannsynliggjøringer(): List<Sannsynliggjøring> {
+        val seksjoner = jsonMessage[SøkerOppgave.Keys.SEKSJONER]
+        val sannsynliggjøringer = mutableMapOf<String, Sannsynliggjøring>()
+        val fakta: List<Faktum> = seksjoner.findValues("fakta").flatMap { fakta ->
+            fakta.fold(mutableListOf()) { acc, faktum ->
+                when (faktum["type"].asText()) {
+                    "generator" -> faktum["svar"].forEach {
+                        it.forEach { generertFaktum ->
+                            acc.add(grunnleggendeFaktum(generertFaktum))
+                        }
+                    }
+                    else -> acc.add(grunnleggendeFaktum(faktum))
+                }
+                acc
+            }
+        }
+
+        fakta.filter { it.sannsynliggjøresAv.isNotEmpty() }.forEach {
+            it.sannsynliggjøresAv.forEach { sannsynliggjøring ->
+                sannsynliggjøringer.getOrPut(
+                    sannsynliggjøring.id
+                ) { Sannsynliggjøring(sannsynliggjøring.id, sannsynliggjøring) }.sannsynliggjør(it)
+            }
+        }
+
+        return sannsynliggjøringer.values.toList()
+    }
+
+    private fun grunnleggendeFaktum(faktum: JsonNode): Faktum = Faktum(
+        faktum["id"].asText(),
+        faktum["beskrivendeId"].asText(),
+        faktum["type"].asText(),
+        roller = faktum["roller"].map { it.asText() },
+        svar = faktum["svar"],
+        sannsynliggjøresAv = faktum["sannsynliggjøresAv"].map { grunnleggendeFaktum(it) },
+        readOnly = faktum["readOnly"].asBoolean()
+    )
 }
