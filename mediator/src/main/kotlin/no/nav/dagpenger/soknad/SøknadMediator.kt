@@ -7,6 +7,7 @@ import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
+import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
@@ -106,7 +107,11 @@ internal class SøknadMediator(
     }
 
     fun behandle(søkerOppgave: SøkerOppgave) {
-        søknadCacheRepository.lagre(søkerOppgave)
+        val søkeroppgaveHendelse = SøkeroppgaveHendelse(søkerOppgave.søknadUUID(), søkerOppgave.eier(), søkerOppgave.sannsynliggjøringer())
+        behandle(søkeroppgaveHendelse) { person ->
+            person.håndter(søkeroppgaveHendelse)
+            søknadCacheRepository.lagre(søkerOppgave)
+        }
     }
 
     internal fun hentEllerOpprettSøknadsprosess(

@@ -14,6 +14,7 @@ import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
+import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
@@ -36,6 +37,25 @@ internal class SøknadTest {
     private lateinit var plantUmlObservatør: PlantUmlObservatør
     private val inspektør get() = TestSøknadInspektør(person)
     private val språk = "NO"
+
+    private val dokumentFaktum =
+        Faktum("1", beskrivendeId = "f1", type = "dokument", roller = listOf("søker"), emptyList(), svar = null)
+    private val faktaSomSannsynliggjøres =
+        mutableSetOf(
+            Faktum(
+                "2",
+                beskrivendeId = "f2",
+                type = "boolean",
+                roller = listOf("søker"),
+                emptyList(),
+                svar = true
+            )
+        )
+    private val sannsynliggjøring = Sannsynliggjøring(
+        id = dokumentFaktum.id,
+        faktum = dokumentFaktum,
+        sannsynliggjør = faktaSomSannsynliggjøres
+    )
 
     @BeforeEach
     internal fun setUp() {
@@ -64,6 +84,7 @@ internal class SøknadTest {
         assertBehov(Behovtype.NySøknad, mapOf("ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
         håndterNySøknadOpprettet()
         håndterFaktumOppdatering()
+        håndterSøkerOppgaveHendelse()
         val innsendtHendelse = håndterSendInnSøknad()
         assertBehov(
             Behovtype.ArkiverbarSøknad,
@@ -106,10 +127,6 @@ internal class SøknadTest {
         assertPuml("Søker oppretter søknad og ferdigstiller den")
     }
 
-    private fun håndterFaktumOppdatering() {
-        person.håndter(FaktumOppdatertHendelse(inspektør.søknadId, testIdent))
-    }
-
     @Test
     fun `oppretter en person `() {
         val person = Person(testIdent)
@@ -120,6 +137,65 @@ internal class SøknadTest {
 
             override fun visitPerson(ident: String) {
                 assertEquals(testIdent, ident)
+            }
+        }
+    }
+
+    @Test
+    fun `håndtere sannsynliggjøringer og dokumentkrav`() {
+        håndterØnskeOmNySøknadHendelse()
+        håndterNySøknadOpprettet()
+        håndterFaktumOppdatering()
+        håndterSøkerOppgaveHendelse()
+        with(TestPersonVisitor(person).sannsynliggjøringer(inspektør.søknadId)) {
+            assertEquals(
+                1, this.size
+            )
+            assertEquals(sannsynliggjøring, this.first())
+        }
+        val nyttDokumentkrav = dokumentFaktum.copy("2")
+        val nySannsynliggjøring = Sannsynliggjøring(nyttDokumentkrav.id, nyttDokumentkrav, faktaSomSannsynliggjøres)
+        håndterSøkerOppgaveHendelse(
+            sannsynliggjøringer = setOf(
+                nySannsynliggjøring, sannsynliggjøring
+            )
+        )
+
+        with(TestPersonVisitor(person)) {
+
+            with(this.sannsynliggjøringer(inspektør.søknadId)) {
+                assertEquals(
+                    2, this.size
+                )
+                assertTrue(this.contains(sannsynliggjøring))
+                assertTrue(this.contains(nySannsynliggjøring))
+            }
+            with(this.dokumentkrav(inspektør.søknadId)) {
+                assertEquals(
+                    2, this.size
+                )
+            }
+        }
+
+        håndterSøkerOppgaveHendelse(
+            sannsynliggjøringer = setOf(
+                nySannsynliggjøring
+            )
+        )
+
+        with(TestPersonVisitor(person)) {
+
+            with(this.sannsynliggjøringer(inspektør.søknadId)) {
+                assertEquals(
+                    1, this.size
+                )
+
+                assertTrue(this.contains(nySannsynliggjøring))
+            }
+            with(this.dokumentkrav(inspektør.søknadId)) {
+                assertEquals(
+                    2, this.size
+                )
             }
         }
     }
@@ -156,10 +232,6 @@ internal class SøknadTest {
         }
     }
 
-    private fun assertTilstander(vararg tilstander: Søknad.Tilstand.Type) {
-        assertEquals(tilstander.asList(), personObserver.tilstander)
-    }
-
     private fun håndterNySøknadOpprettet() {
         person.håndter(SøknadOpprettetHendelse(inspektør.søknadId, testIdent))
     }
@@ -186,12 +258,17 @@ internal class SøknadTest {
         person.håndter(JournalførtHendelse(testJournalpostId, testIdent))
     }
 
-    private fun assertBehov(behovtype: Behovtype, forventetDetaljer: Map<String, Any> = emptyMap()) {
-        val behov = inspektør.personLogg.behov().find {
-            it.type == behovtype
-        } ?: throw AssertionError("Fant ikke behov $behovtype")
+    private fun håndterFaktumOppdatering() {
+        person.håndter(FaktumOppdatertHendelse(inspektør.søknadId, testIdent))
+    }
 
-        assertEquals(forventetDetaljer, behov.detaljer() + behov.kontekst())
+    private fun håndterSøkerOppgaveHendelse(sannsynliggjøringer: Set<Sannsynliggjøring> = setOf(sannsynliggjøring)) {
+        person.håndter(
+            SøkeroppgaveHendelse(
+                inspektør.søknadId, testIdent,
+                sannsynliggjøringer
+            )
+        )
     }
 
     private fun håndterSendInnSøknad(): SøknadInnsendtHendelse {
@@ -204,8 +281,20 @@ internal class SøknadTest {
         person.håndter(ØnskeOmNySøknadHendelse(UUID.randomUUID(), språk, testIdent))
     }
 
+    private fun assertTilstander(vararg tilstander: Søknad.Tilstand.Type) {
+        assertEquals(tilstander.asList(), personObserver.tilstander)
+    }
+
     private fun assertPuml(tittel: String) {
         plantUmlObservatør.verify(tittel)
+    }
+
+    private fun assertBehov(behovtype: Behovtype, forventetDetaljer: Map<String, Any> = emptyMap()) {
+        val behov = inspektør.personLogg.behov().find {
+            it.type == behovtype
+        } ?: throw AssertionError("Fant ikke behov $behovtype")
+
+        assertEquals(forventetDetaljer, behov.detaljer() + behov.kontekst())
     }
 }
 

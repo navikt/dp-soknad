@@ -7,6 +7,7 @@ import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
+import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
@@ -75,6 +76,18 @@ class Person private constructor(
 
         søknaden.håndter(søknadOpprettetHendelse)
     }
+    fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse) {
+        kontekst(faktumOppdatertHendelse, "Faktum oppdatert")
+        finnSøknad(faktumOppdatertHendelse).also { søknaden ->
+            søknaden.håndter(faktumOppdatertHendelse)
+        }
+    }
+    fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse) {
+        kontekst(søkeroppgaveHendelse, "Søkeroppgave mottatt")
+        finnSøknad(søkeroppgaveHendelse).also { søknaden ->
+            søknaden.håndter(søkeroppgaveHendelse)
+        }
+    }
 
     fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
         kontekst(søknadInnsendtHendelse, "Sender inn søknaden")
@@ -102,13 +115,6 @@ class Person private constructor(
         when {
             søknaden != null -> søknaden.håndter(journalførtHendelse)
             else -> journalførtHendelse.info("Fant ikke søknaden for ${journalførtHendelse.journalpostId()}")
-        }
-    }
-
-    fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse) {
-        kontekst(faktumOppdatertHendelse, "Faktum oppdatert")
-        finnSøknad(faktumOppdatertHendelse).also { søknaden ->
-            søknaden.håndter(faktumOppdatertHendelse)
         }
     }
 
