@@ -12,15 +12,10 @@ class Sannsynliggjøring(
     override fun equals(other: Any?): Boolean = other is Sannsynliggjøring && equals(other)
     private fun equals(other: Sannsynliggjøring) =
         this.id == other.id && this.faktum == other.faktum && this.sannsynliggjør == other.sannsynliggjør
-
     override fun hashCode(): Int {
         var result = id.hashCode()
         result = 31 * result + faktum.hashCode()
         result = 31 * result + sannsynliggjør.hashCode()
         return result
-    }
-
-    override fun toString(): String {
-        return "Sannsynliggjøring(id='$id')"
     }
 }

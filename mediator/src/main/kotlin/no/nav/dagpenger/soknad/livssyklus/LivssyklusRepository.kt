@@ -216,7 +216,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
         }
 
         override fun asJson(): String = søknad.toString()
-        override fun sannsynliggjøringer(): List<Sannsynliggjøring> {
+        override fun sannsynliggjøringer(): Set<Sannsynliggjøring> {
             TODO("not implemented")
         }
     }

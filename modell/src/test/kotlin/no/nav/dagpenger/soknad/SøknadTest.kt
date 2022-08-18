@@ -147,7 +147,7 @@ internal class SøknadTest {
         håndterNySøknadOpprettet()
         håndterFaktumOppdatering()
         håndterSøkerOppgaveHendelse()
-        with(TestPersonVisitor(person).sannsynliggjøringer(inspektør.søknadId)) {
+        with(TestPersonVisitor(person).sannsynliggjøringer()) {
             assertEquals(
                 1, this.size
             )
@@ -163,14 +163,14 @@ internal class SøknadTest {
 
         with(TestPersonVisitor(person)) {
 
-            with(this.sannsynliggjøringer(inspektør.søknadId)) {
+            with(this.sannsynliggjøringer()) {
                 assertEquals(
                     2, this.size
                 )
                 assertTrue(this.contains(sannsynliggjøring))
                 assertTrue(this.contains(nySannsynliggjøring))
             }
-            with(this.dokumentkrav(inspektør.søknadId)) {
+            with(this.aktiveDokumentkrav()) {
                 assertEquals(
                     2, this.size
                 )
@@ -185,16 +185,22 @@ internal class SøknadTest {
 
         with(TestPersonVisitor(person)) {
 
-            with(this.sannsynliggjøringer(inspektør.søknadId)) {
+            with(this.sannsynliggjøringer()) {
                 assertEquals(
                     1, this.size
                 )
 
                 assertTrue(this.contains(nySannsynliggjøring))
             }
-            with(this.dokumentkrav(inspektør.søknadId)) {
+            with(this.aktiveDokumentkrav()) {
                 assertEquals(
-                    2, this.size
+                    1, this.size
+                )
+            }
+
+            with(this.inaktiveDokumentkrav()) {
+                assertEquals(
+                    1, this.size
                 )
             }
         }

@@ -1,13 +1,48 @@
 package no.nav.dagpenger.soknad
 
-/*
+class Dokumentkrav private constructor(
+    private val sannsynliggjøringer: MutableSet<Sannsynliggjøring> = mutableSetOf(),
+    private val krav: MutableSet<Krav> = mutableSetOf()
+) {
 
-1. flytte quiz sin sannsynligiøring i en tabbel
-2. lage dok krav som er aktiv hvis det kan linkes til en sannsynlgiøring
-3. dok krav lever på utsiden av sannsynligiøring
+    companion object {
+        internal val Ingen = Dokumentkrav()
+    }
 
- */
-data class Dokumentkrav(
+    fun håndter(nyeSannsynliggjøringer: Set<Sannsynliggjøring>) {
+        val fjernet = this.sannsynliggjøringer.subtract(nyeSannsynliggjøringer)
+        this.sannsynliggjøringer.removeAll(fjernet)
+        this.sannsynliggjøringer.addAll(nyeSannsynliggjøringer)
+        this.oppdaterDokumentkrav()
+    }
+
+    fun accept(dokumentkravVisitor: DokumentkravVisitor) {
+        dokumentkravVisitor.visitSannsynliggjøringer(sannsynliggjøringer.toSet())
+        dokumentkravVisitor.visitAktiveKrav(
+            krav.filter(aktive()).toSet()
+        )
+        dokumentkravVisitor.visitInaktiveKrav(
+            krav.filterNot(aktive()).toSet()
+        )
+    }
+
+    private fun oppdaterDokumentkrav() {
+        sannsynliggjøringer.forEach { sannsynliggjøring ->
+            if (krav.find { it.id == sannsynliggjøring.id } == null) {
+                krav.add(
+                    Krav(
+                        sannsynliggjøring
+                    )
+                )
+            }
+        }
+    }
+
+    private fun aktive(): (Krav) -> Boolean =
+        { sannsynliggjøringer.any { sannsynliggjøring -> sannsynliggjøring.id == it.id } }
+}
+
+data class Krav(
     val id: String,
     private val beskrivendeId: String,
     private val fakta: Set<Faktum>,

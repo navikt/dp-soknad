@@ -25,8 +25,7 @@ class Søknad private constructor(
     private var journalpostId: String?,
     private var innsendtTidspunkt: ZonedDateTime?,
     private val språk: Språk,
-    private val sannsynliggjøringer: MutableSet<Sannsynliggjøring>,
-    private val dokumentkrav: MutableSet<Dokumentkrav>,
+    private val sannsynliggjøringer: Dokumentkrav
 ) : Aktivitetskontekst {
 
     constructor(søknadId: UUID, språk: Språk, person: Person) : this(
@@ -37,8 +36,7 @@ class Søknad private constructor(
         journalpostId = null,
         innsendtTidspunkt = null,
         språk = språk,
-        sannsynliggjøringer = mutableSetOf(),
-        dokumentkrav = mutableSetOf()
+        sannsynliggjøringer = Dokumentkrav.Ingen
     )
 
     companion object {
@@ -75,8 +73,7 @@ class Søknad private constructor(
                 journalpostId = journalpostId,
                 innsendtTidspunkt = innsendtTidspunkt,
                 språk = språk,
-                sannsynliggjøringer = mutableSetOf(),
-                dokumentkrav = mutableSetOf()
+                sannsynliggjøringer = Dokumentkrav.Ingen
             )
         }
     }
@@ -247,22 +244,7 @@ class Søknad private constructor(
     }
 
     private fun håndter(nyeSannsynliggjøringer: Set<Sannsynliggjøring>) {
-        val fjernet = this.sannsynliggjøringer.subtract(nyeSannsynliggjøringer)
-        this.sannsynliggjøringer.removeAll(fjernet)
-        this.sannsynliggjøringer.addAll(nyeSannsynliggjøringer)
-        this.oppdaterDokumentkrav(this.sannsynliggjøringer.toSet())
-    }
-
-    private fun oppdaterDokumentkrav(sannsynliggjøringer: Set<Sannsynliggjøring>) {
-        sannsynliggjøringer.forEach { sannsynliggjøring ->
-            if (dokumentkrav.find { it.id == sannsynliggjøring.id } == null) {
-                dokumentkrav.add(
-                    Dokumentkrav(
-                        sannsynliggjøring
-                    )
-                )
-            }
-        }
+        this.sannsynliggjøringer.håndter(nyeSannsynliggjøringer)
     }
 
     private object Slettet : Tilstand {
@@ -332,9 +314,8 @@ class Søknad private constructor(
 
     fun accept(visitor: SøknadVisitor) {
         visitor.visitSøknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt, språk)
-        visitor.visitSannsynliggjøring(søknadId, sannsynliggjøringer)
-        visitor.visitDokumentkrav(søknadId, dokumentkrav)
         tilstand.accept(visitor)
+        sannsynliggjøringer.accept(visitor)
     }
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst =

@@ -8,10 +8,13 @@ interface TilstandVisitor {
     fun visitTilstand(tilstand: Tilstand.Type) {}
 }
 
-interface SøknadVisitor : TilstandVisitor {
+interface DokumentkravVisitor {
+    fun visitAktiveKrav(krav: Set<Krav>) {}
+    fun visitInaktiveKrav(krav: Set<Krav>) {}
+    fun visitSannsynliggjøringer(sannsynliggjøringer: Set<Sannsynliggjøring>) {}
+}
+interface SøknadVisitor : TilstandVisitor, DokumentkravVisitor {
     fun visitSøknad(søknadId: UUID, person: Person, tilstand: Tilstand, dokument: Søknad.Dokument?, journalpostId: String?, innsendtTidspunkt: ZonedDateTime?, språk: Språk) {}
-    fun visitSannsynliggjøring(søknadId: UUID, sannsynliggjøring: Set<Sannsynliggjøring>) {}
-    fun visitDokumentkrav(søknadId: UUID, dokumentkrav: Set<Dokumentkrav>) {}
 }
 
 interface PersonVisitor : SøknadVisitor, AktivitetsloggVisitor {

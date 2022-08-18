@@ -1,7 +1,6 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.PersonObserver.SøknadEndretTilstandEvent
-import java.util.UUID
 
 class TestPersonObserver : PersonObserver {
 
@@ -21,23 +20,28 @@ class TestPersonObserver : PersonObserver {
 
 class TestPersonVisitor(person: Person) : PersonVisitor {
 
-    private val sannsynliggjøringer: MutableMap<UUID, Set<Sannsynliggjøring>> = mutableMapOf()
-    private val dokumentkrav: MutableMap<UUID, Set<Dokumentkrav>> = mutableMapOf()
-
-    fun sannsynliggjøringer(søknadId: UUID): Set<Sannsynliggjøring> =
-        sannsynliggjøringer[søknadId] ?: throw AssertionError("Fant ikke sannsynliggjøringer fra søknad $søknadId")
-
-    fun dokumentkrav(søknadId: UUID): Set<Dokumentkrav> = dokumentkrav[søknadId] ?: throw AssertionError("Fant ikke dokumentkrav fra søknad $søknadId")
+    private val sannsynliggjøringer: MutableSet<Sannsynliggjøring> = mutableSetOf()
+    private val aktiveKrav: MutableSet<Krav> = mutableSetOf()
+    private val inaktiveKrav: MutableSet<Krav> = mutableSetOf()
 
     init {
         person.accept(this)
     }
 
-    override fun visitSannsynliggjøring(søknadId: UUID, sannsynliggjøring: Set<Sannsynliggjøring>) {
-        this.sannsynliggjøringer[søknadId] = sannsynliggjøring
+    fun sannsynliggjøringer(): Set<Sannsynliggjøring> = sannsynliggjøringer.toSet()
+
+    fun aktiveDokumentkrav(): Set<Krav> = aktiveKrav.toSet()
+    fun inaktiveDokumentkrav(): Set<Krav> = inaktiveKrav.toSet()
+
+    override fun visitSannsynliggjøringer(sannsynliggjøringer: Set<Sannsynliggjøring>) {
+        this.sannsynliggjøringer.addAll(sannsynliggjøringer)
     }
 
-    override fun visitDokumentkrav(søknadId: UUID, dokumentkrav: Set<Dokumentkrav>) {
-        this.dokumentkrav[søknadId] = dokumentkrav
+    override fun visitAktiveKrav(krav: Set<Krav>) {
+        this.aktiveKrav.addAll(krav)
+    }
+
+    override fun visitInaktiveKrav(krav: Set<Krav>) {
+        this.inaktiveKrav.addAll(krav)
     }
 }

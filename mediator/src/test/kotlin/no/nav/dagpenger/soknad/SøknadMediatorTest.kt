@@ -145,12 +145,12 @@ internal class SøknadMediatorTest {
         assertEquals(Journalført, oppdatertInspektør().gjeldendetilstand)
 
         // Verifiserer at aktivitetsloggen blir lagret per behandling
-        assertAntallRader("aktivitetslogg_v2", 7)
+        assertAntallRader("aktivitetslogg_v2", 9)
 
         // Verifiser at det er mulig å hente en komplett aktivitetslogg
         livssyklusRepository.hent(testIdent, true)?.let {
             with(TestPersonInspektør(it).aktivitetslogg["aktiviteter"]!!) {
-                assertEquals(10, size)
+                assertEquals(14, size)
                 assertEquals("Ønske om søknad registrert", first()["melding"])
                 assertEquals("Søknad journalført", last()["melding"])
             }
