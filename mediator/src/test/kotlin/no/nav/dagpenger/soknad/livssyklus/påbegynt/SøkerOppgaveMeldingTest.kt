@@ -21,6 +21,10 @@ internal class SøkerOppgaveMeldingTest {
 
         with(sannsynliggjøringer.first()) {
             assertEquals("22.1", this.id)
+            assertEquals(1, this.sannsynliggjør().size)
+            with(this.sannsynliggjør().first()) {
+                assertEquals("6.1", this.id)
+            }
         }
     }
 }

@@ -72,11 +72,11 @@ internal class SøkerOppgaveMelding(private val jsonMessage: JsonMessage) : Søk
     override fun sannsynliggjøringer(): List<Sannsynliggjøring> {
         val seksjoner = jsonMessage[SøkerOppgave.Keys.SEKSJONER]
         val sannsynliggjøringer = mutableMapOf<String, Sannsynliggjøring>()
-        val fakta: List<Faktum> = seksjoner.findValues("fakta").flatMap { fakta ->
+        val fakta: List<Faktum> = seksjoner.findValues("fakta").flatMap<JsonNode, Faktum> { fakta ->
             fakta.fold(mutableListOf()) { acc, faktum ->
                 when (faktum["type"].asText()) {
-                    "generator" -> faktum["svar"].forEach {
-                        it.forEach { generertFaktum ->
+                    "generator" -> faktum["svar"].forEach { svarliste ->
+                        svarliste.forEach { generertFaktum ->
                             acc.add(grunnleggendeFaktum(generertFaktum))
                         }
                     }
@@ -84,13 +84,13 @@ internal class SøkerOppgaveMelding(private val jsonMessage: JsonMessage) : Søk
                 }
                 acc
             }
-        }
+        }.filter { it.sannsynliggjøresAv.isNotEmpty() }
 
-        fakta.filter { it.sannsynliggjøresAv.isNotEmpty() }.forEach {
-            it.sannsynliggjøresAv.forEach { sannsynliggjøring ->
+        fakta.forEach { faktum ->
+            faktum.sannsynliggjøresAv.forEach { sannsynliggjøring ->
                 sannsynliggjøringer.getOrPut(
                     sannsynliggjøring.id
-                ) { Sannsynliggjøring(sannsynliggjøring.id, sannsynliggjøring) }.sannsynliggjør(it)
+                ) { Sannsynliggjøring(sannsynliggjøring.id, sannsynliggjøring) }.sannsynliggjør(faktum)
             }
         }
 
@@ -103,7 +103,6 @@ internal class SøkerOppgaveMelding(private val jsonMessage: JsonMessage) : Søk
         faktum["type"].asText(),
         roller = faktum["roller"].map { it.asText() },
         svar = faktum["svar"],
-        sannsynliggjøresAv = faktum["sannsynliggjøresAv"].map { grunnleggendeFaktum(it) },
-        readOnly = faktum["readOnly"].asBoolean()
+        sannsynliggjøresAv = faktum["sannsynliggjøresAv"].map { grunnleggendeFaktum(it) }
     )
 }
