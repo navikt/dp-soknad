@@ -12,5 +12,14 @@ class Sannsynliggjøring(
 
     fun sannsynliggjør() = sannsynliggjør.toSet()
 
-    override fun toString(): String = "Id={$id}, faktum:{$faktum}, sannsynliggjører={$sannsynliggjør}"
+    override fun equals(other: Any?): Boolean = other is Sannsynliggjøring && equals(other)
+    private fun equals(other: Sannsynliggjøring) =
+        this.id == other.id && this.faktum == other.faktum && this.sannsynliggjør == other.sannsynliggjør
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + faktum.hashCode()
+        result = 31 * result + sannsynliggjør.hashCode()
+        return result
+    }
 }
