@@ -8,14 +8,16 @@ import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
+import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository.PersistentSøkerOppgave
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
-class SøknadCachePostgresRepositoryTest {
+class SøknadCacheRepositoryTest {
 
     private val språkVerdi = "NO"
 
@@ -25,7 +27,7 @@ class SøknadCachePostgresRepositoryTest {
             val søknadCache = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource)
             val søknadUuid = UUID.randomUUID()
             lagrePersonMedSøknad(søknadUuid)
-            val søknad = LivssyklusPostgresRepository.PersistentSøkerOppgave(søknad(søknadUuid))
+            val søknad = PersistentSøkerOppgave(søknad(søknadUuid))
             søknadCache.lagre(søknad)
 
             val rehydrertSøknad = søknadCache.hent(søknadUuid)
@@ -41,9 +43,9 @@ class SøknadCachePostgresRepositoryTest {
         withMigratedDb {
             lagrePersonMedSøknad(søknadUuid)
             val søknadCache = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource)
-            søknadCache.lagre(LivssyklusPostgresRepository.PersistentSøkerOppgave(søknad(søknadUuid)))
+            søknadCache.lagre(PersistentSøkerOppgave(søknad(søknadUuid)))
             søknadCache.lagre(
-                LivssyklusPostgresRepository.PersistentSøkerOppgave(
+                PersistentSøkerOppgave(
                     søknad(
                         søknadUuid,
                         seksjoner = "oppdatert første gang"
@@ -51,7 +53,7 @@ class SøknadCachePostgresRepositoryTest {
                 )
             )
             søknadCache.lagre(
-                LivssyklusPostgresRepository.PersistentSøkerOppgave(
+                PersistentSøkerOppgave(
                     søknad(
                         søknadUuid,
                         seksjoner = "oppdatert andre gang"
@@ -86,8 +88,8 @@ class SøknadCachePostgresRepositoryTest {
             val eier2 = "12345678902"
             lagrePersonMedSøknad(søknadUuid1, eier1)
             lagrePersonMedSøknad(søknadUuid2, eier2)
-            val søknad1 = LivssyklusPostgresRepository.PersistentSøkerOppgave(søknad(søknadUuid1, fødselsnummer = eier1))
-            val søknad2 = LivssyklusPostgresRepository.PersistentSøkerOppgave(søknad(søknadUuid2, fødselsnummer = eier2))
+            val søknad1 = PersistentSøkerOppgave(søknad(søknadUuid1, fødselsnummer = eier1))
+            val søknad2 = PersistentSøkerOppgave(søknad(søknadUuid2, fødselsnummer = eier2))
 
             søknadCache.slett(søknadUuid1, eier1)
             assertAntallRader(antallRader = 0)
@@ -100,6 +102,25 @@ class SøknadCachePostgresRepositoryTest {
             søknadCache.slett(søknadUuid1, eier1)
             assertAntallRader(antallRader = 1)
         }
+    }
+
+    @Test
+    fun `Kan oppdatere faktum sist endret`() = withMigratedDb {
+        val søknadCache = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource)
+        val søknadUuid = UUID.randomUUID()
+        val eier = "12345678901"
+        lagrePersonMedSøknad(søknadUuid, eier)
+
+        assertThrows<NotFoundException> { søknadCache.settFaktumSistEndret(søknadUuid) }
+        assertThrows<NotFoundException> { søknadCache.hentFaktumSistEndret(søknadUuid) }
+
+        val søknad = PersistentSøkerOppgave(søknad(søknadUuid, fødselsnummer = eier))
+        søknadCache.lagre(søknad)
+        val faktumFørstEndret = søknadCache.hentFaktumSistEndret(søknadUuid)
+        søknadCache.settFaktumSistEndret(søknadUuid)
+        val faktumSistEndret = søknadCache.hentFaktumSistEndret(søknadUuid)
+
+        assertTrue(faktumFørstEndret < faktumSistEndret)
     }
 
     private fun assertAntallRader(antallRader: Int) {

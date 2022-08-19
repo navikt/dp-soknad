@@ -1,14 +1,13 @@
 package no.nav.dagpenger.soknad.sletterutine
 
+import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type
-import java.time.LocalDateTime
 import javax.sql.DataSource
 
 interface VakmesterLivssyklusRepository {
-    fun slettPåbegynteSøknaderEldreEnn(tidspunkt: LocalDateTime): Int
+    fun slettPåbegynteSøknaderEldreEnn(antallDager: Int)
 }
 
 class VaktmesterPostgresRepository(private val dataSource: DataSource) : VakmesterLivssyklusRepository {
@@ -16,28 +15,51 @@ class VaktmesterPostgresRepository(private val dataSource: DataSource) : Vakmest
         private val låseNøkkel = 123123
     }
 
-    override fun slettPåbegynteSøknaderEldreEnn(tidspunkt: LocalDateTime): Int {
+    override fun slettPåbegynteSøknaderEldreEnn(antallDager: Int) {
         return try {
             lås()
             using(sessionOf(dataSource)) { session ->
-                session.run(
-                    //language=PostgreSQL
-                    queryOf(
-                        "DELETE FROM soknad_v1 WHERE opprettet<:tidspunkt AND tilstand=:tilstand",
-                        mapOf("tidspunkt" to tidspunkt, "tilstand" to Type.Påbegynt.name)
-                    ).asUpdate
-                )
+                session.transaction { transactionalSession ->
+                    val søknaderSomSkalSlettes = hentSøknaderSomSkalSlettes(transactionalSession, antallDager)
+                    println(søknaderSomSkalSlettes)
+
+                    søknaderSomSkalSlettes.forEach { søknadUuid ->
+                        slettSøknad(transactionalSession, søknadUuid)
+                    }
+                }
             }
         } finally {
             låsOpp()
         }
     }
 
+    private fun hentSøknaderSomSkalSlettes(transactionalSession: TransactionalSession, antallDager: Int) =
+        transactionalSession.run(
+            //language=PostgreSQL
+            queryOf(
+                """
+                SELECT s.uuid
+                FROM soknad_v1 AS s
+                         JOIN soknad_cache AS sc ON s.uuid = sc.uuid
+                    WHERE s.tilstand = 'Påbegynt'
+                    AND sc.faktum_sist_endret < (now() - INTERVAL '$antallDager DAY');
+                """.trimIndent()
+            ).map { row ->
+                row.string("uuid")
+            }.asList
+        )
+
+    private fun slettSøknad(transactionalSession: TransactionalSession, søknadUuid: String) =
+        transactionalSession.run(
+            //language=PostgreSQL
+            queryOf("DELETE FROM soknad_v1 WHERE uuid = ?", søknadUuid).asUpdate
+        )
+
     private fun lås(): Boolean {
         return using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf( //language=PostgreSQL
-                    "SELECT pg_try_advisory_lock(:key)", mapOf("key" to låseNøkkel)
+                    "SELECT PG_TRY_ADVISORY_LOCK(:key)", mapOf("key" to låseNøkkel)
                 ).map { res ->
                     res.boolean("pg_try_advisory_lock")
                 }.asSingle
@@ -49,7 +71,7 @@ class VaktmesterPostgresRepository(private val dataSource: DataSource) : Vakmest
         return using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf( //language=PostgreSQL
-                    "SELECT pg_advisory_unlock(:key)", mapOf("key" to låseNøkkel)
+                    "SELECT PG_ADVISORY_UNLOCK(:key)", mapOf("key" to låseNøkkel)
                 ).map { res ->
                     res.boolean("pg_advisory_unlock")
                 }.asSingle

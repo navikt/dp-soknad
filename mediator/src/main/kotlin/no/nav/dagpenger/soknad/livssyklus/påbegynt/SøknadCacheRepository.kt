@@ -7,6 +7,7 @@ import kotliquery.using
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.postgresql.util.PGobject
+import java.time.ZonedDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -14,6 +15,8 @@ interface SøknadCacheRepository {
     fun lagre(søkerOppgave: SøkerOppgave)
     fun slett(søknadUUID: UUID, eier: String): Boolean
     fun hent(søknadUUID: UUID): SøkerOppgave?
+    fun settFaktumSistEndret(søknadUUID: UUID)
+    fun hentFaktumSistEndret(søknadUUID: UUID): ZonedDateTime
 }
 
 class SøknadCachePostgresRepository(private val dataSource: DataSource) : SøknadCacheRepository {
@@ -21,7 +24,7 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
         using(sessionOf(dataSource)) { session ->
             session.transaction { tx ->
                 tx.run(
-                    queryOf(
+                    queryOf( // TODO: Se på opprettet, trenger ikke denne?
                         // language=PostgreSQL
                         """INSERT INTO soknad_cache(uuid, eier, soknad_data)
                                 VALUES (:uuid, :eier, :data)
@@ -47,7 +50,7 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
             session.run(
                 queryOf(
                     // language=PostgreSQL
-                    "SELECT uuid, eier, soknad_data FROM soknad_cache WHERE uuid = :uuid",
+                    "SELECT uuid, eier, soknad_data, faktum_sist_endret FROM soknad_cache WHERE uuid = :uuid",
                     mapOf("uuid" to søknadUUID.toString())
                 ).map { row ->
                     LivssyklusPostgresRepository.PersistentSøkerOppgave(objectMapper.readTree(row.binaryStream("soknad_data")))
@@ -55,6 +58,33 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
             ) ?: throw NotFoundException("Søknad med id '$søknadUUID' ikke funnet")
         }
     }
+
+    override fun settFaktumSistEndret(søknadUUID: UUID) {
+        return using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf(
+                    //language=PostgreSQL
+                    "UPDATE soknad_cache SET faktum_sist_endret = (NOW() AT TIME ZONE 'utc') WHERE uuid = ? RETURNING uuid",
+                    søknadUUID.toString()
+                ).map { row ->
+                    row.string("uuid")
+                }.asSingle
+            ) ?: throw NotFoundException("Søknad med id '$søknadUUID' ikke funnet")
+        }
+    }
+
+    override fun hentFaktumSistEndret(søknadUUID: UUID): ZonedDateTime =
+        using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf(
+                    //language=PostgreSQL
+                    "SELECT faktum_sist_endret FROM soknad_cache WHERE uuid = ?",
+                    søknadUUID.toString()
+                ).map { row ->
+                    row.zonedDateTime("faktum_sist_endret")
+                }.asSingle
+            )
+        } ?: throw NotFoundException("Søknad med id '$søknadUUID' ikke funnet")
 
     override fun slett(søknadUUID: UUID, eier: String): Boolean =
         using(sessionOf(dataSource)) { session ->
