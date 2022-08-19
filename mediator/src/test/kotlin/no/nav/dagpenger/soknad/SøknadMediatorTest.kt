@@ -43,7 +43,7 @@ import java.util.UUID
 
 internal class SøknadMediatorTest {
     companion object {
-        private const val testIdent = "12345678912"
+        private const val testIdent = "12345678913"
         private const val testJournalpostId = "123455PDS"
         private val språkVerdi = "NO"
     }

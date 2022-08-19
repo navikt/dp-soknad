@@ -13,7 +13,7 @@ class Dokumentkrav private constructor(
         val fjernet = this.sannsynliggjøringer.subtract(nyeSannsynliggjøringer)
         this.sannsynliggjøringer.removeAll(fjernet)
         this.sannsynliggjøringer.addAll(nyeSannsynliggjøringer)
-        this.oppdaterDokumentkrav()
+        this.oppdaterKrav()
     }
 
     fun accept(dokumentkravVisitor: DokumentkravVisitor) {
@@ -26,7 +26,7 @@ class Dokumentkrav private constructor(
         )
     }
 
-    private fun oppdaterDokumentkrav() {
+    private fun oppdaterKrav() {
         sannsynliggjøringer.forEach { sannsynliggjøring ->
             if (krav.find { it.id == sannsynliggjøring.id } == null) {
                 krav.add(

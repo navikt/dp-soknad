@@ -21,11 +21,12 @@ class Søknad private constructor(
     private val søknadId: UUID,
     private val person: Person,
     private var tilstand: Tilstand,
+    // @todo: Endre navn fra dokument til journalføringer? (og liste)?
     private var dokument: Dokument?,
     private var journalpostId: String?,
     private var innsendtTidspunkt: ZonedDateTime?,
     private val språk: Språk,
-    private val sannsynliggjøringer: Dokumentkrav
+    private val dokumentkrav: Dokumentkrav
 ) : Aktivitetskontekst {
 
     constructor(søknadId: UUID, språk: Språk, person: Person) : this(
@@ -36,7 +37,7 @@ class Søknad private constructor(
         journalpostId = null,
         innsendtTidspunkt = null,
         språk = språk,
-        sannsynliggjøringer = Dokumentkrav.Ingen
+        dokumentkrav = Dokumentkrav.Ingen
     )
 
     companion object {
@@ -73,7 +74,7 @@ class Søknad private constructor(
                 journalpostId = journalpostId,
                 innsendtTidspunkt = innsendtTidspunkt,
                 språk = språk,
-                sannsynliggjøringer = Dokumentkrav.Ingen
+                dokumentkrav = Dokumentkrav.Ingen
             )
         }
     }
@@ -244,7 +245,7 @@ class Søknad private constructor(
     }
 
     private fun håndter(nyeSannsynliggjøringer: Set<Sannsynliggjøring>) {
-        this.sannsynliggjøringer.håndter(nyeSannsynliggjøringer)
+        this.dokumentkrav.håndter(nyeSannsynliggjøringer)
     }
 
     private object Slettet : Tilstand {
@@ -315,7 +316,7 @@ class Søknad private constructor(
     fun accept(visitor: SøknadVisitor) {
         visitor.visitSøknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt, språk)
         tilstand.accept(visitor)
-        sannsynliggjøringer.accept(visitor)
+        dokumentkrav.accept(visitor)
     }
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst =
