@@ -38,25 +38,6 @@ internal class SøknadTest {
     private val inspektør get() = TestSøknadInspektør(person)
     private val språk = "NO"
 
-    private val dokumentFaktum =
-        Faktum("1", beskrivendeId = "f1", type = "dokument", roller = listOf("søker"), emptyList(), svar = null)
-    private val faktaSomSannsynliggjøres =
-        mutableSetOf(
-            Faktum(
-                "2",
-                beskrivendeId = "f2",
-                type = "boolean",
-                roller = listOf("søker"),
-                emptyList(),
-                svar = true
-            )
-        )
-    private val sannsynliggjøring = Sannsynliggjøring(
-        id = dokumentFaktum.id,
-        faktum = dokumentFaktum,
-        sannsynliggjør = faktaSomSannsynliggjøres
-    )
-
     @BeforeEach
     internal fun setUp() {
         person = Person(testIdent)

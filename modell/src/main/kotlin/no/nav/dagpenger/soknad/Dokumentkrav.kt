@@ -5,8 +5,10 @@ class Dokumentkrav private constructor(
     private val krav: MutableSet<Krav> = mutableSetOf()
 ) {
 
+    constructor() : this(mutableSetOf(), mutableSetOf())
+
     companion object {
-        internal val Ingen = Dokumentkrav()
+        fun rehydrer(sannsynliggjøringer: Set<Sannsynliggjøring>, krav: Set<Krav>) = Dokumentkrav(sannsynliggjøringer.toMutableSet(), krav.toMutableSet())
     }
 
     fun håndter(nyeSannsynliggjøringer: Set<Sannsynliggjøring>) {
@@ -16,15 +18,9 @@ class Dokumentkrav private constructor(
         this.oppdaterKrav()
     }
 
-    fun accept(dokumentkravVisitor: DokumentkravVisitor) {
-        dokumentkravVisitor.visitSannsynliggjøringer(sannsynliggjøringer.toSet())
-        dokumentkravVisitor.visitAktiveKrav(
-            krav.filter(aktive()).toSet()
-        )
-        dokumentkravVisitor.visitInaktiveKrav(
-            krav.filterNot(aktive()).toSet()
-        )
-    }
+    fun aktiveDokumentKrav() = krav.filter(aktive()).toSet()
+    fun inAktiveDokumentKrav() = krav.filterNot(aktive()).toSet()
+    fun sannsynliggjøringer() = sannsynliggjøringer.toSet()
 
     private fun oppdaterKrav() {
         sannsynliggjøringer.forEach { sannsynliggjøring ->
@@ -40,13 +36,22 @@ class Dokumentkrav private constructor(
 
     private fun aktive(): (Krav) -> Boolean =
         { sannsynliggjøringer.any { sannsynliggjøring -> sannsynliggjøring.id == it.id } }
+
+    override fun equals(other: Any?) =
+        other is Dokumentkrav && this.sannsynliggjøringer == other.sannsynliggjøringer && this.krav == other.krav
+
+    override fun hashCode(): Int {
+        var result = sannsynliggjøringer.hashCode()
+        result = 31 * result + krav.hashCode()
+        return result
+    }
 }
 
 data class Krav(
     val id: String,
-    private val beskrivendeId: String,
-    private val fakta: Set<Faktum>,
-    private val filer: Set<String> = emptySet()
+    val beskrivendeId: String,
+    val fakta: Set<Faktum>,
+    val filer: Set<String> = emptySet()
 ) {
     constructor(sannsynliggjøring: Sannsynliggjøring) : this(
         sannsynliggjøring.id,

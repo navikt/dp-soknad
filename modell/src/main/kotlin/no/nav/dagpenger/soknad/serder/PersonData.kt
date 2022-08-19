@@ -1,11 +1,17 @@
 package no.nav.dagpenger.soknad.serder
 
 import no.nav.dagpenger.soknad.Aktivitetslogg
+import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.Faktum
+import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Person
+import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.SpesifikkKontekst
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentData.Companion.rehydrer
+import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.Companion.rehydrer
+import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.FaktumData.Companion.toFaktumData
 import java.time.ZonedDateTime
 import java.util.Locale
 import java.util.UUID
@@ -28,7 +34,8 @@ class PersonData(
                     dokument = it.dokumenter.rehydrer(),
                     journalpostId = it.journalpostId,
                     innsendtTidspunkt = it.innsendtTidspunkt,
-                    språk = it.språkData.somSpråk()
+                    språk = it.språkData.somSpråk(),
+                    dokumentkrav = Dokumentkrav()
                 )
             }.toMutableList()
         }
@@ -40,7 +47,8 @@ class PersonData(
         var dokumenter: List<DokumentData>,
         val journalpostId: String?,
         val innsendtTidspunkt: ZonedDateTime?,
-        val språkData: SpråkData
+        val språkData: SpråkData,
+        var dokumentkrav: DokumentkravData?
     ) {
         class DokumentData(
             val urn: String,
@@ -65,6 +73,66 @@ class PersonData(
         class SpråkData(val verdi: String) {
             constructor(språk: Locale) : this(språk.toLanguageTag())
             fun somSpråk() = Språk(verdi)
+        }
+
+        data class DokumentkravData(
+            val sannsynliggjøringerData: Set<SannsynliggjøringData>,
+            val kravData: Set<KravData>,
+
+        ) {
+
+            companion object {
+                fun DokumentkravData.rehydrer() = Dokumentkrav.rehydrer(emptySet(), emptySet())
+            }
+
+            data class SannsynliggjøringData(
+                val id: String,
+                private val faktum: FaktumData,
+                private val sannsynliggjør: Set<FaktumData>
+            ) {
+                companion object {
+                    fun Sannsynliggjøring.toSannsynliggjøringData() = SannsynliggjøringData(
+                        id = this.id,
+                        faktum = this.faktum().toFaktumData(),
+                        sannsynliggjør = this.sannsynliggjør().map { it.toFaktumData() }.toSet()
+                    )
+                }
+            }
+            data class KravData(
+                val id: String,
+                val beskrivendeId: String,
+                val fakta: Set<FaktumData>,
+                val filer: Set<String> = emptySet()
+            ) {
+                companion object {
+                    fun Krav.toKravdata() = KravData(
+                        id = this.id,
+                        beskrivendeId = this.beskrivendeId,
+                        fakta =  this.fakta.map { it.toFaktumData() }.toSet()
+                    )
+                }
+            }
+
+            data class FaktumData(
+                val id: String,
+                val beskrivendeId: String,
+                val type: String,
+                val roller: List<String>,
+                val sannsynliggjøresAv: List<FaktumData>,
+                val svar: Any?
+            ) {
+                companion object {
+                    fun Faktum.toFaktumData(): FaktumData = FaktumData(
+                        id = this.id,
+                        beskrivendeId = this.beskrivendeId,
+                        type = this.type,
+                        roller = this.roller,
+                        sannsynliggjøresAv =  this.sannsynliggjøresAv.map { it.toFaktumData() },
+                        svar = this.svar
+
+                    )
+                }
+            }
         }
 
         enum class TilstandData {

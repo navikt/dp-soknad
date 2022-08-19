@@ -37,7 +37,7 @@ class Søknad private constructor(
         journalpostId = null,
         innsendtTidspunkt = null,
         språk = språk,
-        dokumentkrav = Dokumentkrav.Ingen
+        dokumentkrav = Dokumentkrav()
     )
 
     companion object {
@@ -55,7 +55,8 @@ class Søknad private constructor(
             dokument: Dokument?,
             journalpostId: String?,
             innsendtTidspunkt: ZonedDateTime?,
-            språk: Språk
+            språk: Språk,
+            dokumentkrav: Dokumentkrav
         ): Søknad {
             val tilstand: Tilstand = when (Tilstand.Type.valueOf(tilstandsType)) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
@@ -74,7 +75,7 @@ class Søknad private constructor(
                 journalpostId = journalpostId,
                 innsendtTidspunkt = innsendtTidspunkt,
                 språk = språk,
-                dokumentkrav = Dokumentkrav.Ingen
+                dokumentkrav = dokumentkrav
             )
         }
     }
@@ -314,9 +315,8 @@ class Søknad private constructor(
     }
 
     fun accept(visitor: SøknadVisitor) {
-        visitor.visitSøknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt, språk)
+        visitor.visitSøknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt, språk, dokumentkrav)
         tilstand.accept(visitor)
-        dokumentkrav.accept(visitor)
     }
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst =
@@ -353,7 +353,7 @@ class Søknad private constructor(
     fun deepEquals(other: Any?): Boolean =
         other is Søknad && other.søknadId == this.søknadId && other.person == this.person &&
             other.tilstand == this.tilstand && other.dokument == this.dokument &&
-            other.journalpostId == this.journalpostId
+            other.journalpostId == this.journalpostId && this.dokumentkrav == other.dokumentkrav
 
     private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: Hendelse) {
         if (nyTilstand == tilstand) {

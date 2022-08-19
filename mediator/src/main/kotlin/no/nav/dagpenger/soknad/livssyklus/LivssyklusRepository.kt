@@ -10,6 +10,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Aktivitetslogg
+import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Sannsynliggjøring
@@ -18,6 +19,9 @@ import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.soknad.serder.PersonData
+import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.FaktumData.Companion.toFaktumData
+import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.KravData.Companion.toKravdata
+import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.SannsynliggjøringData.Companion.toSannsynliggjøringData
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.SpråkData
 import no.nav.dagpenger.soknad.toMap
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
@@ -70,6 +74,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
 
                 lagreAktivitetslogg(transactionalSession, internId, visitor)
 
+                logger.info { "Sletter ${visitor.slettedeSøknader().size} søknader" }
                 visitor.slettedeSøknader().forEach {
                     transactionalSession.run(it.deleteQuery(visitor.ident))
                 }
@@ -197,7 +202,8 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     dokumenter = hentDokumentData(søknadsId),
                     journalpostId = row.stringOrNull("journalpost_id"),
                     innsendtTidspunkt = row.zonedDateTimeOrNull("innsendt_tidspunkt"),
-                    språkData = SpråkData(row.string("spraak"))
+                    språkData = SpråkData(row.string("spraak")),
+                    dokumentkrav = null
                 )
             }.asList
         )
@@ -256,7 +262,7 @@ private fun PersonData.SøknadData.deleteQuery(personIdent: String): UpdateQuery
     ).asUpdate
 }
 
-private fun PersonData.SøknadData.insertDokumentQuery(session: Session) =
+private fun PersonData.SøknadData.insertDokumentQuery(session: TransactionalSession) =
     session.batchPreparedNamedStatement(
         //language=PostgreSQL
         statement = """
@@ -273,12 +279,14 @@ private fun PersonData.SøknadData.insertDokumentQuery(session: Session) =
 
 private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
     lateinit var ident: String
+
     fun søknader() = søknader.filterNot(slettet())
     fun slettedeSøknader() = søknader.filter(slettet())
     private fun slettet(): (PersonData.SøknadData) -> Boolean =
         { it.tilstandType == PersonData.SøknadData.TilstandData.Slettet }
 
     private val søknader: MutableList<PersonData.SøknadData> = mutableListOf()
+
     lateinit var aktivitetslogg: Aktivitetslogg
 
     init {
@@ -304,7 +312,8 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
         dokument: Søknad.Dokument?,
         journalpostId: String?,
         innsendtTidspunkt: ZonedDateTime?,
-        språk: Språk
+        språk: Språk,
+        dokumentkrav: Dokumentkrav,
     ) {
         søknader.add(
             PersonData.SøknadData(
@@ -321,7 +330,8 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
                 dokumenter = dokument.toDokumentData(),
                 journalpostId = journalpostId,
                 innsendtTidspunkt = innsendtTidspunkt,
-                språkData = SpråkData(språk.verdi)
+                språkData = SpråkData(språk.verdi),
+                dokumentkrav = dokumentkrav.toDokumentKravData()
             )
         )
     }
@@ -329,6 +339,13 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
     private fun Søknad.Dokument?.toDokumentData(): List<PersonData.SøknadData.DokumentData> {
         return this?.let { it.varianter.map { v -> PersonData.SøknadData.DokumentData(urn = v.urn) } }
             ?: emptyList()
+    }
+    private fun Dokumentkrav.toDokumentKravData(): PersonData.SøknadData.DokumentkravData {
+        return PersonData.SøknadData.DokumentkravData(
+            sannsynliggjøringerData = this.sannsynliggjøringer().map { sannsynligjøring -> sannsynligjøring.toSannsynliggjøringData() }.toSet(),
+            kravData = (this.aktiveDokumentKrav() + this.inAktiveDokumentKrav()).map { krav -> krav.toKravdata() }
+                .toSet()
+        )
     }
 }
 

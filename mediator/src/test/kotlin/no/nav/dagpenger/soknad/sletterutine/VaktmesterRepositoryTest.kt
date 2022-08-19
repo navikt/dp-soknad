@@ -4,6 +4,7 @@ import io.ktor.server.plugins.NotFoundException
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Språk
@@ -60,7 +61,8 @@ internal class VaktmesterRepositoryTest {
             dokument = null,
             journalpostId = "journalpostid",
             innsendtTidspunkt = ZonedDateTime.now(),
-            språk = språk
+            språk = språk,
+            Dokumentkrav()
         )
 
     private fun påbegyntGammelSøknad(påbegyntSøknadGammel: UUID, person: Person) =
@@ -71,7 +73,8 @@ internal class VaktmesterRepositoryTest {
             dokument = null,
             journalpostId = "1456",
             innsendtTidspunkt = ZonedDateTime.now(),
-            språk = språk
+            språk = språk,
+            Dokumentkrav()
         )
 }
 

@@ -1,6 +1,8 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.PersonObserver.SøknadEndretTilstandEvent
+import java.time.ZonedDateTime
+import java.util.UUID
 
 class TestPersonObserver : PersonObserver {
 
@@ -33,15 +35,18 @@ class TestPersonVisitor(person: Person) : PersonVisitor {
     fun aktiveDokumentkrav(): Set<Krav> = aktiveKrav.toSet()
     fun inaktiveDokumentkrav(): Set<Krav> = inaktiveKrav.toSet()
 
-    override fun visitSannsynliggjøringer(sannsynliggjøringer: Set<Sannsynliggjøring>) {
-        this.sannsynliggjøringer.addAll(sannsynliggjøringer)
-    }
-
-    override fun visitAktiveKrav(krav: Set<Krav>) {
-        this.aktiveKrav.addAll(krav)
-    }
-
-    override fun visitInaktiveKrav(krav: Set<Krav>) {
-        this.inaktiveKrav.addAll(krav)
+    override fun visitSøknad(
+        søknadId: UUID,
+        person: Person,
+        tilstand: Søknad.Tilstand,
+        dokument: Søknad.Dokument?,
+        journalpostId: String?,
+        innsendtTidspunkt: ZonedDateTime?,
+        språk: Språk,
+        dokumentkrav: Dokumentkrav
+    ) {
+        this.sannsynliggjøringer.addAll(dokumentkrav.sannsynliggjøringer())
+        this.aktiveKrav.addAll(dokumentkrav.aktiveDokumentKrav())
+        this.inaktiveKrav.addAll(dokumentkrav.inAktiveDokumentKrav())
     }
 }
