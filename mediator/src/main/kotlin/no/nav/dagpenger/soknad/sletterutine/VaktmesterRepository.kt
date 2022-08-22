@@ -4,6 +4,7 @@ import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import javax.sql.DataSource
 
 interface VakmesterLivssyklusRepository {
@@ -21,7 +22,6 @@ class VaktmesterPostgresRepository(private val dataSource: DataSource) : Vakmest
             using(sessionOf(dataSource)) { session ->
                 session.transaction { transactionalSession ->
                     val søknaderSomSkalSlettes = hentSøknaderSomSkalSlettes(transactionalSession, antallDager)
-                    println(søknaderSomSkalSlettes)
 
                     søknaderSomSkalSlettes.forEach { søknadUuid ->
                         slettSøknad(transactionalSession, søknadUuid)
@@ -41,7 +41,7 @@ class VaktmesterPostgresRepository(private val dataSource: DataSource) : Vakmest
                 SELECT s.uuid
                 FROM soknad_v1 AS s
                          JOIN soknad_cache AS sc ON s.uuid = sc.uuid
-                    WHERE s.tilstand = 'Påbegynt'
+                    WHERE s.tilstand = '${Påbegynt.name}'
                     AND sc.faktum_sist_endret < (now() - INTERVAL '$antallDager DAY');
                 """.trimIndent()
             ).map { row ->
