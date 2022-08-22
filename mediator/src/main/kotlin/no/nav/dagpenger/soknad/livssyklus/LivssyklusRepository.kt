@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.livssyklus
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import kotliquery.Session
@@ -19,7 +20,6 @@ import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.soknad.serder.PersonData
-import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.FaktumData.Companion.toFaktumData
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.KravData.Companion.toKravdata
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.SannsynliggjøringData.Companion.toSannsynliggjøringData
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.SpråkData
@@ -70,7 +70,8 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
         val visitor = PersonPersistenceVisitor(person)
         using(sessionOf(dataSource)) { session ->
             session.transaction { transactionalSession ->
-                val internId = hentInternPersonId(transactionalSession, person) ?: lagrePerson(transactionalSession, visitor)!!
+                val internId =
+                    hentInternPersonId(transactionalSession, person) ?: lagrePerson(transactionalSession, visitor)!!
 
                 lagreAktivitetslogg(transactionalSession, internId, visitor)
 
@@ -84,6 +85,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                 visitor.søknader().forEach {
                     it.insertDokumentQuery(transactionalSession)
                 }
+                visitor.søknader().insertDokumentkrav(transactionalSession)
             }
         }
     }
@@ -203,11 +205,60 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     journalpostId = row.stringOrNull("journalpost_id"),
                     innsendtTidspunkt = row.zonedDateTimeOrNull("innsendt_tidspunkt"),
                     språkData = SpråkData(row.string("spraak")),
-                    dokumentkrav = null
+                    dokumentkrav = PersonData.SøknadData.DokumentkravData(
+                        this.hentSannsynliggjøringer(søknadsId), this.hentDokumentKrav(søknadsId)
+                    )
                 )
             }.asList
         )
     }
+
+    private fun Session.hentSannsynliggjøringer(søknadsId: UUID): Set<PersonData.SøknadData.DokumentkravData.SannsynliggjøringData> =
+        this.run(
+            // language=PostgreSQL
+            queryOf(
+                """
+                SELECT faktum_id, faktum, sannsynliggjoer FROM sannsynliggjoering_v1 WHERE soknad_uuid = :soknad_uuid
+                """.trimIndent(),
+                mapOf("soknad_uuid" to søknadsId.toString())
+            ).map { row ->
+
+                PersonData.SøknadData.DokumentkravData.SannsynliggjøringData(
+                    id = row.string("faktum_id"),
+                    faktum = objectMapper.readValue(
+                        row.binaryStream("faktum"),
+                        PersonData.SøknadData.DokumentkravData.FaktumData::class.java
+                    ),
+                    sannsynliggjør = objectMapper.readValue(
+                        row.binaryStream("sannsynliggjoer"),
+                        object : TypeReference<Set<PersonData.SøknadData.DokumentkravData.FaktumData>>() {}
+                    )
+                )
+            }.asList
+        ).toSet()
+
+    private fun Session.hentDokumentKrav(søknadsId: UUID): Set<PersonData.SøknadData.DokumentkravData.KravData> =
+        this.run(
+            // language=PostgreSQL
+            queryOf(
+                """
+                  SELECT faktum_id, beskrivende_id, fakta FROM dokumentkrav_v1 WHERE soknad_uuid = :soknad_uuid
+                """.trimIndent(),
+                mapOf(
+                    "soknad_uuid" to søknadsId.toString()
+                )
+            ).map { row ->
+                PersonData.SøknadData.DokumentkravData.KravData(
+                    id = row.string("faktum_id"),
+                    beskrivendeId = row.string("beskrivende_id"),
+                    fakta = objectMapper.readValue(
+                        row.binaryStream("fakta"),
+                        object : TypeReference<Set<PersonData.SøknadData.DokumentkravData.FaktumData>>() {}
+                    ),
+                    filer = emptySet()
+                )
+            }.asList
+        ).toSet()
 
     internal class PersistentSøkerOppgave(private val søknad: JsonNode) : SøkerOppgave {
         override fun søknadUUID(): UUID = UUID.fromString(søknad[SøkerOppgave.Keys.SØKNAD_UUID].asText())
@@ -226,6 +277,64 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
             TODO("not implemented")
         }
     }
+}
+
+private fun List<PersonData.SøknadData>.insertDokumentkrav(transactionalSession: TransactionalSession) =
+    this.map {
+        it.dokumentkrav.sannsynliggjøringerData.insertSannsynliggjøringer(it.søknadsId, transactionalSession)
+    } + this.map {
+        it.dokumentkrav.kravData.insertKravData(it.søknadsId, transactionalSession)
+    }
+
+private fun Set<PersonData.SøknadData.DokumentkravData.KravData>.insertKravData(
+    søknadsId: UUID,
+    transactionalSession: TransactionalSession
+) {
+    transactionalSession.batchPreparedNamedStatement(
+        // language=PostgreSQL
+        statement = """
+            INSERT INTO dokumentkrav_v1(faktum_id, beskrivende_id, soknad_uuid, fakta)
+            VALUES (:faktum_id, :beskrivende_id, :soknad_uuid, :fakta)
+        """.trimIndent(),
+        params = map {
+            mapOf<String, Any?>(
+                "faktum_id" to it.id,
+                "soknad_uuid" to søknadsId,
+                "beskrivende_id" to it.beskrivendeId,
+                "fakta" to PGobject().apply {
+                    type = "jsonb"
+                    value = objectMapper.writeValueAsString(it.fakta)
+                }
+            )
+        }
+    )
+}
+
+private fun Set<PersonData.SøknadData.DokumentkravData.SannsynliggjøringData>.insertSannsynliggjøringer(
+    søknadsId: UUID,
+    transactionalSession: TransactionalSession
+) {
+    transactionalSession.batchPreparedNamedStatement(
+        // language=PostgreSQL
+        statement = """
+            INSERT INTO sannsynliggjoering_v1(faktum_id, soknad_uuid, faktum, sannsynliggjoer)
+            VALUES (:faktum_id, :soknad_uuid, :faktum, :sannsynliggjoer)
+        """.trimIndent(),
+        params = map {
+            mapOf<String, Any?>(
+                "faktum_id" to it.id,
+                "soknad_uuid" to søknadsId,
+                "faktum" to PGobject().apply {
+                    type = "jsonb"
+                    value = objectMapper.writeValueAsString(it.faktum)
+                },
+                "sannsynliggjoer" to PGobject().apply {
+                    type = "jsonb"
+                    value = objectMapper.writeValueAsString(it.sannsynliggjør)
+                }
+            )
+        }
+    )
 }
 
 private fun List<PersonData.SøknadData>.insertQuery(personIdent: String, session: Session) =
@@ -340,9 +449,11 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
         return this?.let { it.varianter.map { v -> PersonData.SøknadData.DokumentData(urn = v.urn) } }
             ?: emptyList()
     }
+
     private fun Dokumentkrav.toDokumentKravData(): PersonData.SøknadData.DokumentkravData {
         return PersonData.SøknadData.DokumentkravData(
-            sannsynliggjøringerData = this.sannsynliggjøringer().map { sannsynligjøring -> sannsynligjøring.toSannsynliggjøringData() }.toSet(),
+            sannsynliggjøringerData = this.sannsynliggjøringer()
+                .map { sannsynligjøring -> sannsynligjøring.toSannsynliggjøringData() }.toSet(),
             kravData = (this.aktiveDokumentKrav() + this.inAktiveDokumentKrav()).map { krav -> krav.toKravdata() }
                 .toSet()
         )

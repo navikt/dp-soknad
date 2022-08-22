@@ -10,7 +10,6 @@ import no.nav.dagpenger.soknad.SpesifikkKontekst
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentData.Companion.rehydrer
-import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.Companion.rehydrer
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.FaktumData.Companion.toFaktumData
 import java.time.ZonedDateTime
 import java.util.Locale
@@ -35,7 +34,7 @@ class PersonData(
                     journalpostId = it.journalpostId,
                     innsendtTidspunkt = it.innsendtTidspunkt,
                     språk = it.språkData.somSpråk(),
-                    dokumentkrav = Dokumentkrav()
+                    dokumentkrav = it.dokumentkrav.rehydrer()
                 )
             }.toMutableList()
         }
@@ -48,7 +47,7 @@ class PersonData(
         val journalpostId: String?,
         val innsendtTidspunkt: ZonedDateTime?,
         val språkData: SpråkData,
-        var dokumentkrav: DokumentkravData?
+        var dokumentkrav: DokumentkravData
     ) {
         class DokumentData(
             val urn: String,
@@ -72,6 +71,7 @@ class PersonData(
 
         class SpråkData(val verdi: String) {
             constructor(språk: Locale) : this(språk.toLanguageTag())
+
             fun somSpråk() = Språk(verdi)
         }
 
@@ -80,16 +80,22 @@ class PersonData(
             val kravData: Set<KravData>,
 
         ) {
-
-            companion object {
-                fun DokumentkravData.rehydrer() = Dokumentkrav.rehydrer(emptySet(), emptySet())
-            }
+            fun rehydrer(): Dokumentkrav = Dokumentkrav(
+                sannsynliggjøringer = sannsynliggjøringerData.map { it.rehydrer() }.toMutableSet(),
+                krav = kravData.map { it.rehydrer() }.toMutableSet()
+            )
 
             data class SannsynliggjøringData(
                 val id: String,
-                private val faktum: FaktumData,
-                private val sannsynliggjør: Set<FaktumData>
+                val faktum: FaktumData,
+                val sannsynliggjør: Set<FaktumData>
             ) {
+                fun rehydrer() = Sannsynliggjøring(
+                    id = this.id,
+                    faktum = this.faktum.rehydrer(),
+                    sannsynliggjør = this.sannsynliggjør.map { it.rehydrer() }.toMutableSet()
+                )
+
                 companion object {
                     fun Sannsynliggjøring.toSannsynliggjøringData() = SannsynliggjøringData(
                         id = this.id,
@@ -98,17 +104,25 @@ class PersonData(
                     )
                 }
             }
+
             data class KravData(
                 val id: String,
                 val beskrivendeId: String,
                 val fakta: Set<FaktumData>,
                 val filer: Set<String> = emptySet()
             ) {
+                fun rehydrer() = Krav(
+                    id = this.id,
+                    beskrivendeId = this.beskrivendeId,
+                    fakta = this.fakta.map { it.rehydrer() }.toSet(),
+                    filer = emptySet()
+                )
+
                 companion object {
                     fun Krav.toKravdata() = KravData(
                         id = this.id,
                         beskrivendeId = this.beskrivendeId,
-                        fakta =  this.fakta.map { it.toFaktumData() }.toSet()
+                        fakta = this.fakta.map { it.toFaktumData() }.toSet()
                     )
                 }
             }
@@ -121,13 +135,21 @@ class PersonData(
                 val sannsynliggjøresAv: List<FaktumData>,
                 val svar: Any?
             ) {
+                fun rehydrer(): Faktum = Faktum(
+                    id = this.id,
+                    beskrivendeId = this.beskrivendeId,
+                    type = this.type,
+                    roller = this.roller,
+                    sannsynliggjøresAv = this.sannsynliggjøresAv.map { it.rehydrer() }, svar = this.svar
+                )
+
                 companion object {
                     fun Faktum.toFaktumData(): FaktumData = FaktumData(
                         id = this.id,
                         beskrivendeId = this.beskrivendeId,
                         type = this.type,
                         roller = this.roller,
-                        sannsynliggjøresAv =  this.sannsynliggjøresAv.map { it.toFaktumData() },
+                        sannsynliggjøresAv = this.sannsynliggjøresAv.map { it.toFaktumData() },
                         svar = this.svar
 
                     )
@@ -151,7 +173,6 @@ class PersonData(
             }
         }
     }
-
     data class AktivitetsloggData(
         val aktiviteter: List<AktivitetData>
     ) {
@@ -196,11 +217,13 @@ class PersonData(
                             it.melding,
                             it.tidsstempel
                         )
+
                         Alvorlighetsgrad.WARN -> Aktivitetslogg.Aktivitet.Warn(
                             kontekster,
                             it.melding,
                             it.tidsstempel
                         )
+
                         Alvorlighetsgrad.BEHOV -> Aktivitetslogg.Aktivitet.Behov(
                             Aktivitetslogg.Aktivitet.Behov.Behovtype.valueOf(it.behovtype!!),
                             kontekster,
@@ -208,11 +231,13 @@ class PersonData(
                             it.detaljer,
                             it.tidsstempel
                         )
+
                         Alvorlighetsgrad.ERROR -> Aktivitetslogg.Aktivitet.Error(
                             kontekster,
                             it.melding,
                             it.tidsstempel
                         )
+
                         Alvorlighetsgrad.SEVERE -> Aktivitetslogg.Aktivitet.Severe(
                             kontekster,
                             it.melding,
