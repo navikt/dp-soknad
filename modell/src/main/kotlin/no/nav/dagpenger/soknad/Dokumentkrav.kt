@@ -1,6 +1,6 @@
 package no.nav.dagpenger.soknad
 
-class Dokumentkrav internal constructor(
+class Dokumentkrav private constructor(
     private val sannsynliggjøringer: MutableSet<Sannsynliggjøring> = mutableSetOf(),
     private val krav: MutableSet<Krav> = mutableSetOf()
 ) {

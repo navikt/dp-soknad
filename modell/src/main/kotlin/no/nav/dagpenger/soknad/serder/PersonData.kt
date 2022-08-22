@@ -80,9 +80,9 @@ class PersonData(
             val kravData: Set<KravData>,
 
         ) {
-            fun rehydrer(): Dokumentkrav = Dokumentkrav(
-                sannsynliggjøringer = sannsynliggjøringerData.map { it.rehydrer() }.toMutableSet(),
-                krav = kravData.map { it.rehydrer() }.toMutableSet()
+            fun rehydrer(): Dokumentkrav = Dokumentkrav.rehydrer(
+                sannsynliggjøringer = sannsynliggjøringerData.map { it.rehydrer() }.toSet(),
+                krav = kravData.map { it.rehydrer() }.toSet()
             )
 
             data class SannsynliggjøringData(
