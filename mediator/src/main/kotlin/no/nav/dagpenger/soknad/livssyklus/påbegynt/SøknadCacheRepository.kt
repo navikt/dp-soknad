@@ -24,13 +24,12 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
         using(sessionOf(dataSource)) { session ->
             session.transaction { tx ->
                 tx.run(
-                    queryOf( // TODO: Se på opprettet, trenger ikke denne?
+                    queryOf(
                         // language=PostgreSQL
                         """INSERT INTO soknad_cache(uuid, eier, soknad_data)
                                 VALUES (:uuid, :eier, :data)
                                 ON CONFLICT(uuid, eier) 
-                                DO UPDATE SET soknad_data = :data,
-                                opprettet = (NOW() AT TIME ZONE 'utc')""",
+                                DO UPDATE SET soknad_data = :data""",
                         mapOf(
                             "uuid" to søkerOppgave.søknadUUID(),
                             "eier" to søkerOppgave.eier(),
