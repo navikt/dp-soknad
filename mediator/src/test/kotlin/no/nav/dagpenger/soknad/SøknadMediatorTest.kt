@@ -1,7 +1,6 @@
 package no.nav.dagpenger.soknad
 
 import com.fasterxml.jackson.databind.node.BooleanNode
-import io.ktor.server.plugins.NotFoundException
 import io.mockk.mockk
 import kotliquery.queryOf
 import kotliquery.sessionOf
@@ -34,11 +33,11 @@ import no.nav.helse.rapids_rivers.toUUID
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class SøknadMediatorTest {
@@ -213,8 +212,20 @@ internal class SøknadMediatorTest {
         assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: $tabell")
     }
 
-    private fun assertSøknadCacheInvalidert(søknadUuid: UUID) =
-        assertThrows<NotFoundException> { søknadCacheRepository.hent(søknadUuid) }
+    private fun assertSøknadCacheInvalidert(søknadUuid: UUID) {
+        assertNull(
+            using(sessionOf(PostgresDataSourceBuilder.dataSource)) { session ->
+                session.run(
+                    //language=PostgreSQL
+                    queryOf("SELECT soknad_data FROM soknad_cache WHERE uuid = ?", søknadUuid.toString())
+                        .map { row ->
+                            row.stringOrNull("soknad_data")
+                        }.asSingle
+                )
+            },
+            "Forventet at soknad_data i soknad_cache tabellen er null"
+        )
+    }
 
     private fun søknadId(ident: String = testIdent) = oppdatertInspektør(ident).gjeldendeSøknadId
 

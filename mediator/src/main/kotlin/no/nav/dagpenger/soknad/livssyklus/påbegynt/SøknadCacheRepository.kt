@@ -36,7 +36,7 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
                             "eier" to søkerOppgave.eier(),
                             "data" to PGobject().also {
                                 it.type = "jsonb"
-                                it.value = søkerOppgave.asJson().toString()
+                                it.value = søkerOppgave.asJson()
                             }
                         )
                     ).asUpdate,
