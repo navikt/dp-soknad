@@ -29,7 +29,7 @@ internal class VaktmesterRepositoryTest {
     private val nyPåbegyntSøknadUuid = UUID.randomUUID()
     private val innsendtSøknadUuid = UUID.randomUUID()
     private val testPersonIdent = "12345678910"
-    private val SYV_DAGER = 7
+    private val syvDager = 7
 
     @Test
     fun `Sletter søknader og søknadcache med tilstand påbegynt etter gitt tidsinterval`() = withMigratedDb {
@@ -45,16 +45,21 @@ internal class VaktmesterRepositoryTest {
         }
         livssyklusRepository.lagre(person)
         søknadCacheRepository.lagre(TestSøkerOppgave(gammelPåbegyntSøknadUuid, testPersonIdent, "{}"))
+        søknadCacheRepository.lagre(TestSøkerOppgave(nyPåbegyntSøknadUuid, testPersonIdent, "{}"))
 
         val nå = LocalDateTime.now()
         oppdaterFaktumSistEndret(gammelPåbegyntSøknadUuid, nå.minusDays(8), dataSource)
         oppdaterFaktumSistEndret(innsendtSøknadUuid, nå.minusDays(30), dataSource)
-
-        vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(SYV_DAGER)
+        vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
 
         assertCacheSlettet(gammelPåbegyntSøknadUuid, søknadCacheRepository)
-
         assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, person, livssyklusRepository)
+
+        oppdaterFaktumSistEndret(nyPåbegyntSøknadUuid, nå.minusDays(8), dataSource)
+        vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
+
+        assertCacheSlettet(nyPåbegyntSøknadUuid, søknadCacheRepository)
+        assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 1, person, livssyklusRepository)
     }
 
     private fun assertAtViIkkeSletterForMye(

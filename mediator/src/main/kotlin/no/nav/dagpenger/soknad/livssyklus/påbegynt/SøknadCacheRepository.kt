@@ -13,7 +13,7 @@ import javax.sql.DataSource
 
 interface SøknadCacheRepository {
     fun lagre(søkerOppgave: SøkerOppgave)
-    fun slett(søknadUUID: UUID, eier: String): Boolean
+    fun slettSøknadData(søknadUUID: UUID): Boolean
     fun hent(søknadUUID: UUID): SøkerOppgave?
     fun settFaktumSistEndret(søknadUUID: UUID)
     fun hentFaktumSistEndret(søknadUUID: UUID): ZonedDateTime
@@ -86,12 +86,12 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
             )
         } ?: throw NotFoundException("Søknad med id '$søknadUUID' ikke funnet")
 
-    override fun slett(søknadUUID: UUID, eier: String): Boolean =
+    override fun slettSøknadData(søknadUUID: UUID): Boolean =
         using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf(
                     //language=PostgreSQL
-                    "DELETE FROM soknad_cache WHERE uuid = ? AND eier = ?", søknadUUID.toString(), eier
+                    "UPDATE soknad_cache SET soknad_data = NULL WHERE uuid = ?", søknadUUID.toString()
                 ).asExecute
             )
         }

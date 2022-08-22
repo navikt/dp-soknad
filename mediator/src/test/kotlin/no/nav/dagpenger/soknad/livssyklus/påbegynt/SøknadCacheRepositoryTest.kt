@@ -12,6 +12,7 @@ import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository.Persisten
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -65,7 +66,10 @@ class SøknadCacheRepositoryTest {
 
             assertEquals(søknadUuid, rehydrertSøknad.søknadUUID())
             assertEquals("12345678910", rehydrertSøknad.eier())
-            assertEquals("oppdatert andre gang", rehydrertSøknad.asFrontendformat()[SøkerOppgave.Keys.SEKSJONER].asText())
+            assertEquals(
+                "oppdatert andre gang",
+                rehydrertSøknad.asFrontendformat()[SøkerOppgave.Keys.SEKSJONER].asText()
+            )
         }
     }
 
@@ -91,16 +95,12 @@ class SøknadCacheRepositoryTest {
             val søknad1 = PersistentSøkerOppgave(søknad(søknadUuid1, fødselsnummer = eier1))
             val søknad2 = PersistentSøkerOppgave(søknad(søknadUuid2, fødselsnummer = eier2))
 
-            søknadCache.slett(søknadUuid1, eier1)
-            assertAntallRader(antallRader = 0)
-
             søknadCache.lagre(søknad1)
             søknadCache.lagre(søknad2)
 
-            assertAntallRader(antallRader = 2)
-
-            søknadCache.slett(søknadUuid1, eier1)
-            assertAntallRader(antallRader = 1)
+            assertNotNull(hentSøknadData(søknadUuid1))
+            søknadCache.slettSøknadData(søknadUuid1)
+            // assertNull(hentSøknadData(søknadUuid1))
         }
     }
 
@@ -123,16 +123,16 @@ class SøknadCacheRepositoryTest {
         assertTrue(faktumFørstEndret < faktumSistEndret)
     }
 
-    private fun assertAntallRader(antallRader: Int) {
-        val faktiskeRader = using(sessionOf(PostgresDataSourceBuilder.dataSource)) { session ->
+    private fun hentSøknadData(søknadUuid: UUID) =
+        using(sessionOf(PostgresDataSourceBuilder.dataSource)) { session ->
             session.run(
-                queryOf("select count(1) from soknad_cache").map { row ->
-                    row.int(1)
-                }.asSingle
+                //language=PostgreSQL
+                queryOf("SELECT soknad_data FROM soknad_cache WHERE uuid = ?", søknadUuid.toString())
+                    .map { row ->
+                        row.string("soknad_data")
+                    }.asSingle
             )
         }
-        assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: soknad_cache")
-    }
 
     private fun søknad(søknadUuid: UUID, seksjoner: String = "seksjoner", fødselsnummer: String = "12345678910") =
         objectMapper.readTree(

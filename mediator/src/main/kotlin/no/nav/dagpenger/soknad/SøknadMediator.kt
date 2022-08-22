@@ -99,7 +99,7 @@ internal class SøknadMediator(
         val faktumOppdatertHendelse = FaktumOppdatertHendelse(faktumSvar.søknadUuid(), faktumSvar.eier())
         behandle(faktumOppdatertHendelse) { person ->
             person.håndter(faktumOppdatertHendelse)
-            søknadCacheRepository.slett(faktumSvar.søknadUuid(), faktumSvar.eier())
+            søknadCacheRepository.slettSøknadData(faktumSvar.søknadUuid())
             rapidsConnection.publish(faktumSvar.toJson())
         }
         logger.info { "Sendte faktum svar for ${faktumSvar.søknadUuid()}" }

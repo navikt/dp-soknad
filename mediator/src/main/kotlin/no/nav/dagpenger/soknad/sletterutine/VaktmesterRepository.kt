@@ -22,7 +22,7 @@ class VaktmesterPostgresRepository(private val dataSource: DataSource) : Vakmest
             using(sessionOf(dataSource)) { session ->
                 session.transaction { transactionalSession ->
                     val søknaderSomSkalSlettes = hentSøknaderSomSkalSlettes(transactionalSession, antallDager)
-
+                    println(søknaderSomSkalSlettes)
                     søknaderSomSkalSlettes.forEach { søknadUuid ->
                         slettSøknad(transactionalSession, søknadUuid)
                     }
@@ -50,9 +50,12 @@ class VaktmesterPostgresRepository(private val dataSource: DataSource) : Vakmest
         )
 
     private fun slettSøknad(transactionalSession: TransactionalSession, søknadUuid: String) =
-        transactionalSession.run(
+        transactionalSession.batchPreparedNamedStatement(
             //language=PostgreSQL
-            queryOf("DELETE FROM soknad_v1 WHERE uuid = ?", søknadUuid).asUpdate
+            statement = "DELETE FROM soknad_v1 WHERE uuid = :uuid",
+            params = listOf(
+                mapOf("uuid" to søknadUuid)
+            )
         )
 
     private fun lås(): Boolean {
