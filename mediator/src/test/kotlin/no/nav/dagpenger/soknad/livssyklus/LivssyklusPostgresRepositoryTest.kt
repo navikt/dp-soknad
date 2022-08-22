@@ -14,6 +14,7 @@ import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
+import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository.PersistentSøkerOppgave
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
@@ -32,24 +33,16 @@ import java.util.UUID
 internal class LivssyklusPostgresRepositoryTest {
     private val språk = Språk("NO")
     private val dokumentFaktum =
-        Faktum("1", beskrivendeId = "f1", type = "dokument", roller = listOf("søker"), emptyList(), svar = null)
+        Faktum(faktumJson("1", "f1"))
     private val faktaSomSannsynliggjøres =
         mutableSetOf(
-            Faktum(
-                "2",
-                beskrivendeId = "f2",
-                type = "boolean",
-                roller = listOf("søker"),
-                emptyList(),
-                svar = true
-            )
+            Faktum(faktumJson("2", "f2"))
         )
     private val sannsynliggjøring = Sannsynliggjøring(
         id = dokumentFaktum.id,
         faktum = dokumentFaktum,
         sannsynliggjør = faktaSomSannsynliggjøres
     )
-
     private val krav = Krav(
         sannsynliggjøring
     )
@@ -123,7 +116,6 @@ internal class LivssyklusPostgresRepositoryTest {
                 val personFraDatabase = it.hent("12345678910", true)
                 assertNotNull(personFraDatabase)
                 assertEquals(originalPerson, personFraDatabase)
-
                 val fraDatabaseVisitor = TestPersonVisitor(personFraDatabase)
                 val originalVisitor = TestPersonVisitor(originalPerson)
                 val søknaderFraDatabase = fraDatabaseVisitor.søknader
@@ -204,7 +196,6 @@ internal class LivssyklusPostgresRepositoryTest {
                 it.lagre(originalPerson)
                 val personFraDatabase = it.hent("12345678910")
                 assertNotNull(personFraDatabase)
-
                 val søknaderFraDatabase = TestPersonVisitor(personFraDatabase).søknader
                 assertEquals(1, søknaderFraDatabase.size)
             }
@@ -215,7 +206,6 @@ internal class LivssyklusPostgresRepositoryTest {
     fun `Fødselsnummer skal ikke komme med som en del av frontendformatet, men skal fortsatt være en del av søknaden`() {
         val søknadJson = søknad(UUID.randomUUID())
         val søknad = PersistentSøkerOppgave(søknadJson)
-
         val frontendformat = søknad.asFrontendformat()
         assertFalse(frontendformat.contains(SøkerOppgave.Keys.FØDSELSNUMMER))
         assertNotNull(søknad.eier())
@@ -229,7 +219,6 @@ internal class LivssyklusPostgresRepositoryTest {
         val dokumenter: MutableMap<UUID, Søknad.Dokument> = mutableMapOf()
         val dokumentkrav: MutableMap<UUID, Dokumentkrav> = mutableMapOf()
         lateinit var søknader: List<Søknad>
-
         lateinit var aktivitetslogg: Aktivitetslogg
 
         init {

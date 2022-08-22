@@ -31,7 +31,6 @@ private const val testIdent = "12345678912"
 private const val testJournalpostId = "J123"
 
 internal class SøknadTest {
-
     private lateinit var person: Person
     private lateinit var personObserver: TestPersonObserver
     private lateinit var plantUmlObservatør: PlantUmlObservatør
@@ -76,7 +75,6 @@ internal class SøknadTest {
             )
         )
         håndterArkiverbarSøknad()
-
         val dokumenter = listOf(
             Søknad.Dokument(
                 varianter = listOf(
@@ -118,71 +116,6 @@ internal class SøknadTest {
 
             override fun visitPerson(ident: String) {
                 assertEquals(testIdent, ident)
-            }
-        }
-    }
-
-    @Test
-    fun `håndtere sannsynliggjøringer og dokumentkrav`() {
-        håndterØnskeOmNySøknadHendelse()
-        håndterNySøknadOpprettet()
-        håndterFaktumOppdatering()
-        håndterSøkerOppgaveHendelse()
-        with(TestPersonVisitor(person).sannsynliggjøringer()) {
-            assertEquals(
-                1, this.size
-            )
-            assertEquals(sannsynliggjøring, this.first())
-        }
-        val nyttDokumentkrav = dokumentFaktum.copy("2")
-        val nySannsynliggjøring = Sannsynliggjøring(nyttDokumentkrav.id, nyttDokumentkrav, faktaSomSannsynliggjøres)
-        håndterSøkerOppgaveHendelse(
-            sannsynliggjøringer = setOf(
-                nySannsynliggjøring, sannsynliggjøring
-            )
-        )
-
-        with(TestPersonVisitor(person)) {
-
-            with(this.sannsynliggjøringer()) {
-                assertEquals(
-                    2, this.size
-                )
-                assertTrue(this.contains(sannsynliggjøring))
-                assertTrue(this.contains(nySannsynliggjøring))
-            }
-            with(this.aktiveDokumentkrav()) {
-                assertEquals(
-                    2, this.size
-                )
-            }
-        }
-
-        håndterSøkerOppgaveHendelse(
-            sannsynliggjøringer = setOf(
-                nySannsynliggjøring
-            )
-        )
-
-        with(TestPersonVisitor(person)) {
-
-            with(this.sannsynliggjøringer()) {
-                assertEquals(
-                    1, this.size
-                )
-
-                assertTrue(this.contains(nySannsynliggjøring))
-            }
-            with(this.aktiveDokumentkrav()) {
-                assertEquals(
-                    1, this.size
-                )
-            }
-
-            with(this.inaktiveDokumentkrav()) {
-                assertEquals(
-                    1, this.size
-                )
             }
         }
     }
@@ -249,10 +182,11 @@ internal class SøknadTest {
         person.håndter(FaktumOppdatertHendelse(inspektør.søknadId, testIdent))
     }
 
-    private fun håndterSøkerOppgaveHendelse(sannsynliggjøringer: Set<Sannsynliggjøring> = setOf(sannsynliggjøring)) {
+    private fun håndterSøkerOppgaveHendelse(sannsynliggjøringer: Set<Sannsynliggjøring> = emptySet()) {
         person.håndter(
             SøkeroppgaveHendelse(
-                inspektør.søknadId, testIdent,
+                inspektør.søknadId,
+                testIdent,
                 sannsynliggjøringer
             )
         )

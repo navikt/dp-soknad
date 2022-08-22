@@ -96,12 +96,5 @@ internal class SøkerOppgaveMelding(private val jsonMessage: JsonMessage) : Søk
         return sannsynliggjøringer.values.toSet()
     }
 
-    private fun grunnleggendeFaktum(faktum: JsonNode): Faktum = Faktum(
-        faktum["id"].asText(),
-        faktum["beskrivendeId"].asText(),
-        faktum["type"].asText(),
-        roller = faktum["roller"].map { it.asText() },
-        svar = faktum["svar"],
-        sannsynliggjøresAv = faktum["sannsynliggjøresAv"].map { grunnleggendeFaktum(it) }
-    )
+    private fun grunnleggendeFaktum(faktum: JsonNode): Faktum = Faktum(faktum)
 }

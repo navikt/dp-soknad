@@ -1,31 +1,39 @@
 package no.nav.dagpenger.soknad
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-internal val dokumentFaktum =
-    Faktum("1", beskrivendeId = "f1", type = "dokument", roller = listOf("søker"), emptyList(), svar = null)
-internal val faktaSomSannsynliggjøres =
-    mutableSetOf(
-        Faktum(
-            "2",
-            beskrivendeId = "f2",
-            type = "boolean",
-            roller = listOf("søker"),
-            emptyList(),
-            svar = true
-        )
-    )
-internal val sannsynliggjøring = Sannsynliggjøring(
-    id = dokumentFaktum.id,
-    faktum = dokumentFaktum,
-    sannsynliggjør = faktaSomSannsynliggjøres
+internal fun faktumJson(id: String, beskrivendeId: String) = jacksonObjectMapper().readTree(
+    """{
+    |  "id": "$id",
+    |  "type": "boolean",
+    |  "beskrivendeId": "$beskrivendeId",
+    |  "svar": true,
+    |  "roller": [
+    |    "søker"
+    |  ],
+    |  "gyldigeValg": [
+    |    "f1.svar.ja",
+    |    "f1.svar.nei"
+    |  ],
+    |  "sannsynliggjøresAv": [],
+    |  "readOnly": false
+    |}
+    """.trimMargin()
 )
 
 internal class DokumentkravTest {
+    private val dokumentFaktum = Faktum(faktumJson(id = "1", beskrivendeId = "f1"))
+    private val faktaSomSannsynliggjøres = mutableSetOf(Faktum(faktumJson(id = "2", beskrivendeId = "f2")))
+    private val sannsynliggjøring = Sannsynliggjøring(
+        id = dokumentFaktum.id,
+        faktum = dokumentFaktum,
+        sannsynliggjør = faktaSomSannsynliggjøres
+    )
 
     @Test
     fun `håndtere dokumentkrav som et speil fra sannsynliggjøringer`() {
@@ -52,8 +60,7 @@ internal class DokumentkravTest {
         }
 
         assertTrue(dokumentkrav.inAktiveDokumentKrav().isEmpty())
-
-        val nyttDokumentkrav = dokumentFaktum.copy(id = "3", beskrivendeId = "f3")
+        val nyttDokumentkrav = Faktum(faktumJson(id = "3", beskrivendeId = "f3"))
         val nySannsynliggjøring = Sannsynliggjøring(nyttDokumentkrav.id, nyttDokumentkrav, faktaSomSannsynliggjøres)
 
         dokumentkrav.håndter(setOf(sannsynliggjøring, nySannsynliggjøring))
@@ -127,8 +134,7 @@ internal class DokumentkravTest {
         assertNotEquals(Dokumentkrav(), dokumentkrav)
         assertNotEquals(dokumentkrav, Any())
         assertNotEquals(dokumentkrav, null)
-
-        val nyttDokumentkrav = dokumentFaktum.copy(id = "3", beskrivendeId = "f3")
+        val nyttDokumentkrav = Faktum(faktumJson(id = "3", beskrivendeId = "f3"))
         val nySannsynliggjøring = Sannsynliggjøring(nyttDokumentkrav.id, nyttDokumentkrav, faktaSomSannsynliggjøres)
         assertNotEquals(
             Dokumentkrav().also {

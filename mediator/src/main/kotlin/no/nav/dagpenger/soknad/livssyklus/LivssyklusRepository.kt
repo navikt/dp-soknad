@@ -1,6 +1,5 @@
 package no.nav.dagpenger.soknad.livssyklus
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import kotliquery.Session
@@ -206,7 +205,8 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     innsendtTidspunkt = row.zonedDateTimeOrNull("innsendt_tidspunkt"),
                     språkData = SpråkData(row.string("spraak")),
                     dokumentkrav = PersonData.SøknadData.DokumentkravData(
-                        this.hentSannsynliggjøringer(søknadsId), this.hentDokumentKrav(søknadsId)
+                        this.hentSannsynliggjøringer(søknadsId),
+                        this.hentDokumentKrav(søknadsId)
                     )
                 )
             }.asList
@@ -215,32 +215,25 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
 
     private fun Session.hentSannsynliggjøringer(søknadsId: UUID): Set<PersonData.SøknadData.DokumentkravData.SannsynliggjøringData> =
         this.run(
-            // language=PostgreSQL
             queryOf(
+                // language=PostgreSQL
                 """
                 SELECT faktum_id, faktum, sannsynliggjoer FROM sannsynliggjoering_v1 WHERE soknad_uuid = :soknad_uuid
                 """.trimIndent(),
                 mapOf("soknad_uuid" to søknadsId.toString())
             ).map { row ->
-
                 PersonData.SøknadData.DokumentkravData.SannsynliggjøringData(
                     id = row.string("faktum_id"),
-                    faktum = objectMapper.readValue(
-                        row.binaryStream("faktum"),
-                        PersonData.SøknadData.DokumentkravData.FaktumData::class.java
-                    ),
-                    sannsynliggjør = objectMapper.readValue(
-                        row.binaryStream("sannsynliggjoer"),
-                        object : TypeReference<Set<PersonData.SøknadData.DokumentkravData.FaktumData>>() {}
-                    )
+                    faktum = objectMapper.readTree(row.binaryStream("faktum")),
+                    sannsynliggjør = objectMapper.readTree(row.binaryStream("sannsynliggjoer")).toList()
                 )
             }.asList
         ).toSet()
 
     private fun Session.hentDokumentKrav(søknadsId: UUID): Set<PersonData.SøknadData.DokumentkravData.KravData> =
         this.run(
-            // language=PostgreSQL
             queryOf(
+                // language=PostgreSQL
                 """
                   SELECT faktum_id, beskrivende_id, fakta FROM dokumentkrav_v1 WHERE soknad_uuid = :soknad_uuid
                 """.trimIndent(),
@@ -251,10 +244,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                 PersonData.SøknadData.DokumentkravData.KravData(
                     id = row.string("faktum_id"),
                     beskrivendeId = row.string("beskrivende_id"),
-                    fakta = objectMapper.readValue(
-                        row.binaryStream("fakta"),
-                        object : TypeReference<Set<PersonData.SøknadData.DokumentkravData.FaktumData>>() {}
-                    ),
+                    fakta = objectMapper.readTree(row.binaryStream("fakta")).toSet(),
                     filer = emptySet()
                 )
             }.asList
@@ -330,7 +320,7 @@ private fun Set<PersonData.SøknadData.DokumentkravData.SannsynliggjøringData>.
                 },
                 "sannsynliggjoer" to PGobject().apply {
                     type = "jsonb"
-                    value = objectMapper.writeValueAsString(it.sannsynliggjør)
+                    value = objectMapper.writeValueAsString(it.sannsynliggjør.map { faktum -> faktum })
                 }
             )
         }
@@ -395,7 +385,6 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
         { it.tilstandType == PersonData.SøknadData.TilstandData.Slettet }
 
     private val søknader: MutableList<PersonData.SøknadData> = mutableListOf()
-
     lateinit var aktivitetslogg: Aktivitetslogg
 
     init {
@@ -422,7 +411,7 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
         journalpostId: String?,
         innsendtTidspunkt: ZonedDateTime?,
         språk: Språk,
-        dokumentkrav: Dokumentkrav,
+        dokumentkrav: Dokumentkrav
     ) {
         søknader.add(
             PersonData.SøknadData(

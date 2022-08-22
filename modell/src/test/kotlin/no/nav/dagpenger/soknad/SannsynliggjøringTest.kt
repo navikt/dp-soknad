@@ -5,12 +5,13 @@ import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
 
 internal class SannsynliggjøringTest {
-    val dokfaktum =
-        Faktum("1", beskrivendeId = "f1", type = "dokument", roller = listOf("søker"), emptyList(), svar = null)
-    val faktumSomSannsynliggjøres =
-        Faktum("2", beskrivendeId = "f2", type = "boolean", roller = listOf("søker"), emptyList(), svar = true)
-    val sannsynliggjøring = Sannsynliggjøring(
-        "1", dokfaktum,
+    private val dokfaktum =
+        Faktum(faktumJson("1", "f1"))
+    private val faktumSomSannsynliggjøres =
+        Faktum(faktumJson("2", "f2"))
+    private val sannsynliggjøring = Sannsynliggjøring(
+        "1",
+        dokfaktum,
         sannsynliggjør = mutableSetOf(
             faktumSomSannsynliggjøres
         )
@@ -21,7 +22,8 @@ internal class SannsynliggjøringTest {
         assertEquals(sannsynliggjøring, sannsynliggjøring)
         assertEquals(
             Sannsynliggjøring(
-                "1", dokfaktum,
+                "1",
+                dokfaktum,
                 sannsynliggjør = mutableSetOf(
                     faktumSomSannsynliggjøres
                 )
@@ -31,7 +33,8 @@ internal class SannsynliggjøringTest {
 
         assertNotEquals(
             Sannsynliggjøring(
-                "2", dokfaktum,
+                "2",
+                dokfaktum,
                 sannsynliggjør = mutableSetOf(
                     faktumSomSannsynliggjøres
                 )
@@ -47,7 +50,8 @@ internal class SannsynliggjøringTest {
         assertEquals(sannsynliggjøring.hashCode(), sannsynliggjøring.hashCode())
         assertEquals(
             Sannsynliggjøring(
-                "1", dokfaktum,
+                "1",
+                dokfaktum,
                 sannsynliggjør = mutableSetOf(
                     faktumSomSannsynliggjøres
                 )

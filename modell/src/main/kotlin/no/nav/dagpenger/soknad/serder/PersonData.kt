@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.serder
 
+import com.fasterxml.jackson.databind.JsonNode
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
@@ -10,7 +11,6 @@ import no.nav.dagpenger.soknad.SpesifikkKontekst
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentData.Companion.rehydrer
-import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.FaktumData.Companion.toFaktumData
 import java.time.ZonedDateTime
 import java.util.Locale
 import java.util.UUID
@@ -23,7 +23,7 @@ class PersonData(
     fun createPerson(): Person {
         return Person.rehydrer(
             ident = this.ident,
-            aktivitetslogg = this.aktivitetsLogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
+            aktivitetslogg = this.aktivitetsLogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg()
         ) { p ->
             søknader.map {
                 Søknad.rehydrer(
@@ -50,7 +50,7 @@ class PersonData(
         var dokumentkrav: DokumentkravData
     ) {
         class DokumentData(
-            val urn: String,
+            val urn: String
         ) {
             companion object {
                 fun List<DokumentData>.rehydrer(): Søknad.Dokument? {
@@ -77,8 +77,7 @@ class PersonData(
 
         data class DokumentkravData(
             val sannsynliggjøringerData: Set<SannsynliggjøringData>,
-            val kravData: Set<KravData>,
-
+            val kravData: Set<KravData>
         ) {
             fun rehydrer(): Dokumentkrav = Dokumentkrav.rehydrer(
                 sannsynliggjøringer = sannsynliggjøringerData.map { it.rehydrer() }.toSet(),
@@ -87,20 +86,20 @@ class PersonData(
 
             data class SannsynliggjøringData(
                 val id: String,
-                val faktum: FaktumData,
-                val sannsynliggjør: Set<FaktumData>
+                val faktum: JsonNode,
+                val sannsynliggjør: List<JsonNode>
             ) {
                 fun rehydrer() = Sannsynliggjøring(
                     id = this.id,
-                    faktum = this.faktum.rehydrer(),
-                    sannsynliggjør = this.sannsynliggjør.map { it.rehydrer() }.toMutableSet()
+                    faktum = Faktum(this.faktum),
+                    sannsynliggjør = this.sannsynliggjør.map { Faktum(it) }.toMutableSet()
                 )
 
                 companion object {
                     fun Sannsynliggjøring.toSannsynliggjøringData() = SannsynliggjøringData(
                         id = this.id,
-                        faktum = this.faktum().toFaktumData(),
-                        sannsynliggjør = this.sannsynliggjør().map { it.toFaktumData() }.toSet()
+                        faktum = this.faktum().json,
+                        sannsynliggjør = this.sannsynliggjør().map { it.json }
                     )
                 }
             }
@@ -108,13 +107,13 @@ class PersonData(
             data class KravData(
                 val id: String,
                 val beskrivendeId: String,
-                val fakta: Set<FaktumData>,
+                val fakta: Set<JsonNode>,
                 val filer: Set<String> = emptySet()
             ) {
                 fun rehydrer() = Krav(
                     id = this.id,
                     beskrivendeId = this.beskrivendeId,
-                    fakta = this.fakta.map { it.rehydrer() }.toSet(),
+                    fakta = this.fakta.map { Faktum(it) }.toSet(),
                     filer = emptySet()
                 )
 
@@ -122,36 +121,7 @@ class PersonData(
                     fun Krav.toKravdata() = KravData(
                         id = this.id,
                         beskrivendeId = this.beskrivendeId,
-                        fakta = this.fakta.map { it.toFaktumData() }.toSet()
-                    )
-                }
-            }
-
-            data class FaktumData(
-                val id: String,
-                val beskrivendeId: String,
-                val type: String,
-                val roller: List<String>,
-                val sannsynliggjøresAv: List<FaktumData>,
-                val svar: Any?
-            ) {
-                fun rehydrer(): Faktum = Faktum(
-                    id = this.id,
-                    beskrivendeId = this.beskrivendeId,
-                    type = this.type,
-                    roller = this.roller,
-                    sannsynliggjøresAv = this.sannsynliggjøresAv.map { it.rehydrer() }, svar = this.svar
-                )
-
-                companion object {
-                    fun Faktum.toFaktumData(): FaktumData = FaktumData(
-                        id = this.id,
-                        beskrivendeId = this.beskrivendeId,
-                        type = this.type,
-                        roller = this.roller,
-                        sannsynliggjøresAv = this.sannsynliggjøresAv.map { it.toFaktumData() },
-                        svar = this.svar
-
+                        fakta = this.fakta.map { it.json }.toSet()
                     )
                 }
             }
@@ -173,6 +143,7 @@ class PersonData(
             }
         }
     }
+
     data class AktivitetsloggData(
         val aktiviteter: List<AktivitetData>
     ) {
@@ -217,13 +188,11 @@ class PersonData(
                             it.melding,
                             it.tidsstempel
                         )
-
                         Alvorlighetsgrad.WARN -> Aktivitetslogg.Aktivitet.Warn(
                             kontekster,
                             it.melding,
                             it.tidsstempel
                         )
-
                         Alvorlighetsgrad.BEHOV -> Aktivitetslogg.Aktivitet.Behov(
                             Aktivitetslogg.Aktivitet.Behov.Behovtype.valueOf(it.behovtype!!),
                             kontekster,
@@ -231,13 +200,11 @@ class PersonData(
                             it.detaljer,
                             it.tidsstempel
                         )
-
                         Alvorlighetsgrad.ERROR -> Aktivitetslogg.Aktivitet.Error(
                             kontekster,
                             it.melding,
                             it.tidsstempel
                         )
-
                         Alvorlighetsgrad.SEVERE -> Aktivitetslogg.Aktivitet.Severe(
                             kontekster,
                             it.melding,
@@ -247,7 +214,7 @@ class PersonData(
                 )
             }
             return Aktivitetslogg.rehyder(
-                aktiviteter = aktiviteter,
+                aktiviteter = aktiviteter
             )
         }
     }
