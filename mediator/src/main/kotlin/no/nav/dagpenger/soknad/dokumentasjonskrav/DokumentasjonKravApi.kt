@@ -5,72 +5,28 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
+import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.put
 import mu.KotlinLogging
 import mu.withLoggingContext
+import no.nav.dagpenger.soknad.Krav
+import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.søknadUuid
+import no.nav.dagpenger.soknad.utils.auth.ident
 
 val logger = KotlinLogging.logger { }
 
-internal fun Route.dokumentasjonkravRoute() {
+internal fun Route.dokumentasjonkravRoute(søknadRepository: SøknadRepository) {
     get("/{søknad_uuid}/dokumentasjonkrav") {
         val søknadUuid = søknadUuid()
+        val ident = call.ident()
         withLoggingContext("søknadid" to søknadUuid.toString()) {
-        }
-        call.respondText(
-            contentType = ContentType.Application.Json,
-            status = HttpStatusCode.OK,
-        ) {
-            """
-               {
-    "soknad_uuid": "$søknadUuid",
-    "krav": [
-        {
-            "id": "5678",
-            "beskrivendeId": "arbeidsforhold.1",
-            "filer": [
-                {
-                    "filnavn": "hei på du1.jpg", 
-                    "urn": "urn:dokumen1"
-                }, 
-                {
-                    "filnavn": "hei på du2.jpg", 
-                    "urn": "urn:dokumen2"
-                }, 
-                {
-                    "filnavn": "hei på du3.jpg", 
-                    "urn": "urn:dokumen3"
-                }
-            ],
-            "gyldigeValg": ["Laste opp nå", "Sende senere", "Noen andre sender dokumentet", "Har sendt tidligere", "Sender ikke"],
-            "svar": "Laste opp nå"
-        },
-        {
-            "id": "56789",
-            "beskrivendeId": "arbeidsforhold.2",
-            "filer": [
-                {
-                    "filnavn": "hei på du1.jpg", 
-                    "urn": "urn:dokumen1"
-                }, 
-                {
-                    "filnavn": "hei på du2.jpg", 
-                    "urn": "urn:dokumen2"
-                }, 
-                {
-                    "filnavn": "hei på du3.jpg", 
-                    "urn": "urn:dokumen3"
-                }
-            ],
-            "gyldigeValg": ["Laste opp nå", "Sende senere", "Noen andre sender dokumentet", "Har sendt tidligere", "Sender ikke"],
-            "svar": "Laste opp nå"
-        }
-    ]
-}  
-            """
+            val dokumentkrav = søknadRepository.hentDokumentkravFor(søknadUuid, ident)
+            val aktivedokumentkrav = dokumentkrav.aktiveDokumentKrav().toApiKrav()
+            call.respond(aktivedokumentkrav)
         }
     }
 
@@ -82,3 +38,18 @@ internal fun Route.dokumentasjonkravRoute() {
         }
     }
 }
+fun Set<Krav>.toApiKrav(): List<ApiDokumentKrav> = map {
+    ApiDokumentKrav(
+        id = it.id,
+        beskrivendeId = it.beskrivendeId,
+        filer = emptyList(),
+    )
+}
+
+data class ApiDokumentKrav(
+    val id: String,
+    val beskrivendeId: String,
+    val filer: List<String>,
+    val gyldigeValg: Set<String> = setOf("Laste opp nå", "Sende senere", "Noen andre sender dokumentet", "Har sendt tidligere", "Sender ikke"),
+    val svar: String? = null
+)

@@ -112,9 +112,9 @@ class PersonData(
             ) {
                 fun rehydrer() = Krav(
                     id = this.id,
-                    beskrivendeId = this.beskrivendeId,
-                    fakta = this.fakta.map { Faktum(it) }.toSet(),
-                    filer = emptySet()
+                    filer = emptySet(),
+                    sannsynliggjøring = TODO(),
+                    tilstand = TODO(),
                 )
 
                 companion object {

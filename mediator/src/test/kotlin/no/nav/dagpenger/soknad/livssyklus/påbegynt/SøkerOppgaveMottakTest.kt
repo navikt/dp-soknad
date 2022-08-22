@@ -26,7 +26,14 @@ class SøkerOppgaveMottakTest {
     fun `lese svar fra kafka`() {
 
         Postgres.withMigratedDb {
-            val søknadMediator = SøknadMediator(testRapid, SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource), LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource), mockk(), mockk()).also {
+            val søknadMediator = SøknadMediator(
+                testRapid,
+                SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource),
+                LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource),
+                mockk(),
+                mockk(),
+                mockk()
+            ).also {
                 SøkerOppgaveMottak(testRapid, it)
             }
             testRapid.reset()
@@ -46,6 +53,7 @@ class SøkerOppgaveMottakTest {
             }
         }
     }
+
     //language=JSON
     private fun nySøknad(søknadUuid: UUID, ident: String) = """{
   "@event_name": "søker_oppgave",

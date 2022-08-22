@@ -62,7 +62,8 @@ internal class SøknadMediatorTest {
             søknadCacheRepository,
             livssyklusRepository,
             søknadMalRepositoryMock,
-            ferdigstiltSøknadRepository
+            ferdigstiltSøknadRepository,
+            mockk()
         )
 
         SøkerOppgaveMottak(testRapid, mediator)

@@ -38,6 +38,10 @@ interface LivssyklusRepository {
     fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad?
 }
 
+interface SøknadRepository {
+    fun hentDokumentkravFor(søknadId: UUID, ident: String): Dokumentkrav
+}
+
 class LivssyklusPostgresRepository(private val dataSource: DataSource) : LivssyklusRepository {
     override fun hent(ident: String, komplettAktivitetslogg: Boolean): Person? {
         return using(sessionOf(dataSource)) { session ->

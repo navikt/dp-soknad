@@ -26,7 +26,7 @@ internal fun Route.søknadApi(søknadMediator: SøknadMediator) {
         besvarFaktumRoute(søknadMediator)
         nyesteMalRoute(søknadMediator)
         slettSøknadRoute(søknadMediator)
-        dokumentasjonkravRoute()
+        dokumentasjonkravRoute(søknadMediator)
     }
 }
 

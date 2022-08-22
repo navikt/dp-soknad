@@ -38,17 +38,11 @@ internal class DokumentkravTest {
     @Test
     fun `håndtere dokumentkrav som et speil fra sannsynliggjøringer`() {
         val dokumentkrav = Dokumentkrav()
-        assertTrue(dokumentkrav.sannsynliggjøringer().isEmpty())
         assertTrue(dokumentkrav.aktiveDokumentKrav().isEmpty())
         assertTrue(dokumentkrav.inAktiveDokumentKrav().isEmpty())
 
         dokumentkrav.håndter(setOf(sannsynliggjøring))
 
-        with(dokumentkrav.sannsynliggjøringer()) {
-            assertFalse(isEmpty())
-            assertEquals(1, size)
-            assertEquals(sannsynliggjøring, this.first())
-        }
         with(dokumentkrav.aktiveDokumentKrav()) {
             assertFalse(isEmpty())
             assertEquals(1, this.size)
@@ -64,13 +58,6 @@ internal class DokumentkravTest {
         val nySannsynliggjøring = Sannsynliggjøring(nyttDokumentkrav.id, nyttDokumentkrav, faktaSomSannsynliggjøres)
 
         dokumentkrav.håndter(setOf(sannsynliggjøring, nySannsynliggjøring))
-
-        with(dokumentkrav.sannsynliggjøringer()) {
-            assertFalse(isEmpty())
-            assertEquals(2, size)
-            assertTrue(contains(sannsynliggjøring))
-            assertTrue(contains(nySannsynliggjøring))
-        }
 
         with(dokumentkrav.aktiveDokumentKrav()) {
             assertFalse(isEmpty())
@@ -88,13 +75,6 @@ internal class DokumentkravTest {
         }
 
         dokumentkrav.håndter(setOf(nySannsynliggjøring))
-
-        with(dokumentkrav.sannsynliggjøringer()) {
-            assertFalse(isEmpty())
-            assertEquals(1, size)
-            assertTrue(contains(nySannsynliggjøring))
-            assertFalse(contains(sannsynliggjøring))
-        }
 
         with(dokumentkrav.aktiveDokumentKrav()) {
             assertFalse(isEmpty())
