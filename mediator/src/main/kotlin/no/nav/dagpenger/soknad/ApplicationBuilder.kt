@@ -74,7 +74,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
 
     fun start() {
         rapidsConnection.start()
-        UtdaterteSøknaderJob.sletterutine()
+        UtdaterteSøknaderJob.sletterutine(søknadMediator)
     }
 
     override fun onShutdown(rapidsConnection: RapidsConnection) {

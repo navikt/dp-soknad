@@ -1,29 +1,34 @@
 package no.nav.dagpenger.soknad.sletterutine
 
+import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
+import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
+import java.util.UUID
 import javax.sql.DataSource
 
-interface VakmesterLivssyklusRepository {
+internal interface VakmesterLivssyklusRepository {
     fun slettPåbegynteSøknaderEldreEnn(antallDager: Int)
 }
 
-class VaktmesterPostgresRepository(private val dataSource: DataSource) : VakmesterLivssyklusRepository {
-    companion object {
-        private val låseNøkkel = 123123
-    }
+internal class VaktmesterPostgresRepository(
+    private val dataSource: DataSource,
+    private val søknadMediator: SøknadMediator
+) : VakmesterLivssyklusRepository {
 
     override fun slettPåbegynteSøknaderEldreEnn(antallDager: Int) {
         return try {
             lås()
             using(sessionOf(dataSource)) { session ->
                 session.transaction { transactionalSession ->
-                    val søknaderSomSkalSlettes = hentSøknaderSomSkalSlettes(transactionalSession, antallDager)
-                    søknaderSomSkalSlettes.forEach { søknadUuid ->
-                        slettSøknad(transactionalSession, søknadUuid)
+                    val søknaderSomSkalSlettes = hentPåbegynteSøknaderUendretSiden(antallDager, transactionalSession)
+                    søknaderSomSkalSlettes.forEach { søknad ->
+                        slettSøknad(søknad.søknadUuid, transactionalSession)
+                        emitSlettSøknadEvent(søknad)
                     }
                 }
             }
@@ -32,30 +37,44 @@ class VaktmesterPostgresRepository(private val dataSource: DataSource) : Vakmest
         }
     }
 
-    private fun hentSøknaderSomSkalSlettes(transactionalSession: TransactionalSession, antallDager: Int) =
+    private fun emitSlettSøknadEvent(søknad: SøknadTilSletting) =
+        søknadMediator.behandle(SlettSøknadHendelse(søknad.søknadUuid, søknad.eier))
+
+    private fun hentPåbegynteSøknaderUendretSiden(antallDager: Int, transactionalSession: TransactionalSession) =
         transactionalSession.run(
             //language=PostgreSQL
             queryOf(
                 """
-                SELECT s.uuid
+                SELECT s.uuid, s.person_ident
                 FROM soknad_v1 AS s
                          JOIN soknad_cache AS sc ON s.uuid = sc.uuid
                     WHERE s.tilstand = '${Påbegynt.name}'
                     AND sc.faktum_sist_endret < (now() - INTERVAL '$antallDager DAY');
                 """.trimIndent()
-            ).map { row ->
-                row.string("uuid")
-            }.asList
+            ).map(søknadTilSletting).asList
         )
 
-    private fun slettSøknad(transactionalSession: TransactionalSession, søknadUuid: String) =
+    private data class SøknadTilSletting(val søknadUuid: UUID, val eier: String)
+
+    private val søknadTilSletting: (Row) -> SøknadTilSletting = { row ->
+        SøknadTilSletting(
+            søknadUuid = UUID.fromString(row.string("uuid")),
+            eier = row.string("person_ident")
+        )
+    }
+
+    private fun slettSøknad(søknadUuid: UUID, transactionalSession: TransactionalSession) =
         transactionalSession.batchPreparedNamedStatement(
             //language=PostgreSQL
             statement = "DELETE FROM soknad_v1 WHERE uuid = :uuid",
             params = listOf(
-                mapOf("uuid" to søknadUuid)
+                mapOf("uuid" to søknadUuid.toString())
             )
         )
+
+    companion object {
+        private val låseNøkkel = 123123
+    }
 
     private fun lås(): Boolean {
         return using(sessionOf(dataSource)) { session ->

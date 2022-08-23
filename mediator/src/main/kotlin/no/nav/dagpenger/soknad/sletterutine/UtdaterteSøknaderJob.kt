@@ -1,20 +1,21 @@
 package no.nav.dagpenger.soknad.sletterutine
 
-import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
+import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import kotlin.concurrent.fixedRateTimer
 
-object UtdaterteSøknaderJob {
+internal object UtdaterteSøknaderJob {
 
     private const val SYV_DAGER = 7
 
-    fun sletterutine() {
+    fun sletterutine(søknadMediator: SøknadMediator) {
         fixedRateTimer(
             name = "Påbegynte søknader vaktmester",
             daemon = true,
             initialDelay = 300000L,
             period = 86400000,
             action = {
-                VaktmesterPostgresRepository(PostgresDataSourceBuilder.dataSource).slettPåbegynteSøknaderEldreEnn(SYV_DAGER)
+                VaktmesterPostgresRepository(dataSource, søknadMediator).slettPåbegynteSøknaderEldreEnn(SYV_DAGER)
             }
         )
     }

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import kotliquery.Session
 import kotliquery.TransactionalSession
-import kotliquery.action.UpdateQueryAction
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
@@ -69,10 +68,6 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                 val internId = hentInternPersonId(transactionalSession, person) ?: lagrePerson(transactionalSession, visitor)!!
 
                 lagreAktivitetslogg(transactionalSession, internId, visitor)
-
-                visitor.slettedeSøknader().forEach {
-                    transactionalSession.run(it.deleteQuery(visitor.ident))
-                }
 
                 logger.info { "Lagrer ${visitor.søknader().size} søknader" }
                 visitor.søknader().insertQuery(visitor.ident, transactionalSession)
@@ -243,18 +238,6 @@ private fun List<PersonData.SøknadData>.insertQuery(personIdent: String, sessio
             )
         }
     )
-
-private fun PersonData.SøknadData.deleteQuery(personIdent: String): UpdateQueryAction {
-    logger.info { "Prøver å slette søknad: $søknadsId" }
-    return queryOf(
-        // language=PostgreSQL
-        statement = "DELETE FROM soknad_v1 WHERE uuid=:id AND person_ident = :person_ident",
-        paramMap = mapOf(
-            "id" to søknadsId.toString(),
-            "person_ident" to personIdent
-        )
-    ).asUpdate
-}
 
 private fun PersonData.SøknadData.insertDokumentQuery(session: Session) =
     session.batchPreparedNamedStatement(

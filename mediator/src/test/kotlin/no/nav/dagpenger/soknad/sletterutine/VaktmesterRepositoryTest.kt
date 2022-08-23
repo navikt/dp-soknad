@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.sletterutine
 
 import io.ktor.server.plugins.NotFoundException
+import io.mockk.mockk
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
@@ -10,11 +11,14 @@ import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
+import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestSøkerOppgave
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadCachePostgresRepository
+import no.nav.dagpenger.soknad.observers.SøknadSlettetObserver
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
+import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -24,6 +28,7 @@ import java.util.UUID
 import javax.sql.DataSource
 
 internal class VaktmesterRepositoryTest {
+    private val testRapid = TestRapid()
     private val språk = Språk("NO")
     private val gammelPåbegyntSøknadUuid = UUID.randomUUID()
     private val nyPåbegyntSøknadUuid = UUID.randomUUID()
@@ -32,10 +37,11 @@ internal class VaktmesterRepositoryTest {
     private val syvDager = 7
 
     @Test
-    fun `Sletter søknader og søknadcache med tilstand påbegynt etter gitt tidsinterval`() = withMigratedDb {
+    fun `Sletter all søknadsdata for påbegynte søknader uendret de siste 7 dagene`() = withMigratedDb {
         val livssyklusRepository = LivssyklusPostgresRepository(dataSource)
         val søknadCacheRepository = SøknadCachePostgresRepository(dataSource)
-        val vaktmesterRepository = VaktmesterPostgresRepository(dataSource)
+        val søknadMediator = søknadMediator(søknadCacheRepository, livssyklusRepository)
+        val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
         val person = Person(testPersonIdent) {
             mutableListOf(
                 gammelPåbegyntSøknad(gammelPåbegyntSøknadUuid, it),
@@ -54,12 +60,28 @@ internal class VaktmesterRepositoryTest {
         vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
         assertCacheSlettet(gammelPåbegyntSøknadUuid, søknadCacheRepository)
         assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, person, livssyklusRepository)
+        assertAntallSøknadSlettetEvent(1)
 
         oppdaterFaktumSistEndret(nyPåbegyntSøknadUuid, nå.minusDays(8), dataSource)
         vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
         assertCacheSlettet(nyPåbegyntSøknadUuid, søknadCacheRepository)
         assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 1, person, livssyklusRepository)
+        assertAntallSøknadSlettetEvent(2)
     }
+
+    private fun søknadMediator(
+        søknadCacheRepository: SøknadCachePostgresRepository,
+        livssyklusRepository: LivssyklusPostgresRepository
+    ) = SøknadMediator(
+        rapidsConnection = testRapid,
+        søknadCacheRepository = søknadCacheRepository,
+        livssyklusRepository = livssyklusRepository,
+        søknadMalRepository = mockk(),
+        ferdigstiltSøknadRepository = mockk(),
+        personObservers = listOf(SøknadSlettetObserver(testRapid))
+    )
+
+    private fun assertAntallSøknadSlettetEvent(antall: Int) = assertEquals(antall, testRapid.inspektør.size)
 
     private fun assertAtViIkkeSletterForMye(
         antallGjenværendeSøknader: Int,
