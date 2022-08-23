@@ -11,6 +11,7 @@ import no.nav.dagpenger.soknad.SpesifikkKontekst
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentData.Companion.rehydrer
+import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.SannsynliggjøringData.Companion.toSannsynliggjøringData
 import java.time.ZonedDateTime
 import java.util.Locale
 import java.util.UUID
@@ -85,7 +86,7 @@ class PersonData(
             data class SannsynliggjøringData(
                 val id: String,
                 val faktum: JsonNode,
-                val sannsynliggjør: List<JsonNode>
+                val sannsynliggjør: Set<JsonNode>
             ) {
                 fun rehydrer() = Sannsynliggjøring(
                     id = this.id,
@@ -97,7 +98,7 @@ class PersonData(
                     fun Sannsynliggjøring.toSannsynliggjøringData() = SannsynliggjøringData(
                         id = this.id,
                         faktum = this.faktum().json,
-                        sannsynliggjør = this.sannsynliggjør().map { it.json }
+                        sannsynliggjør = this.sannsynliggjør().map { it.json }.toSet()
                     )
                 }
             }
@@ -105,22 +106,35 @@ class PersonData(
             data class KravData(
                 val id: String,
                 val beskrivendeId: String,
-                val fakta: Set<JsonNode>,
+                val sannsynliggjøring: SannsynliggjøringData,
+                val tilstand: KravTilstandData,
                 val filer: Set<String> = emptySet()
             ) {
                 fun rehydrer() = Krav(
                     id = this.id,
-                    filer = emptySet(),
-                    sannsynliggjøring = TODO(),
-                    tilstand = TODO(),
+                    filer = this.filer,
+                    sannsynliggjøring = this.sannsynliggjøring.rehydrer(),
+                    tilstand = when (this.tilstand) {
+                        KravTilstandData.AKTIV -> Krav.KravTilstand.AKTIV
+                        KravTilstandData.INAKTIV -> Krav.KravTilstand.INAKTIV
+                    },
                 )
 
                 companion object {
                     fun Krav.toKravdata() = KravData(
                         id = this.id,
                         beskrivendeId = this.beskrivendeId,
-                        fakta = this.fakta.map { it.json }.toSet()
+                        sannsynliggjøring = this.sannsynliggjøring.toSannsynliggjøringData(),
+                        tilstand = when (this.tilstand) {
+                            Krav.KravTilstand.AKTIV -> KravTilstandData.AKTIV
+                            Krav.KravTilstand.INAKTIV -> KravTilstandData.INAKTIV
+                        }
                     )
+                }
+
+                enum class KravTilstandData {
+                    AKTIV,
+                    INAKTIV
                 }
             }
         }

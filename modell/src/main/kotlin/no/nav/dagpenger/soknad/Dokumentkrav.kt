@@ -39,7 +39,7 @@ data class Krav(
     val id: String,
     val filer: Set<String> = emptySet(),
     val sannsynliggjøring: Sannsynliggjøring,
-    private var tilstand: KravTilstand
+    internal var tilstand: KravTilstand
 ) {
     companion object {
         fun aktive(): (Krav) -> Boolean = { it.tilstand == KravTilstand.AKTIV }

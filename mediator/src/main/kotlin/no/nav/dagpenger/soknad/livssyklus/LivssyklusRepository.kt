@@ -215,29 +215,12 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
         )
     }
 
-    private fun Session.hentSannsynliggjøringer(søknadsId: UUID): Set<PersonData.SøknadData.DokumentkravData.SannsynliggjøringData> =
-        this.run(
-            queryOf(
-                // language=PostgreSQL
-                """
-                SELECT faktum_id, faktum, sannsynliggjoer FROM sannsynliggjoering_v1 WHERE soknad_uuid = :soknad_uuid
-                """.trimIndent(),
-                mapOf("soknad_uuid" to søknadsId.toString())
-            ).map { row ->
-                PersonData.SøknadData.DokumentkravData.SannsynliggjøringData(
-                    id = row.string("faktum_id"),
-                    faktum = objectMapper.readTree(row.binaryStream("faktum")),
-                    sannsynliggjør = objectMapper.readTree(row.binaryStream("sannsynliggjoer")).toList()
-                )
-            }.asList
-        ).toSet()
-
     private fun Session.hentDokumentKrav(søknadsId: UUID): Set<PersonData.SøknadData.DokumentkravData.KravData> =
         this.run(
             queryOf(
                 // language=PostgreSQL
                 """
-                  SELECT faktum_id, beskrivende_id, fakta FROM dokumentkrav_v1 WHERE soknad_uuid = :soknad_uuid
+                  SELECT faktum_id, beskrivende_id, faktum, sannsynliggjoer, tilstand FROM dokumentkrav_v1 WHERE soknad_uuid = :soknad_uuid
                 """.trimIndent(),
                 mapOf(
                     "soknad_uuid" to søknadsId.toString()
@@ -246,8 +229,14 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                 PersonData.SøknadData.DokumentkravData.KravData(
                     id = row.string("faktum_id"),
                     beskrivendeId = row.string("beskrivende_id"),
-                    fakta = objectMapper.readTree(row.binaryStream("fakta")).toSet(),
-                    filer = emptySet()
+                    sannsynliggjøring = PersonData.SøknadData.DokumentkravData.SannsynliggjøringData(
+                        id = row.string("faktum_id"),
+                        faktum = objectMapper.readTree(row.binaryStream("faktum")),
+                        sannsynliggjør = objectMapper.readTree(row.binaryStream("sannsynliggjoer")).toSet(),
+
+                    ),
+                    filer = emptySet(),
+                    tilstand = row.string("tilstand").let { PersonData.SøknadData.DokumentkravData.KravData.KravTilstandData.valueOf(it) }
                 )
             }.asList
         ).toSet()
@@ -283,18 +272,23 @@ private fun Set<PersonData.SøknadData.DokumentkravData.KravData>.insertKravData
     transactionalSession.batchPreparedNamedStatement(
         // language=PostgreSQL
         statement = """
-            INSERT INTO dokumentkrav_v1(faktum_id, beskrivende_id, soknad_uuid, fakta)
-            VALUES (:faktum_id, :beskrivende_id, :soknad_uuid, :fakta)
+            INSERT INTO dokumentkrav_v1(faktum_id, beskrivende_id, soknad_uuid, faktum, sannsynliggjoer, tilstand)
+            VALUES (:faktum_id, :beskrivende_id, :soknad_uuid, :faktum, :sannsynliggjoer, :tilstand)
         """.trimIndent(),
         params = map {
             mapOf<String, Any?>(
                 "faktum_id" to it.id,
                 "soknad_uuid" to søknadsId,
                 "beskrivende_id" to it.beskrivendeId,
-                "fakta" to PGobject().apply {
+                "faktum" to PGobject().apply {
                     type = "jsonb"
-                    value = objectMapper.writeValueAsString(it.fakta)
-                }
+                    value = objectMapper.writeValueAsString(it.sannsynliggjøring.faktum)
+                },
+                "sannsynliggjoer" to PGobject().apply {
+                    type = "jsonb"
+                    value = objectMapper.writeValueAsString(it.sannsynliggjøring.sannsynliggjør)
+                },
+                "tilstand" to it.tilstand.name
             )
         }
     )

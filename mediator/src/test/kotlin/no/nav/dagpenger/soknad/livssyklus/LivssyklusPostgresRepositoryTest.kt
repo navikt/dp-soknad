@@ -126,7 +126,6 @@ internal class LivssyklusPostgresRepositoryTest {
 
                 assertAntallRader("aktivitetslogg_v2", 1)
                 assertAntallRader("dokumentkrav_v1", 1)
-                assertAntallRader("sannsynliggjoering_v1", 1)
                 assertEquals(originalVisitor.aktivitetslogg.toString(), fraDatabaseVisitor.aktivitetslogg.toString())
             }
         }
