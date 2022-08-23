@@ -9,7 +9,7 @@ class Dokumentkrav private constructor(
     constructor() : this(mutableSetOf())
 
     companion object {
-        fun rehydrer(sannsynliggjøringer: Set<Sannsynliggjøring>, krav: Set<Krav>) = Dokumentkrav(krav.toMutableSet())
+        fun rehydrer(krav: Set<Krav>) = Dokumentkrav(krav.toMutableSet())
     }
 
     fun håndter(nyeSannsynliggjøringer: Set<Sannsynliggjøring>) {

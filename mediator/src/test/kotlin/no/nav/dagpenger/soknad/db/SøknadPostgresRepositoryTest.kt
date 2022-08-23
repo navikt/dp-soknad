@@ -60,7 +60,6 @@ internal class SøknadPostgresRepositoryTest {
                 innsendtTidspunkt = ZonedDateTime.now(),
                 språk = Språk("NO"),
                 dokumentkrav = Dokumentkrav.rehydrer(
-                    sannsynliggjøringer = setOf(sannsynliggjøring),
                     krav = setOf(krav)
                 )
             )

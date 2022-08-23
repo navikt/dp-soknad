@@ -20,7 +20,6 @@ import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.soknad.serder.PersonData
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.KravData.Companion.toKravdata
-import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.SannsynliggjøringData.Companion.toSannsynliggjøringData
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.SpråkData
 import no.nav.dagpenger.soknad.toMap
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
@@ -209,7 +208,6 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     innsendtTidspunkt = row.zonedDateTimeOrNull("innsendt_tidspunkt"),
                     språkData = SpråkData(row.string("spraak")),
                     dokumentkrav = PersonData.SøknadData.DokumentkravData(
-                        this.hentSannsynliggjøringer(søknadsId),
                         this.hentDokumentKrav(søknadsId)
                     )
                 )
@@ -275,8 +273,6 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
 
 private fun List<PersonData.SøknadData>.insertDokumentkrav(transactionalSession: TransactionalSession) =
     this.map {
-        it.dokumentkrav.sannsynliggjøringerData.insertSannsynliggjøringer(it.søknadsId, transactionalSession)
-    } + this.map {
         it.dokumentkrav.kravData.insertKravData(it.søknadsId, transactionalSession)
     }
 
@@ -445,8 +441,6 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
 
     private fun Dokumentkrav.toDokumentKravData(): PersonData.SøknadData.DokumentkravData {
         return PersonData.SøknadData.DokumentkravData(
-            sannsynliggjøringerData = this.sannsynliggjøringer()
-                .map { sannsynligjøring -> sannsynligjøring.toSannsynliggjøringData() }.toSet(),
             kravData = (this.aktiveDokumentKrav() + this.inAktiveDokumentKrav()).map { krav -> krav.toKravdata() }
                 .toSet()
         )

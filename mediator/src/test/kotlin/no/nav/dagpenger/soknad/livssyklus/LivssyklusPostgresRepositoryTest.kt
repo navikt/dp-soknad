@@ -103,7 +103,6 @@ internal class LivssyklusPostgresRepositoryTest {
                     innsendtTidspunkt = ZonedDateTime.now(),
                     språk,
                     dokumentkrav = Dokumentkrav.rehydrer(
-                        sannsynliggjøringer = setOf(sannsynliggjøring),
                         krav = setOf(krav)
                     )
                 )
