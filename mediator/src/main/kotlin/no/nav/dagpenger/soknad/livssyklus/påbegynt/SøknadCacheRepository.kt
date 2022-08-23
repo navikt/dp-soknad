@@ -7,7 +7,6 @@ import kotliquery.using
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.postgresql.util.PGobject
-import java.time.ZonedDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -16,7 +15,6 @@ interface SøknadCacheRepository {
     fun slettSøknadData(søknadUUID: UUID): Boolean
     fun hent(søknadUUID: UUID): SøkerOppgave?
     fun settFaktumSistEndret(søknadUUID: UUID)
-    fun hentFaktumSistEndret(søknadUUID: UUID): ZonedDateTime
 }
 
 class SøknadCachePostgresRepository(private val dataSource: DataSource) : SøknadCacheRepository {
@@ -72,20 +70,7 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
         }
     }
 
-    override fun hentFaktumSistEndret(søknadUUID: UUID): ZonedDateTime =
-        using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf(
-                    //language=PostgreSQL
-                    "SELECT faktum_sist_endret FROM soknad_cache WHERE uuid = ?",
-                    søknadUUID.toString()
-                ).map { row ->
-                    row.zonedDateTime("faktum_sist_endret")
-                }.asSingle
-            )
-        } ?: throw NotFoundException("Søknad med id '$søknadUUID' ikke funnet")
-
-    override fun slettSøknadData(søknadUUID: UUID): Boolean =
+    override fun slettSøknadData(søknadUUID: UUID) =
         using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf(

@@ -22,7 +22,6 @@ class VaktmesterPostgresRepository(private val dataSource: DataSource) : Vakmest
             using(sessionOf(dataSource)) { session ->
                 session.transaction { transactionalSession ->
                     val søknaderSomSkalSlettes = hentSøknaderSomSkalSlettes(transactionalSession, antallDager)
-                    println(søknaderSomSkalSlettes)
                     søknaderSomSkalSlettes.forEach { søknadUuid ->
                         slettSøknad(transactionalSession, søknadUuid)
                     }

@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.time.ZonedDateTime
 import java.util.UUID
 
 class SøknadCacheRepositoryTest {
@@ -87,20 +88,13 @@ class SøknadCacheRepositoryTest {
         withMigratedDb {
             val søknadCache = SøknadCachePostgresRepository(dataSource)
             val søknadUuid1 = UUID.randomUUID()
-            val søknadUuid2 = UUID.randomUUID()
             val eier1 = "12345678901"
-            val eier2 = "12345678902"
             lagrePersonMedSøknad(søknadUuid1, eier1)
-            lagrePersonMedSøknad(søknadUuid2, eier2)
             val søknad1 = PersistentSøkerOppgave(søknad(søknadUuid1, fødselsnummer = eier1))
-            val søknad2 = PersistentSøkerOppgave(søknad(søknadUuid2, fødselsnummer = eier2))
-
-            søknadCache.slettSøknadData(søknadUuid1)
 
             søknadCache.lagre(søknad1)
-            søknadCache.lagre(søknad2)
-
             assertNotNull(hentSøknadData(søknadUuid1))
+
             søknadCache.slettSøknadData(søknadUuid1)
             assertNull(hentSøknadData(søknadUuid1))
         }
@@ -114,13 +108,12 @@ class SøknadCacheRepositoryTest {
         lagrePersonMedSøknad(søknadUuid, eier)
 
         assertThrows<NotFoundException> { søknadCache.settFaktumSistEndret(søknadUuid) }
-        assertThrows<NotFoundException> { søknadCache.hentFaktumSistEndret(søknadUuid) }
 
         val søknad = PersistentSøkerOppgave(søknad(søknadUuid, fødselsnummer = eier))
         søknadCache.lagre(søknad)
-        val faktumFørstEndret = søknadCache.hentFaktumSistEndret(søknadUuid)
+        val faktumFørstEndret = hentFaktumSistEndret(søknadUuid)
         søknadCache.settFaktumSistEndret(søknadUuid)
-        val faktumSistEndret = søknadCache.hentFaktumSistEndret(søknadUuid)
+        val faktumSistEndret = hentFaktumSistEndret(søknadUuid)
 
         assertTrue(faktumFørstEndret < faktumSistEndret)
     }
@@ -135,6 +128,19 @@ class SøknadCacheRepositoryTest {
                     }.asSingle
             )
         }
+
+    fun hentFaktumSistEndret(søknadUUID: UUID): ZonedDateTime =
+        using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf(
+                    //language=PostgreSQL
+                    "SELECT faktum_sist_endret FROM soknad_cache WHERE uuid = ?",
+                    søknadUUID.toString()
+                ).map { row ->
+                    row.zonedDateTime("faktum_sist_endret")
+                }.asSingle
+            )
+        }!!
 
     private fun søknad(søknadUuid: UUID, seksjoner: String = "seksjoner", fødselsnummer: String = "12345678910") =
         objectMapper.readTree(
