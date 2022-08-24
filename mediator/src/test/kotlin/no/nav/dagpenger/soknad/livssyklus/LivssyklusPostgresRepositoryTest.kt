@@ -132,6 +132,46 @@ internal class LivssyklusPostgresRepositoryTest {
     }
 
     @Test
+    fun `upsert på dokumentasjonskrav`() {
+        val søknadId = UUID.randomUUID()
+        val originalPerson = Person("12345678910") {
+            mutableListOf(
+                Søknad.rehydrer(
+                    søknadId = søknadId,
+                    person = it,
+                    tilstandsType = "Journalført",
+                    dokument = Søknad.Dokument(
+                        varianter = listOf(
+                            Søknad.Dokument.Variant(
+                                urn = "urn:soknad:fil1",
+                                format = "ARKIV",
+                                type = "PDF"
+                            ),
+                            Søknad.Dokument.Variant(
+                                urn = "urn:soknad:fil2",
+                                format = "ARKIV",
+                                type = "PDF"
+                            )
+                        )
+                    ),
+                    journalpostId = "journalpostid",
+                    innsendtTidspunkt = ZonedDateTime.now(),
+                    språk,
+                    dokumentkrav = Dokumentkrav.rehydrer(
+                        krav = setOf(krav)
+                    )
+                )
+            )
+        }
+        withMigratedDb {
+            LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
+                it.lagre(originalPerson)
+                it.lagre(originalPerson)
+            }
+        }
+    }
+
+    @Test
     fun `Henter påbegynte søknader`() {
         val påbegyntSøknadUuid = UUID.randomUUID()
         val innsendtTidspunkt = ZonedDateTime.now()

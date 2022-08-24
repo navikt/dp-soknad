@@ -277,6 +277,10 @@ private fun Set<PersonData.SøknadData.DokumentkravData.KravData>.insertKravData
         statement = """
             INSERT INTO dokumentkrav_v1(faktum_id, beskrivende_id, soknad_uuid, faktum, sannsynliggjoer, tilstand)
             VALUES (:faktum_id, :beskrivende_id, :soknad_uuid, :faktum, :sannsynliggjoer, :tilstand)
+            ON CONFLICT (faktum_id, soknad_uuid) DO UPDATE SET beskrivende_id = :beskrivende_id,
+                                                               faktum = :faktum,
+                                                               sannsynliggjoer = :sannsynliggjoer,
+                                                               tilstand = :tilstand
         """.trimIndent(),
         params = map { krav ->
             mapOf<String, Any?>(
