@@ -63,11 +63,11 @@ data class ApiDokumentKrav(
     val fakta: JsonNode,
     val filer: List<String>,
     val gyldigeValg: Set<String> = setOf(
-        "dokument.sender.senere",
-        "dokument.sender.ikke",
-        "dokument.sender.naa",
-        "dokument.andre.sender",
-        "dokument.har.sendt"
+        "dokumentkrav.svar.send.naa",
+        "dokumentkrav.svar.send.senere",
+        "dokumentkrav.svar.send.noen_andre",
+        "dokumentkrav.svar.sendt.tidligere",
+        "dokumentkrav.svar.sender.ikke",
     ),
     val begrunnelse: String? = null,
     val svar: String? = null
