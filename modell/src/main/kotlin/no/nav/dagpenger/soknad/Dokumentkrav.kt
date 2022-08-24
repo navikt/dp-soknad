@@ -13,7 +13,6 @@ class Dokumentkrav private constructor(
     }
 
     fun håndter(nyeSannsynliggjøringer: Set<Sannsynliggjøring>) {
-
         val håndterteSannsynliggjøringer = krav.map { it.sannsynliggjøring }.toSet()
         krav.forEach { it.håndter(nyeSannsynliggjøringer) }
 

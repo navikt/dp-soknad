@@ -74,7 +74,7 @@ internal class SøkerOppgaveMelding(private val jsonMessage: JsonMessage) : Søk
         val fakta: List<Faktum> = seksjoner.findValues("fakta").flatMap<JsonNode, Faktum> { fakta ->
             fakta.fold(mutableListOf()) { acc, faktum ->
                 when (faktum["type"].asText()) {
-                    "generator" -> faktum["svar"].forEach { svarliste ->
+                    "generator" -> faktum["svar"]?.forEach { svarliste ->
                         svarliste.forEach { generertFaktum ->
                             acc.add(grunnleggendeFaktum(generertFaktum))
                         }
