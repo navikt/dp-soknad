@@ -45,24 +45,17 @@ internal class VaktmesterRepositoryTest {
             )
         }
 
-        println(
-            "Innsendt uuid: $innsendtSøknadUuid\n" +
-                "Ny uuid: $nyPåbegyntSøknadUuid\n" +
-                "Gammel uuid: $gammelPåbegyntSøknadUuid"
-        )
+        // TODO: Dette skal ikke være sånn
+        livssyklusRepository.lagre(person)
+        livssyklusRepository.lagre(person)
 
         søknadCacheRepository.lagre(TestSøkerOppgave(gammelPåbegyntSøknadUuid, testPersonIdent, "{}"))
         søknadCacheRepository.lagre(TestSøkerOppgave(nyPåbegyntSøknadUuid, testPersonIdent, "{}"))
 
         vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
-        assertCacheSlettet(gammelPåbegyntSøknadUuid, søknadCacheRepository)
-        assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, person, livssyklusRepository)
         assertAntallSøknadSlettetEvent(1)
-
-        vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
-        assertCacheSlettet(nyPåbegyntSøknadUuid, søknadCacheRepository)
-        assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 1, person, livssyklusRepository)
-        assertAntallSøknadSlettetEvent(2)
+        assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, person, livssyklusRepository)
+        assertCacheSlettet(gammelPåbegyntSøknadUuid, søknadCacheRepository)
     }
 
     private fun søknadMediator(
@@ -114,7 +107,7 @@ internal class VaktmesterRepositoryTest {
             journalpostId = "1456",
             innsendtTidspunkt = null,
             språk = språk,
-            sistEndretAvBruker = ZonedDateTime.now().minusDays(8)
+            sistEndretAvBruker = ZonedDateTime.now().minusDays(10)
         )
 
     private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, person: Person) =

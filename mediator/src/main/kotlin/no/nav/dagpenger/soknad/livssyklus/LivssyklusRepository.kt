@@ -226,7 +226,8 @@ private fun List<PersonData.SøknadData>.insertQuery(personIdent: String, sessio
             VALUES (:uuid, :person_ident, :tilstand, :journalpostID, :spraak)
             ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
                                             journalpost_id=:journalpostID,
-                                            innsendt_tidspunkt = :innsendtTidspunkt
+                                            innsendt_tidspunkt = :innsendtTidspunkt,
+                                            sist_endret_av_bruker = :sistEndretAvBruker
         """.trimIndent(),
         params = map {
             mapOf<String, Any?>(
@@ -235,7 +236,8 @@ private fun List<PersonData.SøknadData>.insertQuery(personIdent: String, sessio
                 "tilstand" to it.tilstandType.name,
                 "journalpostID" to it.journalpostId,
                 "innsendtTidspunkt" to it.innsendtTidspunkt,
-                "spraak" to it.språkData.verdi
+                "spraak" to it.språkData.verdi,
+                "sistEndretAvBruker" to it.sistEndretAvBruker
             )
         }
     )
