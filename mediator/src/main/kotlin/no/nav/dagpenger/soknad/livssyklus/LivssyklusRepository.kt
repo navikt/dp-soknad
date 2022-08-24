@@ -297,33 +297,6 @@ private fun Set<PersonData.SøknadData.DokumentkravData.KravData>.insertKravData
     )
 }
 
-private fun Set<PersonData.SøknadData.DokumentkravData.SannsynliggjøringData>.insertSannsynliggjøringer(
-    søknadsId: UUID,
-    transactionalSession: TransactionalSession
-) {
-    transactionalSession.batchPreparedNamedStatement(
-        // language=PostgreSQL
-        statement = """
-            INSERT INTO sannsynliggjoering_v1(faktum_id, soknad_uuid, faktum, sannsynliggjoer)
-            VALUES (:faktum_id, :soknad_uuid, :faktum, :sannsynliggjoer)
-        """.trimIndent(),
-        params = map {
-            mapOf<String, Any?>(
-                "faktum_id" to it.id,
-                "soknad_uuid" to søknadsId,
-                "faktum" to PGobject().apply {
-                    type = "jsonb"
-                    value = objectMapper.writeValueAsString(it.faktum)
-                },
-                "sannsynliggjoer" to PGobject().apply {
-                    type = "jsonb"
-                    value = objectMapper.writeValueAsString(it.sannsynliggjør.map { faktum -> faktum })
-                }
-            )
-        }
-    )
-}
-
 private fun List<PersonData.SøknadData>.insertQuery(personIdent: String, session: Session) =
     session.batchPreparedNamedStatement(
         // language=PostgreSQL
