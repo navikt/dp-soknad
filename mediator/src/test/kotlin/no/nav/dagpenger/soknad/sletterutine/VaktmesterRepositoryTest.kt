@@ -2,6 +2,9 @@ package no.nav.dagpenger.soknad.sletterutine
 
 import io.ktor.server.plugins.NotFoundException
 import io.mockk.mockk
+import kotliquery.queryOf
+import kotliquery.sessionOf
+import kotliquery.using
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Språk
@@ -54,8 +57,29 @@ internal class VaktmesterRepositoryTest {
 
         vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
         assertAntallSøknadSlettetEvent(1)
+        assertAktivitetsloggSlettet(gammelPåbegyntSøknadUuid)
         assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, person, livssyklusRepository)
         assertCacheSlettet(gammelPåbegyntSøknadUuid, søknadCacheRepository)
+    }
+
+    private fun assertAktivitetsloggSlettet(søknadUuid: UUID) {
+        val antallRader = using(sessionOf(dataSource)) { session ->
+            session.run(
+                //language=PostgreSQL
+                queryOf(
+                    """
+                            SELECT COUNT(*)
+                                FROM aktivitetslogg_v2
+                                WHERE data::jsonb -> 'aktiviteter' -> 0 -> 'kontekster' -> 0 -> 'kontekstMap' -> 'søknad_uuid' = '?'
+                        """.trimIndent(), søknadUuid.toString()
+
+                ).map { row ->
+                    row.int(1)
+                }.asSingle
+            )
+        }
+
+        assertEquals(0, antallRader)
     }
 
     private fun søknadMediator(

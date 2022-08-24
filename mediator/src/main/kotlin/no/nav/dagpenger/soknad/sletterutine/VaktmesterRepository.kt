@@ -28,6 +28,7 @@ internal class VaktmesterPostgresRepository(
                     val søknaderSomSkalSlettes = hentPåbegynteSøknaderUendretSiden(antallDager, transactionalSession)
                     søknaderSomSkalSlettes.forEach { søknad ->
                         slettSøknad(søknad.søknadUuid, transactionalSession)
+                        //slettAktivitetslogg(søknad.søknadUuid, transactionalSession)
                         emitSlettSøknadEvent(søknad)
                     }
                 }
@@ -35,6 +36,18 @@ internal class VaktmesterPostgresRepository(
         } finally {
             låsOpp()
         }
+    }
+
+    private fun slettAktivitetslogg(søknadUuid: UUID, transactionalSession: TransactionalSession) {
+        transactionalSession.run(
+            //language=PostgreSQL
+            queryOf(
+                """
+                DELETE FROM aktivitetslogg_v2 
+                    WHERE data::jsonb -> 'aktiviteter' -> 0 -> 'kontekster' -> 0 -> 'kontekstMap' -> 'søknad_uuid' = '?'
+                """.trimIndent(), søknadUuid.toString()
+            ).asUpdate
+        )
     }
 
     private fun emitSlettSøknadEvent(søknad: SøknadTilSletting) =
