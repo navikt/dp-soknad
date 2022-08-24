@@ -177,7 +177,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
             queryOf(
                 //language=PostgreSQL
                 statement = """
-                    SELECT uuid, tilstand, journalpost_id, innsendt_tidspunkt, spraak
+                    SELECT uuid, tilstand, journalpost_id, innsendt_tidspunkt, spraak, sist_endret_av_bruker
                     FROM  soknad_v1
                     WHERE person_ident = :ident
                 """.trimIndent(),
@@ -192,7 +192,8 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     dokumenter = hentDokumentData(søknadsId),
                     journalpostId = row.stringOrNull("journalpost_id"),
                     innsendtTidspunkt = row.zonedDateTimeOrNull("innsendt_tidspunkt"),
-                    språkData = SpråkData(row.string("spraak"))
+                    språkData = SpråkData(row.string("spraak")),
+                    sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")
                 )
             }.asList
         )
@@ -287,7 +288,8 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
         dokument: Søknad.Dokument?,
         journalpostId: String?,
         innsendtTidspunkt: ZonedDateTime?,
-        språk: Språk
+        språk: Språk,
+        sistEndretAvBruker: ZonedDateTime?
     ) {
         søknader.add(
             PersonData.SøknadData(
@@ -304,7 +306,8 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
                 dokumenter = dokument.toDokumentData(),
                 journalpostId = journalpostId,
                 innsendtTidspunkt = innsendtTidspunkt,
-                språkData = SpråkData(språk.verdi)
+                språkData = SpråkData(språk.verdi),
+                sistEndretAvBruker = sistEndretAvBruker
             )
         )
     }

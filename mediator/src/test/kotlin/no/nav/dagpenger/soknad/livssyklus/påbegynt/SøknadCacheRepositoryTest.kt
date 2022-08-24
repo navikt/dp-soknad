@@ -9,15 +9,12 @@ import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository.PersistentSøkerOppgave
+import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.time.ZonedDateTime
 import java.util.UUID
 
 class SøknadCacheRepositoryTest {
@@ -88,59 +85,36 @@ class SøknadCacheRepositoryTest {
         withMigratedDb {
             val søknadCache = SøknadCachePostgresRepository(dataSource)
             val søknadUuid1 = UUID.randomUUID()
+            val søknadUuid2 = UUID.randomUUID()
             val eier1 = "12345678901"
+            val eier2 = "12345678901"
             lagrePersonMedSøknad(søknadUuid1, eier1)
+            lagrePersonMedSøknad(søknadUuid2, eier2)
             val søknad1 = PersistentSøkerOppgave(søknad(søknadUuid1, fødselsnummer = eier1))
+            val søknad2 = PersistentSøkerOppgave(søknad(søknadUuid2, fødselsnummer = eier2))
 
             søknadCache.lagre(søknad1)
-            assertNotNull(hentSøknadData(søknadUuid1))
+            søknadCache.lagre(søknad2)
+            assertAntallRader(2)
 
-            søknadCache.slettSøknadData(søknadUuid1)
-            assertNull(hentSøknadData(søknadUuid1))
+            søknadCache.slett(søknadUuid1)
+            assertAntallRader(1)
+
+            søknadCache.slett(søknadUuid2)
+            assertAntallRader(0)
         }
     }
 
-    @Test
-    fun `Kan oppdatere faktum sist endret`() = withMigratedDb {
-        val søknadCache = SøknadCachePostgresRepository(dataSource)
-        val søknadUuid = UUID.randomUUID()
-        val eier = "12345678901"
-        lagrePersonMedSøknad(søknadUuid, eier)
-
-        assertThrows<NotFoundException> { søknadCache.settFaktumSistEndret(søknadUuid) }
-
-        val søknad = PersistentSøkerOppgave(søknad(søknadUuid, fødselsnummer = eier))
-        søknadCache.lagre(søknad)
-        val faktumFørstEndret = hentFaktumSistEndret(søknadUuid)
-        søknadCache.settFaktumSistEndret(søknadUuid)
-        val faktumSistEndret = hentFaktumSistEndret(søknadUuid)
-
-        assertTrue(faktumFørstEndret < faktumSistEndret)
-    }
-
-    private fun hentSøknadData(søknadUuid: UUID) =
-        using(sessionOf(dataSource)) { session ->
+    private fun assertAntallRader(antallRader: Int) {
+        val faktiskeRader = using(sessionOf(PostgresDataSourceBuilder.dataSource)) { session ->
             session.run(
-                //language=PostgreSQL
-                queryOf("SELECT soknad_data FROM soknad_cache WHERE uuid = ?", søknadUuid.toString())
-                    .map { row ->
-                        row.stringOrNull("soknad_data")
-                    }.asSingle
-            )
-        }
-
-    fun hentFaktumSistEndret(søknadUUID: UUID): ZonedDateTime =
-        using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf(
-                    //language=PostgreSQL
-                    "SELECT faktum_sist_endret FROM soknad_cache WHERE uuid = ?",
-                    søknadUUID.toString()
-                ).map { row ->
-                    row.zonedDateTime("faktum_sist_endret")
+                queryOf("select count(1) from soknad_cache").map { row ->
+                    row.int(1)
                 }.asSingle
             )
-        }!!
+        }
+        assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: soknad_cache")
+    }
 
     private fun søknad(søknadUuid: UUID, seksjoner: String = "seksjoner", fødselsnummer: String = "12345678910") =
         objectMapper.readTree(

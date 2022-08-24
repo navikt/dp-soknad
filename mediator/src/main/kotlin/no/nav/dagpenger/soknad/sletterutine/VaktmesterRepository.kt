@@ -45,11 +45,10 @@ internal class VaktmesterPostgresRepository(
             //language=PostgreSQL
             queryOf(
                 """
-                SELECT s.uuid, s.person_ident
-                FROM soknad_v1 AS s
-                         JOIN soknad_cache AS sc ON s.uuid = sc.uuid
-                    WHERE s.tilstand = '${Påbegynt.name}'
-                    AND sc.faktum_sist_endret < (now() - INTERVAL '$antallDager DAY');
+                SELECT uuid, person_ident
+                FROM soknad_v1
+                    WHERE tilstand = '${Påbegynt.name}'
+                    AND sist_endret_av_bruker < (now() - INTERVAL '$antallDager DAY');
                 """.trimIndent()
             ).map(søknadTilSletting).asList
         )

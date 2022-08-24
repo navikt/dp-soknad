@@ -1,4 +1,0 @@
-ALTER TABLE soknad_cache
-    ALTER COLUMN soknad_data DROP NOT NULL;
-ALTER TABLE soknad_cache
-    ADD COLUMN faktum_sist_endret TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc');

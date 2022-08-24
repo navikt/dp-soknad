@@ -12,9 +12,8 @@ import javax.sql.DataSource
 
 interface SøknadCacheRepository {
     fun lagre(søkerOppgave: SøkerOppgave)
-    fun slettSøknadData(søknadUUID: UUID): Boolean
+    fun slett(søknadUUID: UUID): Boolean
     fun hent(søknadUUID: UUID): SøkerOppgave?
-    fun settFaktumSistEndret(søknadUUID: UUID)
 }
 
 class SøknadCachePostgresRepository(private val dataSource: DataSource) : SøknadCacheRepository {
@@ -47,7 +46,7 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
             session.run(
                 queryOf(
                     // language=PostgreSQL
-                    "SELECT uuid, eier, soknad_data, faktum_sist_endret FROM soknad_cache WHERE uuid = :uuid",
+                    "SELECT uuid, eier, soknad_data FROM soknad_cache WHERE uuid = :uuid",
                     mapOf("uuid" to søknadUUID.toString())
                 ).map { row ->
                     LivssyklusPostgresRepository.PersistentSøkerOppgave(objectMapper.readTree(row.binaryStream("soknad_data")))
@@ -56,26 +55,12 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
         }
     }
 
-    override fun settFaktumSistEndret(søknadUUID: UUID) {
-        return using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf(
-                    //language=PostgreSQL
-                    "UPDATE soknad_cache SET faktum_sist_endret = (NOW() AT TIME ZONE 'utc') WHERE uuid = ? RETURNING uuid",
-                    søknadUUID.toString()
-                ).map { row ->
-                    row.string("uuid")
-                }.asSingle
-            ) ?: throw NotFoundException("Søknad med id '$søknadUUID' ikke funnet")
-        }
-    }
-
-    override fun slettSøknadData(søknadUUID: UUID) =
+    override fun slett(søknadUUID: UUID) =
         using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf(
                     //language=PostgreSQL
-                    "UPDATE soknad_cache SET soknad_data = NULL WHERE uuid = ?", søknadUUID.toString()
+                    "DELETE FROM soknad_cache WHERE uuid = ?", søknadUUID.toString()
                 ).asExecute
             )
         }

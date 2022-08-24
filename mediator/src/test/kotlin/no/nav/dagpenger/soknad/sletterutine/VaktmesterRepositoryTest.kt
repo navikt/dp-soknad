@@ -2,9 +2,6 @@ package no.nav.dagpenger.soknad.sletterutine
 
 import io.ktor.server.plugins.NotFoundException
 import io.mockk.mockk
-import kotliquery.queryOf
-import kotliquery.sessionOf
-import kotliquery.using
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Språk
@@ -22,10 +19,8 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
-import javax.sql.DataSource
 
 internal class VaktmesterRepositoryTest {
     private val testRapid = TestRapid()
@@ -49,20 +44,21 @@ internal class VaktmesterRepositoryTest {
                 innsendtSøknad(innsendtSøknadUuid, it)
             )
         }
-        livssyklusRepository.lagre(person)
+
+        println(
+            "Innsendt uuid: $innsendtSøknadUuid\n" +
+                "Ny uuid: $nyPåbegyntSøknadUuid\n" +
+                "Gammel uuid: $gammelPåbegyntSøknadUuid"
+        )
+
         søknadCacheRepository.lagre(TestSøkerOppgave(gammelPåbegyntSøknadUuid, testPersonIdent, "{}"))
         søknadCacheRepository.lagre(TestSøkerOppgave(nyPåbegyntSøknadUuid, testPersonIdent, "{}"))
 
-        val nå = LocalDateTime.now()
-
-        oppdaterFaktumSistEndret(gammelPåbegyntSøknadUuid, nå.minusDays(8), dataSource)
-        oppdaterFaktumSistEndret(innsendtSøknadUuid, nå.minusDays(30), dataSource)
         vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
         assertCacheSlettet(gammelPåbegyntSøknadUuid, søknadCacheRepository)
         assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, person, livssyklusRepository)
         assertAntallSøknadSlettetEvent(1)
 
-        oppdaterFaktumSistEndret(nyPåbegyntSøknadUuid, nå.minusDays(8), dataSource)
         vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
         assertCacheSlettet(nyPåbegyntSøknadUuid, søknadCacheRepository)
         assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 1, person, livssyklusRepository)
@@ -105,7 +101,8 @@ internal class VaktmesterRepositoryTest {
             dokument = null,
             journalpostId = "journalpostid",
             innsendtTidspunkt = ZonedDateTime.now(),
-            språk = språk
+            språk = språk,
+            sistEndretAvBruker = ZonedDateTime.now().minusDays(19)
         )
 
     private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, person: Person) =
@@ -115,8 +112,9 @@ internal class VaktmesterRepositoryTest {
             tilstandsType = Påbegynt.name,
             dokument = null,
             journalpostId = "1456",
-            innsendtTidspunkt = ZonedDateTime.now(),
-            språk = språk
+            innsendtTidspunkt = null,
+            språk = språk,
+            sistEndretAvBruker = ZonedDateTime.now().minusDays(8)
         )
 
     private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, person: Person) =
@@ -126,21 +124,10 @@ internal class VaktmesterRepositoryTest {
             tilstandsType = Påbegynt.name,
             dokument = null,
             journalpostId = "1457",
-            innsendtTidspunkt = ZonedDateTime.now(),
-            språk = språk
+            innsendtTidspunkt = null,
+            språk = språk,
+            sistEndretAvBruker = ZonedDateTime.now().minusDays(1)
         )
-}
-
-private fun oppdaterFaktumSistEndret(søknadId: UUID, faktumSistEndretDato: LocalDateTime, ds: DataSource): Int {
-    return using(sessionOf(ds)) {
-        it.run(
-            queryOf(
-                //language=PostgreSQL
-                "UPDATE soknad_cache SET faktum_sist_endret=:faktum_sist_endret WHERE uuid=:uuid",
-                mapOf("uuid" to søknadId.toString(), "faktum_sist_endret" to faktumSistEndretDato)
-            ).asUpdate
-        )
-    }
 }
 
 private class TestPersonVisitor(person: Person?) : PersonVisitor {

@@ -19,16 +19,17 @@ class PersonData(
         return Person.rehydrer(
             ident = this.ident,
             aktivitetslogg = this.aktivitetsLogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
-        ) { p ->
+        ) { person ->
             søknader.map {
                 Søknad.rehydrer(
                     søknadId = it.søknadsId,
-                    person = p,
+                    person = person,
                     tilstandsType = it.tilstandType.name,
                     dokument = it.dokumenter.rehydrer(),
                     journalpostId = it.journalpostId,
                     innsendtTidspunkt = it.innsendtTidspunkt,
-                    språk = it.språkData.somSpråk()
+                    språk = it.språkData.somSpråk(),
+                    sistEndretAvBruker = it.sistEndretAvBruker
                 )
             }.toMutableList()
         }
@@ -40,7 +41,8 @@ class PersonData(
         var dokumenter: List<DokumentData>,
         val journalpostId: String?,
         val innsendtTidspunkt: ZonedDateTime?,
-        val språkData: SpråkData
+        val språkData: SpråkData,
+        val sistEndretAvBruker: ZonedDateTime?
     ) {
         class DokumentData(
             val urn: String,

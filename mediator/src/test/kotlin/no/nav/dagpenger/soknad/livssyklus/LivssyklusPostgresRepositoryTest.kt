@@ -83,7 +83,8 @@ internal class LivssyklusPostgresRepositoryTest {
                     ),
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = ZonedDateTime.now(),
-                    språk
+                    språk,
+                    sistEndretAvBruker = ZonedDateTime.now().minusDays(1)
                 )
             )
         }
@@ -123,7 +124,8 @@ internal class LivssyklusPostgresRepositoryTest {
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "jouhasjk",
                     innsendtTidspunkt = innsendtTidspunkt,
-                    språk
+                    språk,
+                    sistEndretAvBruker = innsendtTidspunkt
                 ),
                 Søknad.rehydrer(
                     søknadId = UUID.randomUUID(),
@@ -132,7 +134,8 @@ internal class LivssyklusPostgresRepositoryTest {
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = innsendtTidspunkt,
-                    språk
+                    språk,
+                    sistEndretAvBruker = innsendtTidspunkt
                 )
             )
         }
@@ -162,7 +165,8 @@ internal class LivssyklusPostgresRepositoryTest {
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = ZonedDateTime.now(),
-                    språk
+                    språk,
+                    sistEndretAvBruker = ZonedDateTime.now()
                 )
             )
         }
@@ -214,7 +218,8 @@ internal class LivssyklusPostgresRepositoryTest {
             dokument: Søknad.Dokument?,
             journalpostId: String?,
             innsendtTidspunkt: ZonedDateTime?,
-            språk: Språk
+            språk: Språk,
+            sistEndretAvBruker: ZonedDateTime?
         ) {
             dokument?.let { dokumenter[søknadId] = it }
         }

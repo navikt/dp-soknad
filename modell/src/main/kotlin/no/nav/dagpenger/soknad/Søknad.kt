@@ -23,7 +23,8 @@ class Søknad private constructor(
     private var dokument: Dokument?,
     private var journalpostId: String?,
     private var innsendtTidspunkt: ZonedDateTime?,
-    private val språk: Språk
+    private val språk: Språk,
+    private var sistEndretAvBruker: ZonedDateTime?
 ) : Aktivitetskontekst {
 
     constructor(søknadId: UUID, språk: Språk, person: Person) : this(
@@ -33,7 +34,8 @@ class Søknad private constructor(
         dokument = null,
         journalpostId = null,
         innsendtTidspunkt = null,
-        språk
+        språk,
+        sistEndretAvBruker = null
     )
 
     companion object {
@@ -51,7 +53,8 @@ class Søknad private constructor(
             dokument: Dokument?,
             journalpostId: String?,
             innsendtTidspunkt: ZonedDateTime?,
-            språk: Språk
+            språk: Språk,
+            sistEndretAvBruker: ZonedDateTime?
         ): Søknad {
             val tilstand: Tilstand = when (Tilstand.Type.valueOf(tilstandsType)) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
@@ -62,7 +65,7 @@ class Søknad private constructor(
                 Tilstand.Type.Journalført -> Journalført
                 Tilstand.Type.Slettet -> throw IllegalArgumentException("Kan ikke rehydrere slettet søknad med id $søknadId")
             }
-            return Søknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt, språk)
+            return Søknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt, språk, sistEndretAvBruker)
         }
     }
 
@@ -88,6 +91,7 @@ class Søknad private constructor(
 
     fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
         kontekst(søknadInnsendtHendelse)
+        sistEndretAvBruker = ZonedDateTime.now()
         tilstand.håndter(søknadInnsendtHendelse, this)
     }
 
@@ -113,6 +117,7 @@ class Søknad private constructor(
     fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse) {
         kontekst(faktumOppdatertHendelse)
         if (tilstand == Påbegynt) {
+            sistEndretAvBruker = ZonedDateTime.now()
             tilstand.håndter(faktumOppdatertHendelse, this)
         } else {
             faktumOppdatertHendelse.severe("Kan ikke oppdatere faktum for søknader i tilstand ${tilstand.tilstandType.name}")
@@ -287,7 +292,7 @@ class Søknad private constructor(
     }
 
     fun accept(visitor: SøknadVisitor) {
-        visitor.visitSøknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt, språk)
+        visitor.visitSøknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt, språk, sistEndretAvBruker)
         tilstand.accept(visitor)
     }
 

@@ -108,7 +108,8 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = ZonedDateTime.now(),
-                    Språk(språkVerdi)
+                    Språk(språkVerdi),
+                    sistEndretAvBruker = ZonedDateTime.now()
                 )
             )
         }

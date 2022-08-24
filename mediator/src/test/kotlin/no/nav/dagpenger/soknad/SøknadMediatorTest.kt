@@ -31,12 +31,10 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.rapids_rivers.toUUID
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import java.time.ZonedDateTime
 import java.util.UUID
 
 internal class SøknadMediatorTest {
@@ -108,14 +106,11 @@ internal class SøknadMediatorTest {
         assertEquals(Påbegynt, oppdatertInspektør().gjeldendetilstand)
 
         testRapid.sendTestMessage(søkerOppgave(søknadUuid.toString().toUUID(), testIdent))
+        assertAntallRader("soknad_cache", antallRader = 1)
 
-        val faktumFørstEndret = hentFaktumSistEndret(søknadUuid)
         mediator.behandle(FaktumSvar(søknadUuid, "1234", "boolean", testIdent, BooleanNode.TRUE))
         assertTrue("faktum_svar" in testRapid.inspektør.message(1).toString())
-        assertSøknadCacheInvalidert(søknadUuid)
-
-        val faktumSistEndret = hentFaktumSistEndret(søknadUuid)
-        assertTrue(faktumFørstEndret < faktumSistEndret)
+        assertAntallRader("soknad_cache", antallRader = 0)
 
         testRapid.sendTestMessage(ferdigSøkerOppgave(søknadUuid.toString().toUUID(), testIdent))
         mediator.behandle(SøknadInnsendtHendelse(søknadUuid, testIdent))
@@ -175,39 +170,11 @@ internal class SøknadMediatorTest {
         assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: $tabell")
     }
 
-    private fun assertSøknadCacheInvalidert(søknadUuid: UUID) {
-        assertNull(
-            using(sessionOf(dataSource)) { session ->
-                session.run(
-                    //language=PostgreSQL
-                    queryOf("SELECT soknad_data FROM soknad_cache WHERE uuid = ?", søknadUuid.toString())
-                        .map { row ->
-                            row.stringOrNull("soknad_data")
-                        }.asSingle
-                )
-            },
-            "Forventet at soknad_data i soknad_cache tabellen er null"
-        )
-    }
-
     private fun søknadId(ident: String = testIdent) = oppdatertInspektør(ident).gjeldendeSøknadId
 
     private fun behov(indeks: Int) = testRapid.inspektør.message(indeks)["@behov"].map { it.asText() }
 
     private fun oppdatertInspektør(ident: String = testIdent) = TestPersonInspektør(livssyklusRepository.hent(ident)!!)
-
-    fun hentFaktumSistEndret(søknadUUID: UUID): ZonedDateTime =
-        using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf(
-                    //language=PostgreSQL
-                    "SELECT faktum_sist_endret FROM soknad_cache WHERE uuid = ?",
-                    søknadUUID.toString()
-                ).map { row ->
-                    row.zonedDateTime("faktum_sist_endret")
-                }.asSingle
-            )
-        }!!
 
     // language=JSON
     private fun søkerOppgave(søknadUuid: UUID, ident: String) = """{
