@@ -83,6 +83,7 @@ internal class DokumentasjonKravApiTest {
                     assertNotNull(this["gyldigeValg"])
                     assertNotNull(this["begrunnelse"])
                     assertNotNull(this["svar"])
+                    assertNotNull(this["fakta"])
                 }
             }
         }

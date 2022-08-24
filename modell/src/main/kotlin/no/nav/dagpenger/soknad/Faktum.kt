@@ -2,7 +2,7 @@ package no.nav.dagpenger.soknad
 
 import com.fasterxml.jackson.databind.JsonNode
 
-class Faktum(internal val json: JsonNode) {
+class Faktum(val json: JsonNode) {
     val id: String get() = json["id"].asText()
     val beskrivendeId: String = json["beskrivendeId"].asText()
     val sannsynliggjøresAv get() = json["sannsynliggjøresAv"].map { Faktum(it) }

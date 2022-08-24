@@ -16,6 +16,7 @@ import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.ident
+import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import java.util.UUID
 
 private val logger = KotlinLogging.logger { }
@@ -51,6 +52,7 @@ fun Set<Krav>.toApiKrav(): List<ApiDokumentKrav> = map {
     ApiDokumentKrav(
         id = it.id,
         beskrivendeId = it.beskrivendeId,
+        fakta = it.fakta.fold(objectMapper.createArrayNode()) { acc, faktum -> acc.add(faktum.json) },
         filer = emptyList(),
     )
 }
@@ -58,6 +60,7 @@ fun Set<Krav>.toApiKrav(): List<ApiDokumentKrav> = map {
 data class ApiDokumentKrav(
     val id: String,
     val beskrivendeId: String,
+    val fakta: JsonNode,
     val filer: List<String>,
     val gyldigeValg: Set<String> = setOf(
         "dokument.sender.senere",
