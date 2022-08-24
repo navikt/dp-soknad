@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad.db
 
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
+import no.nav.dagpenger.soknad.IkkeTilgangExeption
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.Sannsynliggjøring
@@ -11,8 +12,9 @@ import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -71,7 +73,10 @@ internal class SøknadPostgresRepositoryTest {
         withMigratedDb {
             LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).lagre(originalPerson)
             val søknadPostgresRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
-            assertNotNull(søknadPostgresRepository.hentDokumentkravFor(søknadId, ident))
+            assertThrows<IkkeTilgangExeption> { søknadPostgresRepository.hentDokumentkravFor(søknadId, "ikke-tilgang") }
+
+            val dokumentkrav = søknadPostgresRepository.hentDokumentkravFor(søknadId, ident)
+            assertEquals(krav, dokumentkrav.aktiveDokumentKrav().first())
         }
     }
 }

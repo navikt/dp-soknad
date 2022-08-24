@@ -26,7 +26,8 @@ class Søknad private constructor(
     private var journalpostId: String?,
     private var innsendtTidspunkt: ZonedDateTime?,
     private val språk: Språk,
-    private val dokumentkrav: Dokumentkrav
+    private val dokumentkrav: Dokumentkrav,
+    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : Aktivitetskontekst {
 
     constructor(søknadId: UUID, språk: Språk, person: Person) : this(

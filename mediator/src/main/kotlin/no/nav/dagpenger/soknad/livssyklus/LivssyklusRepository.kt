@@ -39,6 +39,7 @@ interface LivssyklusRepository {
 
 interface SøknadRepository {
     fun hentDokumentkravFor(søknadId: UUID, ident: String): Dokumentkrav
+    fun harTilgang(ident: String, søknadId: UUID): Boolean
 }
 
 class LivssyklusPostgresRepository(private val dataSource: DataSource) : LivssyklusRepository {
@@ -215,32 +216,6 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
         )
     }
 
-    private fun Session.hentDokumentKrav(søknadsId: UUID): Set<PersonData.SøknadData.DokumentkravData.KravData> =
-        this.run(
-            queryOf(
-                // language=PostgreSQL
-                """
-                  SELECT faktum_id, beskrivende_id, faktum, sannsynliggjoer, tilstand FROM dokumentkrav_v1 WHERE soknad_uuid = :soknad_uuid
-                """.trimIndent(),
-                mapOf(
-                    "soknad_uuid" to søknadsId.toString()
-                )
-            ).map { row ->
-                PersonData.SøknadData.DokumentkravData.KravData(
-                    id = row.string("faktum_id"),
-                    beskrivendeId = row.string("beskrivende_id"),
-                    sannsynliggjøring = PersonData.SøknadData.DokumentkravData.SannsynliggjøringData(
-                        id = row.string("faktum_id"),
-                        faktum = objectMapper.readTree(row.binaryStream("faktum")),
-                        sannsynliggjør = objectMapper.readTree(row.binaryStream("sannsynliggjoer")).toSet(),
-
-                    ),
-                    filer = emptySet(),
-                    tilstand = row.string("tilstand").let { PersonData.SøknadData.DokumentkravData.KravData.KravTilstandData.valueOf(it) }
-                )
-            }.asList
-        ).toSet()
-
     internal class PersistentSøkerOppgave(private val søknad: JsonNode) : SøkerOppgave {
         override fun søknadUUID(): UUID = UUID.fromString(søknad[SøkerOppgave.Keys.SØKNAD_UUID].asText())
         override fun eier(): String = søknad[SøkerOppgave.Keys.FØDSELSNUMMER].asText()
@@ -260,6 +235,34 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
     }
 }
 
+internal fun Session.hentDokumentKrav(søknadsId: UUID): Set<PersonData.SøknadData.DokumentkravData.KravData> =
+    this.run(
+        queryOf(
+            // language=PostgreSQL
+            """
+                  SELECT faktum_id, beskrivende_id, faktum, sannsynliggjoer, tilstand 
+                  FROM dokumentkrav_v1 
+                  WHERE soknad_uuid = :soknad_uuid
+            """.trimIndent(),
+            mapOf(
+                "soknad_uuid" to søknadsId.toString()
+            )
+        ).map { row ->
+            PersonData.SøknadData.DokumentkravData.KravData(
+                id = row.string("faktum_id"),
+                beskrivendeId = row.string("beskrivende_id"),
+                sannsynliggjøring = PersonData.SøknadData.DokumentkravData.SannsynliggjøringData(
+                    id = row.string("faktum_id"),
+                    faktum = objectMapper.readTree(row.binaryStream("faktum")),
+                    sannsynliggjør = objectMapper.readTree(row.binaryStream("sannsynliggjoer")).toSet(),
+
+                ),
+                filer = emptySet(),
+                tilstand = row.string("tilstand").let { PersonData.SøknadData.DokumentkravData.KravData.KravTilstandData.valueOf(it) }
+            )
+        }.asList
+    ).toSet()
+
 private fun List<PersonData.SøknadData>.insertDokumentkrav(transactionalSession: TransactionalSession) =
     this.map {
         it.dokumentkrav.kravData.insertKravData(it.søknadsId, transactionalSession)
@@ -275,20 +278,20 @@ private fun Set<PersonData.SøknadData.DokumentkravData.KravData>.insertKravData
             INSERT INTO dokumentkrav_v1(faktum_id, beskrivende_id, soknad_uuid, faktum, sannsynliggjoer, tilstand)
             VALUES (:faktum_id, :beskrivende_id, :soknad_uuid, :faktum, :sannsynliggjoer, :tilstand)
         """.trimIndent(),
-        params = map {
+        params = map { krav ->
             mapOf<String, Any?>(
-                "faktum_id" to it.id,
+                "faktum_id" to krav.id,
                 "soknad_uuid" to søknadsId,
-                "beskrivende_id" to it.beskrivendeId,
+                "beskrivende_id" to krav.beskrivendeId,
                 "faktum" to PGobject().apply {
                     type = "jsonb"
-                    value = objectMapper.writeValueAsString(it.sannsynliggjøring.faktum)
+                    value = objectMapper.writeValueAsString(krav.sannsynliggjøring.faktum)
                 },
                 "sannsynliggjoer" to PGobject().apply {
                     type = "jsonb"
-                    value = objectMapper.writeValueAsString(it.sannsynliggjøring.sannsynliggjør)
+                    value = objectMapper.writeValueAsString(krav.sannsynliggjøring.sannsynliggjør)
                 },
-                "tilstand" to it.tilstand.name
+                "tilstand" to krav.tilstand.name
             )
         }
     )

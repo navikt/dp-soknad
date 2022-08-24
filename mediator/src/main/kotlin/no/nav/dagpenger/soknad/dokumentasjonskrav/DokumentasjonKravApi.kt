@@ -16,8 +16,9 @@ import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.ident
+import java.util.UUID
 
-val logger = KotlinLogging.logger { }
+private val logger = KotlinLogging.logger { }
 
 internal fun Route.dokumentasjonkravRoute(søknadRepository: SøknadRepository) {
     get("/{søknad_uuid}/dokumentasjonkrav") {
@@ -25,8 +26,11 @@ internal fun Route.dokumentasjonkravRoute(søknadRepository: SøknadRepository) 
         val ident = call.ident()
         withLoggingContext("søknadid" to søknadUuid.toString()) {
             val dokumentkrav = søknadRepository.hentDokumentkravFor(søknadUuid, ident)
-            val aktivedokumentkrav = dokumentkrav.aktiveDokumentKrav().toApiKrav()
-            call.respond(aktivedokumentkrav)
+            val apiDokumentkravResponse = ApiDokumentkravResponse(
+                soknad_uuid = søknadUuid,
+                krav = dokumentkrav.aktiveDokumentKrav().toApiKrav()
+            )
+            call.respond(apiDokumentkravResponse)
         }
     }
 
@@ -38,6 +42,11 @@ internal fun Route.dokumentasjonkravRoute(søknadRepository: SøknadRepository) 
         }
     }
 }
+
+private data class ApiDokumentkravResponse(
+    val soknad_uuid: UUID,
+    val krav: List<ApiDokumentKrav>,
+)
 fun Set<Krav>.toApiKrav(): List<ApiDokumentKrav> = map {
     ApiDokumentKrav(
         id = it.id,
@@ -50,6 +59,13 @@ data class ApiDokumentKrav(
     val id: String,
     val beskrivendeId: String,
     val filer: List<String>,
-    val gyldigeValg: Set<String> = setOf("Laste opp nå", "Sende senere", "Noen andre sender dokumentet", "Har sendt tidligere", "Sender ikke"),
+    val gyldigeValg: Set<String> = setOf(
+        "dokument.sender.senere",
+        "dokument.sender.ikke",
+        "dokument.sender.naa",
+        "dokument.andre.sender",
+        "dokument.har.sendt"
+    ),
+    val begrunnelse: String? = null,
     val svar: String? = null
 )
