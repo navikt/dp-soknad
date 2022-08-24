@@ -8,6 +8,7 @@ import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
+import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
@@ -20,20 +21,24 @@ class Søknad private constructor(
     private val søknadId: UUID,
     private val person: Person,
     private var tilstand: Tilstand,
+    // @todo: Endre navn fra dokument til journalføringer? (og liste)?
     private var dokument: Dokument?,
     private var journalpostId: String?,
     private var innsendtTidspunkt: ZonedDateTime?,
-    private val språk: Språk
+    private val språk: Språk,
+    private val dokumentkrav: Dokumentkrav,
+    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : Aktivitetskontekst {
 
     constructor(søknadId: UUID, språk: Språk, person: Person) : this(
-        søknadId,
-        person,
-        UnderOpprettelse,
+        søknadId = søknadId,
+        person = person,
+        tilstand = UnderOpprettelse,
         dokument = null,
         journalpostId = null,
         innsendtTidspunkt = null,
-        språk
+        språk = språk,
+        dokumentkrav = Dokumentkrav()
     )
 
     companion object {
@@ -51,7 +56,8 @@ class Søknad private constructor(
             dokument: Dokument?,
             journalpostId: String?,
             innsendtTidspunkt: ZonedDateTime?,
-            språk: Språk
+            språk: Språk,
+            dokumentkrav: Dokumentkrav
         ): Søknad {
             val tilstand: Tilstand = when (Tilstand.Type.valueOf(tilstandsType)) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
@@ -62,7 +68,16 @@ class Søknad private constructor(
                 Tilstand.Type.Journalført -> Journalført
                 Tilstand.Type.Slettet -> throw IllegalArgumentException("Kan ikke rehydrere slettet søknad med id $søknadId")
             }
-            return Søknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt, språk)
+            return Søknad(
+                søknadId = søknadId,
+                person = person,
+                tilstand = tilstand,
+                dokument = dokument,
+                journalpostId = journalpostId,
+                innsendtTidspunkt = innsendtTidspunkt,
+                språk = språk,
+                dokumentkrav = dokumentkrav
+            )
         }
     }
 
@@ -118,12 +133,14 @@ class Søknad private constructor(
             faktumOppdatertHendelse.severe("Kan ikke oppdatere faktum for søknader i tilstand ${tilstand.tilstandType.name}")
         }
     }
-
+    fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse) {
+        kontekst(søkeroppgaveHendelse)
+        tilstand.håndter(søkeroppgaveHendelse, this)
+    }
     fun håndter(slettSøknadHendelse: SlettSøknadHendelse) {
         kontekst(slettSøknadHendelse)
         tilstand.håndter(slettSøknadHendelse, this)
     }
-
     interface Tilstand : Aktivitetskontekst {
 
         val tilstandType: Type
@@ -156,6 +173,10 @@ class Søknad private constructor(
 
         fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse, søknad: Søknad) =
             faktumOppdatertHendelse.`kan ikke håndteres i denne tilstanden`()
+
+        fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse, søknad: Søknad) {
+            søkeroppgaveHendelse.`kan ikke håndteres i denne tilstanden`()
+        }
 
         fun håndter(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
             slettSøknadHendelse.severe("Kan ikke slette søknad i tilstand $tilstandType")
@@ -215,10 +236,18 @@ class Søknad private constructor(
 
         override fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse, søknad: Søknad) {
         }
+        override fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse, søknad: Søknad) {
+            søkeroppgaveHendelse.info("Fikk %d sannsynliggjøringer", søkeroppgaveHendelse.sannsynliggjøringer().size)
+            søknad.håndter(søkeroppgaveHendelse.sannsynliggjøringer())
+        }
 
         override fun håndter(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
             søknad.endreTilstand(Slettet, slettSøknadHendelse)
         }
+    }
+
+    private fun håndter(nyeSannsynliggjøringer: Set<Sannsynliggjøring>) {
+        this.dokumentkrav.håndter(nyeSannsynliggjøringer)
     }
 
     private object Slettet : Tilstand {
@@ -287,7 +316,7 @@ class Søknad private constructor(
     }
 
     fun accept(visitor: SøknadVisitor) {
-        visitor.visitSøknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt, språk)
+        visitor.visitSøknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt, språk, dokumentkrav)
         tilstand.accept(visitor)
     }
 
@@ -325,7 +354,7 @@ class Søknad private constructor(
     fun deepEquals(other: Any?): Boolean =
         other is Søknad && other.søknadId == this.søknadId && other.person == this.person &&
             other.tilstand == this.tilstand && other.dokument == this.dokument &&
-            other.journalpostId == this.journalpostId
+            other.journalpostId == this.journalpostId && this.dokumentkrav == other.dokumentkrav
 
     private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: Hendelse) {
         if (nyTilstand == tilstand) {

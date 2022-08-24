@@ -1,7 +1,6 @@
 package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
 import io.mockk.mockk
-import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.db.Postgres
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
@@ -27,13 +26,20 @@ class SøkerOppgaveMottakTest {
     fun `lese svar fra kafka`() {
 
         Postgres.withMigratedDb {
-            val søknadMediator = SøknadMediator(testRapid, SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource), mockk(), mockk(), mockk()).also {
+            val søknadMediator = SøknadMediator(
+                testRapid,
+                SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource),
+                LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource),
+                mockk(),
+                mockk(),
+                mockk()
+            ).also {
                 SøkerOppgaveMottak(testRapid, it)
             }
             testRapid.reset()
             val søknadUuid = UUID.randomUUID()
             val ident = "01234567891"
-            lagrePersonMedSøknad(søknadUuid, ident)
+            søknadMediator.behandle(ØnskeOmNySøknadHendelse(søknadUuid, ident, språkVerdi))
             testRapid.sendTestMessage(nySøknad(søknadUuid, ident))
             søknadMediator.hent(søknadUuid).also {
                 assertDoesNotThrow {
@@ -47,6 +53,7 @@ class SøkerOppgaveMottakTest {
             }
         }
     }
+
     //language=JSON
     private fun nySøknad(søknadUuid: UUID, ident: String) = """{
   "@event_name": "søker_oppgave",
@@ -65,11 +72,4 @@ class SøkerOppgaveMottakTest {
   ]
 }
     """.trimIndent()
-
-    private fun lagrePersonMedSøknad(søknadUuid: UUID, ident: String = "01234567891") {
-        val person = Person(ident)
-        person.håndter(ØnskeOmNySøknadHendelse(søknadUuid, ident, språkVerdi))
-        val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
-        livssyklusPostgresRepository.lagre(person)
-    }
 }

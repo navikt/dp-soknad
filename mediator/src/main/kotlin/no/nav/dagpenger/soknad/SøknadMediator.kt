@@ -7,6 +7,7 @@ import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
+import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
@@ -14,6 +15,7 @@ import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNyInnsendingHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusRepository
+import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.FerdigstiltSøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
@@ -29,11 +31,13 @@ internal class SøknadMediator(
     private val livssyklusRepository: LivssyklusRepository,
     private val søknadMalRepository: SøknadMalRepository,
     private val ferdigstiltSøknadRepository: FerdigstiltSøknadRepository,
+    private val søknadRepository: SøknadRepository,
     private val personObservers: List<PersonObserver> = emptyList()
 ) : SøknadCacheRepository by søknadCacheRepository,
     SøknadMalRepository by søknadMalRepository,
     LivssyklusRepository by livssyklusRepository,
-    FerdigstiltSøknadRepository by ferdigstiltSøknadRepository {
+    FerdigstiltSøknadRepository by ferdigstiltSøknadRepository,
+    SøknadRepository by søknadRepository {
     private companion object {
         val logger = KotlinLogging.logger { }
         val sikkerLogger = KotlinLogging.logger("tjenestekall")
@@ -106,7 +110,11 @@ internal class SøknadMediator(
     }
 
     fun behandle(søkerOppgave: SøkerOppgave) {
-        søknadCacheRepository.lagre(søkerOppgave)
+        val søkeroppgaveHendelse = SøkeroppgaveHendelse(søkerOppgave.søknadUUID(), søkerOppgave.eier(), søkerOppgave.sannsynliggjøringer())
+        behandle(søkeroppgaveHendelse) { person ->
+            person.håndter(søkeroppgaveHendelse)
+            søknadCacheRepository.lagre(søkerOppgave)
+        }
     }
 
     internal fun hentEllerOpprettSøknadsprosess(

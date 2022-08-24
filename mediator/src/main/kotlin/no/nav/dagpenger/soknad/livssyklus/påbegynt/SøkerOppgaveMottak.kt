@@ -19,7 +19,7 @@ interface SøkerOppgave {
     fun ferdig(): Boolean
     fun asFrontendformat(): JsonNode
     fun asJson(): String
-    fun sannsynliggjøringer(): List<Sannsynliggjøring>
+    fun sannsynliggjøringer(): Set<Sannsynliggjøring>
 
     object Keys {
         val SEKSJONER = "seksjoner"
@@ -35,7 +35,6 @@ internal class SøkerOppgaveMottak(
 ) : River.PacketListener {
     private companion object {
         val logger = KotlinLogging.logger {}
-        val sikkerLogger = KotlinLogging.logger("tjenestekall")
     }
 
     init {
@@ -69,7 +68,7 @@ internal class SøkerOppgaveMelding(private val jsonMessage: JsonMessage) : Søk
     override fun ferdig(): Boolean = jsonMessage[SøkerOppgave.Keys.FERDIG].asBoolean()
     override fun asFrontendformat(): JsonNode = objectMapper.readTree(jsonMessage.toJson())
     override fun asJson(): String = jsonMessage.toJson()
-    override fun sannsynliggjøringer(): List<Sannsynliggjøring> {
+    override fun sannsynliggjøringer(): Set<Sannsynliggjøring> {
         val seksjoner = jsonMessage[SøkerOppgave.Keys.SEKSJONER]
         val sannsynliggjøringer = mutableMapOf<String, Sannsynliggjøring>()
         val fakta: List<Faktum> = seksjoner.findValues("fakta").flatMap<JsonNode, Faktum> { fakta ->
@@ -94,15 +93,8 @@ internal class SøkerOppgaveMelding(private val jsonMessage: JsonMessage) : Søk
             }
         }
 
-        return sannsynliggjøringer.values.toList()
+        return sannsynliggjøringer.values.toSet()
     }
 
-    private fun grunnleggendeFaktum(faktum: JsonNode): Faktum = Faktum(
-        faktum["id"].asText(),
-        faktum["beskrivendeId"].asText(),
-        faktum["type"].asText(),
-        roller = faktum["roller"].map { it.asText() },
-        svar = faktum["svar"],
-        sannsynliggjøresAv = faktum["sannsynliggjøresAv"].map { grunnleggendeFaktum(it) }
-    )
+    private fun grunnleggendeFaktum(faktum: JsonNode): Faktum = Faktum(faktum)
 }

@@ -43,7 +43,7 @@ import java.util.UUID
 
 internal class SøknadMediatorTest {
     companion object {
-        private const val testIdent = "12345678912"
+        private const val testIdent = "12345678913"
         private const val testJournalpostId = "123455PDS"
         private val språkVerdi = "NO"
     }
@@ -62,7 +62,8 @@ internal class SøknadMediatorTest {
             søknadCacheRepository,
             livssyklusRepository,
             søknadMalRepositoryMock,
-            ferdigstiltSøknadRepository
+            ferdigstiltSøknadRepository,
+            mockk()
         )
 
         SøkerOppgaveMottak(testRapid, mediator)
@@ -145,12 +146,12 @@ internal class SøknadMediatorTest {
         assertEquals(Journalført, oppdatertInspektør().gjeldendetilstand)
 
         // Verifiserer at aktivitetsloggen blir lagret per behandling
-        assertAntallRader("aktivitetslogg_v2", 7)
+        assertAntallRader("aktivitetslogg_v2", 9)
 
         // Verifiser at det er mulig å hente en komplett aktivitetslogg
         livssyklusRepository.hent(testIdent, true)?.let {
             with(TestPersonInspektør(it).aktivitetslogg["aktiviteter"]!!) {
-                assertEquals(10, size)
+                assertEquals(14, size)
                 assertEquals("Ønske om søknad registrert", first()["melding"])
                 assertEquals("Søknad journalført", last()["melding"])
             }

@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.pdl.createPersonOppslag
+import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.dagpenger.soknad.livssyklus.JournalførtMottak
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
@@ -59,7 +60,8 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         personObservers = listOf(
             PersonLoggerObserver,
             SøknadSlettetObserver(rapidsConnection)
-        )
+        ),
+        søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
     ).also {
         SøknadOpprettetHendelseMottak(rapidsConnection, it)
         ArkiverbarSøknadMottattHendelseMottak(rapidsConnection, it)

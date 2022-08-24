@@ -9,7 +9,7 @@ interface TilstandVisitor {
 }
 
 interface SøknadVisitor : TilstandVisitor {
-    fun visitSøknad(søknadId: UUID, person: Person, tilstand: Tilstand, dokument: Søknad.Dokument?, journalpostId: String?, innsendtTidspunkt: ZonedDateTime?, språk: Språk) {}
+    fun visitSøknad(søknadId: UUID, person: Person, tilstand: Tilstand, dokument: Søknad.Dokument?, journalpostId: String?, innsendtTidspunkt: ZonedDateTime?, språk: Språk, dokumentkrav: Dokumentkrav) {}
 }
 
 interface PersonVisitor : SøknadVisitor, AktivitetsloggVisitor {
