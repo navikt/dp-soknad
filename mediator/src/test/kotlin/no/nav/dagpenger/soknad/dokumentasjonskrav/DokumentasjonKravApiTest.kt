@@ -54,7 +54,7 @@ internal class DokumentasjonKravApiTest {
         TestApplication.withMockAuthServerAndTestApplication() {
             assertEquals(
                 HttpStatusCode.Unauthorized,
-                client.get("${Configuration.basePath}/soknad/id/dokumentasjonkrav").status
+                client.get("${Configuration.basePath}/soknad/id/dokumentasjonskrav").status
             )
         }
     }
@@ -68,7 +68,7 @@ internal class DokumentasjonKravApiTest {
         ) {
             autentisert(
                 httpMethod = Get,
-                endepunkt = "${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonkrav"
+                endepunkt = "${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav"
             ).let { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
                 assertEquals("application/json; charset=UTF-8", response.contentType().toString())
@@ -92,7 +92,7 @@ internal class DokumentasjonKravApiTest {
     @Test
     fun `Skal kunne besvare`() {
         TestApplication.withMockAuthServerAndTestApplication() {
-            client.put("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonkrav/451") {
+            client.put("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451") {
                 autentisert()
                 header(HttpHeaders.ContentType, "application/json")
                 setBody("""{"svar": "ja"}""")

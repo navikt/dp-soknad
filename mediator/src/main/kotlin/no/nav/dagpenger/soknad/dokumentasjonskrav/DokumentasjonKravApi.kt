@@ -10,6 +10,7 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.put
+import io.ktor.server.routing.route
 import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Krav
@@ -22,24 +23,28 @@ import java.util.UUID
 private val logger = KotlinLogging.logger { }
 
 internal fun Route.dokumentasjonkravRoute(søknadRepository: SøknadRepository) {
-    get("/{søknad_uuid}/dokumentasjonkrav") {
-        val søknadUuid = søknadUuid()
-        val ident = call.ident()
-        withLoggingContext("søknadid" to søknadUuid.toString()) {
-            val dokumentkrav = søknadRepository.hentDokumentkravFor(søknadUuid, ident)
-            val apiDokumentkravResponse = ApiDokumentkravResponse(
-                soknad_uuid = søknadUuid,
-                krav = dokumentkrav.aktiveDokumentKrav().toApiKrav()
-            )
-            call.respond(apiDokumentkravResponse)
+    route("/{søknad_uuid}/dokumentasjonskrav") {
+        get {
+            val søknadUuid = søknadUuid()
+            val ident = call.ident()
+            withLoggingContext("søknadid" to søknadUuid.toString()) {
+                val dokumentkrav = søknadRepository.hentDokumentkravFor(søknadUuid, ident)
+                val apiDokumentkravResponse = ApiDokumentkravResponse(
+                    soknad_uuid = søknadUuid,
+                    krav = dokumentkrav.aktiveDokumentKrav().toApiKrav()
+                )
+                call.respond(apiDokumentkravResponse)
+            }
         }
-    }
-
-    put("/{søknad_uuid}/dokumentasjonkrav/{kravId}") {
-        val søknadUuid = søknadUuid()
-        withLoggingContext("søknadid" to søknadUuid.toString()) {
-            call.receive<JsonNode>().let { logger.info { "Received: $it" } }
-            call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { """{"status": "ok"}""" }
+        put("/{kravId}") {
+            val søknadUuid = søknadUuid()
+            withLoggingContext("søknadid" to søknadUuid.toString()) {
+                call.receive<JsonNode>().let { logger.info { "Received: $it" } }
+                call.respondText(
+                    contentType = ContentType.Application.Json,
+                    HttpStatusCode.OK
+                ) { """{"status": "ok"}""" }
+            }
         }
     }
 }
