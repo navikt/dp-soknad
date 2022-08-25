@@ -1,6 +1,10 @@
 package no.nav.dagpenger.soknad
 
+import de.slub.urn.RFC
+import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Krav.Companion.aktive
+import java.math.BigInteger
+import java.time.LocalDateTime
 
 class Dokumentkrav private constructor(
     private val krav: MutableSet<Krav> = mutableSetOf()
@@ -16,9 +20,9 @@ class Dokumentkrav private constructor(
         val håndterteSannsynliggjøringer = krav.map { it.sannsynliggjøring }.toSet()
         krav.forEach { it.håndter(nyeSannsynliggjøringer) }
 
-        val ikkeHånderte = nyeSannsynliggjøringer - håndterteSannsynliggjøringer
+        val ikkeHåndterte = nyeSannsynliggjøringer - håndterteSannsynliggjøringer
         krav.addAll(
-            ikkeHånderte.map {
+            ikkeHåndterte.map {
                 Krav(it)
             }
         )
@@ -36,7 +40,7 @@ class Dokumentkrav private constructor(
 
 data class Krav(
     val id: String,
-    val filer: Set<String> = emptySet(),
+    val filer: Set<Fil> = emptySet(),
     val sannsynliggjøring: Sannsynliggjøring,
     internal var tilstand: KravTilstand
 ) {
@@ -64,5 +68,18 @@ data class Krav(
     enum class KravTilstand {
         AKTIV,
         INAKTIV
+    }
+
+    data class Fil(
+        val filnavn: String,
+        val urn: URN,
+        val storrelse: BigInteger,
+        val tidspunkt: LocalDateTime
+    ) {
+        init {
+            require(urn.supports(RFC.RFC_8141)) {
+                "Must support ${RFC.RFC_8141}. See ${RFC.RFC_8141.url()}"
+            }
+        }
     }
 }

@@ -1,6 +1,8 @@
 package no.nav.dagpenger.soknad.serder
 
 import com.fasterxml.jackson.databind.JsonNode
+import de.slub.urn.RFC
+import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
@@ -12,6 +14,8 @@ import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentData.Companion.rehydrer
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.SannsynliggjøringData.Companion.toSannsynliggjøringData
+import java.math.BigInteger
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.Locale
 import java.util.UUID
@@ -110,11 +114,11 @@ class PersonData(
                 val beskrivendeId: String,
                 val sannsynliggjøring: SannsynliggjøringData,
                 val tilstand: KravTilstandData,
-                val filer: Set<String> = emptySet()
+                val filer: Set<FilData> = emptySet()
             ) {
                 fun rehydrer() = Krav(
                     id = this.id,
-                    filer = this.filer,
+                    filer = this.filer.map { it.rehydrer() },
                     sannsynliggjøring = this.sannsynliggjøring.rehydrer(),
                     tilstand = when (this.tilstand) {
                         KravTilstandData.AKTIV -> Krav.KravTilstand.AKTIV
@@ -137,6 +141,20 @@ class PersonData(
                 enum class KravTilstandData {
                     AKTIV,
                     INAKTIV
+                }
+
+                data class FilData(
+                    val filnavn: String,
+                    val urn: URN,
+                    val storrelse: BigInteger,
+                    val tidspunkt: LocalDateTime
+                ) {
+                    fun rehydrer() = Krav.Fil(
+                        filnavn = this.filnavn,
+                        urn = this.urn,
+                        storrelse = this.storrelse,
+                        tidspunkt = this.tidspunkt
+                    )
                 }
             }
         }
