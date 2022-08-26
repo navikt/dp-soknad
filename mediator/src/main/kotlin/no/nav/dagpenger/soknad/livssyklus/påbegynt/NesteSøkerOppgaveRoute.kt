@@ -10,16 +10,14 @@ import no.nav.dagpenger.soknad.IkkeTilgangExeption
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.ident
-import java.time.LocalDateTime
 import java.util.UUID
 
 internal fun Route.nesteSøkeroppgaveRoute(søknadMediator: SøknadMediator) {
     get("/{søknad_uuid}/neste") {
         val id = søknadUuid()
         val ident = call.ident()
-        val sistLagret = call.parameters["sistLagret"]?.let { LocalDateTime.parse(it) }
         try {
-            val søkerOppgave: SøkerOppgave = hentNesteSøkerOppgave(søknadMediator, id, sistLagret)
+            val søkerOppgave: SøkerOppgave = hentNesteSøkerOppgave(søknadMediator, id)
             if (ident != søkerOppgave.eier()) {
                 throw IkkeTilgangExeption("Ikke tilgang til søknad $id")
             }
@@ -30,7 +28,7 @@ internal fun Route.nesteSøkeroppgaveRoute(søknadMediator: SøknadMediator) {
     }
 }
 
-private suspend fun hentNesteSøkerOppgave(søknadMediator: SøknadMediator, id: UUID, sistLagret: LocalDateTime?) =
+private suspend fun hentNesteSøkerOppgave(søknadMediator: SøknadMediator, id: UUID) =
     retryIO(times = 15) {
-        søknadMediator.hent(id, sistLagret) ?: throw NotFoundException("Fant ikke søker_oppgave for søknad med id $id")
+        søknadMediator.hent(id) ?: throw NotFoundException("Fant ikke søker_oppgave for søknad med id $id")
     }
