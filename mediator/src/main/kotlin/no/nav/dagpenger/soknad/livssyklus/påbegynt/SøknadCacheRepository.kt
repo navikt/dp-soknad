@@ -27,10 +27,10 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
                     queryOf(
                         // language=PostgreSQL
                         """INSERT INTO soknad_cache(uuid, eier, soknad_data, opprettet)
-                            VALUES (:uuid, :eier, :data, (:opprettet AT TIME ZONE 'utc'))
+                            VALUES (:uuid, :eier, :data, (:opprettet AT TIME ZONE 'Europe/Oslo'))
                             ON CONFLICT(uuid, eier)
                                 DO UPDATE SET soknad_data = :data,
-                                              opprettet = (:opprettet AT TIME ZONE 'utc'),
+                                              opprettet = (:opprettet AT TIME ZONE 'Europe/Oslo'),
                                               mottatt = (NOW() AT TIME ZONE 'utc')
                         """.trimIndent(),
                         mapOf(
@@ -53,7 +53,7 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
             session.run(
                 queryOf(
                     // language=PostgreSQL
-                    "SELECT uuid, eier, soknad_data FROM soknad_cache WHERE uuid = :uuid AND (:sistLagret::timestamp IS NULL OR opprettet > :sistLagret)",
+                    "SELECT uuid, eier, soknad_data FROM soknad_cache WHERE uuid = :uuid AND (:sistLagret::timestamptz IS NULL OR opprettet > :sistLagret)",
                     mapOf(
                         "uuid" to søknadUUID.toString(),
                         "sistLagret" to sistLagretEtter?.toLocalDateTimeWithTimezone()
@@ -79,4 +79,4 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
 }
 
 private fun LocalDateTime?.toLocalDateTimeWithTimezone() =
-    this?.atZone(ZoneId.systemDefault())?.withZoneSameInstant(ZoneOffset.UTC)?.toLocalDateTime()
+    this?.atZone(ZoneId.systemDefault())?.withZoneSameInstant(ZoneOffset.UTC)
