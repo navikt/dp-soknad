@@ -7,13 +7,14 @@ import kotliquery.using
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.postgresql.util.PGobject
+import java.time.LocalDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
 interface SøknadCacheRepository {
     fun lagre(søkerOppgave: SøkerOppgave)
     fun slett(søknadUUID: UUID, eier: String): Boolean
-    fun hent(søknadUUID: UUID): SøkerOppgave?
+    fun hent(søknadUUID: UUID, sistLagretEtter: LocalDateTime? = null): SøkerOppgave?
 }
 
 class SøknadCachePostgresRepository(private val dataSource: DataSource) : SøknadCacheRepository {
@@ -27,28 +28,32 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
                                 VALUES (:uuid, :eier, :data)
                                 ON CONFLICT(uuid, eier) 
                                 DO UPDATE SET soknad_data = :data,
-                                opprettet = (NOW() AT TIME ZONE 'utc')""",
+                                opprettet = (NOW() AT TIME ZONE 'utc')
+                        """.trimIndent(),
                         mapOf(
                             "uuid" to søkerOppgave.søknadUUID(),
                             "eier" to søkerOppgave.eier(),
                             "data" to PGobject().also {
                                 it.type = "jsonb"
-                                it.value = søkerOppgave.asJson().toString()
+                                it.value = søkerOppgave.asJson()
                             }
                         )
-                    ).asUpdate,
+                    ).asUpdate
                 )
             }
         }
     }
 
-    override fun hent(søknadUUID: UUID): SøkerOppgave {
+    override fun hent(søknadUUID: UUID, sistLagretEtter: LocalDateTime?): SøkerOppgave {
         return using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf(
                     // language=PostgreSQL
-                    "SELECT uuid, eier, soknad_data FROM soknad_cache WHERE uuid = :uuid",
-                    mapOf("uuid" to søknadUUID.toString())
+                    "SELECT uuid, eier, soknad_data FROM soknad_cache WHERE uuid = :uuid AND (:sistLagret::timestamp IS NULL OR opprettet > :sistLagret)",
+                    mapOf(
+                        "uuid" to søknadUUID.toString(),
+                        "sistLagret" to sistLagretEtter
+                    )
                 ).map { row ->
                     LivssyklusPostgresRepository.PersistentSøkerOppgave(objectMapper.readTree(row.binaryStream("soknad_data")))
                 }.asSingle
@@ -61,7 +66,9 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
             session.run(
                 queryOf(
                     //language=PostgreSQL
-                    "DELETE FROM soknad_cache WHERE uuid = ? AND eier = ?", søknadUUID.toString(), eier
+                    "DELETE FROM soknad_cache WHERE uuid = ? AND eier = ?",
+                    søknadUUID.toString(),
+                    eier
                 ).asExecute
             )
         }

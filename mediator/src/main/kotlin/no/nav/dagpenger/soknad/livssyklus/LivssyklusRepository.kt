@@ -23,8 +23,10 @@ import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.Kr
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.SpråkData
 import no.nav.dagpenger.soknad.toMap
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
+import no.nav.helse.rapids_rivers.asLocalDateTime
 import org.postgresql.util.PGobject
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
 import javax.sql.DataSource
@@ -219,6 +221,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
     internal class PersistentSøkerOppgave(private val søknad: JsonNode) : SøkerOppgave {
         override fun søknadUUID(): UUID = UUID.fromString(søknad[SøkerOppgave.Keys.SØKNAD_UUID].asText())
         override fun eier(): String = søknad[SøkerOppgave.Keys.FØDSELSNUMMER].asText()
+        override fun opprettet(): LocalDateTime = søknad[SøkerOppgave.Keys.OPPRETTET].asLocalDateTime()
         override fun ferdig(): Boolean = søknad[SøkerOppgave.Keys.FERDIG].asBoolean()
 
         override fun asFrontendformat(): JsonNode {
