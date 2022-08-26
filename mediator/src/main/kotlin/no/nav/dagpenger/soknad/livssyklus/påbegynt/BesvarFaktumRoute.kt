@@ -1,11 +1,9 @@
 package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
-import io.ktor.server.response.respondText
+import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.put
 import io.ktor.util.pipeline.PipelineContext
@@ -14,6 +12,7 @@ import mu.withLoggingContext
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.ident
+import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -35,9 +34,14 @@ internal fun Route.besvarFaktumRoute(søknadMediator: SøknadMediator) {
 
             søknadMediator.behandle(faktumSvar)
         }
-        call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { """{"status": "ok"}""" }
+        call.respond(BesvartFaktum("ok", LocalDateTime.now()))
     }
 }
+
+private data class BesvartFaktum(
+    val status: String,
+    val sistBesvart: LocalDateTime
+)
 
 private fun PipelineContext<Unit, ApplicationCall>.faktumId(): String {
     val faktumId = call.parameters["faktumid"] ?: throw IllegalArgumentException("Må ha med id i parameter")
