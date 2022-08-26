@@ -26,15 +26,17 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
                 tx.run(
                     queryOf(
                         // language=PostgreSQL
-                        """INSERT INTO soknad_cache(uuid, eier, soknad_data)
-                                VALUES (:uuid, :eier, :data)
-                                ON CONFLICT(uuid, eier) 
+                        """INSERT INTO soknad_cache(uuid, eier, soknad_data, opprettet)
+                            VALUES (:uuid, :eier, :data, (:opprettet AT TIME ZONE 'utc'))
+                            ON CONFLICT(uuid, eier)
                                 DO UPDATE SET soknad_data = :data,
-                                opprettet = (NOW() AT TIME ZONE 'utc')
+                                              opprettet = (:opprettet AT TIME ZONE 'utc'),
+                                              mottatt = (NOW() AT TIME ZONE 'utc')
                         """.trimIndent(),
                         mapOf(
                             "uuid" to søkerOppgave.søknadUUID(),
                             "eier" to søkerOppgave.eier(),
+                            "opprettet" to søkerOppgave.opprettet(),
                             "data" to PGobject().also {
                                 it.type = "jsonb"
                                 it.value = søkerOppgave.asJson()

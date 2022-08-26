@@ -11,9 +11,7 @@ internal class TestSøkerOppgave(private val søknadUUID: UUID, private val eier
     override fun søknadUUID(): UUID = søknadUUID
 
     override fun eier(): String = eier
-    override fun opprettet(): LocalDateTime {
-        TODO("Not yet implemented")
-    }
+    override fun opprettet(): LocalDateTime = LocalDateTime.now()
 
     override fun ferdig(): Boolean {
         TODO("not implemented")
