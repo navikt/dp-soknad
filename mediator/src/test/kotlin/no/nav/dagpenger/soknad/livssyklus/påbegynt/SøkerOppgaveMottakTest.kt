@@ -53,8 +53,11 @@ class SøkerOppgaveMottakTest {
                     assertEquals(false, it.asFrontendformat()["ferdig"].asBoolean())
                 }
             }
+            assertDoesNotThrow {
+                søknadMediator.hent(søknadUuid, sistLagretEtter = LocalDateTime.now().minusMinutes(2))
+            }
             assertThrows<NotFoundException> {
-                søknadMediator.hent(søknadUuid, sistLagretEtter = LocalDateTime.now().plusYears(2))
+                søknadMediator.hent(søknadUuid, sistLagretEtter = LocalDateTime.now().plusMinutes(2))
             }
         }
     }

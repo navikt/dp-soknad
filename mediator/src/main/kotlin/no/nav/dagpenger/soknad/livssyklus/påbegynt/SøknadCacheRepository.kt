@@ -8,6 +8,8 @@ import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.postgresql.util.PGobject
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -52,7 +54,7 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
                     "SELECT uuid, eier, soknad_data FROM soknad_cache WHERE uuid = :uuid AND (:sistLagret::timestamp IS NULL OR opprettet > :sistLagret)",
                     mapOf(
                         "uuid" to søknadUUID.toString(),
-                        "sistLagret" to sistLagretEtter
+                        "sistLagret" to sistLagretEtter?.toLocalDateTimeWithTimezone()
                     )
                 ).map { row ->
                     LivssyklusPostgresRepository.PersistentSøkerOppgave(objectMapper.readTree(row.binaryStream("soknad_data")))
@@ -73,3 +75,6 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
             )
         }
 }
+
+private fun LocalDateTime?.toLocalDateTimeWithTimezone() =
+    this?.atZone(ZoneId.systemDefault())?.withZoneSameInstant(ZoneOffset.UTC)?.toLocalDateTime()
