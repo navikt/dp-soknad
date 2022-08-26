@@ -17,6 +17,7 @@ interface SøknadVisitor : TilstandVisitor {
         journalpostId: String?,
         innsendtTidspunkt: ZonedDateTime?,
         språk: Språk,
+        dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime?
     ) {
     }

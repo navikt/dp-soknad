@@ -14,6 +14,7 @@ import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
+import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
@@ -30,7 +31,6 @@ private const val testIdent = "12345678912"
 private const val testJournalpostId = "J123"
 
 internal class SøknadTest {
-
     private lateinit var person: Person
     private lateinit var personObserver: TestPersonObserver
     private lateinit var plantUmlObservatør: PlantUmlObservatør
@@ -64,6 +64,7 @@ internal class SøknadTest {
         assertBehov(Behovtype.NySøknad, mapOf("ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
         håndterNySøknadOpprettet()
         håndterFaktumOppdatering()
+        håndterSøkerOppgaveHendelse()
         val innsendtHendelse = håndterSendInnSøknad()
         assertBehov(
             Behovtype.ArkiverbarSøknad,
@@ -74,7 +75,6 @@ internal class SøknadTest {
             )
         )
         håndterArkiverbarSøknad()
-
         val dokumenter = listOf(
             Søknad.Dokument(
                 varianter = listOf(
@@ -104,10 +104,6 @@ internal class SøknadTest {
         )
 
         assertPuml("Søker oppretter søknad og ferdigstiller den")
-    }
-
-    private fun håndterFaktumOppdatering() {
-        person.håndter(FaktumOppdatertHendelse(inspektør.søknadId, testIdent))
     }
 
     @Test
@@ -156,10 +152,6 @@ internal class SøknadTest {
         }
     }
 
-    private fun assertTilstander(vararg tilstander: Søknad.Tilstand.Type) {
-        assertEquals(tilstander.asList(), personObserver.tilstander)
-    }
-
     private fun håndterNySøknadOpprettet() {
         person.håndter(SøknadOpprettetHendelse(inspektør.søknadId, testIdent))
     }
@@ -186,12 +178,18 @@ internal class SøknadTest {
         person.håndter(JournalførtHendelse(testJournalpostId, testIdent))
     }
 
-    private fun assertBehov(behovtype: Behovtype, forventetDetaljer: Map<String, Any> = emptyMap()) {
-        val behov = inspektør.personLogg.behov().find {
-            it.type == behovtype
-        } ?: throw AssertionError("Fant ikke behov $behovtype")
+    private fun håndterFaktumOppdatering() {
+        person.håndter(FaktumOppdatertHendelse(inspektør.søknadId, testIdent))
+    }
 
-        assertEquals(forventetDetaljer, behov.detaljer() + behov.kontekst())
+    private fun håndterSøkerOppgaveHendelse(sannsynliggjøringer: Set<Sannsynliggjøring> = emptySet()) {
+        person.håndter(
+            SøkeroppgaveHendelse(
+                inspektør.søknadId,
+                testIdent,
+                sannsynliggjøringer
+            )
+        )
     }
 
     private fun håndterSendInnSøknad(): SøknadInnsendtHendelse {
@@ -204,8 +202,20 @@ internal class SøknadTest {
         person.håndter(ØnskeOmNySøknadHendelse(UUID.randomUUID(), språk, testIdent))
     }
 
+    private fun assertTilstander(vararg tilstander: Søknad.Tilstand.Type) {
+        assertEquals(tilstander.asList(), personObserver.tilstander)
+    }
+
     private fun assertPuml(tittel: String) {
         plantUmlObservatør.verify(tittel)
+    }
+
+    private fun assertBehov(behovtype: Behovtype, forventetDetaljer: Map<String, Any> = emptyMap()) {
+        val behov = inspektør.personLogg.behov().find {
+            it.type == behovtype
+        } ?: throw AssertionError("Fant ikke behov $behovtype")
+
+        assertEquals(forventetDetaljer, behov.detaljer() + behov.kontekst())
     }
 }
 

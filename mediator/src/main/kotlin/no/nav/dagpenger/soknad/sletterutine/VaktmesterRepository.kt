@@ -28,7 +28,7 @@ internal class VaktmesterPostgresRepository(
                     val søknaderSomSkalSlettes = hentPåbegynteSøknaderUendretSiden(antallDager, transactionalSession)
                     søknaderSomSkalSlettes.forEach { søknad ->
                         slettSøknad(søknad.søknadUuid, transactionalSession)
-                        //slettAktivitetslogg(søknad.søknadUuid, transactionalSession)
+                        // slettAktivitetslogg(søknad.søknadUuid, transactionalSession)
                         emitSlettSøknadEvent(søknad)
                     }
                 }
@@ -45,7 +45,8 @@ internal class VaktmesterPostgresRepository(
                 """
                 DELETE FROM aktivitetslogg_v2 
                     WHERE data::jsonb -> 'aktiviteter' -> 0 -> 'kontekster' -> 0 -> 'kontekstMap' -> 'søknad_uuid' = '?'
-                """.trimIndent(), søknadUuid.toString()
+                """.trimIndent(),
+                søknadUuid.toString()
             ).asUpdate
         )
     }

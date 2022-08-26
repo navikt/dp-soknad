@@ -5,13 +5,18 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Aktivitetslogg
+import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.Faktum
+import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
+import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
+import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository.PersistentSøkerOppgave
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
@@ -29,6 +34,21 @@ import java.util.UUID
 
 internal class LivssyklusPostgresRepositoryTest {
     private val språk = Språk("NO")
+    private val dokumentFaktum =
+        Faktum(faktumJson("1", "f1"))
+    private val faktaSomSannsynliggjøres =
+        mutableSetOf(
+            Faktum(faktumJson("2", "f2"))
+        )
+    private val sannsynliggjøring = Sannsynliggjøring(
+        id = dokumentFaktum.id,
+        faktum = dokumentFaktum,
+        sannsynliggjør = faktaSomSannsynliggjøres
+    )
+    private val krav = Krav(
+        sannsynliggjøring
+    )
+
     @Test
     fun `Lagre og hente person uten søknader`() {
         withMigratedDb {
@@ -57,7 +77,7 @@ internal class LivssyklusPostgresRepositoryTest {
     }
 
     @Test
-    fun `Lagre og hente person med søknader, dokumenter og aktivitetslogg`() {
+    fun `Lagre og hente person med søknader, dokumenter, dokumentkrav og aktivitetslogg`() {
         val søknadId1 = UUID.randomUUID()
         val søknadId2 = UUID.randomUUID()
         val originalPerson = Person("12345678910") {
@@ -84,6 +104,9 @@ internal class LivssyklusPostgresRepositoryTest {
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = ZonedDateTime.now(),
                     språk,
+                    dokumentkrav = Dokumentkrav.rehydrer(
+                        krav = setOf(krav)
+                    ),
                     sistEndretAvBruker = ZonedDateTime.now().minusDays(1)
                 )
             )
@@ -95,7 +118,6 @@ internal class LivssyklusPostgresRepositoryTest {
                 val personFraDatabase = it.hent("12345678910", true)
                 assertNotNull(personFraDatabase)
                 assertEquals(originalPerson, personFraDatabase)
-
                 val fraDatabaseVisitor = TestPersonVisitor(personFraDatabase)
                 val originalVisitor = TestPersonVisitor(originalPerson)
                 val søknaderFraDatabase = fraDatabaseVisitor.søknader
@@ -106,7 +128,49 @@ internal class LivssyklusPostgresRepositoryTest {
                 assertDeepEquals(originalSøknader.last(), søknaderFraDatabase.last())
 
                 assertAntallRader("aktivitetslogg_v2", 1)
+                assertAntallRader("dokumentkrav_v1", 1)
                 assertEquals(originalVisitor.aktivitetslogg.toString(), fraDatabaseVisitor.aktivitetslogg.toString())
+            }
+        }
+    }
+
+    @Test
+    fun `upsert på dokumentasjonskrav`() {
+        val søknadId = UUID.randomUUID()
+        val originalPerson = Person("12345678910") {
+            mutableListOf(
+                Søknad.rehydrer(
+                    søknadId = søknadId,
+                    person = it,
+                    tilstandsType = "Journalført",
+                    dokument = Søknad.Dokument(
+                        varianter = listOf(
+                            Søknad.Dokument.Variant(
+                                urn = "urn:soknad:fil1",
+                                format = "ARKIV",
+                                type = "PDF"
+                            ),
+                            Søknad.Dokument.Variant(
+                                urn = "urn:soknad:fil2",
+                                format = "ARKIV",
+                                type = "PDF"
+                            )
+                        )
+                    ),
+                    journalpostId = "journalpostid",
+                    innsendtTidspunkt = ZonedDateTime.now(),
+                    språk,
+                    dokumentkrav = Dokumentkrav.rehydrer(
+                        krav = setOf(krav)
+                    ),
+                    sistEndretAvBruker = ZonedDateTime.now()
+                )
+            )
+        }
+        withMigratedDb {
+            LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
+                it.lagre(originalPerson)
+                it.lagre(originalPerson)
             }
         }
     }
@@ -125,6 +189,7 @@ internal class LivssyklusPostgresRepositoryTest {
                     journalpostId = "jouhasjk",
                     innsendtTidspunkt = innsendtTidspunkt,
                     språk,
+                    Dokumentkrav(),
                     sistEndretAvBruker = innsendtTidspunkt
                 ),
                 Søknad.rehydrer(
@@ -135,6 +200,7 @@ internal class LivssyklusPostgresRepositoryTest {
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = innsendtTidspunkt,
                     språk,
+                    Dokumentkrav(),
                     sistEndretAvBruker = innsendtTidspunkt
                 )
             )
@@ -166,6 +232,7 @@ internal class LivssyklusPostgresRepositoryTest {
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = ZonedDateTime.now(),
                     språk,
+                    Dokumentkrav(),
                     sistEndretAvBruker = ZonedDateTime.now()
                 )
             )
@@ -176,7 +243,6 @@ internal class LivssyklusPostgresRepositoryTest {
                 it.lagre(originalPerson)
                 val personFraDatabase = it.hent("12345678910")
                 assertNotNull(personFraDatabase)
-
                 val søknaderFraDatabase = TestPersonVisitor(personFraDatabase).søknader
                 assertEquals(1, søknaderFraDatabase.size)
             }
@@ -187,7 +253,6 @@ internal class LivssyklusPostgresRepositoryTest {
     fun `Fødselsnummer skal ikke komme med som en del av frontendformatet, men skal fortsatt være en del av søknaden`() {
         val søknadJson = søknad(UUID.randomUUID())
         val søknad = PersistentSøkerOppgave(søknadJson)
-
         val frontendformat = søknad.asFrontendformat()
         assertFalse(frontendformat.contains(SøkerOppgave.Keys.FØDSELSNUMMER))
         assertNotNull(søknad.eier())
@@ -199,8 +264,8 @@ internal class LivssyklusPostgresRepositoryTest {
 
     private class TestPersonVisitor(person: Person?) : PersonVisitor {
         val dokumenter: MutableMap<UUID, Søknad.Dokument> = mutableMapOf()
+        val dokumentkrav: MutableMap<UUID, Dokumentkrav> = mutableMapOf()
         lateinit var søknader: List<Søknad>
-
         lateinit var aktivitetslogg: Aktivitetslogg
 
         init {
@@ -219,9 +284,11 @@ internal class LivssyklusPostgresRepositoryTest {
             journalpostId: String?,
             innsendtTidspunkt: ZonedDateTime?,
             språk: Språk,
+            dokumentkrav: Dokumentkrav,
             sistEndretAvBruker: ZonedDateTime?
         ) {
             dokument?.let { dokumenter[søknadId] = it }
+            this.dokumentkrav[søknadId] = dokumentkrav
         }
 
         override fun postVisitAktivitetslogg(aktivitetslogg: Aktivitetslogg) {

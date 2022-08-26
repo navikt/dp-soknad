@@ -1,11 +1,17 @@
 package no.nav.dagpenger.soknad.serder
 
+import com.fasterxml.jackson.databind.JsonNode
 import no.nav.dagpenger.soknad.Aktivitetslogg
+import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.Faktum
+import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Person
+import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.SpesifikkKontekst
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentData.Companion.rehydrer
+import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.SannsynliggjøringData.Companion.toSannsynliggjøringData
 import java.time.ZonedDateTime
 import java.util.Locale
 import java.util.UUID
@@ -29,6 +35,7 @@ class PersonData(
                     journalpostId = it.journalpostId,
                     innsendtTidspunkt = it.innsendtTidspunkt,
                     språk = it.språkData.somSpråk(),
+                    dokumentkrav = it.dokumentkrav.rehydrer(),
                     sistEndretAvBruker = it.sistEndretAvBruker
                 )
             }.toMutableList()
@@ -42,10 +49,11 @@ class PersonData(
         val journalpostId: String?,
         val innsendtTidspunkt: ZonedDateTime?,
         val språkData: SpråkData,
+        var dokumentkrav: DokumentkravData,
         val sistEndretAvBruker: ZonedDateTime?
     ) {
         class DokumentData(
-            val urn: String,
+            val urn: String
         ) {
             companion object {
                 fun List<DokumentData>.rehydrer(): Søknad.Dokument? {
@@ -66,7 +74,71 @@ class PersonData(
 
         class SpråkData(val verdi: String) {
             constructor(språk: Locale) : this(språk.toLanguageTag())
+
             fun somSpråk() = Språk(verdi)
+        }
+
+        data class DokumentkravData(
+            val kravData: Set<KravData>
+        ) {
+            fun rehydrer(): Dokumentkrav = Dokumentkrav.rehydrer(
+                krav = kravData.map { it.rehydrer() }.toSet()
+            )
+
+            data class SannsynliggjøringData(
+                val id: String,
+                val faktum: JsonNode,
+                val sannsynliggjør: Set<JsonNode>
+            ) {
+                fun rehydrer() = Sannsynliggjøring(
+                    id = this.id,
+                    faktum = Faktum(this.faktum),
+                    sannsynliggjør = this.sannsynliggjør.map { Faktum(it) }.toMutableSet()
+                )
+
+                companion object {
+                    fun Sannsynliggjøring.toSannsynliggjøringData() = SannsynliggjøringData(
+                        id = this.id,
+                        faktum = this.faktum().json,
+                        sannsynliggjør = this.sannsynliggjør().map { it.json }.toSet()
+                    )
+                }
+            }
+
+            data class KravData(
+                val id: String,
+                val beskrivendeId: String,
+                val sannsynliggjøring: SannsynliggjøringData,
+                val tilstand: KravTilstandData,
+                val filer: Set<String> = emptySet()
+            ) {
+                fun rehydrer() = Krav(
+                    id = this.id,
+                    filer = this.filer,
+                    sannsynliggjøring = this.sannsynliggjøring.rehydrer(),
+                    tilstand = when (this.tilstand) {
+                        KravTilstandData.AKTIV -> Krav.KravTilstand.AKTIV
+                        KravTilstandData.INAKTIV -> Krav.KravTilstand.INAKTIV
+                    },
+                )
+
+                companion object {
+                    fun Krav.toKravdata() = KravData(
+                        id = this.id,
+                        beskrivendeId = this.beskrivendeId,
+                        sannsynliggjøring = this.sannsynliggjøring.toSannsynliggjøringData(),
+                        tilstand = when (this.tilstand) {
+                            Krav.KravTilstand.AKTIV -> KravTilstandData.AKTIV
+                            Krav.KravTilstand.INAKTIV -> KravTilstandData.INAKTIV
+                        }
+                    )
+                }
+
+                enum class KravTilstandData {
+                    AKTIV,
+                    INAKTIV
+                }
+            }
         }
 
         enum class TilstandData {
@@ -156,7 +228,7 @@ class PersonData(
                 )
             }
             return Aktivitetslogg.rehyder(
-                aktiviteter = aktiviteter,
+                aktiviteter = aktiviteter
             )
         }
     }

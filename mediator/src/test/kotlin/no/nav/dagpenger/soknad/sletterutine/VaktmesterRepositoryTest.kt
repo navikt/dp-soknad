@@ -5,6 +5,7 @@ import io.mockk.mockk
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Språk
@@ -71,7 +72,8 @@ internal class VaktmesterRepositoryTest {
                             SELECT COUNT(*)
                                 FROM aktivitetslogg_v2
                                 WHERE data::jsonb -> 'aktiviteter' -> 0 -> 'kontekster' -> 0 -> 'kontekstMap' -> 'søknad_uuid' = '?'
-                        """.trimIndent(), søknadUuid.toString()
+                    """.trimIndent(),
+                    søknadUuid.toString()
 
                 ).map { row ->
                     row.int(1)
@@ -91,7 +93,9 @@ internal class VaktmesterRepositoryTest {
         livssyklusRepository = livssyklusRepository,
         søknadMalRepository = mockk(),
         ferdigstiltSøknadRepository = mockk(),
+        søknadRepository = mockk(),
         personObservers = listOf(SøknadSlettetObserver(testRapid))
+
     )
 
     private fun assertAntallSøknadSlettetEvent(antall: Int) = assertEquals(antall, testRapid.inspektør.size)
@@ -119,6 +123,7 @@ internal class VaktmesterRepositoryTest {
             journalpostId = "journalpostid",
             innsendtTidspunkt = ZonedDateTime.now(),
             språk = språk,
+            Dokumentkrav(),
             sistEndretAvBruker = ZonedDateTime.now().minusDays(19)
         )
 
@@ -129,8 +134,9 @@ internal class VaktmesterRepositoryTest {
             tilstandsType = Påbegynt.name,
             dokument = null,
             journalpostId = "1456",
-            innsendtTidspunkt = null,
+            innsendtTidspunkt = ZonedDateTime.now(),
             språk = språk,
+            Dokumentkrav(),
             sistEndretAvBruker = ZonedDateTime.now().minusDays(10)
         )
 
@@ -143,6 +149,7 @@ internal class VaktmesterRepositoryTest {
             journalpostId = "1457",
             innsendtTidspunkt = null,
             språk = språk,
+            dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = ZonedDateTime.now().minusDays(1)
         )
 }

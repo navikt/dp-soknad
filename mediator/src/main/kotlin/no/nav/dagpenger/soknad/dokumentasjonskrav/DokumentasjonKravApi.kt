@@ -5,80 +5,75 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
+import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.put
+import io.ktor.server.routing.route
 import mu.KotlinLogging
 import mu.withLoggingContext
+import no.nav.dagpenger.soknad.Krav
+import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.søknadUuid
+import no.nav.dagpenger.soknad.utils.auth.ident
+import no.nav.dagpenger.soknad.utils.serder.objectMapper
+import java.util.UUID
 
-val logger = KotlinLogging.logger { }
+private val logger = KotlinLogging.logger { }
 
-internal fun Route.dokumentasjonkravRoute() {
-    get("/{søknad_uuid}/dokumentasjonkrav") {
-        val søknadUuid = søknadUuid()
-        withLoggingContext("søknadid" to søknadUuid.toString()) {
+internal fun Route.dokumentasjonkravRoute(søknadRepository: SøknadRepository) {
+    route("/{søknad_uuid}/dokumentasjonskrav") {
+        get {
+            val søknadUuid = søknadUuid()
+            val ident = call.ident()
+            withLoggingContext("søknadid" to søknadUuid.toString()) {
+                val dokumentkrav = søknadRepository.hentDokumentkravFor(søknadUuid, ident)
+                val apiDokumentkravResponse = ApiDokumentkravResponse(
+                    soknad_uuid = søknadUuid,
+                    krav = dokumentkrav.aktiveDokumentKrav().toApiKrav()
+                )
+                call.respond(apiDokumentkravResponse)
+            }
         }
-        call.respondText(
-            contentType = ContentType.Application.Json,
-            status = HttpStatusCode.OK,
-        ) {
-            """
-               {
-    "soknad_uuid": "$søknadUuid",
-    "krav": [
-        {
-            "id": "5678",
-            "beskrivendeId": "arbeidsforhold.1",
-            "filer": [
-                {
-                    "filnavn": "hei på du1.jpg", 
-                    "urn": "urn:dokumen1"
-                }, 
-                {
-                    "filnavn": "hei på du2.jpg", 
-                    "urn": "urn:dokumen2"
-                }, 
-                {
-                    "filnavn": "hei på du3.jpg", 
-                    "urn": "urn:dokumen3"
-                }
-            ],
-            "gyldigeValg": ["Laste opp nå", "Sende senere", "Noen andre sender dokumentet", "Har sendt tidligere", "Sender ikke"],
-            "svar": "Laste opp nå"
-        },
-        {
-            "id": "56789",
-            "beskrivendeId": "arbeidsforhold.2",
-            "filer": [
-                {
-                    "filnavn": "hei på du1.jpg", 
-                    "urn": "urn:dokumen1"
-                }, 
-                {
-                    "filnavn": "hei på du2.jpg", 
-                    "urn": "urn:dokumen2"
-                }, 
-                {
-                    "filnavn": "hei på du3.jpg", 
-                    "urn": "urn:dokumen3"
-                }
-            ],
-            "gyldigeValg": ["Laste opp nå", "Sende senere", "Noen andre sender dokumentet", "Har sendt tidligere", "Sender ikke"],
-            "svar": "Laste opp nå"
-        }
-    ]
-}  
-            """
-        }
-    }
-
-    put("/{søknad_uuid}/dokumentasjonkrav/{kravId}") {
-        val søknadUuid = søknadUuid()
-        withLoggingContext("søknadid" to søknadUuid.toString()) {
-            call.receive<JsonNode>().let { logger.info { "Received: $it" } }
-            call.respondText(contentType = ContentType.Application.Json, HttpStatusCode.OK) { """{"status": "ok"}""" }
+        put("/{kravId}") {
+            val søknadUuid = søknadUuid()
+            withLoggingContext("søknadid" to søknadUuid.toString()) {
+                call.receive<JsonNode>().let { logger.info { "Received: $it" } }
+                call.respondText(
+                    contentType = ContentType.Application.Json,
+                    HttpStatusCode.OK
+                ) { """{"status": "ok"}""" }
+            }
         }
     }
 }
+
+private data class ApiDokumentkravResponse(
+    val soknad_uuid: UUID,
+    val krav: List<ApiDokumentKrav>,
+)
+fun Set<Krav>.toApiKrav(): List<ApiDokumentKrav> = map {
+    ApiDokumentKrav(
+        id = it.id,
+        beskrivendeId = it.beskrivendeId,
+        fakta = it.fakta.fold(objectMapper.createArrayNode()) { acc, faktum -> acc.add(faktum.json) },
+        filer = emptyList(),
+    )
+}
+
+data class ApiDokumentKrav(
+    val id: String,
+    val beskrivendeId: String,
+    val fakta: JsonNode,
+    val filer: List<String>,
+    val gyldigeValg: Set<String> = setOf(
+        "dokumentkrav.svar.send.naa",
+        "dokumentkrav.svar.send.senere",
+        "dokumentkrav.svar.send.noen_andre",
+        "dokumentkrav.svar.sendt.tidligere",
+        "dokumentkrav.svar.sender.ikke",
+    ),
+    val begrunnelse: String? = null,
+    val svar: String? = null
+)

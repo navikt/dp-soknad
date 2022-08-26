@@ -1,250 +1,688 @@
 {
-  "fødselsnummer" : "12020052345",
-  "@event_name" : "søker_oppgave",
-  "versjon_id" : 0,
-  "versjon_navn" : "test",
-  "@opprettet" : "2022-08-17T08:20:18.536735",
-  "@id" : "e77113ef-9aad-4396-8cff-788f9a4a3c3f",
-  "søknad_uuid" : "e0917063-83f5-4af4-b62b-74e4d096b94b",
-  "ferdig" : true,
-  "seksjoner" : [ {
-    "beskrivendeId" : "seksjon1",
-    "ferdig" : true,
-    "fakta" : [ {
-      "id" : "1",
-      "type" : "boolean",
-      "beskrivendeId" : "f1",
-      "svar" : true,
-      "roller" : [ "søker" ],
-      "gyldigeValg" : [ "f1.svar.ja", "f1.svar.nei" ],
-      "sannsynliggjøresAv" : [ ],
-      "readOnly" : false
-    } ]
-  }, {
-    "beskrivendeId" : "seksjon2",
-    "ferdig" : true,
-    "fakta" : [ {
-      "id" : "67",
-      "type" : "generator",
-      "beskrivendeId" : "f67",
-      "svar" : [ [ {
-        "id" : "6.1",
-        "type" : "int",
-        "beskrivendeId" : "f6",
-        "svar" : 11,
-        "roller" : [ "søker" ],
-        "sannsynliggjøresAv" : [ {
-          "id" : "22.1",
-          "type" : "dokument",
-          "beskrivendeId" : "f22",
-          "roller" : [ "saksbehandler" ],
-          "sannsynliggjøresAv" : [ ],
-          "readOnly" : true
-        } ],
-        "readOnly" : false
-      }, {
-        "id" : "7.1",
-        "type" : "boolean",
-        "beskrivendeId" : "f7",
-        "svar" : true,
-        "roller" : [ "søker" ],
-        "gyldigeValg" : [ "f7.svar.ja", "f7.svar.nei" ],
-        "sannsynliggjøresAv" : [ ],
-        "readOnly" : false
-      } ], [ {
-        "id" : "6.2",
-        "type" : "int",
-        "beskrivendeId" : "f6",
-        "svar" : 19,
-        "roller" : [ "søker" ],
-        "sannsynliggjøresAv" : [ ],
-        "readOnly" : false
-      }, {
-        "id" : "7.2",
-        "type" : "boolean",
-        "beskrivendeId" : "f7",
-        "svar" : true,
-        "roller" : [ "søker" ],
-        "gyldigeValg" : [ "f7.svar.ja", "f7.svar.nei" ],
-        "sannsynliggjøresAv" : [ ],
-        "readOnly" : false
-      } ] ],
-      "roller" : [ "søker" ],
-      "templates" : [ {
-        "id" : "6",
-        "type" : "int",
-        "beskrivendeId" : "f6",
-        "roller" : [ "søker" ]
-      }, {
-        "id" : "7",
-        "type" : "boolean",
-        "beskrivendeId" : "f7",
-        "roller" : [ "søker" ]
-      }, {
-        "id" : "22",
-        "type" : "dokument",
-        "beskrivendeId" : "f22",
-        "roller" : [ "saksbehandler" ]
-      } ],
-      "readOnly" : false
-    } ]
-  }, {
-    "beskrivendeId" : "dokumentasjon",
-    "ferdig" : true,
-    "fakta" : [ {
-      "id" : "5",
-      "type" : "boolean",
-      "beskrivendeId" : "f5",
-      "svar" : true,
-      "roller" : [ "søker" ],
-      "gyldigeValg" : [ "f5.svar.ja", "f5.svar.nei" ],
-      "sannsynliggjøresAv" : [ ],
-      "readOnly" : true
-    }, {
-      "id" : "8",
-      "type" : "localdate",
-      "beskrivendeId" : "f8",
-      "svar" : "2022-08-17",
-      "roller" : [ "nav" ],
-      "sannsynliggjøresAv" : [ ],
-      "readOnly" : true
-    }, {
-      "id" : "67",
-      "type" : "generator",
-      "beskrivendeId" : "f67",
-      "svar" : [ [ {
-        "id" : "6.1",
-        "type" : "int",
-        "beskrivendeId" : "f6",
-        "svar" : 11,
-        "roller" : [ "søker" ],
-        "sannsynliggjøresAv" : [ {
-          "id" : "22.1",
-          "type" : "dokument",
-          "beskrivendeId" : "f22",
-          "roller" : [ "saksbehandler" ],
-          "sannsynliggjøresAv" : [ ],
-          "readOnly" : true
-        } ],
-        "readOnly" : true
-      }, {
-        "id" : "7.1",
-        "type" : "boolean",
-        "beskrivendeId" : "f7",
-        "svar" : true,
-        "roller" : [ "søker" ],
-        "gyldigeValg" : [ "f7.svar.ja", "f7.svar.nei" ],
-        "sannsynliggjøresAv" : [ ],
-        "readOnly" : true
-      } ], [ {
-        "id" : "6.2",
-        "type" : "int",
-        "beskrivendeId" : "f6",
-        "svar" : 19,
-        "roller" : [ "søker" ],
-        "sannsynliggjøresAv" : [ ],
-        "readOnly" : true
-      }, {
-        "id" : "7.2",
-        "type" : "boolean",
-        "beskrivendeId" : "f7",
-        "svar" : true,
-        "roller" : [ "søker" ],
-        "gyldigeValg" : [ "f7.svar.ja", "f7.svar.nei" ],
-        "sannsynliggjøresAv" : [ ],
-        "readOnly" : true
-      } ] ],
-      "roller" : [ "søker" ],
-      "templates" : [ {
-        "id" : "6",
-        "type" : "int",
-        "beskrivendeId" : "f6",
-        "roller" : [ "søker" ]
-      }, {
-        "id" : "7",
-        "type" : "boolean",
-        "beskrivendeId" : "f7",
-        "roller" : [ "søker" ]
-      }, {
-        "id" : "22",
-        "type" : "dokument",
-        "beskrivendeId" : "f22",
-        "roller" : [ "saksbehandler" ]
-      } ],
-      "readOnly" : true
-    }, {
-      "id" : "15",
-      "type" : "dokument",
-      "beskrivendeId" : "f15",
-      "svar" : {
-        "lastOppTidsstempel" : "2022-08-17T00:00",
-        "urn" : "urn:nav:1234"
-      },
-      "roller" : [ "søker" ],
-      "sannsynliggjøresAv" : [ ],
-      "readOnly" : false
-    } ]
-  }, {
-    "beskrivendeId" : "seksjon3",
-    "ferdig" : true,
-    "fakta" : [ {
-      "id" : "1718",
-      "type" : "generator",
-      "beskrivendeId" : "f1718",
-      "svar" : [ [ {
-        "id" : "17.1",
-        "type" : "envalg",
-        "beskrivendeId" : "f17",
-        "svar" : "f17.envalg1",
-        "roller" : [ "søker" ],
-        "gyldigeValg" : [ "f17.envalg1", "f17.envalg2" ],
-        "sannsynliggjøresAv" : [ ],
-        "readOnly" : false
-      }, {
-        "id" : "18.1",
-        "type" : "flervalg",
-        "beskrivendeId" : "f18",
-        "svar" : [ "f18.flervalg2" ],
-        "roller" : [ "søker" ],
-        "gyldigeValg" : [ "f18.flervalg1", "f18.flervalg2" ],
-        "sannsynliggjøresAv" : [ ],
-        "readOnly" : false
-      } ] ],
-      "roller" : [ "søker" ],
-      "templates" : [ {
-        "id" : "17",
-        "type" : "envalg",
-        "beskrivendeId" : "f17",
-        "roller" : [ "søker" ],
-        "gyldigeValg" : [ "f17.envalg1", "f17.envalg2" ]
-      }, {
-        "id" : "18",
-        "type" : "flervalg",
-        "beskrivendeId" : "f18",
-        "roller" : [ "søker" ],
-        "gyldigeValg" : [ "f18.flervalg1", "f18.flervalg2" ]
-      } ],
-      "readOnly" : false
-    } ]
-  }, {
-    "beskrivendeId" : "Gyldige land",
-    "ferdig" : true,
-    "fakta" : [ {
-      "id" : "19",
-      "type" : "land",
-      "beskrivendeId" : "f19",
-      "svar" : "NOR",
-      "roller" : [ "søker" ],
-      "gyldigeLand" : [ "AFG", "ALB", "DZA", "ASM", "AND", "AGO", "AIA", "ATA", "ATG", "ARG", "ARM", "ABW", "AZE", "AUS", "BHS", "BHR", "BGD", "BRB", "BEL", "BLZ", "BEN", "BMU", "BTN", "BOL", "BES", "BIH", "BWA", "BVT", "BRA", "BRN", "BGR", "BFA", "BDI", "CAN", "CYM", "CHL", "CXR", "COL", "COK", "CRI", "CUB", "CUW", "DNK", "ARE", "ATF", "PSE", "DOM", "CAF", "IOT", "DJI", "DMA", "ECU", "EGY", "GNQ", "CIV", "SLV", "ERI", "EST", "ETH", "FLK", "FJI", "PHL", "FIN", "FRA", "GUF", "PYF", "FRO", "GAB", "GMB", "GEO", "GHA", "GIB", "GRD", "GRL", "GLP", "GUM", "GTM", "GGY", "GIN", "GNB", "GUY", "HTI", "HMD", "GRC", "HND", "HKG", "BLR", "IND", "IDN", "IRQ", "IRN", "IRL", "ISL", "ISR", "ITA", "JAM", "JPN", "YEM", "JEY", "VIR", "VGB", "JOR", "KHM", "CMR", "CPV", "KAZ", "KEN", "CHN", "KGZ", "KIR", "CCK", "COM", "COD", "COG", "HRV", "KWT", "CYP", "LAO", "LVA", "LSO", "LBN", "LBR", "LBY", "LIE", "LTU", "LUX", "MAC", "MDG", "MKD", "MWI", "MYS", "MDV", "MLI", "MLT", "IMN", "MAR", "MHL", "MTQ", "MRT", "MUS", "MYT", "MEX", "FSM", "MDA", "MCO", "MNG", "MNE", "MSR", "MOZ", "MMR", "NAM", "NRU", "NPL", "NLD", "NZL", "NIC", "NER", "NGA", "NIU", "PRK", "MNP", "NFK", "NOR", "NCL", "OMN", "PAK", "PLW", "PAN", "PNG", "PRY", "PER", "PCN", "POL", "PRT", "PRI", "QAT", "REU", "ROU", "RUS", "RWA", "BLM", "SHN", "KNA", "LCA", "MAF", "SPM", "VCT", "SLB", "WSM", "SMR", "STP", "SAU", "SEN", "SRB", "SYC", "SLE", "SGP", "SXM", "SVK", "SVN", "SOM", "ESP", "LKA", "GBR", "SDN", "SUR", "SJM", "CHE", "SWE", "SWZ", "SYR", "ZAF", "SGS", "KOR", "SSD", "TJK", "TWN", "TZA", "THA", "TGO", "TKL", "TON", "TTO", "TCD", "CZE", "TUN", "TKM", "TCA", "TUV", "TUR", "DEU", "UGA", "UKR", "HUN", "URY", "USA", "UMI", "UZB", "VUT", "VAT", "VEN", "ESH", "VNM", "WLF", "ZMB", "ZWE", "AUT", "TLS", "ALA" ],
-      "grupper" : [ {
-        "gruppeId" : "f19.gruppe.eøs",
-        "land" : [ "SWE" ]
-      }, {
-        "gruppeId" : "f19.gruppe.norge-jan-mayen",
-        "land" : [ "SJM", "NOR" ]
-      } ],
-      "sannsynliggjøresAv" : [ ],
-      "readOnly" : false
-    } ]
-  } ]
+  "fødselsnummer": "12020052345",
+  "@event_name": "søker_oppgave",
+  "versjon_id": 0,
+  "versjon_navn": "test",
+  "@opprettet": "2022-08-17T08:20:18.536735",
+  "@id": "e77113ef-9aad-4396-8cff-788f9a4a3c3f",
+  "søknad_uuid": "e0917063-83f5-4af4-b62b-74e4d096b94b",
+  "ferdig": true,
+  "seksjoner": [
+    {
+      "beskrivendeId": "seksjon1",
+      "ferdig": true,
+      "fakta": [
+        {
+          "id": "1",
+          "type": "boolean",
+          "beskrivendeId": "f1",
+          "svar": true,
+          "roller": [
+            "søker"
+          ],
+          "gyldigeValg": [
+            "f1.svar.ja",
+            "f1.svar.nei"
+          ],
+          "sannsynliggjøresAv": [],
+          "readOnly": false
+        }
+      ]
+    },
+    {
+      "beskrivendeId": "seksjon2",
+      "ferdig": true,
+      "fakta": [
+        {
+          "id": "67",
+          "type": "generator",
+          "beskrivendeId": "f67",
+          "svar": [
+            [
+              {
+                "id": "6.1",
+                "type": "int",
+                "beskrivendeId": "f6",
+                "svar": 11,
+                "roller": [
+                  "søker"
+                ],
+                "sannsynliggjøresAv": [
+                  {
+                    "id": "22.1",
+                    "type": "dokument",
+                    "beskrivendeId": "f22",
+                    "roller": [
+                      "saksbehandler"
+                    ],
+                    "sannsynliggjøresAv": [],
+                    "readOnly": true
+                  }
+                ],
+                "readOnly": false
+              },
+              {
+                "id": "7.1",
+                "type": "boolean",
+                "beskrivendeId": "f7",
+                "svar": true,
+                "roller": [
+                  "søker"
+                ],
+                "gyldigeValg": [
+                  "f7.svar.ja",
+                  "f7.svar.nei"
+                ],
+                "sannsynliggjøresAv": [],
+                "readOnly": false
+              }
+            ],
+            [
+              {
+                "id": "6.2",
+                "type": "int",
+                "beskrivendeId": "f6",
+                "svar": 19,
+                "roller": [
+                  "søker"
+                ],
+                "sannsynliggjøresAv": [],
+                "readOnly": false
+              },
+              {
+                "id": "7.2",
+                "type": "boolean",
+                "beskrivendeId": "f7",
+                "svar": true,
+                "roller": [
+                  "søker"
+                ],
+                "gyldigeValg": [
+                  "f7.svar.ja",
+                  "f7.svar.nei"
+                ],
+                "sannsynliggjøresAv": [],
+                "readOnly": false
+              }
+            ]
+          ],
+          "roller": [
+            "søker"
+          ],
+          "templates": [
+            {
+              "id": "6",
+              "type": "int",
+              "beskrivendeId": "f6",
+              "roller": [
+                "søker"
+              ]
+            },
+            {
+              "id": "7",
+              "type": "boolean",
+              "beskrivendeId": "f7",
+              "roller": [
+                "søker"
+              ]
+            },
+            {
+              "id": "22",
+              "type": "dokument",
+              "beskrivendeId": "f22",
+              "roller": [
+                "saksbehandler"
+              ]
+            }
+          ],
+          "readOnly": false
+        }
+      ]
+    },
+    {
+      "beskrivendeId": "dokumentasjon",
+      "ferdig": true,
+      "fakta": [
+        {
+          "id": "5",
+          "type": "boolean",
+          "beskrivendeId": "f5",
+          "svar": true,
+          "roller": [
+            "søker"
+          ],
+          "gyldigeValg": [
+            "f5.svar.ja",
+            "f5.svar.nei"
+          ],
+          "sannsynliggjøresAv": [],
+          "readOnly": true
+        },
+        {
+          "id": "8",
+          "type": "localdate",
+          "beskrivendeId": "f8",
+          "svar": "2022-08-17",
+          "roller": [
+            "nav"
+          ],
+          "sannsynliggjøresAv": [],
+          "readOnly": true
+        },
+        {
+          "id": "67",
+          "type": "generator",
+          "beskrivendeId": "f67",
+          "svar": [
+            [
+              {
+                "id": "6.1",
+                "type": "int",
+                "beskrivendeId": "f6",
+                "svar": 11,
+                "roller": [
+                  "søker"
+                ],
+                "sannsynliggjøresAv": [
+                  {
+                    "id": "22.1",
+                    "type": "dokument",
+                    "beskrivendeId": "f22",
+                    "roller": [
+                      "saksbehandler"
+                    ],
+                    "sannsynliggjøresAv": [],
+                    "readOnly": true
+                  }
+                ],
+                "readOnly": true
+              },
+              {
+                "id": "7.1",
+                "type": "boolean",
+                "beskrivendeId": "f7",
+                "svar": true,
+                "roller": [
+                  "søker"
+                ],
+                "gyldigeValg": [
+                  "f7.svar.ja",
+                  "f7.svar.nei"
+                ],
+                "sannsynliggjøresAv": [],
+                "readOnly": true
+              }
+            ],
+            [
+              {
+                "id": "6.2",
+                "type": "int",
+                "beskrivendeId": "f6",
+                "svar": 19,
+                "roller": [
+                  "søker"
+                ],
+                "sannsynliggjøresAv": [],
+                "readOnly": true
+              },
+              {
+                "id": "7.2",
+                "type": "boolean",
+                "beskrivendeId": "f7",
+                "svar": true,
+                "roller": [
+                  "søker"
+                ],
+                "gyldigeValg": [
+                  "f7.svar.ja",
+                  "f7.svar.nei"
+                ],
+                "sannsynliggjøresAv": [],
+                "readOnly": true
+              }
+            ]
+          ],
+          "roller": [
+            "søker"
+          ],
+          "templates": [
+            {
+              "id": "6",
+              "type": "int",
+              "beskrivendeId": "f6",
+              "roller": [
+                "søker"
+              ]
+            },
+            {
+              "id": "7",
+              "type": "boolean",
+              "beskrivendeId": "f7",
+              "roller": [
+                "søker"
+              ]
+            },
+            {
+              "id": "22",
+              "type": "dokument",
+              "beskrivendeId": "f22",
+              "roller": [
+                "saksbehandler"
+              ]
+            }
+          ],
+          "readOnly": true
+        },
+        {
+          "id": "15",
+          "type": "dokument",
+          "beskrivendeId": "f15",
+          "svar": {
+            "lastOppTidsstempel": "2022-08-17T00:00",
+            "urn": "urn:nav:1234"
+          },
+          "roller": [
+            "søker"
+          ],
+          "sannsynliggjøresAv": [],
+          "readOnly": false
+        }
+      ]
+    },
+    {
+      "beskrivendeId": "seksjon3",
+      "ferdig": true,
+      "fakta": [
+        {
+          "id": "1719",
+          "type": "generator",
+          "beskrivendeId": "f1719",
+          "roller": [
+            "søker"
+          ],
+          "templates": [
+            {
+              "id": "17",
+              "type": "envalg",
+              "beskrivendeId": "f17",
+              "roller": [
+                "søker"
+              ],
+              "gyldigeValg": [
+                "f17.envalg1",
+                "f17.envalg2"
+              ]
+            },
+            {
+              "id": "18",
+              "type": "flervalg",
+              "beskrivendeId": "f18",
+              "roller": [
+                "søker"
+              ],
+              "gyldigeValg": [
+                "f18.flervalg1",
+                "f18.flervalg2"
+              ]
+            }
+          ],
+          "readOnly": false
+        },
+        {
+          "id": "1718",
+          "type": "generator",
+          "beskrivendeId": "f1718",
+          "svar": [
+            [
+              {
+                "id": "17.1",
+                "type": "envalg",
+                "beskrivendeId": "f17",
+                "svar": "f17.envalg1",
+                "roller": [
+                  "søker"
+                ],
+                "gyldigeValg": [
+                  "f17.envalg1",
+                  "f17.envalg2"
+                ],
+                "sannsynliggjøresAv": [],
+                "readOnly": false
+              },
+              {
+                "id": "18.1",
+                "type": "flervalg",
+                "beskrivendeId": "f18",
+                "svar": [
+                  "f18.flervalg2"
+                ],
+                "roller": [
+                  "søker"
+                ],
+                "gyldigeValg": [
+                  "f18.flervalg1",
+                  "f18.flervalg2"
+                ],
+                "sannsynliggjøresAv": [],
+                "readOnly": false
+              }
+            ]
+          ],
+          "roller": [
+            "søker"
+          ],
+          "templates": [
+            {
+              "id": "17",
+              "type": "envalg",
+              "beskrivendeId": "f17",
+              "roller": [
+                "søker"
+              ],
+              "gyldigeValg": [
+                "f17.envalg1",
+                "f17.envalg2"
+              ]
+            },
+            {
+              "id": "18",
+              "type": "flervalg",
+              "beskrivendeId": "f18",
+              "roller": [
+                "søker"
+              ],
+              "gyldigeValg": [
+                "f18.flervalg1",
+                "f18.flervalg2"
+              ]
+            }
+          ],
+          "readOnly": false
+        }
+      ]
+    },
+    {
+      "beskrivendeId": "Gyldige land",
+      "ferdig": true,
+      "fakta": [
+        {
+          "id": "19",
+          "type": "land",
+          "beskrivendeId": "f19",
+          "svar": "NOR",
+          "roller": [
+            "søker"
+          ],
+          "gyldigeLand": [
+            "AFG",
+            "ALB",
+            "DZA",
+            "ASM",
+            "AND",
+            "AGO",
+            "AIA",
+            "ATA",
+            "ATG",
+            "ARG",
+            "ARM",
+            "ABW",
+            "AZE",
+            "AUS",
+            "BHS",
+            "BHR",
+            "BGD",
+            "BRB",
+            "BEL",
+            "BLZ",
+            "BEN",
+            "BMU",
+            "BTN",
+            "BOL",
+            "BES",
+            "BIH",
+            "BWA",
+            "BVT",
+            "BRA",
+            "BRN",
+            "BGR",
+            "BFA",
+            "BDI",
+            "CAN",
+            "CYM",
+            "CHL",
+            "CXR",
+            "COL",
+            "COK",
+            "CRI",
+            "CUB",
+            "CUW",
+            "DNK",
+            "ARE",
+            "ATF",
+            "PSE",
+            "DOM",
+            "CAF",
+            "IOT",
+            "DJI",
+            "DMA",
+            "ECU",
+            "EGY",
+            "GNQ",
+            "CIV",
+            "SLV",
+            "ERI",
+            "EST",
+            "ETH",
+            "FLK",
+            "FJI",
+            "PHL",
+            "FIN",
+            "FRA",
+            "GUF",
+            "PYF",
+            "FRO",
+            "GAB",
+            "GMB",
+            "GEO",
+            "GHA",
+            "GIB",
+            "GRD",
+            "GRL",
+            "GLP",
+            "GUM",
+            "GTM",
+            "GGY",
+            "GIN",
+            "GNB",
+            "GUY",
+            "HTI",
+            "HMD",
+            "GRC",
+            "HND",
+            "HKG",
+            "BLR",
+            "IND",
+            "IDN",
+            "IRQ",
+            "IRN",
+            "IRL",
+            "ISL",
+            "ISR",
+            "ITA",
+            "JAM",
+            "JPN",
+            "YEM",
+            "JEY",
+            "VIR",
+            "VGB",
+            "JOR",
+            "KHM",
+            "CMR",
+            "CPV",
+            "KAZ",
+            "KEN",
+            "CHN",
+            "KGZ",
+            "KIR",
+            "CCK",
+            "COM",
+            "COD",
+            "COG",
+            "HRV",
+            "KWT",
+            "CYP",
+            "LAO",
+            "LVA",
+            "LSO",
+            "LBN",
+            "LBR",
+            "LBY",
+            "LIE",
+            "LTU",
+            "LUX",
+            "MAC",
+            "MDG",
+            "MKD",
+            "MWI",
+            "MYS",
+            "MDV",
+            "MLI",
+            "MLT",
+            "IMN",
+            "MAR",
+            "MHL",
+            "MTQ",
+            "MRT",
+            "MUS",
+            "MYT",
+            "MEX",
+            "FSM",
+            "MDA",
+            "MCO",
+            "MNG",
+            "MNE",
+            "MSR",
+            "MOZ",
+            "MMR",
+            "NAM",
+            "NRU",
+            "NPL",
+            "NLD",
+            "NZL",
+            "NIC",
+            "NER",
+            "NGA",
+            "NIU",
+            "PRK",
+            "MNP",
+            "NFK",
+            "NOR",
+            "NCL",
+            "OMN",
+            "PAK",
+            "PLW",
+            "PAN",
+            "PNG",
+            "PRY",
+            "PER",
+            "PCN",
+            "POL",
+            "PRT",
+            "PRI",
+            "QAT",
+            "REU",
+            "ROU",
+            "RUS",
+            "RWA",
+            "BLM",
+            "SHN",
+            "KNA",
+            "LCA",
+            "MAF",
+            "SPM",
+            "VCT",
+            "SLB",
+            "WSM",
+            "SMR",
+            "STP",
+            "SAU",
+            "SEN",
+            "SRB",
+            "SYC",
+            "SLE",
+            "SGP",
+            "SXM",
+            "SVK",
+            "SVN",
+            "SOM",
+            "ESP",
+            "LKA",
+            "GBR",
+            "SDN",
+            "SUR",
+            "SJM",
+            "CHE",
+            "SWE",
+            "SWZ",
+            "SYR",
+            "ZAF",
+            "SGS",
+            "KOR",
+            "SSD",
+            "TJK",
+            "TWN",
+            "TZA",
+            "THA",
+            "TGO",
+            "TKL",
+            "TON",
+            "TTO",
+            "TCD",
+            "CZE",
+            "TUN",
+            "TKM",
+            "TCA",
+            "TUV",
+            "TUR",
+            "DEU",
+            "UGA",
+            "UKR",
+            "HUN",
+            "URY",
+            "USA",
+            "UMI",
+            "UZB",
+            "VUT",
+            "VAT",
+            "VEN",
+            "ESH",
+            "VNM",
+            "WLF",
+            "ZMB",
+            "ZWE",
+            "AUT",
+            "TLS",
+            "ALA"
+          ],
+          "grupper": [
+            {
+              "gruppeId": "f19.gruppe.eøs",
+              "land": [
+                "SWE"
+              ]
+            },
+            {
+              "gruppeId": "f19.gruppe.norge-jan-mayen",
+              "land": [
+                "SJM",
+                "NOR"
+              ]
+            }
+          ],
+          "sannsynliggjøresAv": [],
+          "readOnly": false
+        }
+      ]
+    }
+  ]
 }
