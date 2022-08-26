@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
+import java.time.LocalDateTime
 import java.util.UUID
 
 internal class TestSøkerOppgave(private val søknadUUID: UUID, private val eier: String, private val json: String) :
@@ -10,6 +11,9 @@ internal class TestSøkerOppgave(private val søknadUUID: UUID, private val eier
     override fun søknadUUID(): UUID = søknadUUID
 
     override fun eier(): String = eier
+    override fun opprettet(): LocalDateTime {
+        TODO("Not yet implemented")
+    }
 
     override fun ferdig(): Boolean {
         TODO("not implemented")

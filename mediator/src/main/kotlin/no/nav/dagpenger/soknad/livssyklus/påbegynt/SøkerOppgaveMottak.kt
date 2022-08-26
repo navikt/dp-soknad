@@ -11,11 +11,14 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.asLocalDateTime
+import java.time.LocalDateTime
 import java.util.UUID
 
 interface SøkerOppgave {
     fun søknadUUID(): UUID
     fun eier(): String
+    fun opprettet(): LocalDateTime
     fun ferdig(): Boolean
     fun asFrontendformat(): JsonNode
     fun asJson(): String
@@ -24,6 +27,7 @@ interface SøkerOppgave {
     object Keys {
         val SEKSJONER = "seksjoner"
         val SØKNAD_UUID = "søknad_uuid"
+        val OPPRETTET = "@opprettet"
         val FØDSELSNUMMER = "fødselsnummer"
         val FERDIG = "ferdig"
     }
@@ -65,6 +69,7 @@ internal class SøkerOppgaveMottak(
 internal class SøkerOppgaveMelding(private val jsonMessage: JsonMessage) : SøkerOppgave {
     override fun søknadUUID(): UUID = UUID.fromString(jsonMessage[SøkerOppgave.Keys.SØKNAD_UUID].asText())
     override fun eier(): String = jsonMessage[SøkerOppgave.Keys.FØDSELSNUMMER].asText()
+    override fun opprettet(): LocalDateTime = jsonMessage[SøkerOppgave.Keys.OPPRETTET].asLocalDateTime()
     override fun ferdig(): Boolean = jsonMessage[SøkerOppgave.Keys.FERDIG].asBoolean()
     override fun asFrontendformat(): JsonNode = objectMapper.readTree(jsonMessage.toJson())
     override fun asJson(): String = jsonMessage.toJson()

@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
+import io.ktor.server.plugins.NotFoundException
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.db.Postgres
@@ -11,6 +12,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
+import java.time.LocalDateTime
 import java.util.UUID
 
 class SøkerOppgaveMottakTest {
@@ -24,7 +27,6 @@ class SøkerOppgaveMottakTest {
 
     @Test
     fun `lese svar fra kafka`() {
-
         Postgres.withMigratedDb {
             val søknadMediator = SøknadMediator(
                 testRapid,
@@ -50,6 +52,9 @@ class SøkerOppgaveMottakTest {
                     assertEquals(søknadUuid, it.søknadUUID())
                     assertEquals(false, it.asFrontendformat()["ferdig"].asBoolean())
                 }
+            }
+            assertThrows<NotFoundException> {
+                søknadMediator.hent(søknadUuid, sistLagretEtter = LocalDateTime.now().plusYears(2))
             }
         }
     }
