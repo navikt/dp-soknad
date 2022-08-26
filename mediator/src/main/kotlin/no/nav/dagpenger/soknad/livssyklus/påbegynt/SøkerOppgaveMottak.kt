@@ -59,7 +59,7 @@ internal class SøkerOppgaveMottak(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val søkerOppgave = SøkerOppgaveMelding(packet)
-        withLoggingContext("søknadId" to søkerOppgave.søknadUUID().toString()) {
+        withLoggingContext("søknadId" to søkerOppgave.søknadUUID().toString(), "packetId" to packet.id) {
             logger.info { "Mottatt pakke ${packet["@event_name"].asText()}" }
             søknadMediator.behandle(søkerOppgave)
         }
