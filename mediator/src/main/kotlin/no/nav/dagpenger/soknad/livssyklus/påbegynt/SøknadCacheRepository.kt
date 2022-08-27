@@ -56,7 +56,7 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
                     "SELECT uuid, eier, soknad_data FROM soknad_cache WHERE uuid = :uuid AND (:sistLagret::timestamptz IS NULL OR opprettet > :sistLagret)",
                     mapOf(
                         "uuid" to søknadUUID.toString(),
-                        "sistLagret" to sistLagretEtter?.toLocalDateTimeWithTimezone()
+                        "sistLagret" to sistLagretEtter // ?.toLocalDateTimeWithTimezone()
                     )
                 ).map { row ->
                     LivssyklusPostgresRepository.PersistentSøkerOppgave(objectMapper.readTree(row.binaryStream("soknad_data")))
