@@ -1,0 +1,13 @@
+ALTER TABLE soknad_cache
+    DROP COLUMN IF EXISTS mottatt;
+
+ALTER TABLE soknad_cache
+    ADD COLUMN IF NOT EXISTS
+        mottatt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc');
+
+ALTER TABLE soknad_cache
+    DROP COLUMN IF EXISTS opprettet;
+
+ALTER TABLE soknad_cache
+    ADD COLUMN IF NOT EXISTS
+        opprettet TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW());
