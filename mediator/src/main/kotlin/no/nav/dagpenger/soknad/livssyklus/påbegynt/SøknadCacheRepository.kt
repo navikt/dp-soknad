@@ -36,7 +36,7 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
                         mapOf(
                             "uuid" to søkerOppgave.søknadUUID(),
                             "eier" to søkerOppgave.eier(),
-                            "opprettet" to søkerOppgave.opprettet().atZone(ZoneId.systemDefault()),
+                            "opprettet" to søkerOppgave.opprettet(),
                             "data" to PGobject().also {
                                 it.type = "jsonb"
                                 it.value = søkerOppgave.asJson()
