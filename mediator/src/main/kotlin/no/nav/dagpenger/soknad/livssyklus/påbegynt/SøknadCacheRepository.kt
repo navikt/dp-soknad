@@ -8,8 +8,6 @@ import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.postgresql.util.PGobject
 import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZoneOffset
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -17,6 +15,7 @@ interface SøknadCacheRepository {
     fun lagre(søkerOppgave: SøkerOppgave)
     fun slett(søknadUUID: UUID, eier: String): Boolean
     fun hent(søknadUUID: UUID, sistLagretEtter: LocalDateTime? = null): SøkerOppgave?
+    fun besvart(søknadUUID: UUID, besvart: LocalDateTime): Int
 }
 
 class SøknadCachePostgresRepository(private val dataSource: DataSource) : SøknadCacheRepository {
@@ -26,17 +25,17 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
                 tx.run(
                     queryOf(
                         // language=PostgreSQL
-                        """INSERT INTO soknad_cache(uuid, eier, soknad_data, opprettet)
-                            VALUES (:uuid, :eier, :data, :opprettet)
+                        """INSERT INTO soknad_cache(uuid, eier, soknad_data, sist_endret)
+                            VALUES (:uuid, :eier, :data, :sist_endret)
                             ON CONFLICT(uuid, eier)
                                 DO UPDATE SET soknad_data = :data,
-                                              opprettet = :opprettet,
+                                              sist_endret = :sist_endret,
                                               mottatt = (NOW() AT TIME ZONE 'utc')
                         """.trimIndent(),
                         mapOf(
                             "uuid" to søkerOppgave.søknadUUID(),
                             "eier" to søkerOppgave.eier(),
-                            "opprettet" to søkerOppgave.opprettet(),
+                            "sist_endret" to LocalDateTime.now(),
                             "data" to PGobject().also {
                                 it.type = "jsonb"
                                 it.value = søkerOppgave.asJson()
@@ -48,15 +47,30 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
         }
     }
 
+    override fun besvart(søknadUUID: UUID, besvart: LocalDateTime): Int {
+        return using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf(
+                    // language=PostgreSQL
+                    "UPDATE soknad_cache SET sist_endret=:sistEndret WHERE uuid = :uuid",
+                    mapOf(
+                        "uuid" to søknadUUID.toString(),
+                        "sistEndret" to besvart
+                    )
+                ).asUpdate
+            )
+        }
+    }
+
     override fun hent(søknadUUID: UUID, sistLagretEtter: LocalDateTime?): SøkerOppgave {
         return using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf(
                     // language=PostgreSQL
-                    "SELECT uuid, eier, soknad_data FROM soknad_cache WHERE uuid = :uuid AND (:sistLagret::timestamptz IS NULL OR opprettet > :sistLagret)",
+                    "SELECT uuid, eier, soknad_data FROM soknad_cache WHERE uuid = :uuid AND (:sistLagret::timestamp IS NULL OR sist_endret > :sistLagret)",
                     mapOf(
                         "uuid" to søknadUUID.toString(),
-                        "sistLagret" to sistLagretEtter // ?.toLocalDateTimeWithTimezone()
+                        "sistLagret" to sistLagretEtter
                     )
                 ).map { row ->
                     LivssyklusPostgresRepository.PersistentSøkerOppgave(objectMapper.readTree(row.binaryStream("soknad_data")))
@@ -77,6 +91,3 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
             )
         }
 }
-
-private fun LocalDateTime?.toLocalDateTimeWithTimezone() =
-    this?.atZone(ZoneId.systemDefault())?.withZoneSameInstant(ZoneOffset.UTC)

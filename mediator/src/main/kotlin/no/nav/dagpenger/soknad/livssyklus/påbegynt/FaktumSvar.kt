@@ -10,21 +10,23 @@ internal class FaktumSvar(
     private val faktumId: String,
     private val type: String,
     private val eier: String,
-    private val svar: JsonNode
+    private val svar: JsonNode,
+    private val besvart: LocalDateTime = LocalDateTime.now()
 ) {
-
     private val navn = "faktum_svar"
     private val opprettet = LocalDateTime.now()
     private val id = UUID.randomUUID()
 
     fun søknadUuid() = søknadUuid
     fun eier() = eier
+    fun besvart() = besvart
 
     fun toJson() = JsonMessage.newMessage(
         mapOf(
             "@event_name" to navn,
             "@opprettet" to opprettet,
             "@id" to id,
+            "besvart" to besvart,
             "fakta" to listOf(
                 mapOf(
                     "id" to faktumId,
@@ -32,7 +34,7 @@ internal class FaktumSvar(
                     "svar" to svar
                 )
             ),
-            "søknad_uuid" to søknadUuid,
+            "søknad_uuid" to søknadUuid
         )
     ).toJson()
 }
