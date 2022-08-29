@@ -37,10 +37,9 @@ class Dokumentkrav private constructor(
 
     override fun hashCode(): Int = 31 * krav.hashCode()
 }
-
 data class Krav(
     val id: String,
-    val filer: Set<Fil> = emptySet(),
+    val filer: MutableSet<Fil> = mutableSetOf(),
     val sannsynliggjøring: Sannsynliggjøring,
     internal var tilstand: KravTilstand
 ) {
@@ -60,7 +59,7 @@ data class Krav(
 
     constructor(sannsynliggjøring: Sannsynliggjøring) : this(
         sannsynliggjøring.id,
-        emptySet(),
+        mutableSetOf(),
         sannsynliggjøring,
         KravTilstand.AKTIV
     )
@@ -73,7 +72,7 @@ data class Krav(
     data class Fil(
         val filnavn: String,
         val urn: URN,
-        val storrelse: BigInteger,
+        val storrelse: Long,
         val tidspunkt: LocalDateTime
     ) {
         init {
@@ -83,3 +82,4 @@ data class Krav(
         }
     }
 }
+

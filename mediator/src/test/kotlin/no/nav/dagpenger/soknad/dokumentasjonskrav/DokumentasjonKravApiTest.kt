@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.dokumentasjonskrav
 
+import de.slub.urn.URN
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.put
@@ -9,11 +10,15 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.mockk.Runs
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.slot
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
+import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestApplication
@@ -21,11 +26,13 @@ import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.soknad.TestApplication.mockedSøknadApi
 import no.nav.dagpenger.soknad.faktumJson
+import no.nav.dagpenger.soknad.hendelse.KravHendelse
 import no.nav.dagpenger.soknad.livssyklus.asUUID
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.UUID
@@ -48,6 +55,7 @@ internal class DokumentasjonKravApiTest {
 
     private val søknadMediatorMock = mockk<SøknadMediator>().also {
         every { it.hentDokumentkravFor(testSoknadId, defaultDummyFodselsnummer) } returns dokumentKrav
+
     }
 
     @Test
@@ -92,12 +100,22 @@ internal class DokumentasjonKravApiTest {
 
     @Test
     fun `Skal kunne besvare`() {
-        TestApplication.withMockAuthServerAndTestApplication() {
+
+        val slot = slot<KravHendelse>()
+        val tidspunkt = LocalDateTime.now()
+        val mediatorMock = mockk<SøknadMediator>().also {
+            every { it.behandle(capture(slot)) } just Runs
+        }
+        TestApplication.withMockAuthServerAndTestApplication(
+            mockedSøknadApi(
+                søknadMediator = mediatorMock
+            )
+        ) {
             client.put("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451/fil") {
                 autentisert()
                 header(HttpHeaders.ContentType, "application/json")
                 // language=JSON
-                val tidspunkt = LocalDateTime.now()
+
                 setBody(
                     """{
   "filnavn": "ja.jpg",
@@ -108,6 +126,20 @@ internal class DokumentasjonKravApiTest {
                 )
             }.let { response ->
                 assertEquals(HttpStatusCode.Created, response.status)
+                assertTrue(slot.isCaptured)
+                with(slot.captured) {
+
+                    assertEquals("451", this.kravId)
+                    assertEquals(
+                        Krav.Fil(
+                            filnavn = "ja.jpg",
+                            urn = URN.rfc8141().parse("urn:vedlegg:1111/123234"),
+                            storrelse = 50000,
+                            tidspunkt = tidspunkt,
+
+                            ), this.fil
+                    )
+                }
             }
         }
     }

@@ -13,23 +13,26 @@ import io.ktor.server.routing.route
 import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Krav
+import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.hendelse.KravHendelse
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.ident
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
+import java.lang.RuntimeException
 import java.math.BigInteger
 import java.time.LocalDateTime
 import java.util.UUID
 
 private val logger = KotlinLogging.logger { }
 
-internal fun Route.dokumentasjonkravRoute(søknadRepository: SøknadRepository) {
+internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
     route("/{søknad_uuid}/dokumentasjonskrav") {
         get {
             val søknadUuid = søknadUuid()
             val ident = call.ident()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
-                val dokumentkrav = søknadRepository.hentDokumentkravFor(søknadUuid, ident)
+                val dokumentkrav = søknadMediator.hentDokumentkravFor(søknadUuid, ident)
                 val apiDokumentkravResponse = ApiDokumentkravResponse(
                     soknad_uuid = søknadUuid,
                     krav = dokumentkrav.aktiveDokumentKrav().toApiKrav()
@@ -38,26 +41,34 @@ internal fun Route.dokumentasjonkravRoute(søknadRepository: SøknadRepository) 
             }
         }
         put("/{kravId}/fil") {
-
+            val kravId = call.parameters["kravId"] ?: throw IllegalArgumentException("Mangler kravId")
+            val ident = call.ident()
             val søknadUuid = søknadUuid()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
-
-                // hentdokumentkrav
-                val fil = call.receive<ApiFil>().let { logger.info { "Received: $it" } }
+                val fil = call.receive<ApiFil>().also { logger.info { "Received: $it" } }
+                søknadMediator.behandle(KravHendelse(søknadUuid, ident, kravId, fil.tilModell()))
                 call.respond(HttpStatusCode.Created)
             }
         }
     }
 }
+
 private data class ApiFil(
     val filnavn: String,
     val urn: String,
-    val storrelse: BigInteger,
+    val storrelse: Long,
     val tidspunkt: LocalDateTime
 ) {
+    private val _urn: URN
     init {
-        URN.rfc8141().parse(urn)
+        _urn =  URN.rfc8141().parse(urn)
     }
+    fun tilModell() = Krav.Fil(
+        filnavn = this.filnavn,
+        urn = this._urn,
+        storrelse = this.storrelse,
+        tidspunkt = this.tidspunkt,
+    )
 }
 
 private data class ApiDokumentkravResponse(

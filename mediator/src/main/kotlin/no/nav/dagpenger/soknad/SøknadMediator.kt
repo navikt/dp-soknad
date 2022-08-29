@@ -6,6 +6,7 @@ import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
+import no.nav.dagpenger.soknad.hendelse.KravHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
@@ -184,6 +185,10 @@ internal class SøknadMediator(
 
     private fun hentEllerOpprettPerson(hendelse: Hendelse) =
         livssyklusRepository.hent(hendelse.ident()) ?: Person(hendelse.ident())
+
+    fun behandle(kravHendelse: KravHendelse) {
+        TODO("not implemented")
+    }
 }
 
 enum class Prosesstype {

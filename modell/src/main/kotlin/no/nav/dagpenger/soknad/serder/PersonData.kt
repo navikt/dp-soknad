@@ -117,7 +117,7 @@ class PersonData(
             ) {
                 fun rehydrer() = Krav(
                     id = this.id,
-                    filer = this.filer.map { it.rehydrer() }.toSet(),
+                    filer = this.filer.map { it.rehydrer() }.toMutableSet(),
                     sannsynliggjøring = this.sannsynliggjøring.rehydrer(),
                     tilstand = when (this.tilstand) {
                         KravTilstandData.AKTIV -> Krav.KravTilstand.AKTIV
@@ -145,7 +145,7 @@ class PersonData(
                 data class FilData(
                     val filnavn: String,
                     val urn: URN,
-                    val storrelse: BigInteger,
+                    val storrelse: Long,
                     val tidspunkt: LocalDateTime
                 ) {
                     fun rehydrer() = Krav.Fil(
