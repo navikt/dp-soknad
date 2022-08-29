@@ -1,12 +1,11 @@
 package no.nav.dagpenger.soknad.dokumentasjonskrav
 
 import com.fasterxml.jackson.databind.JsonNode
-import io.ktor.http.ContentType
+import de.slub.urn.URN
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
-import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.put
@@ -18,6 +17,8 @@ import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.ident
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
+import java.math.BigInteger
+import java.time.LocalDateTime
 import java.util.UUID
 
 private val logger = KotlinLogging.logger { }
@@ -36,16 +37,26 @@ internal fun Route.dokumentasjonkravRoute(søknadRepository: SøknadRepository) 
                 call.respond(apiDokumentkravResponse)
             }
         }
-        put("/{kravId}") {
+        put("/{kravId}/fil") {
+
             val søknadUuid = søknadUuid()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
-                call.receive<JsonNode>().let { logger.info { "Received: $it" } }
-                call.respondText(
-                    contentType = ContentType.Application.Json,
-                    HttpStatusCode.OK
-                ) { """{"status": "ok"}""" }
+
+                // hentdokumentkrav
+                val fil = call.receive<ApiFil>().let { logger.info { "Received: $it" } }
+                call.respond(HttpStatusCode.Created)
             }
         }
+    }
+}
+private data class ApiFil(
+    val filnavn: String,
+    val urn: String,
+    val storrelse: BigInteger,
+    val tidspunkt: LocalDateTime
+) {
+    init {
+        URN.rfc8141().parse(urn)
     }
 }
 

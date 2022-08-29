@@ -1,7 +1,6 @@
 package no.nav.dagpenger.soknad.serder
 
 import com.fasterxml.jackson.databind.JsonNode
-import de.slub.urn.RFC
 import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
@@ -118,7 +117,7 @@ class PersonData(
             ) {
                 fun rehydrer() = Krav(
                     id = this.id,
-                    filer = this.filer.map { it.rehydrer() },
+                    filer = this.filer.map { it.rehydrer() }.toSet(),
                     sannsynliggjøring = this.sannsynliggjøring.rehydrer(),
                     tilstand = when (this.tilstand) {
                         KravTilstandData.AKTIV -> Krav.KravTilstand.AKTIV

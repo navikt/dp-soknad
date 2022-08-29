@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 import java.util.UUID
 
 internal class DokumentasjonKravApiTest {
@@ -92,14 +93,21 @@ internal class DokumentasjonKravApiTest {
     @Test
     fun `Skal kunne besvare`() {
         TestApplication.withMockAuthServerAndTestApplication() {
-            client.put("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451") {
+            client.put("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451/fil") {
                 autentisert()
                 header(HttpHeaders.ContentType, "application/json")
-                setBody("""{"svar": "ja"}""")
+                // language=JSON
+                val tidspunkt = LocalDateTime.now()
+                setBody(
+                    """{
+  "filnavn": "ja.jpg",
+  "storrelse": 50000,
+  "urn": "urn:vedlegg:1111/123234",
+  "tidspunkt": "$tidspunkt"
+}"""
+                )
             }.let { response ->
-                assertEquals(HttpStatusCode.OK, response.status)
-                assertEquals("application/json; charset=UTF-8", response.contentType().toString())
-                assertNotNull(response.bodyAsText().also { println(it) })
+                assertEquals(HttpStatusCode.Created, response.status)
             }
         }
     }
