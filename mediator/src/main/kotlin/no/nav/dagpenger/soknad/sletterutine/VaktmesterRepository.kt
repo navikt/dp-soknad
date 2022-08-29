@@ -5,6 +5,7 @@ import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
@@ -14,6 +15,8 @@ import javax.sql.DataSource
 internal interface VakmesterLivssyklusRepository {
     fun slettPåbegynteSøknaderEldreEnn(antallDager: Int)
 }
+
+private val logger = KotlinLogging.logger {}
 
 internal class VaktmesterPostgresRepository(
     private val dataSource: DataSource,
@@ -26,6 +29,8 @@ internal class VaktmesterPostgresRepository(
             using(sessionOf(dataSource)) { session ->
                 session.transaction { transactionalSession ->
                     val søknaderSomSkalSlettes = hentPåbegynteSøknaderUendretSiden(antallDager, transactionalSession)
+                    logger.info("Antall søknader som skal slettes: ${søknaderSomSkalSlettes.size}")
+
                     søknaderSomSkalSlettes.forEach { søknad ->
                         slettSøknad(søknad.søknadUuid, transactionalSession)
                         // slettAktivitetslogg(søknad.søknadUuid, transactionalSession)
