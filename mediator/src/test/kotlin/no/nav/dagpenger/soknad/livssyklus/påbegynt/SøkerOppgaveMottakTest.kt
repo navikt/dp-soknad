@@ -68,7 +68,7 @@ class SøkerOppgaveMottakTest {
   "fødselsnummer": "$ident",
   "versjon_id": 0,
   "versjon_navn": "test",
-  "@opprettet": "2022-05-13T14:48:09.059643",
+  "@opprettet": "${LocalDateTime.now().minusSeconds(3)}",
   "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
   "søknad_uuid": "$søknadUuid",
   "ferdig": false,

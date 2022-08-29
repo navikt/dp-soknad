@@ -255,7 +255,8 @@ internal fun Session.hentDokumentKrav(søknadsId: UUID): Set<PersonData.SøknadD
 
                 ),
                 filer = emptySet(),
-                tilstand = row.string("tilstand").let { PersonData.SøknadData.DokumentkravData.KravData.KravTilstandData.valueOf(it) }
+                tilstand = row.string("tilstand")
+                    .let { PersonData.SøknadData.DokumentkravData.KravData.KravTilstandData.valueOf(it) }
             )
         }.asList
     ).toSet()

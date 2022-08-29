@@ -58,7 +58,7 @@ internal class VaktmesterRepositoryTest {
 
         vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
         assertAntallSøknadSlettetEvent(1)
-        assertAktivitetsloggSlettet(gammelPåbegyntSøknadUuid)
+        // assertAktivitetsloggSlettet(gammelPåbegyntSøknadUuid)
         assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, person, livssyklusRepository)
         assertCacheSlettet(gammelPåbegyntSøknadUuid, søknadCacheRepository)
     }

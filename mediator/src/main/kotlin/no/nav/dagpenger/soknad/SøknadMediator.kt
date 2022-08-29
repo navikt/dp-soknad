@@ -102,6 +102,7 @@ internal class SøknadMediator(
     fun behandle(faktumSvar: FaktumSvar) {
         val faktumOppdatertHendelse = FaktumOppdatertHendelse(faktumSvar.søknadUuid(), faktumSvar.eier())
         behandle(faktumOppdatertHendelse) { person ->
+            søknadCacheRepository.besvart(faktumSvar.søknadUuid(), faktumSvar.besvart())
             person.håndter(faktumOppdatertHendelse)
             rapidsConnection.publish(faktumSvar.toJson())
         }
@@ -109,7 +110,8 @@ internal class SøknadMediator(
     }
 
     fun behandle(søkerOppgave: SøkerOppgave) {
-        val søkeroppgaveHendelse = SøkeroppgaveHendelse(søkerOppgave.søknadUUID(), søkerOppgave.eier(), søkerOppgave.sannsynliggjøringer())
+        val søkeroppgaveHendelse =
+            SøkeroppgaveHendelse(søkerOppgave.søknadUUID(), søkerOppgave.eier(), søkerOppgave.sannsynliggjøringer())
         behandle(søkeroppgaveHendelse) { person ->
             person.håndter(søkeroppgaveHendelse)
             søknadCacheRepository.lagre(søkerOppgave)
@@ -129,7 +131,6 @@ internal class SøknadMediator(
                 behandle(ØnskeOmNyInnsendingHendelse(it.getSøknadsId(), ident, språk))
             }
         }
-
         // return hentPåbegynte(ident).singleOrNull()?.let {
         //     PåbegyntSøknadsProsess(it.uuid).also {
         //         behandle(HarPåbegyntSøknadHendelse(ident, it.getSøknadsId()))
