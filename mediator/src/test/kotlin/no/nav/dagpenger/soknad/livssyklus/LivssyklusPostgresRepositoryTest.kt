@@ -13,6 +13,8 @@ import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository.PersistentSøkerOppgave
@@ -84,7 +86,7 @@ internal class LivssyklusPostgresRepositoryTest {
                 Søknad.rehydrer(
                     søknadId = søknadId2,
                     person = it,
-                    tilstandsType = "Journalført",
+                    tilstandsType = Journalført.name,
                     dokument = Søknad.Dokument(
                         varianter = listOf(
                             Søknad.Dokument.Variant(
@@ -104,7 +106,8 @@ internal class LivssyklusPostgresRepositoryTest {
                     språk,
                     dokumentkrav = Dokumentkrav.rehydrer(
                         krav = setOf(krav)
-                    )
+                    ),
+                    sistEndretAvBruker = ZonedDateTime.now().minusDays(1)
                 )
             )
         }
@@ -159,7 +162,8 @@ internal class LivssyklusPostgresRepositoryTest {
                     språk,
                     dokumentkrav = Dokumentkrav.rehydrer(
                         krav = setOf(krav)
-                    )
+                    ),
+                    sistEndretAvBruker = ZonedDateTime.now()
                 )
             )
         }
@@ -180,22 +184,24 @@ internal class LivssyklusPostgresRepositoryTest {
                 Søknad.rehydrer(
                     søknadId = påbegyntSøknadUuid,
                     person = it,
-                    tilstandsType = "Påbegynt",
+                    tilstandsType = Påbegynt.name,
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "jouhasjk",
                     innsendtTidspunkt = innsendtTidspunkt,
                     språk,
-                    Dokumentkrav()
+                    Dokumentkrav(),
+                    sistEndretAvBruker = innsendtTidspunkt
                 ),
                 Søknad.rehydrer(
                     søknadId = UUID.randomUUID(),
                     person = it,
-                    tilstandsType = "Journalført",
+                    tilstandsType = Journalført.name,
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = innsendtTidspunkt,
                     språk,
-                    Dokumentkrav()
+                    Dokumentkrav(),
+                    sistEndretAvBruker = innsendtTidspunkt
                 )
             )
         }
@@ -221,12 +227,13 @@ internal class LivssyklusPostgresRepositoryTest {
                 Søknad.rehydrer(
                     søknadId = søknadId,
                     person = it,
-                    tilstandsType = "Journalført",
+                    tilstandsType = Journalført.name,
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = ZonedDateTime.now(),
                     språk,
-                    Dokumentkrav()
+                    Dokumentkrav(),
+                    sistEndretAvBruker = ZonedDateTime.now()
                 )
             )
         }
@@ -277,7 +284,8 @@ internal class LivssyklusPostgresRepositoryTest {
             journalpostId: String?,
             innsendtTidspunkt: ZonedDateTime?,
             språk: Språk,
-            dokumentkrav: Dokumentkrav
+            dokumentkrav: Dokumentkrav,
+            sistEndretAvBruker: ZonedDateTime?
         ) {
             dokument?.let { dokumenter[søknadId] = it }
             this.dokumentkrav[søknadId] = dokumentkrav

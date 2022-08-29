@@ -1,7 +1,6 @@
 package no.nav.dagpenger.soknad
 
 import com.fasterxml.jackson.databind.node.BooleanNode
-import io.ktor.server.plugins.NotFoundException
 import io.mockk.mockk
 import kotliquery.queryOf
 import kotliquery.sessionOf
@@ -15,7 +14,6 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.Søknadsprosess.NySøknadsProsess
 import no.nav.dagpenger.soknad.Søknadsprosess.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.db.Postgres
-import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
@@ -28,17 +26,15 @@ import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadCachePostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak
 import no.nav.dagpenger.soknad.mal.SøknadMalRepository
-import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
+import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.rapids_rivers.toUUID
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class SøknadMediatorTest {
@@ -111,6 +107,7 @@ internal class SøknadMediatorTest {
         assertEquals(Påbegynt, oppdatertInspektør().gjeldendetilstand)
 
         testRapid.sendTestMessage(søkerOppgave(søknadUuid.toString().toUUID(), testIdent))
+        assertAntallRader("soknad_cache", antallRader = 1)
 
         mediator.behandle(FaktumSvar(søknadUuid, "1234", "boolean", testIdent, BooleanNode.TRUE))
         assertTrue("faktum_svar" in testRapid.inspektør.message(1).toString())
@@ -158,52 +155,12 @@ internal class SøknadMediatorTest {
     }
 
     @Test
-    fun `Skal kunne slette søknad`() {
-        val søknadUuid = UUID.randomUUID()
-        val ident = "23456789111"
-        mediator.behandle(ØnskeOmNySøknadHendelse(søknadUuid, ident, språkVerdi))
-        assertEquals(UnderOpprettelse, oppdatertInspektør(ident).gjeldendetilstand)
-
-        testRapid.sendTestMessage(nySøknadBehovsløsning(søknadUuid.toString(), ident))
-        assertEquals(Påbegynt, oppdatertInspektør(ident).gjeldendetilstand)
-
-        mediator.behandle(TestSøkerOppgave(søknadUuid, ident, "{}"))
-
-        mediator.behandle(SlettSøknadHendelse(søknadUuid, ident))
-
-        with(oppdatertInspektør(ident)) {
-            assertEquals(0, antallSøknader)
-        }
-
-        assertSlettet(søknadUuid, "soknad_v1")
-        assertSlettet(søknadUuid, "soknad_cache")
-        assertSlettet(søknadUuid, "soknad_tekst_v1")
-        // assertSlettet(søknadUuid, "dokument_v1")
-    }
-
-    private fun assertSlettet(søknadUuid: UUID, tabellNavn: String) {
-        using(sessionOf(PostgresDataSourceBuilder.dataSource)) {
-            assertFalse(
-                it.run(
-                    //language=PostgreSQL
-                    queryOf(
-                        statement = "SELECT EXISTS(SELECT 1 FROM $tabellNavn WHERE uuid=:id)",
-                        paramMap = mapOf("id" to søknadUuid.toString())
-                    ).map { rad ->
-                        rad.boolean(1)
-                    }.asSingle
-                )!!
-            ) { "Forventet at $søknadUuid ikke eksisterer i $tabellNavn etter at den er slettet!" }
-        }
-    }
-
-    @Test
     fun `Hva skjer om en får JournalførtHendelse som ikke er tilknyttet en søknad`() {
         testRapid.sendTestMessage(søknadJournalførtHendelse(ident = testIdent, journalpostId = "UKJENT"))
     }
 
     private fun assertAntallRader(tabell: String, antallRader: Int) {
-        val faktiskeRader = using(sessionOf(PostgresDataSourceBuilder.dataSource)) { session ->
+        val faktiskeRader = using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf("select count(1) from $tabell").map { row ->
                     row.int(1)
@@ -212,9 +169,6 @@ internal class SøknadMediatorTest {
         }
         assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: $tabell")
     }
-
-    private fun assertSøknadCacheInvalidert(søknadUuid: UUID) =
-        assertThrows<NotFoundException> { søknadCacheRepository.hent(søknadUuid) }
 
     private fun søknadId(ident: String = testIdent) = oppdatertInspektør(ident).gjeldendeSøknadId
 

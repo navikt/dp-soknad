@@ -1,0 +1,2 @@
+ALTER TABLE soknad_v1
+    ADD COLUMN sist_endret_av_bruker TIMESTAMP WITH TIME ZONE NULL;

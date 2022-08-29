@@ -21,7 +21,8 @@ internal class TestSøknadInspektør(person: Person) : PersonVisitor {
         journalpostId: String?,
         innsendtTidspunkt: ZonedDateTime?,
         språk: Språk,
-        dokumentkrav: Dokumentkrav
+        dokumentkrav: Dokumentkrav,
+        sistEndretAvBruker: ZonedDateTime?
     ) {
         this.søknadId = søknadId
     }

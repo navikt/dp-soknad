@@ -63,7 +63,8 @@ internal class SøknadPostgresRepositoryTest {
                 språk = Språk("NO"),
                 dokumentkrav = Dokumentkrav.rehydrer(
                     krav = setOf(krav)
-                )
+                ),
+                sistEndretAvBruker = ZonedDateTime.now()
             )
         )
     }

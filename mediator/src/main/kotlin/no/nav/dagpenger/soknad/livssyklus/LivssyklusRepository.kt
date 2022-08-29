@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import kotliquery.Session
 import kotliquery.TransactionalSession
-import kotliquery.action.UpdateQueryAction
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
@@ -75,15 +74,9 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
         val visitor = PersonPersistenceVisitor(person)
         using(sessionOf(dataSource)) { session ->
             session.transaction { transactionalSession ->
-                val internId =
-                    hentInternPersonId(transactionalSession, person) ?: lagrePerson(transactionalSession, visitor)!!
+                val internId = hentInternPersonId(transactionalSession, person) ?: lagrePerson(transactionalSession, visitor)!!
 
                 lagreAktivitetslogg(transactionalSession, internId, visitor)
-
-                logger.info { "Sletter ${visitor.slettedeSøknader().size} søknader" }
-                visitor.slettedeSøknader().forEach {
-                    transactionalSession.run(it.deleteQuery(visitor.ident))
-                }
 
                 logger.info { "Lagrer ${visitor.søknader().size} søknader" }
                 visitor.søknader().insertQuery(visitor.ident, transactionalSession)
@@ -194,7 +187,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
             queryOf(
                 //language=PostgreSQL
                 statement = """
-                    SELECT uuid, tilstand, journalpost_id, innsendt_tidspunkt, spraak
+                    SELECT uuid, tilstand, journalpost_id, innsendt_tidspunkt, spraak, sist_endret_av_bruker
                     FROM  soknad_v1
                     WHERE person_ident = :ident
                 """.trimIndent(),
@@ -212,7 +205,8 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     språkData = SpråkData(row.string("spraak")),
                     dokumentkrav = PersonData.SøknadData.DokumentkravData(
                         this.hentDokumentKrav(søknadsId)
-                    )
+                    ),
+                    sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")
                 )
             }.asList
         )
@@ -313,7 +307,8 @@ private fun List<PersonData.SøknadData>.insertQuery(personIdent: String, sessio
             VALUES (:uuid, :person_ident, :tilstand, :journalpostID, :spraak)
             ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
                                             journalpost_id=:journalpostID,
-                                            innsendt_tidspunkt = :innsendtTidspunkt
+                                            innsendt_tidspunkt = :innsendtTidspunkt,
+                                            sist_endret_av_bruker = :sistEndretAvBruker
         """.trimIndent(),
         params = map {
             mapOf<String, Any?>(
@@ -322,22 +317,11 @@ private fun List<PersonData.SøknadData>.insertQuery(personIdent: String, sessio
                 "tilstand" to it.tilstandType.name,
                 "journalpostID" to it.journalpostId,
                 "innsendtTidspunkt" to it.innsendtTidspunkt,
-                "spraak" to it.språkData.verdi
+                "spraak" to it.språkData.verdi,
+                "sistEndretAvBruker" to it.sistEndretAvBruker
             )
         }
     )
-
-private fun PersonData.SøknadData.deleteQuery(personIdent: String): UpdateQueryAction {
-    logger.info { "Prøver å slette søknad: $søknadsId" }
-    return queryOf(
-        // language=PostgreSQL
-        statement = "DELETE FROM soknad_v1 WHERE uuid=:id AND person_ident = :person_ident",
-        paramMap = mapOf(
-            "id" to søknadsId.toString(),
-            "person_ident" to personIdent
-        )
-    ).asUpdate
-}
 
 private fun PersonData.SøknadData.insertDokumentQuery(session: TransactionalSession) =
     session.batchPreparedNamedStatement(
@@ -389,7 +373,8 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
         journalpostId: String?,
         innsendtTidspunkt: ZonedDateTime?,
         språk: Språk,
-        dokumentkrav: Dokumentkrav
+        dokumentkrav: Dokumentkrav,
+        sistEndretAvBruker: ZonedDateTime?
     ) {
         søknader.add(
             PersonData.SøknadData(
@@ -407,7 +392,8 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
                 journalpostId = journalpostId,
                 innsendtTidspunkt = innsendtTidspunkt,
                 språkData = SpråkData(språk.verdi),
-                dokumentkrav = dokumentkrav.toDokumentKravData()
+                dokumentkrav = dokumentkrav.toDokumentKravData(),
+                sistEndretAvBruker = sistEndretAvBruker
             )
         )
     }

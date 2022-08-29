@@ -24,18 +24,19 @@ class PersonData(
     fun createPerson(): Person {
         return Person.rehydrer(
             ident = this.ident,
-            aktivitetslogg = this.aktivitetsLogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg()
-        ) { p ->
+            aktivitetslogg = this.aktivitetsLogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
+        ) { person ->
             søknader.map {
                 Søknad.rehydrer(
                     søknadId = it.søknadsId,
-                    person = p,
+                    person = person,
                     tilstandsType = it.tilstandType.name,
                     dokument = it.dokumenter.rehydrer(),
                     journalpostId = it.journalpostId,
                     innsendtTidspunkt = it.innsendtTidspunkt,
                     språk = it.språkData.somSpråk(),
-                    dokumentkrav = it.dokumentkrav.rehydrer()
+                    dokumentkrav = it.dokumentkrav.rehydrer(),
+                    sistEndretAvBruker = it.sistEndretAvBruker
                 )
             }.toMutableList()
         }
@@ -48,7 +49,8 @@ class PersonData(
         val journalpostId: String?,
         val innsendtTidspunkt: ZonedDateTime?,
         val språkData: SpråkData,
-        var dokumentkrav: DokumentkravData
+        var dokumentkrav: DokumentkravData,
+        val sistEndretAvBruker: ZonedDateTime?
     ) {
         class DokumentData(
             val urn: String

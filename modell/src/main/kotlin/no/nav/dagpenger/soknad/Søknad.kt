@@ -27,6 +27,7 @@ class Søknad private constructor(
     private var innsendtTidspunkt: ZonedDateTime?,
     private val språk: Språk,
     private val dokumentkrav: Dokumentkrav,
+    private var sistEndretAvBruker: ZonedDateTime?,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : Aktivitetskontekst {
 
@@ -37,8 +38,9 @@ class Søknad private constructor(
         dokument = null,
         journalpostId = null,
         innsendtTidspunkt = null,
-        språk = språk,
-        dokumentkrav = Dokumentkrav()
+        språk,
+        dokumentkrav = Dokumentkrav(),
+        sistEndretAvBruker = null
     )
 
     companion object {
@@ -57,7 +59,8 @@ class Søknad private constructor(
             journalpostId: String?,
             innsendtTidspunkt: ZonedDateTime?,
             språk: Språk,
-            dokumentkrav: Dokumentkrav
+            dokumentkrav: Dokumentkrav,
+            sistEndretAvBruker: ZonedDateTime?,
         ): Søknad {
             val tilstand: Tilstand = when (Tilstand.Type.valueOf(tilstandsType)) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
@@ -76,7 +79,8 @@ class Søknad private constructor(
                 journalpostId = journalpostId,
                 innsendtTidspunkt = innsendtTidspunkt,
                 språk = språk,
-                dokumentkrav = dokumentkrav
+                dokumentkrav = dokumentkrav,
+                sistEndretAvBruker = sistEndretAvBruker
             )
         }
     }
@@ -103,6 +107,7 @@ class Søknad private constructor(
 
     fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
         kontekst(søknadInnsendtHendelse)
+        sistEndretAvBruker = ZonedDateTime.now()
         tilstand.håndter(søknadInnsendtHendelse, this)
     }
 
@@ -128,6 +133,7 @@ class Søknad private constructor(
     fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse) {
         kontekst(faktumOppdatertHendelse)
         if (tilstand == Påbegynt) {
+            sistEndretAvBruker = ZonedDateTime.now()
             tilstand.håndter(faktumOppdatertHendelse, this)
         } else {
             faktumOppdatertHendelse.severe("Kan ikke oppdatere faktum for søknader i tilstand ${tilstand.tilstandType.name}")
@@ -316,7 +322,7 @@ class Søknad private constructor(
     }
 
     fun accept(visitor: SøknadVisitor) {
-        visitor.visitSøknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt, språk, dokumentkrav)
+        visitor.visitSøknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt, språk, dokumentkrav, sistEndretAvBruker)
         tilstand.accept(visitor)
     }
 

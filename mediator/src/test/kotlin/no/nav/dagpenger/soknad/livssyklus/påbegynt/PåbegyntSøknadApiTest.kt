@@ -22,7 +22,7 @@ class PåbegyntSøknadApiTest {
         val expectedSoknad = PåbegyntSøknad(
             UUID.fromString("258b2f1b-bdda-4bed-974c-c4ddb206e4f4"),
             LocalDate.of(2021, 10, 3),
-            språk = "NO"
+            språk = "NO",
         )
 
         TestApplication.withMockAuthServerAndTestApplication(
