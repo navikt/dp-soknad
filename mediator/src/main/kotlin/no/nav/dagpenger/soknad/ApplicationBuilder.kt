@@ -76,7 +76,6 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
 
     fun start() {
         rapidsConnection.start()
-        UtdaterteSøknaderJob.sletterutine(søknadMediator)
     }
 
     override fun onShutdown(rapidsConnection: RapidsConnection) {
@@ -85,6 +84,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     override fun onStartup(rapidsConnection: RapidsConnection) {
         runMigration()
         SøknadsMalMottak(rapidsConnection, søknadMalRepository)
+        UtdaterteSøknaderJob.sletterutine(søknadMediator)
     }
 
     private fun søknadMediator(): SøknadMediator = søknadMediator

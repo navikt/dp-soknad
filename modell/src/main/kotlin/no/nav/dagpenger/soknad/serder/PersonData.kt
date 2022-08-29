@@ -13,7 +13,6 @@ import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentData.Companion.rehydrer
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.SannsynliggjøringData.Companion.toSannsynliggjøringData
-import java.math.BigInteger
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.Locale

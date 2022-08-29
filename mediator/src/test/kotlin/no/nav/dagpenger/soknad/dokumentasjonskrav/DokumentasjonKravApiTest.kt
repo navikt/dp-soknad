@@ -55,7 +55,6 @@ internal class DokumentasjonKravApiTest {
 
     private val søknadMediatorMock = mockk<SøknadMediator>().also {
         every { it.hentDokumentkravFor(testSoknadId, defaultDummyFodselsnummer) } returns dokumentKrav
-
     }
 
     @Test
@@ -137,7 +136,8 @@ internal class DokumentasjonKravApiTest {
                             storrelse = 50000,
                             tidspunkt = tidspunkt,
 
-                            ), this.fil
+                        ),
+                        this.fil
                     )
                 }
             }

@@ -15,12 +15,9 @@ import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.KravHendelse
-import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.ident
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
-import java.lang.RuntimeException
-import java.math.BigInteger
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -61,7 +58,7 @@ private data class ApiFil(
 ) {
     private val _urn: URN
     init {
-        _urn =  URN.rfc8141().parse(urn)
+        _urn = URN.rfc8141().parse(urn)
     }
     fun tilModell() = Krav.Fil(
         filnavn = this.filnavn,

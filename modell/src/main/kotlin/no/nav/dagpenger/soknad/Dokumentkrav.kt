@@ -3,7 +3,6 @@ package no.nav.dagpenger.soknad
 import de.slub.urn.RFC
 import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Krav.Companion.aktive
-import java.math.BigInteger
 import java.time.LocalDateTime
 
 class Dokumentkrav private constructor(
@@ -82,4 +81,3 @@ data class Krav(
         }
     }
 }
-

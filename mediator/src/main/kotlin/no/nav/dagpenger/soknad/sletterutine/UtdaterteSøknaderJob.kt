@@ -16,7 +16,7 @@ internal object UtdaterteSøknaderJob {
         fixedRateTimer(
             name = "Påbegynte søknader vaktmester",
             daemon = true,
-            initialDelay = 300000L,
+            initialDelay = 3000L,
             period = hverTime,
             action = {
                 logger.info("Slettejobb startet nå (${LocalDateTime.now()})")
