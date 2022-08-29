@@ -41,6 +41,7 @@ interface LivssyklusRepository {
 interface SøknadRepository {
     fun hentDokumentkravFor(søknadId: UUID, ident: String): Dokumentkrav
     fun harTilgang(ident: String, søknadId: UUID): Boolean
+    fun oppdaterDokumentkrav(søknadId: UUID, dokumentkrav: Dokumentkrav)
 }
 
 class LivssyklusPostgresRepository(private val dataSource: DataSource) : LivssyklusRepository {
@@ -74,7 +75,8 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
         val visitor = PersonPersistenceVisitor(person)
         using(sessionOf(dataSource)) { session ->
             session.transaction { transactionalSession ->
-                val internId = hentInternPersonId(transactionalSession, person) ?: lagrePerson(transactionalSession, visitor)!!
+                val internId =
+                    hentInternPersonId(transactionalSession, person) ?: lagrePerson(transactionalSession, visitor)!!
 
                 lagreAktivitetslogg(transactionalSession, internId, visitor)
 
@@ -253,7 +255,7 @@ internal fun Session.hentDokumentKrav(søknadsId: UUID): Set<PersonData.SøknadD
                     faktum = objectMapper.readTree(row.binaryStream("faktum")),
                     sannsynliggjør = objectMapper.readTree(row.binaryStream("sannsynliggjoer")).toSet(),
 
-                ),
+                    ),
                 filer = emptySet(),
                 tilstand = row.string("tilstand")
                     .let { PersonData.SøknadData.DokumentkravData.KravData.KravTilstandData.valueOf(it) }
@@ -266,7 +268,7 @@ private fun List<PersonData.SøknadData>.insertDokumentkrav(transactionalSession
         it.dokumentkrav.kravData.insertKravData(it.søknadsId, transactionalSession)
     }
 
-private fun Set<PersonData.SøknadData.DokumentkravData.KravData>.insertKravData(
+internal fun Set<PersonData.SøknadData.DokumentkravData.KravData>.insertKravData(
     søknadsId: UUID,
     transactionalSession: TransactionalSession
 ) {
@@ -279,6 +281,8 @@ private fun Set<PersonData.SøknadData.DokumentkravData.KravData>.insertKravData
                                                                faktum = :faktum,
                                                                sannsynliggjoer = :sannsynliggjoer,
                                                                tilstand = :tilstand
+                                                               
+                                                               
         """.trimIndent(),
         params = map { krav ->
             mapOf<String, Any?>(
@@ -296,6 +300,28 @@ private fun Set<PersonData.SøknadData.DokumentkravData.KravData>.insertKravData
                 "tilstand" to krav.tilstand.name
             )
         }
+    )
+
+    transactionalSession.batchPreparedNamedStatement(
+        // language=PostgreSQL
+        statement = """
+            INSERT INTO dokumentkrav_filer_v1(faktum_id, soknad_uuid, filnavn, storrelse, urn, tidspunkt)
+            VALUES (:faktum_id, :soknad_uuid, :filnavn, :storrelse, :urn, :tidspunkt)
+
+        """.trimIndent(),
+        params = flatMap { krav ->
+            krav.filer.map { fil ->
+                mapOf<String, Any?>(
+                    "faktum_id" to krav.id,
+                    "soknad_uuid" to søknadsId,
+                    "filnavn" to fil.filnavn,
+                    "storrelse" to fil.storrelse,
+                    "urn" to fil.urn.toString(),
+                    "tidspunkt" to fil.tidspunkt,
+                )
+            }
+        }
+
     )
 }
 
@@ -402,13 +428,13 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
         return this?.let { it.varianter.map { v -> PersonData.SøknadData.DokumentData(urn = v.urn) } }
             ?: emptyList()
     }
+}
 
-    private fun Dokumentkrav.toDokumentKravData(): PersonData.SøknadData.DokumentkravData {
-        return PersonData.SøknadData.DokumentkravData(
-            kravData = (this.aktiveDokumentKrav() + this.inAktiveDokumentKrav()).map { krav -> krav.toKravdata() }
-                .toSet()
-        )
-    }
+internal fun Dokumentkrav.toDokumentKravData(): PersonData.SøknadData.DokumentkravData {
+    return PersonData.SøknadData.DokumentkravData(
+        kravData = (this.aktiveDokumentKrav() + this.inAktiveDokumentKrav()).map { krav -> krav.toKravdata() }
+            .toSet()
+    )
 }
 
 data class PåbegyntSøknad(val uuid: UUID, val startDato: LocalDate, val språk: String)

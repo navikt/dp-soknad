@@ -119,6 +119,14 @@ internal class SøknadMediator(
         }
     }
 
+
+    fun behandle(kravHendelse: KravHendelse) {
+        val dokumentkrav = søknadRepository.hentDokumentkravFor(kravHendelse.søknadID(), kravHendelse.ident())
+        val krav = dokumentkrav.aktiveDokumentKrav().find { it.id == kravHendelse.kravId } ?: kravHendelse.severe("Fant ikke Dokumentasjonskrav id")
+        krav.filer.add(kravHendelse.fil)
+        søknadRepository.oppdaterDokumentkrav(kravHendelse.søknadID(), dokumentkrav)
+    }
+
     internal fun hentEllerOpprettSøknadsprosess(
         ident: String,
         språk: String,
@@ -186,9 +194,6 @@ internal class SøknadMediator(
     private fun hentEllerOpprettPerson(hendelse: Hendelse) =
         livssyklusRepository.hent(hendelse.ident()) ?: Person(hendelse.ident())
 
-    fun behandle(kravHendelse: KravHendelse) {
-        TODO("not implemented")
-    }
 }
 
 enum class Prosesstype {

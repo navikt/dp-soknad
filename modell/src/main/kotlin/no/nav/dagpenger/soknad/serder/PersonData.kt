@@ -12,6 +12,8 @@ import no.nav.dagpenger.soknad.SpesifikkKontekst
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentData.Companion.rehydrer
+import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.KravData.Companion.toKravdata
+import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.KravData.FilData.Companion.toFilData
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.SannsynliggjøringData.Companion.toSannsynliggjøringData
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
@@ -112,7 +114,7 @@ class PersonData(
                 val beskrivendeId: String,
                 val sannsynliggjøring: SannsynliggjøringData,
                 val tilstand: KravTilstandData,
-                val filer: Set<FilData> = emptySet()
+                val filer: Set<FilData>
             ) {
                 fun rehydrer() = Krav(
                     id = this.id,
@@ -128,6 +130,7 @@ class PersonData(
                     fun Krav.toKravdata() = KravData(
                         id = this.id,
                         beskrivendeId = this.beskrivendeId,
+                        filer = this.filer.map { it.toFilData() }.toSet(),
                         sannsynliggjøring = this.sannsynliggjøring.toSannsynliggjøringData(),
                         tilstand = when (this.tilstand) {
                             Krav.KravTilstand.AKTIV -> KravTilstandData.AKTIV
@@ -147,6 +150,16 @@ class PersonData(
                     val storrelse: Long,
                     val tidspunkt: LocalDateTime
                 ) {
+
+                    companion object {
+                        fun Krav.Fil.toFilData() = FilData(
+                            filnavn = this.filnavn,
+                            urn = this.urn,
+                            storrelse = this.storrelse,
+                            tidspunkt = this.tidspunkt
+                        )
+                    }
+
                     fun rehydrer() = Krav.Fil(
                         filnavn = this.filnavn,
                         urn = this.urn,
@@ -218,11 +231,13 @@ class PersonData(
                             it.melding,
                             it.tidsstempel
                         )
+
                         Alvorlighetsgrad.WARN -> Aktivitetslogg.Aktivitet.Warn(
                             kontekster,
                             it.melding,
                             it.tidsstempel
                         )
+
                         Alvorlighetsgrad.BEHOV -> Aktivitetslogg.Aktivitet.Behov(
                             Aktivitetslogg.Aktivitet.Behov.Behovtype.valueOf(it.behovtype!!),
                             kontekster,
@@ -230,11 +245,13 @@ class PersonData(
                             it.detaljer,
                             it.tidsstempel
                         )
+
                         Alvorlighetsgrad.ERROR -> Aktivitetslogg.Aktivitet.Error(
                             kontekster,
                             it.melding,
                             it.tidsstempel
                         )
+
                         Alvorlighetsgrad.SEVERE -> Aktivitetslogg.Aktivitet.Severe(
                             kontekster,
                             it.melding,

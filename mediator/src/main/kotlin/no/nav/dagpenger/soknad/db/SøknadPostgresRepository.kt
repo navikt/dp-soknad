@@ -8,6 +8,8 @@ import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.IkkeTilgangExeption
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.hentDokumentKrav
+import no.nav.dagpenger.soknad.livssyklus.insertKravData
+import no.nav.dagpenger.soknad.livssyklus.toDokumentKravData
 import java.util.UUID
 
 class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
@@ -39,4 +41,12 @@ class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
                 }.asSingle
             ) ?: false
         }
+
+    override fun oppdaterDokumentkrav(søknadId: UUID, dokumentkrav: Dokumentkrav) {
+        using(sessionOf(dataSource)) { session ->
+            session.transaction { transactionalSession ->
+                dokumentkrav.toDokumentKravData().kravData.insertKravData(søknadId, transactionalSession)
+            }
+        }
+    }
 }
