@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad.livssyklus
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
+import de.slub.urn.URN
 import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
@@ -18,6 +19,7 @@ import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.soknad.serder.PersonData
+import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.KravData
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.KravData.Companion.toKravdata
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.SpråkData
 import no.nav.dagpenger.soknad.toMap
@@ -234,7 +236,31 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
     }
 }
 
-internal fun Session.hentDokumentKrav(søknadsId: UUID): Set<PersonData.SøknadData.DokumentkravData.KravData> =
+private fun Session.hentFiler(søknadsId: UUID, faktumId: String): Set<KravData.FilData> {
+    return this.run(
+        queryOf(
+            statement = """
+                  SELECT faktum_id, soknad_uuid, filnavn, storrelse, urn, tidspunkt 
+                  FROM dokumentkrav_filer_v1 
+                  WHERE soknad_uuid = :soknad_uuid
+                  AND faktum_id = :faktum_id 
+            """.trimIndent(),
+            paramMap = mapOf(
+                "soknad_uuid" to søknadsId.toString(),
+                "faktum_id" to faktumId
+            )
+        ).map { row ->
+            KravData.FilData(
+                filnavn = row.string("filnavn"),
+                urn = URN.rfc8141().parse(row.string("urn")),
+                storrelse = row.long("storrelse"),
+                tidspunkt = row.localDateTime("tidspunkt")
+            )
+        }.asList
+    ).toSet()
+}
+
+internal fun Session.hentDokumentKrav(søknadsId: UUID): Set<KravData> =
     this.run(
         queryOf(
             // language=PostgreSQL
@@ -247,18 +273,19 @@ internal fun Session.hentDokumentKrav(søknadsId: UUID): Set<PersonData.SøknadD
                 "soknad_uuid" to søknadsId.toString()
             )
         ).map { row ->
-            PersonData.SøknadData.DokumentkravData.KravData(
-                id = row.string("faktum_id"),
+            val faktumId = row.string("faktum_id")
+            KravData(
+                id = faktumId,
                 beskrivendeId = row.string("beskrivende_id"),
                 sannsynliggjøring = PersonData.SøknadData.DokumentkravData.SannsynliggjøringData(
-                    id = row.string("faktum_id"),
+                    id = faktumId,
                     faktum = objectMapper.readTree(row.binaryStream("faktum")),
                     sannsynliggjør = objectMapper.readTree(row.binaryStream("sannsynliggjoer")).toSet(),
 
-                    ),
-                filer = emptySet(),
+                ),
+                filer = this.hentFiler(søknadsId, faktumId),
                 tilstand = row.string("tilstand")
-                    .let { PersonData.SøknadData.DokumentkravData.KravData.KravTilstandData.valueOf(it) }
+                    .let { KravData.KravTilstandData.valueOf(it) }
             )
         }.asList
     ).toSet()
@@ -268,7 +295,7 @@ private fun List<PersonData.SøknadData>.insertDokumentkrav(transactionalSession
         it.dokumentkrav.kravData.insertKravData(it.søknadsId, transactionalSession)
     }
 
-internal fun Set<PersonData.SøknadData.DokumentkravData.KravData>.insertKravData(
+internal fun Set<KravData>.insertKravData(
     søknadsId: UUID,
     transactionalSession: TransactionalSession
 ) {
@@ -321,7 +348,6 @@ internal fun Set<PersonData.SøknadData.DokumentkravData.KravData>.insertKravDat
                 )
             }
         }
-
     )
 }
 

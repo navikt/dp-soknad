@@ -119,7 +119,6 @@ internal class SøknadMediator(
         }
     }
 
-
     fun behandle(kravHendelse: KravHendelse) {
         val dokumentkrav = søknadRepository.hentDokumentkravFor(kravHendelse.søknadID(), kravHendelse.ident())
         val krav = dokumentkrav.aktiveDokumentKrav().find { it.id == kravHendelse.kravId } ?: kravHendelse.severe("Fant ikke Dokumentasjonskrav id")
@@ -193,7 +192,6 @@ internal class SøknadMediator(
 
     private fun hentEllerOpprettPerson(hendelse: Hendelse) =
         livssyklusRepository.hent(hendelse.ident()) ?: Person(hendelse.ident())
-
 }
 
 enum class Prosesstype {

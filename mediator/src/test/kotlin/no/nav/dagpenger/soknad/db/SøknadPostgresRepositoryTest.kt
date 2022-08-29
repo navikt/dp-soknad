@@ -17,7 +17,6 @@ import no.nav.dagpenger.soknad.hendelse.KravHendelse
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDateTime
@@ -102,7 +101,7 @@ internal class SøknadPostgresRepositoryTest {
                 søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource),
                 personObservers = listOf(),
 
-                )
+            )
 
             søknadMediator.behandle(
                 KravHendelse(
@@ -114,16 +113,26 @@ internal class SøknadPostgresRepositoryTest {
                         urn = URN.rfc8141().parse("urn:vedlegg:1111/123234"),
                         storrelse = 50000,
                         tidspunkt = tidspunkt,
-
-                        )
-
+                    )
                 )
             )
 
-            with(søknadMediator.hentDokumentkravFor(søknadId, ident)) {
-                assertTrue(this.aktiveDokumentKrav().first().filer.isNotEmpty())
+            søknadMediator.behandle(
+                KravHendelse(
+                    søknadId,
+                    ident,
+                    "1",
+                    Krav.Fil(
+                        filnavn = "nei.jpg",
+                        urn = URN.rfc8141().parse("urn:vedlegg:1111/123234"),
+                        storrelse = 50000,
+                        tidspunkt = tidspunkt,
+                    )
+                )
+            )
+            søknadMediator.hentDokumentkravFor(søknadId, ident).let {
+                assertEquals(2, it.aktiveDokumentKrav().first().filer.size)
             }
-
         }
     }
 }
