@@ -18,9 +18,12 @@ import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadCachePostgresRepository
 import no.nav.dagpenger.soknad.observers.SøknadSlettetObserver
+import no.nav.dagpenger.soknad.sletterutine.VaktmesterPostgresRepository.Companion.låseNøkkel
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.ZonedDateTime
@@ -34,6 +37,21 @@ internal class VaktmesterRepositoryTest {
     private val innsendtSøknadUuid = UUID.randomUUID()
     private val testPersonIdent = "12345678910"
     private val syvDager = 7
+
+    @Test
+    fun `Ssøknadsdata for påbegynte søknader uendret de siste 7 dagene`() = withMigratedDb {
+        val livssyklusRepository = LivssyklusPostgresRepository(dataSource)
+        val søknadCacheRepository = SøknadCachePostgresRepository(dataSource)
+        val søknadMediator = søknadMediator(søknadCacheRepository, livssyklusRepository)
+        val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
+
+        using(sessionOf(dataSource)) { session ->
+            session.lås(låseNøkkel)
+            assertNull(vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager))
+            session.låsOpp(låseNøkkel)
+            assertNotNull(vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager))
+        }
+    }
 
     @Test
     fun `Sletter all søknadsdata for påbegynte søknader uendret de siste 7 dagene`() = withMigratedDb {
@@ -86,7 +104,6 @@ internal class VaktmesterRepositoryTest {
         ferdigstiltSøknadRepository = mockk(),
         søknadRepository = mockk(),
         personObservers = listOf(SøknadSlettetObserver(testRapid))
-
     )
 
     private fun assertAntallSøknadSlettetEvent(antall: Int) = assertEquals(antall, testRapid.inspektør.size)

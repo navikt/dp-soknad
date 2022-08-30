@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.sletterutine
 
 import kotliquery.Row
+import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import kotliquery.sessionOf
@@ -13,7 +14,7 @@ import java.util.UUID
 import javax.sql.DataSource
 
 internal interface VakmesterLivssyklusRepository {
-    fun slettPåbegynteSøknaderEldreEnn(antallDager: Int)
+    fun slettPåbegynteSøknaderEldreEnn(antallDager: Int): List<Int>?
 }
 
 private val logger = KotlinLogging.logger {}
@@ -22,11 +23,9 @@ internal class VaktmesterPostgresRepository(
     private val dataSource: DataSource,
     private val søknadMediator: SøknadMediator
 ) : VakmesterLivssyklusRepository {
-
-    override fun slettPåbegynteSøknaderEldreEnn(antallDager: Int) {
-        return try {
-            lås()
-            using(sessionOf(dataSource)) { session ->
+    override fun slettPåbegynteSøknaderEldreEnn(antallDager: Int) =
+        using(sessionOf(dataSource)) { session ->
+            session.medLås(låseNøkkel) {
                 session.transaction { transactionalSession ->
                     val søknaderSomSkalSlettes = hentPåbegynteSøknaderUendretSiden(antallDager, transactionalSession)
                     logger.info("Antall søknader som skal slettes: ${søknaderSomSkalSlettes.size}")
@@ -38,10 +37,7 @@ internal class VaktmesterPostgresRepository(
                     slettSøknader(søknaderSomSkalSlettes, transactionalSession)
                 }
             }
-        } finally {
-            låsOpp()
         }
-    }
 
     private fun emitSlettSøknadEvent(søknad: SøknadTilSletting) =
         søknadMediator.behandle(SlettSøknadHendelse(søknad.søknadUuid, søknad.eier))
@@ -68,39 +64,51 @@ internal class VaktmesterPostgresRepository(
         )
     }
 
-    private fun slettSøknader(søknadUuider: List<SøknadTilSletting>, transactionalSession: TransactionalSession) {
+    private fun slettSøknader(
+        søknadUuider: List<SøknadTilSletting>,
+        transactionalSession: TransactionalSession
+    ): List<Int> {
         val iderTilSletting = søknadUuider.map { listOf(it.søknadUuid.toString()) }
-        transactionalSession.batchPreparedStatement(
+        return transactionalSession.batchPreparedStatement(
             //language=PostgreSQL
-            "DELETE FROM soknad_v1 WHERE uuid =?", iderTilSletting
+            "DELETE FROM soknad_v1 WHERE uuid =?",
+            iderTilSletting
         )
     }
 
     companion object {
-        private val låseNøkkel = 123123
+        val låseNøkkel = 123123
     }
+}
 
-    private fun lås(): Boolean {
-        return using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf( //language=PostgreSQL
-                    "SELECT PG_TRY_ADVISORY_LOCK(:key)", mapOf("key" to låseNøkkel)
-                ).map { res ->
-                    res.boolean("pg_try_advisory_lock")
-                }.asSingle
-            ) ?: false
-        }
+fun Session.lås(nøkkel: Int) = run(
+    queryOf( //language=PostgreSQL
+        "SELECT PG_TRY_ADVISORY_LOCK(:key)",
+        mapOf("key" to nøkkel)
+    ).map { res ->
+        res.boolean("pg_try_advisory_lock")
+    }.asSingle
+) ?: false
+
+fun Session.låsOpp(nøkkel: Int) = run(
+    queryOf( //language=PostgreSQL
+        "SELECT PG_ADVISORY_UNLOCK(:key)",
+        mapOf("key" to nøkkel)
+    ).map { res ->
+        res.boolean("pg_advisory_unlock")
+    }.asSingle
+) ?: false
+
+fun <T> Session.medLås(nøkkel: Int, block: () -> T): T? {
+    if (!lås(nøkkel)) {
+        logger.warn { "Fikk ikke lås for $nøkkel" }
+        return null
     }
-
-    private fun låsOpp(): Boolean {
-        return using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf( //language=PostgreSQL
-                    "SELECT PG_ADVISORY_UNLOCK(:key)", mapOf("key" to låseNøkkel)
-                ).map { res ->
-                    res.boolean("pg_advisory_unlock")
-                }.asSingle
-            ) ?: false
-        }
+    return try {
+        logger.info { "Fikk lås for $nøkkel" }
+        block()
+    } finally {
+        logger.info { "Låser opp $nøkkel" }
+        låsOpp(nøkkel)
     }
 }
