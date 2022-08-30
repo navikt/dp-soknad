@@ -25,7 +25,6 @@ spec:
     min: 4
     max: 4
     cpuThresholdPercentage: 75
-  leaderElection: true
   kafka:
      pool: {{ kafka_pool }}
   resources:

@@ -31,8 +31,6 @@ internal object Configuration {
 
     val basePath = "/arbeid/dagpenger/soknadapi"
 
-    val leaderElectorPath by lazy { properties[Key("ELECTOR_PATH", stringType)] }
-
     val dpProxyUrl by lazy { properties[Key("DP_PROXY_URL", stringType)] }
     val dpProxyScope by lazy { properties[Key("DP_PROXY_SCOPE", stringType)] }
 
