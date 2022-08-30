@@ -8,13 +8,11 @@ import java.time.LocalDateTime
 import kotlin.concurrent.fixedRateTimer
 
 internal object UtdaterteSøknaderJob {
-
     private val logger = KotlinLogging.logger {}
     private const val SYV_DAGER = 7
     private val hverTime: Long = 3600000
 
     fun sletterutine(søknadMediator: SøknadMediator) {
-
         if (LeaderElection().isLeader()) {
             fixedRateTimer(
                 name = "Påbegynte søknader vaktmester",
