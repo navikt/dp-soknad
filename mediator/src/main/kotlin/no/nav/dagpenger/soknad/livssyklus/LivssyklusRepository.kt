@@ -43,7 +43,7 @@ interface LivssyklusRepository {
 interface SøknadRepository {
     fun hentDokumentkravFor(søknadId: UUID, ident: String): Dokumentkrav
     fun harTilgang(ident: String, søknadId: UUID): Boolean
-    fun oppdaterDokumentkrav(søknadId: UUID, dokumentkrav: Dokumentkrav)
+    fun oppdaterDokumentkrav(søknadId: UUID, ident: String, dokumentkrav: Dokumentkrav)
 }
 
 class LivssyklusPostgresRepository(private val dataSource: DataSource) : LivssyklusRepository {

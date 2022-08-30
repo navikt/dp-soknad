@@ -15,12 +15,9 @@ import java.util.UUID
 class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
     SøknadRepository {
     override fun hentDokumentkravFor(søknadId: UUID, ident: String): Dokumentkrav {
-        if (harTilgang(ident, søknadId)) {
-            return using(sessionOf(dataSource)) { session ->
-                Dokumentkrav.rehydrer(session.hentDokumentKrav(søknadId).map { it.rehydrer() }.toSet())
-            }
-        } else {
-            throw IkkeTilgangExeption("Har ikke tilgang til søknadId $søknadId")
+        sjekkTilgang(ident, søknadId)
+        return using(sessionOf(dataSource)) { session ->
+            Dokumentkrav.rehydrer(session.hentDokumentKrav(søknadId).map { it.rehydrer() }.toSet())
         }
     }
 
@@ -42,11 +39,15 @@ class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
             ) ?: false
         }
 
-    override fun oppdaterDokumentkrav(søknadId: UUID, dokumentkrav: Dokumentkrav) {
+    override fun oppdaterDokumentkrav(søknadId: UUID, ident: String, dokumentkrav: Dokumentkrav) {
+        sjekkTilgang(ident, søknadId)
         using(sessionOf(dataSource)) { session ->
             session.transaction { transactionalSession ->
                 dokumentkrav.toDokumentKravData().kravData.insertKravData(søknadId, transactionalSession)
             }
         }
     }
+
+    private fun sjekkTilgang(ident: String, søknadId: UUID) =
+        if (!harTilgang(ident, søknadId)) throw IkkeTilgangExeption("Har ikke tilgang til søknadId $søknadId") else Unit
 }

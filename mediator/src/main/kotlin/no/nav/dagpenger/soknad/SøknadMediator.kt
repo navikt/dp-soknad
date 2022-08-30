@@ -123,7 +123,7 @@ internal class SøknadMediator(
         val dokumentkrav = søknadRepository.hentDokumentkravFor(kravHendelse.søknadID(), kravHendelse.ident())
         val krav = dokumentkrav.aktiveDokumentKrav().find { it.id == kravHendelse.kravId } ?: kravHendelse.severe("Fant ikke Dokumentasjonskrav id")
         krav.filer.add(kravHendelse.fil)
-        søknadRepository.oppdaterDokumentkrav(kravHendelse.søknadID(), dokumentkrav)
+        søknadRepository.oppdaterDokumentkrav(kravHendelse.søknadID(), kravHendelse.ident(), dokumentkrav)
     }
 
     internal fun hentEllerOpprettSøknadsprosess(
