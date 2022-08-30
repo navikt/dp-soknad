@@ -49,83 +49,30 @@ internal class VaktmesterRepositoryTest {
             )
         }
 
-        // TODO: Dette skal ikke være sånn
         livssyklusRepository.lagre(person)
-        livssyklusRepository.lagre(person)
+        settSistEndretAvBruker(antallDagerSiden = 8, gammelPåbegyntSøknadUuid)
+        settSistEndretAvBruker(antallDagerSiden = 2, nyPåbegyntSøknadUuid)
+        settSistEndretAvBruker(antallDagerSiden = 30, innsendtSøknadUuid)
 
         søknadCacheRepository.lagre(TestSøkerOppgave(gammelPåbegyntSøknadUuid, testPersonIdent, "{}"))
         søknadCacheRepository.lagre(TestSøkerOppgave(nyPåbegyntSøknadUuid, testPersonIdent, "{}"))
 
         vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
-        // assertAntallSøknadSlettetEvent(2)
-        // assertAktivitetsloggSlettet(gammelPåbegyntSøknadUuid)
-        // assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, person, livssyklusRepository)
-        // assertCacheSlettet(gammelPåbegyntSøknadUuid, søknadCacheRepository)
+        assertAntallSøknadSlettetEvent(1)
+        assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, person, livssyklusRepository)
+        assertCacheSlettet(gammelPåbegyntSøknadUuid, søknadCacheRepository)
     }
 
-    @Test
-    fun `Bolkslett søknader`() = withMigratedDb {
-
-        val livssyklusRepository = LivssyklusPostgresRepository(dataSource)
-        val søknadCacheRepository = SøknadCachePostgresRepository(dataSource)
-        val søknadMediator = søknadMediator(søknadCacheRepository, livssyklusRepository)
-        val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
-        val person = Person(testPersonIdent) {
-            mutableListOf(
-                gammelPåbegyntSøknad(gammelPåbegyntSøknadUuid, it),
-                nyPåbegyntSøknad(nyPåbegyntSøknadUuid, it),
-                innsendtSøknad(innsendtSøknadUuid, it)
-            )
-        }
-
-        // TODO: Dette skal ikke være sånn
-        livssyklusRepository.lagre(person)
-        livssyklusRepository.lagre(person)
-
+    private fun settSistEndretAvBruker(antallDagerSiden: Int, uuid: UUID) {
         using(sessionOf(dataSource)) { session ->
-            session.transaction { transactionalSession ->
-
-                vaktmesterRepository.slettSøknader(
-                    listOf(
-                        gammelPåbegyntSøknadUuid.toString(),
-                        nyPåbegyntSøknadUuid.toString(),
-                        innsendtSøknadUuid.toString()
-                    ),
-                    transactionalSession
-                )
-            }
-        }
-    }
-
-    private fun assertAtSøknadErTom() {
-        using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf("SELECT COUNT(*) FROM soknad_v1")
-            ).map { row ->
-                row.int(1)
-            }.asSingle
-        }
-    }
-
-    private fun assertAktivitetsloggSlettet(søknadUuid: UUID) {
-        val antallRader = using(sessionOf(dataSource)) { session ->
             session.run(
                 //language=PostgreSQL
                 queryOf(
-                    """
-                            SELECT COUNT(*)
-                                FROM aktivitetslogg_v2
-                                WHERE data::jsonb -> 'aktiviteter' -> 0 -> 'kontekster' -> 0 -> 'kontekstMap' -> 'søknad_uuid' = '?'
-                    """.trimIndent(),
-                    søknadUuid.toString()
-
-                ).map { row ->
-                    row.int(1)
-                }.asSingle
+                    "UPDATE soknad_v1 SET sist_endret_av_bruker = (NOW() - INTERVAL '$antallDagerSiden DAYS') WHERE uuid = ?",
+                    uuid.toString()
+                ).asUpdate
             )
         }
-
-        assertEquals(0, antallRader)
     }
 
     private fun søknadMediator(
@@ -168,7 +115,7 @@ internal class VaktmesterRepositoryTest {
             innsendtTidspunkt = ZonedDateTime.now(),
             språk = språk,
             Dokumentkrav(),
-            sistEndretAvBruker = ZonedDateTime.now().minusDays(19)
+            sistEndretAvBruker = null
         )
 
     private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, person: Person) =
@@ -181,20 +128,7 @@ internal class VaktmesterRepositoryTest {
             innsendtTidspunkt = ZonedDateTime.now(),
             språk = språk,
             Dokumentkrav(),
-            sistEndretAvBruker = ZonedDateTime.now().minusDays(10)
-        )
-
-    private fun gammelPåbegyntSøknad2(gammelPåbegyntSøknadId: UUID, person: Person) =
-        Søknad.rehydrer(
-            søknadId = gammelPåbegyntSøknadId,
-            person = person,
-            tilstandsType = Påbegynt.name,
-            dokument = null,
-            journalpostId = "1457343",
-            innsendtTidspunkt = ZonedDateTime.now(),
-            språk = språk,
-            Dokumentkrav(),
-            sistEndretAvBruker = ZonedDateTime.now().minusDays(11)
+            sistEndretAvBruker = null
         )
 
     private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, person: Person) =
@@ -207,7 +141,7 @@ internal class VaktmesterRepositoryTest {
             innsendtTidspunkt = null,
             språk = språk,
             dokumentkrav = Dokumentkrav(),
-            sistEndretAvBruker = ZonedDateTime.now().minusDays(1)
+            sistEndretAvBruker = null
         )
 }
 

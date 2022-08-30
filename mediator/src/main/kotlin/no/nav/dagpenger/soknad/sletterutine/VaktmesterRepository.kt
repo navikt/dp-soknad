@@ -31,29 +31,16 @@ internal class VaktmesterPostgresRepository(
                     val søknaderSomSkalSlettes = hentPåbegynteSøknaderUendretSiden(antallDager, transactionalSession)
                     logger.info("Antall søknader som skal slettes: ${søknaderSomSkalSlettes.size}")
 
-                    slettSøknader(søknaderSomSkalSlettes.map { it.søknadUuid.toString() }, transactionalSession)
                     søknaderSomSkalSlettes.forEach { søknad ->
-                        // slettAktivitetslogg(søknad.søknadUuid, transactionalSession)
                         emitSlettSøknadEvent(søknad)
                     }
+
+                    slettSøknader(søknaderSomSkalSlettes, transactionalSession)
                 }
             }
         } finally {
             låsOpp()
         }
-    }
-
-    private fun slettAktivitetslogg(søknadUuid: UUID, transactionalSession: TransactionalSession) {
-        transactionalSession.run(
-            //language=PostgreSQL
-            queryOf(
-                """
-                DELETE FROM aktivitetslogg_v2 
-                    WHERE data::jsonb -> 'aktiviteter' -> 0 -> 'kontekster' -> 0 -> 'kontekstMap' -> 'søknad_uuid' = '?'
-                """.trimIndent(),
-                søknadUuid.toString()
-            ).asUpdate
-        )
     }
 
     private fun emitSlettSøknadEvent(søknad: SøknadTilSletting) =
@@ -81,11 +68,11 @@ internal class VaktmesterPostgresRepository(
         )
     }
 
-    internal fun slettSøknader(søknadUuider: List<String>, transactionalSession: TransactionalSession) {
-        val tull = søknadUuider.map { listOf(it) }
+    private fun slettSøknader(søknadUuider: List<SøknadTilSletting>, transactionalSession: TransactionalSession) {
+        val iderTilSletting = søknadUuider.map { listOf(it.søknadUuid.toString()) }
         transactionalSession.batchPreparedStatement(
             //language=PostgreSQL
-            "DELETE FROM soknad_v1 WHERE uuid =?", tull
+            "DELETE FROM soknad_v1 WHERE uuid =?", iderTilSletting
         )
     }
 
