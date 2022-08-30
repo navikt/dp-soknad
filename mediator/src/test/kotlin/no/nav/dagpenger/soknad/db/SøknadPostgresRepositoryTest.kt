@@ -14,6 +14,7 @@ import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
+import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -86,7 +87,7 @@ internal class SøknadPostgresRepositoryTest {
     }
 
     @Test
-    fun `skriv fil til dokumentkrav`() {
+    fun `livssyklus tii dokumentasjons krav filer`() {
         val tidspunkt = ZonedDateTime.now()
         val fil1 = Krav.Fil(
             filnavn = "ja.jpg",
@@ -139,9 +140,32 @@ internal class SøknadPostgresRepositoryTest {
                     fil2
                 )
             )
-
             søknadMediator.hentDokumentkravFor(søknadId, ident).let {
                 assertEquals(2, it.aktiveDokumentKrav().first().filer.size)
+            }
+
+            søknadMediator.behandle(
+                SlettFil(
+                    søknadID = søknadId,
+                    ident = ident,
+                    kravId = "1",
+                    urn = fil1.urn
+                )
+            )
+            søknadMediator.hentDokumentkravFor(søknadId, ident).let {
+                assertEquals(1, it.aktiveDokumentKrav().first().filer.size)
+            }
+
+            søknadMediator.behandle(
+                SlettFil(
+                    søknadID = søknadId,
+                    ident = ident,
+                    kravId = "1",
+                    urn = fil2.urn
+                )
+            )
+            søknadMediator.hentDokumentkravFor(søknadId, ident).let {
+                assertEquals(0, it.aktiveDokumentKrav().first().filer.size)
             }
         }
     }

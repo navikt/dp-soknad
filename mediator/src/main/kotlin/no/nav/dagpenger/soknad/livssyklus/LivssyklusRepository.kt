@@ -45,6 +45,7 @@ interface SøknadRepository {
     fun hentDokumentkravFor(søknadId: UUID, ident: String): Dokumentkrav
     fun harTilgang(ident: String, søknadId: UUID): Boolean
     fun oppdaterDokumentkrav(søknadId: UUID, ident: String, dokumentkrav: Dokumentkrav)
+    fun slettDokumentasjonkravFil(søknadId: UUID, ident: String, kravId: String, urn: URN)
 }
 
 class LivssyklusPostgresRepository(private val dataSource: DataSource) : LivssyklusRepository {

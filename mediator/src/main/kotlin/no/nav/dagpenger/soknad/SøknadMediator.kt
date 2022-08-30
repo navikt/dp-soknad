@@ -7,6 +7,7 @@ import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
+import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
@@ -129,6 +130,15 @@ internal class SøknadMediator(
             hendelse.søknadID(),
             hendelse.ident(),
             dokumentkrav
+        )
+    }
+
+    fun behandle(hendelse: SlettFil) {
+        søknadRepository.slettDokumentasjonkravFil(
+            søknadId = hendelse.søknadID(),
+            ident = hendelse.ident(),
+            kravId = hendelse.kravId,
+            urn = hendelse.urn
         )
     }
 

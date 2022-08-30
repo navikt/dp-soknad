@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.db
 
 import com.zaxxer.hikari.HikariDataSource
+import de.slub.urn.URN
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
@@ -45,6 +46,27 @@ class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
             session.transaction { transactionalSession ->
                 dokumentkrav.toDokumentKravData().kravData.insertKravData(søknadId, transactionalSession)
             }
+        }
+    }
+
+    override fun slettDokumentasjonkravFil(søknadId: UUID, ident: String, kravId: String, urn: URN) {
+        sjekkTilgang(ident, søknadId)
+        using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf(
+                    statement = """
+                       DELETE FROM dokumentkrav_filer_v1 
+                       WHERE soknad_uuid = :soknadId
+                       AND faktum_id = :kravId 
+                       AND urn = :urn 
+                    """.trimIndent(),
+                    paramMap = mapOf(
+                        "soknadId" to søknadId.toString(),
+                        "kravId" to kravId,
+                        "urn" to urn.toString()
+                    )
+                ).asUpdate
+            )
         }
     }
 

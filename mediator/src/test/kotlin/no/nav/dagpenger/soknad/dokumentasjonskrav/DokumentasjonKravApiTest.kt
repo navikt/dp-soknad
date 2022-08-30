@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.dokumentasjonskrav
 
 import de.slub.urn.URN
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.put
@@ -27,6 +28,7 @@ import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.soknad.TestApplication.mockedSøknadApi
 import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
+import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.livssyklus.asUUID
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -98,33 +100,30 @@ internal class DokumentasjonKravApiTest {
         }
     }
 
-//    @Test
-//    fun `Skal kunne slette en fil`() {
-//        val slot = slot<KravHendelse>()
-//        val mediatorMock = mockk<SøknadMediator>().also {
-//            every { it.behandle(capture(slot)) } just Runs
-//        }
-//        TestApplication.withMockAuthServerAndTestApplication(
-//            mockedSøknadApi(
-//                søknadMediator = mediatorMock
-//            )
-//        ) {
-//            client.delete("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451/fil/{urn}") {
-//                autentisert()
-//                header(HttpHeaders.ContentType, "application/json")
-//                setBody(
-//                    """{
-//  "filnavn": "ja.jpg",
-//  "storrelse": 50000,
-//  "urn": "urn:vedlegg:1111/123234",
-//  "tidspunkt": "${ZonedDateTime.now()}"
-// }"""
-//                )
-//            }.let { response ->
-//                assertEquals(HttpStatusCode.Created, response.status)
-//            }
-//        }
-//    }
+    @Test
+    fun `Skal kunne slette en fil`() {
+        val slot = slot<SlettFil>()
+        val mediatorMock = mockk<SøknadMediator>().also {
+            every { it.behandle(capture(slot)) } just Runs
+        }
+        TestApplication.withMockAuthServerAndTestApplication(
+            mockedSøknadApi(
+                søknadMediator = mediatorMock
+            )
+        ) {
+            client.delete("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451/fil/soknadid/filid") {
+                autentisert()
+            }.let { response ->
+                assertEquals(HttpStatusCode.NoContent, response.status)
+                with(slot.captured) {
+                    assertEquals("451", this.kravId)
+                    assertEquals(testSoknadId, this.søknadID())
+                    assertEquals(defaultDummyFodselsnummer, this.ident())
+                    assertEquals("urn:vedlegg:soknadid/filid", this.urn.toString())
+                }
+            }
+        }
+    }
 
     @Test
     fun `Skal kunne besvare`() {

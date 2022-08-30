@@ -3,10 +3,12 @@ package no.nav.dagpenger.soknad.dokumentasjonskrav
 import com.fasterxml.jackson.databind.JsonNode
 import de.slub.urn.URN
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
@@ -15,6 +17,7 @@ import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
+import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.ident
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
@@ -24,6 +27,7 @@ import java.util.UUID
 private val logger = KotlinLogging.logger { }
 
 internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
+
     route("/{søknad_uuid}/dokumentasjonskrav") {
         get {
             val søknadUuid = søknadUuid()
@@ -38,7 +42,7 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
             }
         }
         put("/{kravId}/fil") {
-            val kravId = call.parameters["kravId"] ?: throw IllegalArgumentException("Mangler kravId")
+            val kravId = call.kravId()
             val ident = call.ident()
             val søknadUuid = søknadUuid()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
@@ -47,8 +51,23 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
                 call.respond(HttpStatusCode.Created)
             }
         }
+        delete("/{kravId}/fil/{nss...}") {
+            val kravId = call.kravId()
+            val ident = call.ident()
+            val søknadUuid = søknadUuid()
+            withLoggingContext("søknadid" to søknadUuid.toString()) {
+                val urn = URN.rfc8141().parse("urn:vedlegg:${call.nss()}")
+                søknadMediator.behandle(SlettFil(søknadUuid, ident, kravId, urn))
+                call.respond(HttpStatusCode.NoContent)
+            }
+        }
     }
 }
+
+private fun ApplicationCall.nss() = this.parameters.getAll("nss")?.joinToString("/")
+    ?: throw IllegalArgumentException("Fant ikke id for fil")
+
+private fun ApplicationCall.kravId() = this.parameters["kravId"] ?: throw IllegalArgumentException("Mangler kravId")
 
 internal data class ApiFil(
     val filnavn: String,
@@ -57,9 +76,11 @@ internal data class ApiFil(
     val tidspunkt: ZonedDateTime
 ) {
     private val _urn: URN
+
     init {
         _urn = URN.rfc8141().parse(urn)
     }
+
     fun tilModell() = Krav.Fil(
         filnavn = this.filnavn,
         urn = this._urn,
@@ -72,6 +93,7 @@ private data class ApiDokumentkravResponse(
     val soknad_uuid: UUID,
     val krav: List<ApiDokumentKrav>,
 )
+
 fun Set<Krav>.toApiKrav(): List<ApiDokumentKrav> = map {
     ApiDokumentKrav(
         id = it.id,
