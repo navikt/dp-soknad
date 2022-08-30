@@ -26,7 +26,7 @@ import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.soknad.TestApplication.mockedSøknadApi
 import no.nav.dagpenger.soknad.faktumJson
-import no.nav.dagpenger.soknad.hendelse.KravHendelse
+import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.livssyklus.asUUID
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -98,10 +98,38 @@ internal class DokumentasjonKravApiTest {
         }
     }
 
+//    @Test
+//    fun `Skal kunne slette en fil`() {
+//        val slot = slot<KravHendelse>()
+//        val mediatorMock = mockk<SøknadMediator>().also {
+//            every { it.behandle(capture(slot)) } just Runs
+//        }
+//        TestApplication.withMockAuthServerAndTestApplication(
+//            mockedSøknadApi(
+//                søknadMediator = mediatorMock
+//            )
+//        ) {
+//            client.delete("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451/fil/{urn}") {
+//                autentisert()
+//                header(HttpHeaders.ContentType, "application/json")
+//                setBody(
+//                    """{
+//  "filnavn": "ja.jpg",
+//  "storrelse": 50000,
+//  "urn": "urn:vedlegg:1111/123234",
+//  "tidspunkt": "${ZonedDateTime.now()}"
+// }"""
+//                )
+//            }.let { response ->
+//                assertEquals(HttpStatusCode.Created, response.status)
+//            }
+//        }
+//    }
+
     @Test
     fun `Skal kunne besvare`() {
 
-        val slot = slot<KravHendelse>()
+        val slot = slot<LeggTilFil>()
         val tidspunkt = ZonedDateTime.now()
         val mediatorMock = mockk<SøknadMediator>().also {
             every { it.behandle(capture(slot)) } just Runs

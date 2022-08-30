@@ -6,7 +6,7 @@ import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
-import no.nav.dagpenger.soknad.hendelse.KravHendelse
+import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
@@ -119,11 +119,17 @@ internal class SøknadMediator(
         }
     }
 
-    fun behandle(kravHendelse: KravHendelse) {
-        val dokumentkrav = søknadRepository.hentDokumentkravFor(kravHendelse.søknadID(), kravHendelse.ident())
-        val krav = dokumentkrav.aktiveDokumentKrav().find { it.id == kravHendelse.kravId } ?: kravHendelse.severe("Fant ikke Dokumentasjonskrav id")
-        krav.filer.add(kravHendelse.fil)
-        søknadRepository.oppdaterDokumentkrav(kravHendelse.søknadID(), kravHendelse.ident(), dokumentkrav)
+    fun behandle(hendelse: LeggTilFil) {
+        val dokumentkrav =
+            søknadRepository.hentDokumentkravFor(hendelse.søknadID(), hendelse.ident())
+        val krav = dokumentkrav.aktiveDokumentKrav().find { it.id == hendelse.kravId }
+            ?: hendelse.severe("Fant ikke Dokumentasjonskrav id")
+        krav.filer.add(hendelse.fil)
+        søknadRepository.oppdaterDokumentkrav(
+            hendelse.søknadID(),
+            hendelse.ident(),
+            dokumentkrav
+        )
     }
 
     internal fun hentEllerOpprettSøknadsprosess(

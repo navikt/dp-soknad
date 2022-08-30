@@ -14,7 +14,7 @@ import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.hendelse.KravHendelse
+import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.ident
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
@@ -43,7 +43,7 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
             val søknadUuid = søknadUuid()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
                 val fil = call.receive<ApiFil>().also { logger.info { "Received: $it" } }
-                søknadMediator.behandle(KravHendelse(søknadUuid, ident, kravId, fil.tilModell()))
+                søknadMediator.behandle(LeggTilFil(søknadUuid, ident, kravId, fil.tilModell()))
                 call.respond(HttpStatusCode.Created)
             }
         }

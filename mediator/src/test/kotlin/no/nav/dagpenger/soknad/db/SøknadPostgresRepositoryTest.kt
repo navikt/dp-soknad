@@ -13,7 +13,7 @@ import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.faktumJson
-import no.nav.dagpenger.soknad.hendelse.KravHendelse
+import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -115,7 +115,7 @@ internal class SøknadPostgresRepositoryTest {
             )
 
             søknadMediator.behandle(
-                KravHendelse(
+                LeggTilFil(
                     søknadId,
                     ident,
                     "1",
@@ -124,7 +124,7 @@ internal class SøknadPostgresRepositoryTest {
             )
 
             søknadMediator.behandle(
-                KravHendelse(
+                LeggTilFil(
                     søknadId,
                     ident,
                     "1",
@@ -132,7 +132,7 @@ internal class SøknadPostgresRepositoryTest {
                 )
             )
             søknadMediator.behandle(
-                KravHendelse(
+                LeggTilFil(
                     søknadId,
                     ident,
                     "1",
