@@ -31,8 +31,8 @@ internal class VaktmesterPostgresRepository(
                     val søknaderSomSkalSlettes = hentPåbegynteSøknaderUendretSiden(antallDager, transactionalSession)
                     logger.info("Antall søknader som skal slettes: ${søknaderSomSkalSlettes.size}")
 
+                    slettSøknader(søknaderSomSkalSlettes.map { it.søknadUuid.toString() }, transactionalSession)
                     søknaderSomSkalSlettes.forEach { søknad ->
-                        slettSøknad(søknad.søknadUuid, transactionalSession)
                         // slettAktivitetslogg(søknad.søknadUuid, transactionalSession)
                         emitSlettSøknadEvent(søknad)
                     }
@@ -81,14 +81,13 @@ internal class VaktmesterPostgresRepository(
         )
     }
 
-    private fun slettSøknad(søknadUuid: UUID, transactionalSession: TransactionalSession) =
-        transactionalSession.batchPreparedNamedStatement(
+    internal fun slettSøknader(søknadUuider: List<String>, transactionalSession: TransactionalSession) {
+        val tull = søknadUuider.map { listOf(it) }
+        transactionalSession.batchPreparedStatement(
             //language=PostgreSQL
-            statement = "DELETE FROM soknad_v1 WHERE uuid = :uuid",
-            params = listOf(
-                mapOf("uuid" to søknadUuid.toString())
-            )
+            "DELETE FROM soknad_v1 WHERE uuid =?", tull
         )
+    }
 
     companion object {
         private val låseNøkkel = 123123
