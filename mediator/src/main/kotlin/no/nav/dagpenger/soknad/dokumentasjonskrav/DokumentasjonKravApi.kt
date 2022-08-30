@@ -18,7 +18,7 @@ import no.nav.dagpenger.soknad.hendelse.KravHendelse
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.ident
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.UUID
 
 private val logger = KotlinLogging.logger { }
@@ -50,11 +50,11 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
     }
 }
 
-private data class ApiFil(
+internal data class ApiFil(
     val filnavn: String,
     val urn: String,
     val storrelse: Long,
-    val tidspunkt: LocalDateTime
+    val tidspunkt: ZonedDateTime
 ) {
     private val _urn: URN
     init {

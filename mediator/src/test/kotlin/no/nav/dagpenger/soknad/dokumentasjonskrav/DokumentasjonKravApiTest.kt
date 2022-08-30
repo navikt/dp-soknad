@@ -34,7 +34,8 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 internal class DokumentasjonKravApiTest {
@@ -101,10 +102,11 @@ internal class DokumentasjonKravApiTest {
     fun `Skal kunne besvare`() {
 
         val slot = slot<KravHendelse>()
-        val tidspunkt = LocalDateTime.now()
+        val tidspunkt = ZonedDateTime.now()
         val mediatorMock = mockk<SøknadMediator>().also {
             every { it.behandle(capture(slot)) } just Runs
         }
+
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(
                 søknadMediator = mediatorMock
@@ -114,13 +116,12 @@ internal class DokumentasjonKravApiTest {
                 autentisert()
                 header(HttpHeaders.ContentType, "application/json")
                 // language=JSON
-
                 setBody(
                     """{
   "filnavn": "ja.jpg",
   "storrelse": 50000,
   "urn": "urn:vedlegg:1111/123234",
-  "tidspunkt": "$tidspunkt"
+  "tidspunkt": "${tidspunkt.format(DateTimeFormatter.ISO_ZONED_DATE_TIME)}"
 }"""
                 )
             }.let { response ->

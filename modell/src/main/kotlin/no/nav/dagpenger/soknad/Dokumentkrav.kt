@@ -3,7 +3,7 @@ package no.nav.dagpenger.soknad
 import de.slub.urn.RFC
 import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Krav.Companion.aktive
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 class Dokumentkrav private constructor(
     private val krav: MutableSet<Krav> = mutableSetOf()
@@ -72,7 +72,7 @@ data class Krav(
         val filnavn: String,
         val urn: URN,
         val storrelse: Long,
-        val tidspunkt: LocalDateTime
+        val tidspunkt: ZonedDateTime
     ) {
         init {
             require(urn.supports(RFC.RFC_8141)) {

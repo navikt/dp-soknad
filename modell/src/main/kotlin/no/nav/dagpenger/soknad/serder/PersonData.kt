@@ -14,7 +14,6 @@ import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentData.Companion.rehydrer
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.KravData.FilData.Companion.toFilData
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.SannsynliggjøringData.Companion.toSannsynliggjøringData
-import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.Locale
 import java.util.UUID
@@ -147,7 +146,7 @@ class PersonData(
                     val filnavn: String,
                     val urn: URN,
                     val storrelse: Long,
-                    val tidspunkt: LocalDateTime
+                    val tidspunkt: ZonedDateTime
                 ) {
 
                     companion object {

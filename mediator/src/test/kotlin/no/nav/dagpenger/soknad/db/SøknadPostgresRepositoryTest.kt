@@ -19,7 +19,6 @@ import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -88,7 +87,19 @@ internal class SøknadPostgresRepositoryTest {
 
     @Test
     fun `skriv fil til dokumentkrav`() {
-        val tidspunkt = LocalDateTime.now()
+        val tidspunkt = ZonedDateTime.now()
+        val fil1 = Krav.Fil(
+            filnavn = "ja.jpg",
+            urn = URN.rfc8141().parse("urn:vedlegg:1111/12345"),
+            storrelse = 50000,
+            tidspunkt = tidspunkt,
+        )
+        val fil2 = Krav.Fil(
+            filnavn = "nei.jpg",
+            urn = URN.rfc8141().parse("urn:vedlegg:1111/45678"),
+            storrelse = 50000,
+            tidspunkt = tidspunkt,
+        )
         withMigratedDb {
             val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
             livssyklusPostgresRepository.lagre(originalPerson)
@@ -108,12 +119,7 @@ internal class SøknadPostgresRepositoryTest {
                     søknadId,
                     ident,
                     "1",
-                    Krav.Fil(
-                        filnavn = "ja.jpg",
-                        urn = URN.rfc8141().parse("urn:vedlegg:1111/123234"),
-                        storrelse = 50000,
-                        tidspunkt = tidspunkt,
-                    )
+                    fil1
                 )
             )
 
@@ -122,14 +128,18 @@ internal class SøknadPostgresRepositoryTest {
                     søknadId,
                     ident,
                     "1",
-                    Krav.Fil(
-                        filnavn = "nei.jpg",
-                        urn = URN.rfc8141().parse("urn:vedlegg:1111/123234"),
-                        storrelse = 50000,
-                        tidspunkt = tidspunkt,
-                    )
+                    fil2
                 )
             )
+            søknadMediator.behandle(
+                KravHendelse(
+                    søknadId,
+                    ident,
+                    "1",
+                    fil2
+                )
+            )
+
             søknadMediator.hentDokumentkravFor(søknadId, ident).let {
                 assertEquals(2, it.aktiveDokumentKrav().first().filer.size)
             }

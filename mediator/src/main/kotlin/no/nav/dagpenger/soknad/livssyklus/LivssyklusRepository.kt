@@ -28,6 +28,7 @@ import no.nav.helse.rapids_rivers.asLocalDateTime
 import org.postgresql.util.PGobject
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID
 import javax.sql.DataSource
@@ -254,7 +255,7 @@ private fun Session.hentFiler(søknadsId: UUID, faktumId: String): Set<KravData.
                 filnavn = row.string("filnavn"),
                 urn = URN.rfc8141().parse(row.string("urn")),
                 storrelse = row.long("storrelse"),
-                tidspunkt = row.localDateTime("tidspunkt")
+                tidspunkt = row.instant("tidspunkt").atZone(ZoneId.of("Europe/Oslo"))
             )
         }.asList
     ).toSet()
@@ -312,7 +313,7 @@ internal fun Set<KravData>.insertKravData(
                                                                
         """.trimIndent(),
         params = map { krav ->
-            mapOf<String, Any?>(
+            mapOf<String, Any>(
                 "faktum_id" to krav.id,
                 "soknad_uuid" to søknadsId,
                 "beskrivende_id" to krav.beskrivendeId,
@@ -334,11 +335,14 @@ internal fun Set<KravData>.insertKravData(
         statement = """
             INSERT INTO dokumentkrav_filer_v1(faktum_id, soknad_uuid, filnavn, storrelse, urn, tidspunkt)
             VALUES (:faktum_id, :soknad_uuid, :filnavn, :storrelse, :urn, :tidspunkt)
+            ON CONFLICT (faktum_id, soknad_uuid, urn) DO UPDATE SET filnavn = :filnavn, 
+                                                                    storrelse = :storrelse, 
+                                                                    tidspunkt = :tidspunkt
 
         """.trimIndent(),
         params = flatMap { krav ->
             krav.filer.map { fil ->
-                mapOf<String, Any?>(
+                mapOf<String, Any>(
                     "faktum_id" to krav.id,
                     "soknad_uuid" to søknadsId,
                     "filnavn" to fil.filnavn,
