@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.sletterutine
 
 import mu.KotlinLogging
+import no.nav.dagpenger.soknad.LeaderElection
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import java.time.LocalDateTime
@@ -13,16 +14,19 @@ internal object UtdaterteSøknaderJob {
     private val hverTime: Long = 3600000
 
     fun sletterutine(søknadMediator: SøknadMediator) {
-        fixedRateTimer(
-            name = "Påbegynte søknader vaktmester",
-            daemon = true,
-            initialDelay = 3000L,
-            period = hverTime,
-            action = {
-                logger.info("Slettejobb startet nå (${LocalDateTime.now()})")
-                VaktmesterPostgresRepository(dataSource, søknadMediator).slettPåbegynteSøknaderEldreEnn(SYV_DAGER)
-                logger.info("Slettejobb fullførte nå (${LocalDateTime.now()})")
-            }
-        )
+
+        if (LeaderElection().isLeader()) {
+            fixedRateTimer(
+                name = "Påbegynte søknader vaktmester",
+                daemon = true,
+                initialDelay = 3000L,
+                period = hverTime,
+                action = {
+                    logger.info("Slettejobb startet nå (${LocalDateTime.now()})")
+                    VaktmesterPostgresRepository(dataSource, søknadMediator).slettPåbegynteSøknaderEldreEnn(SYV_DAGER)
+                    logger.info("Slettejobb fullførte nå (${LocalDateTime.now()})")
+                }
+            )
+        }
     }
 }
