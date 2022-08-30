@@ -19,6 +19,7 @@ import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -83,6 +84,52 @@ internal class SøknadPostgresRepositoryTest {
 
             val dokumentkrav = søknadPostgresRepository.hentDokumentkravFor(søknadId, ident)
             assertEquals(krav, dokumentkrav.aktiveDokumentKrav().first())
+        }
+    }
+
+    @Test
+    fun `Tilgangs kontroll til dokumentasjonskrav filer`() {
+        val fil1 = Krav.Fil(
+            filnavn = "ja.jpg",
+            urn = URN.rfc8141().parse("urn:vedlegg:1111/12345"),
+            storrelse = 50000,
+            tidspunkt = ZonedDateTime.now(),
+        )
+        withMigratedDb {
+            val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
+            livssyklusPostgresRepository.lagre(originalPerson)
+            val søknadMediator = SøknadMediator(
+                rapidsConnection = mockk(),
+                søknadCacheRepository = mockk(),
+                livssyklusRepository = livssyklusPostgresRepository,
+                søknadMalRepository = mockk(),
+                ferdigstiltSøknadRepository = mockk(),
+                søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource),
+                personObservers = listOf(),
+
+            )
+
+            assertThrows<IkkeTilgangExeption> {
+                søknadMediator.behandle(
+                    SlettFil(
+                        søknadID = søknadId,
+                        ident = "1111",
+                        kravId = "1",
+                        urn = fil1.urn
+                    )
+                )
+            }
+
+            assertThrows<IkkeTilgangExeption> {
+                søknadMediator.behandle(
+                    LeggTilFil(
+                        søknadID = søknadId,
+                        ident = "1111",
+                        kravId = "1",
+                        fil = fil1
+                    )
+                )
+            }
         }
     }
 
@@ -164,8 +211,20 @@ internal class SøknadPostgresRepositoryTest {
                     urn = fil2.urn
                 )
             )
+
             søknadMediator.hentDokumentkravFor(søknadId, ident).let {
                 assertEquals(0, it.aktiveDokumentKrav().first().filer.size)
+            }
+
+            assertDoesNotThrow {
+                søknadMediator.behandle(
+                    SlettFil(
+                        søknadID = søknadId,
+                        ident = ident,
+                        kravId = "1",
+                        urn = fil2.urn
+                    )
+                )
             }
         }
     }
