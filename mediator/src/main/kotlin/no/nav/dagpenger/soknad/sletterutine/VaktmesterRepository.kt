@@ -23,9 +23,10 @@ internal class VaktmesterPostgresRepository(
     private val dataSource: DataSource,
     private val søknadMediator: SøknadMediator
 ) : VakmesterLivssyklusRepository {
-    override fun slettPåbegynteSøknaderEldreEnn(antallDager: Int) =
-        using(sessionOf(dataSource)) { session ->
+    override fun slettPåbegynteSøknaderEldreEnn(antallDager: Int): List<Int>? {
+        return using(sessionOf(dataSource)) { session ->
             session.medLås(låseNøkkel) {
+                logger.info { "Starter slettejobb" }
                 session.transaction { transactionalSession ->
                     val søknaderSomSkalSlettes = hentPåbegynteSøknaderUendretSiden(antallDager, transactionalSession)
                     logger.info("Antall søknader som skal slettes: ${søknaderSomSkalSlettes.size}")
@@ -34,10 +35,13 @@ internal class VaktmesterPostgresRepository(
                         emitSlettSøknadEvent(søknad)
                     }
 
-                    slettSøknader(søknaderSomSkalSlettes, transactionalSession)
+                    slettSøknader(søknaderSomSkalSlettes, transactionalSession).also {
+                        logger.info { "Avslutter slettejobb" }
+                    }
                 }
             }
         }
+    }
 
     private fun emitSlettSøknadEvent(søknad: SøknadTilSletting) =
         søknadMediator.behandle(SlettSøknadHendelse(søknad.søknadUuid, søknad.eier))
@@ -64,16 +68,14 @@ internal class VaktmesterPostgresRepository(
         )
     }
 
-    private fun slettSøknader(
-        søknadUuider: List<SøknadTilSletting>,
-        transactionalSession: TransactionalSession
-    ): List<Int> {
+    private fun slettSøknader(søknadUuider: List<SøknadTilSletting>, transactionalSession: TransactionalSession): List<Int> {
         val iderTilSletting = søknadUuider.map { listOf(it.søknadUuid.toString()) }
-        return transactionalSession.batchPreparedStatement(
+        val raderSlettet = transactionalSession.batchPreparedStatement(
             //language=PostgreSQL
-            "DELETE FROM soknad_v1 WHERE uuid =?",
-            iderTilSletting
+            "DELETE FROM soknad_v1 WHERE uuid =?", iderTilSletting
         )
+        logger.info { "Antall søknader slettet: " + raderSlettet.filter { it == 1 }.sum() }
+        return raderSlettet
     }
 
     companion object {

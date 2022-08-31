@@ -79,6 +79,8 @@ internal class VaktmesterRepositoryTest {
         assertAntallSøknadSlettetEvent(1)
         assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, person, livssyklusRepository)
         assertCacheSlettet(gammelPåbegyntSøknadUuid, søknadCacheRepository)
+        vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
+        vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
     }
 
     private fun settSistEndretAvBruker(antallDagerSiden: Int, uuid: UUID) {
