@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad
 
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
@@ -118,6 +119,10 @@ internal class SøknadMediator(
             person.håndter(søkeroppgaveHendelse)
             søknadCacheRepository.lagre(søkerOppgave)
         }
+    }
+
+    fun behandle(hendelse: DokumentasjonIkkeTilgjengelig) {
+        TODO("Not implementetd")
     }
 
     fun behandle(hendelse: LeggTilFil) {

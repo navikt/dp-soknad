@@ -27,6 +27,7 @@ import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.soknad.TestApplication.mockedSøknadApi
 import no.nav.dagpenger.soknad.faktumJson
+import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.livssyklus.asUUID
@@ -101,6 +102,33 @@ internal class DokumentasjonKravApiTest {
     }
 
     @Test
+    fun `Skal kunne sende inn svar uten fil`() {
+        val slot = slot<DokumentasjonIkkeTilgjengelig>()
+        val mediatorMock = mockk<SøknadMediator>().also {
+            every { it.behandle(capture(slot)) } just Runs
+        }
+
+        TestApplication.withMockAuthServerAndTestApplication(
+            mockedSøknadApi(
+                søknadMediator = mediatorMock
+            )
+        ) {
+            client.put("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451/svar") {
+                autentisert()
+                header(HttpHeaders.ContentType, "application/json")
+                setBody(svar())
+            }.let { response ->
+                assertEquals(HttpStatusCode.Created, response.status)
+                assertTrue(slot.isCaptured)
+                with(slot.captured) {
+                    assertEquals("451", this.kravId)
+                    assertEquals("dokumentkrav.svar.send.senere", this.svar)
+                }
+            }
+        }
+    }
+
+    @Test
     fun `Skal kunne slette en fil`() {
         val slot = slot<SlettFil>()
         val mediatorMock = mockk<SøknadMediator>().also {
@@ -146,6 +174,7 @@ internal class DokumentasjonKravApiTest {
                 setBody(
                     """{
   "filnavn": "ja.jpg",
+  "filsti": "1111/123234",
   "storrelse": 50000,
   "ikkeibruk": "ikkeibruk",
   "urn": "urn:vedlegg:1111/123234",
@@ -171,5 +200,56 @@ internal class DokumentasjonKravApiTest {
                 }
             }
         }
+    }
+
+    private fun svar(): String {
+        return """
+    {"id": "7002",
+    "beskrivendeId": "faktum.avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd-dokumentasjon",
+    "fakta": [
+        {
+            "id": "7001",
+            "svar": true,
+            "type": "boolean",
+            "roller": [
+                "søker"
+            ],
+            "readOnly": false,
+            "gyldigeValg": [
+                "faktum.avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd.svar.ja",
+                "faktum.avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd.svar.nei"
+            ],
+            "beskrivendeId": "faktum.avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd",
+            "sannsynliggjøresAv": [
+                {
+                    "id": "7002",
+                    "type": "dokument",
+                    "roller": [],
+                    "readOnly": true,
+                    "beskrivendeId": "faktum.avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd-dokumentasjon",
+                    "sannsynliggjøresAv": []
+                }
+            ]
+        }
+    ],
+    "filer": [
+        {
+            "filnavn": "this_is_fine.jpg",
+            "urn": "urn:vedlegg:728aafa0-2d83-4703-95c1-dfe905c1ad8e/7002/8690fc2e-5b7b-4488-9f90-56bd449bd0c0",
+            "filsti": "728aafa0-2d83-4703-95c1-dfe905c1ad8e/7002/8690fc2e-5b7b-4488-9f90-56bd449bd0c0",
+            "storrelse": 53072,
+            "tidspunkt": "2022-09-02T09:08:52.944690496+02:00"
+        }
+    ],
+    "gyldigeValg": [
+        "dokumentkrav.svar.send.naa",
+        "dokumentkrav.svar.send.senere",
+        "dokumentkrav.svar.send.noen_andre",
+        "dokumentkrav.svar.sendt.tidligere",
+        "dokumentkrav.svar.sender.ikke"
+    ],
+    "begrunnelse": null,
+    "svar": "dokumentkrav.svar.send.senere" } 
+        """.trimIndent()
     }
 }

@@ -16,6 +16,7 @@ import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.søknadUuid
@@ -48,6 +49,16 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
             withLoggingContext("søknadid" to søknadUuid.toString()) {
                 val fil = call.receive<ApiFil>().also { logger.info { "Received: $it" } }
                 søknadMediator.behandle(LeggTilFil(søknadUuid, ident, kravId, fil.tilModell()))
+                call.respond(HttpStatusCode.Created)
+            }
+        }
+        put("/{kravId}/svar") {
+            val kravId = call.kravId()
+            val ident = call.ident()
+            val søknadUuid = søknadUuid()
+            withLoggingContext("søknadid" to søknadUuid.toString()) {
+                val svar = call.receive<JsonNode>().get("svar")?.asText() ?: throw IllegalArgumentException("Fant ingen svar")
+                søknadMediator.behandle(DokumentasjonIkkeTilgjengelig(søknadUuid, ident, kravId, svar))
                 call.respond(HttpStatusCode.Created)
             }
         }
