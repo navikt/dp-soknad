@@ -9,6 +9,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 val objectMapper = jacksonObjectMapper().apply {
     disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE)
+    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     registerModule(BlackbirdModule())
     registerModule(JavaTimeModule())
 }

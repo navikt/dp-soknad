@@ -147,6 +147,7 @@ internal class DokumentasjonKravApiTest {
                     """{
   "filnavn": "ja.jpg",
   "storrelse": 50000,
+  "ikkeibruk": "ikkeibruk",
   "urn": "urn:vedlegg:1111/123234",
   "tidspunkt": "${tidspunkt.format(DateTimeFormatter.ISO_ZONED_DATE_TIME)}"
 }"""
