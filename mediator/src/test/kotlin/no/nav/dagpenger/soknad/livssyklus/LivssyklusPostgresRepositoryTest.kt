@@ -8,13 +8,13 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.Krav
-import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknadhåndterer
+import no.nav.dagpenger.soknad.SøknadhåndtererVisitor
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository.PersistentSøkerOppgave
@@ -119,8 +119,8 @@ internal class LivssyklusPostgresRepositoryTest {
                 val personFraDatabase = it.hent("12345678910", true)
                 assertNotNull(personFraDatabase)
                 assertEquals(originalSøknadhåndterer, personFraDatabase)
-                val fraDatabaseVisitor = TestPersonVisitor(personFraDatabase)
-                val originalVisitor = TestPersonVisitor(originalSøknadhåndterer)
+                val fraDatabaseVisitor = TestSøknadhåndtererVisitor(personFraDatabase)
+                val originalVisitor = TestSøknadhåndtererVisitor(originalSøknadhåndterer)
                 val søknaderFraDatabase = fraDatabaseVisitor.søknader
                 val originalSøknader = originalVisitor.søknader
                 assertNull(fraDatabaseVisitor.dokumenter[søknadId1])
@@ -248,7 +248,7 @@ internal class LivssyklusPostgresRepositoryTest {
                 it.lagre(originalSøknadhåndterer)
                 val personFraDatabase = it.hent("12345678910")
                 assertNotNull(personFraDatabase)
-                val søknaderFraDatabase = TestPersonVisitor(personFraDatabase).søknader
+                val søknaderFraDatabase = TestSøknadhåndtererVisitor(personFraDatabase).søknader
                 assertEquals(1, søknaderFraDatabase.size)
             }
         }
@@ -267,7 +267,7 @@ internal class LivssyklusPostgresRepositoryTest {
         assertTrue(expected.deepEquals(result), "Søknadene var ikke like")
     }
 
-    private class TestPersonVisitor(søknadhåndterer: Søknadhåndterer?) : PersonVisitor {
+    private class TestSøknadhåndtererVisitor(søknadhåndterer: Søknadhåndterer?) : SøknadhåndtererVisitor {
         val dokumenter: MutableMap<UUID, Søknad.Dokument> = mutableMapOf()
         val dokumentkrav: MutableMap<UUID, Dokumentkrav> = mutableMapOf()
         lateinit var søknader: List<Søknad>

@@ -146,7 +146,7 @@ internal class SøknadMediatorTest {
 
         // Verifiser at det er mulig å hente en komplett aktivitetslogg
         livssyklusRepository.hent(testIdent, true)?.let {
-            with(TestPersonInspektør(it).aktivitetslogg["aktiviteter"]!!) {
+            with(TestSøknadhåndtererInspektør(it).aktivitetslogg["aktiviteter"]!!) {
                 assertEquals(14, size)
                 assertEquals("Ønske om søknad registrert", first()["melding"])
                 assertEquals("Søknad journalført", last()["melding"])
@@ -174,7 +174,7 @@ internal class SøknadMediatorTest {
 
     private fun behov(indeks: Int) = testRapid.inspektør.message(indeks)["@behov"].map { it.asText() }
 
-    private fun oppdatertInspektør(ident: String = testIdent) = TestPersonInspektør(livssyklusRepository.hent(ident)!!)
+    private fun oppdatertInspektør(ident: String = testIdent) = TestSøknadhåndtererInspektør(livssyklusRepository.hent(ident)!!)
 
     // language=JSON
     private fun søkerOppgave(søknadUuid: UUID, ident: String) = """{

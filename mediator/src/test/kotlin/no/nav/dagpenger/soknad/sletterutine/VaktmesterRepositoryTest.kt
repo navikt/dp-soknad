@@ -6,13 +6,13 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Dokumentkrav
-import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.Søknadhåndterer
+import no.nav.dagpenger.soknad.SøknadhåndtererVisitor
 import no.nav.dagpenger.soknad.TestSøkerOppgave
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
@@ -116,7 +116,7 @@ internal class VaktmesterRepositoryTest {
         ident: String
     ) {
         livssyklusRepository.hent(ident).also { oppdatertPerson ->
-            assertEquals(antallGjenværendeSøknader, TestPersonVisitor(oppdatertPerson).søknader.size)
+            assertEquals(antallGjenværendeSøknader, TestSøknadhåndtererVisitor(oppdatertPerson).søknader.size)
         }
     }
 
@@ -167,7 +167,7 @@ internal class VaktmesterRepositoryTest {
         )
 }
 
-private class TestPersonVisitor(søknadhåndterer: Søknadhåndterer?) : PersonVisitor {
+private class TestSøknadhåndtererVisitor(søknadhåndterer: Søknadhåndterer?) : SøknadhåndtererVisitor {
     init {
         søknadhåndterer?.accept(this)
     }

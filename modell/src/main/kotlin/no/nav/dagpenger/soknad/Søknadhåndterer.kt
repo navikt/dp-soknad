@@ -123,7 +123,7 @@ class Søknadhåndterer private constructor(
         }
     }
 
-    fun accept(visitor: PersonVisitor) {
+    fun accept(visitor: SøknadhåndtererVisitor) {
         visitor.visitPerson(ident)
         visitor.visitPerson(ident, søknader)
         visitor.preVisitSøknader()

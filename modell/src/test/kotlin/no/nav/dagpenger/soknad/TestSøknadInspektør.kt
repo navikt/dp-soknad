@@ -3,7 +3,7 @@ package no.nav.dagpenger.soknad
 import java.time.ZonedDateTime
 import java.util.UUID
 
-internal class TestSøknadInspektør(søknadhåndterer: Søknadhåndterer) : PersonVisitor {
+internal class TestSøknadInspektør(søknadhåndterer: Søknadhåndterer) : SøknadhåndtererVisitor {
 
     lateinit var søknadId: UUID
     lateinit var gjeldendetilstand: Søknad.Tilstand.Type

@@ -109,7 +109,7 @@ internal class SøknadTest {
     @Test
     fun `oppretter en person `() {
         val søknadhåndterer = Søknadhåndterer(testIdent)
-        object : PersonVisitor {
+        object : SøknadhåndtererVisitor {
             init {
                 søknadhåndterer.accept(this)
             }

@@ -23,7 +23,7 @@ interface SøknadVisitor : TilstandVisitor {
     }
 }
 
-interface PersonVisitor : SøknadVisitor, AktivitetsloggVisitor {
+interface SøknadhåndtererVisitor : SøknadVisitor, AktivitetsloggVisitor {
     fun visitPerson(ident: String) {}
     fun visitPerson(ident: String, søknader: List<Søknad>) {}
     fun preVisitSøknader() {}

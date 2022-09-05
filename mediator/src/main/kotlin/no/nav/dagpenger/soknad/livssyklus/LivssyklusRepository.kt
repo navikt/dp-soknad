@@ -11,11 +11,11 @@ import kotliquery.using
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
-import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknadhåndterer
+import no.nav.dagpenger.soknad.SøknadhåndtererVisitor
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.soknad.serder.PersonDTO
@@ -76,7 +76,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
     }
 
     override fun lagre(søknadhåndterer: Søknadhåndterer) {
-        val visitor = PersonPersistenceVisitor(søknadhåndterer)
+        val visitor = SøknadhåndtererPersistenceVisitor(søknadhåndterer)
         using(sessionOf(dataSource)) { session ->
             session.transaction { transactionalSession ->
                 val internId =
@@ -397,7 +397,7 @@ private fun PersonDTO.SøknadDTO.insertDokumentQuery(session: TransactionalSessi
         }
     )
 
-private class PersonPersistenceVisitor(søknadhåndterer: Søknadhåndterer) : PersonVisitor {
+private class SøknadhåndtererPersistenceVisitor(søknadhåndterer: Søknadhåndterer) : SøknadhåndtererVisitor {
     lateinit var ident: String
 
     fun søknader() = søknader.filterNot(slettet())
