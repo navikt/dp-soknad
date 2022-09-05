@@ -80,9 +80,9 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
         using(sessionOf(dataSource)) { session ->
             session.transaction { transactionalSession ->
                 val internId =
-                    hentInternPersonId(transactionalSession, søknadhåndterer) ?: lagrePerson(transactionalSession, visitor)!!
+                    hentInternPersonId(transactionalSession, visitor.ident) ?: lagrePerson(transactionalSession, visitor.ident)!!
 
-                lagreAktivitetslogg(transactionalSession, internId, visitor)
+                lagreAktivitetslogg(transactionalSession, internId, visitor.aktivitetslogg)
 
                 logger.info { "Lagrer ${visitor.søknader().size} søknader" }
                 visitor.søknader().insertQuery(visitor.ident, transactionalSession)
@@ -97,7 +97,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
     private fun lagreAktivitetslogg(
         transactionalSession: TransactionalSession,
         internId: Long,
-        visitor: PersonPersistenceVisitor
+        aktivitetslogg: Aktivitetslogg
     ) {
         transactionalSession.run(
             queryOf(
@@ -107,30 +107,30 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     "person_id" to internId,
                     "data" to PGobject().apply {
                         type = "jsonb"
-                        value = objectMapper.writeValueAsString(visitor.aktivitetslogg.toMap())
+                        value = objectMapper.writeValueAsString(aktivitetslogg.toMap())
                     }
                 )
             ).asUpdate
         )
     }
 
-    private fun lagrePerson(transactionalSession: TransactionalSession, visitor: PersonPersistenceVisitor) =
+    private fun lagrePerson(transactionalSession: TransactionalSession, ident: String) =
         transactionalSession.run(
             queryOf(
                 //language=PostgreSQL
                 "INSERT INTO person_v1(ident) VALUES(:ident) ON CONFLICT DO NOTHING RETURNING id",
-                paramMap = mapOf("ident" to visitor.ident)
+                paramMap = mapOf("ident" to ident)
             ).map { row ->
                 row.long("id")
             }.asSingle
         )
 
-    private fun hentInternPersonId(transactionalSession: TransactionalSession, søknadhåndterer: Søknadhåndterer) =
+    private fun hentInternPersonId(transactionalSession: TransactionalSession, ident: String) =
         transactionalSession.run(
             queryOf(
                 //language=PostgreSQL
                 "SELECT id FROM person_v1 WHERE ident=:ident",
-                mapOf("ident" to søknadhåndterer.ident())
+                mapOf("ident" to ident)
             ).map { row -> row.longOrNull("id") }.asSingle
         )
 
