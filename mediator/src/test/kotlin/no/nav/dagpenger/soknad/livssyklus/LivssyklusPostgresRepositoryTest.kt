@@ -86,7 +86,7 @@ internal class LivssyklusPostgresRepositoryTest {
                 Søknad(søknadId1, språk, it, "12345678910"),
                 Søknad.rehydrer(
                     søknadId = søknadId2,
-                    søknadhåndterer = it,
+                    søknadObserver = it,
                     ident = "12345678910",
                     dokument = Søknad.Dokument(
                         varianter = listOf(
@@ -142,7 +142,7 @@ internal class LivssyklusPostgresRepositoryTest {
             mutableListOf(
                 Søknad.rehydrer(
                     søknadId = søknadId,
-                    søknadhåndterer = it,
+                    søknadObserver = it,
                     ident = "12345678910",
                     dokument = Søknad.Dokument(
                         varianter = listOf(
@@ -185,7 +185,7 @@ internal class LivssyklusPostgresRepositoryTest {
             mutableListOf(
                 Søknad.rehydrer(
                     søknadId = påbegyntSøknadUuid,
-                    søknadhåndterer = it,
+                    søknadObserver = it,
                     ident = "12345678910",
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "jouhasjk",
@@ -197,7 +197,7 @@ internal class LivssyklusPostgresRepositoryTest {
                 ),
                 Søknad.rehydrer(
                     søknadId = UUID.randomUUID(),
-                    søknadhåndterer = it,
+                    søknadObserver = it,
                     ident = "12345678910",
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
@@ -230,7 +230,7 @@ internal class LivssyklusPostgresRepositoryTest {
                 Søknad(søknadId, språk, it, "12345678910"),
                 Søknad.rehydrer(
                     søknadId = søknadId,
-                    søknadhåndterer = it,
+                    søknadObserver = it,
                     ident = "12345678910",
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",

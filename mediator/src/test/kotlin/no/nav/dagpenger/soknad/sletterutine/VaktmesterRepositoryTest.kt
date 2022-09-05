@@ -127,7 +127,7 @@ internal class VaktmesterRepositoryTest {
     private fun innsendtSøknad(journalførtSøknadId: UUID, søknadhåndterer: Søknadhåndterer, ident: String) =
         Søknad.rehydrer(
             søknadId = journalførtSøknadId,
-            søknadhåndterer = søknadhåndterer,
+            søknadObserver = søknadhåndterer,
             ident = ident,
             dokument = null,
             journalpostId = "journalpostid",
@@ -141,7 +141,7 @@ internal class VaktmesterRepositoryTest {
     private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, søknadhåndterer: Søknadhåndterer, ident: String) =
         Søknad.rehydrer(
             søknadId = gammelPåbegyntSøknadId,
-            søknadhåndterer = søknadhåndterer,
+            søknadObserver = søknadhåndterer,
             ident = ident,
             dokument = null,
             journalpostId = "1456",
@@ -155,7 +155,7 @@ internal class VaktmesterRepositoryTest {
     private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, søknadhåndterer: Søknadhåndterer, ident: String) =
         Søknad.rehydrer(
             søknadId = nyPåbegyntSøknadId,
-            søknadhåndterer = søknadhåndterer,
+            søknadObserver = søknadhåndterer,
             ident = ident,
             dokument = null,
             journalpostId = "1457",

@@ -57,7 +57,7 @@ class Søknad private constructor(
 
         fun rehydrer(
             søknadId: UUID,
-            søknadhåndterer: Søknadhåndterer,
+            søknadObserver: SøknadObserver,
             ident: String,
             dokument: Dokument?,
             journalpostId: String?,
@@ -78,7 +78,7 @@ class Søknad private constructor(
             }
             return Søknad(
                 søknadId = søknadId,
-                søknadObserver = søknadhåndterer,
+                søknadObserver = søknadObserver,
                 ident = ident,
                 tilstand = tilstand,
                 dokument = dokument,

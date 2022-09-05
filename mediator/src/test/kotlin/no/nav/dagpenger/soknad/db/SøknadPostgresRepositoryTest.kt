@@ -51,7 +51,7 @@ internal class SøknadPostgresRepositoryTest {
         mutableListOf(
             Søknad.rehydrer(
                 søknadId = søknadId,
-                søknadhåndterer = it,
+                søknadObserver = it,
                 ident = ident,
                 dokument = Søknad.Dokument(
                     varianter = listOf(

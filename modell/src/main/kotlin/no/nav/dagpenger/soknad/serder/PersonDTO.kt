@@ -31,7 +31,7 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
             søknader.map {
                 Søknad.rehydrer(
                     søknadId = it.søknadsId,
-                    søknadhåndterer = søknadhåndterer,
+                    søknadObserver = søknadhåndterer,
                     ident = ident,
                     dokument = it.dokumenter.rehydrer(),
                     journalpostId = it.journalpostId,
