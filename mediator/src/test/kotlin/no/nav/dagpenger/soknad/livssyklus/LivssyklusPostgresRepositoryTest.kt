@@ -82,11 +82,11 @@ internal class LivssyklusPostgresRepositoryTest {
         val søknadId2 = UUID.randomUUID()
         val originalSøknadhåndterer = Søknadhåndterer("12345678910") {
             mutableListOf(
-                Søknad(søknadId1, språk, it),
+                Søknad(søknadId1, språk, it, it.ident()),
                 Søknad.rehydrer(
                     søknadId = søknadId2,
                     søknadhåndterer = it,
-                    tilstandsType = Journalført.name,
+                    it.ident(),
                     dokument = Søknad.Dokument(
                         varianter = listOf(
                             Søknad.Dokument.Variant(
@@ -107,7 +107,8 @@ internal class LivssyklusPostgresRepositoryTest {
                     dokumentkrav = Dokumentkrav.rehydrer(
                         krav = setOf(krav)
                     ),
-                    sistEndretAvBruker = ZonedDateTime.now().minusDays(1)
+                    sistEndretAvBruker = ZonedDateTime.now().minusDays(1),
+                    tilstandsType = Journalført.name
                 )
             )
         }
@@ -142,7 +143,7 @@ internal class LivssyklusPostgresRepositoryTest {
                 Søknad.rehydrer(
                     søknadId = søknadId,
                     søknadhåndterer = it,
-                    tilstandsType = "Journalført",
+                    it.ident(),
                     dokument = Søknad.Dokument(
                         varianter = listOf(
                             Søknad.Dokument.Variant(
@@ -163,7 +164,8 @@ internal class LivssyklusPostgresRepositoryTest {
                     dokumentkrav = Dokumentkrav.rehydrer(
                         krav = setOf(krav)
                     ),
-                    sistEndretAvBruker = ZonedDateTime.now()
+                    sistEndretAvBruker = ZonedDateTime.now(),
+                    tilstandsType = "Journalført"
                 )
             )
         }
@@ -184,24 +186,26 @@ internal class LivssyklusPostgresRepositoryTest {
                 Søknad.rehydrer(
                     søknadId = påbegyntSøknadUuid,
                     søknadhåndterer = it,
-                    tilstandsType = Påbegynt.name,
+                    it.ident(),
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "jouhasjk",
                     innsendtTidspunkt = innsendtTidspunkt,
                     språk,
                     Dokumentkrav(),
-                    sistEndretAvBruker = innsendtTidspunkt
+                    sistEndretAvBruker = innsendtTidspunkt,
+                    tilstandsType = Påbegynt.name
                 ),
                 Søknad.rehydrer(
                     søknadId = UUID.randomUUID(),
                     søknadhåndterer = it,
-                    tilstandsType = Journalført.name,
+                    it.ident(),
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = innsendtTidspunkt,
                     språk,
                     Dokumentkrav(),
-                    sistEndretAvBruker = innsendtTidspunkt
+                    sistEndretAvBruker = innsendtTidspunkt,
+                    tilstandsType = Journalført.name
                 )
             )
         }
@@ -223,17 +227,18 @@ internal class LivssyklusPostgresRepositoryTest {
         val søknadId = UUID.randomUUID()
         val originalSøknadhåndterer = Søknadhåndterer("12345678910") {
             mutableListOf(
-                Søknad(søknadId, språk, it),
+                Søknad(søknadId, språk, it, it.ident()),
                 Søknad.rehydrer(
                     søknadId = søknadId,
                     søknadhåndterer = it,
-                    tilstandsType = Journalført.name,
+                    it.ident(),
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = ZonedDateTime.now(),
                     språk,
                     Dokumentkrav(),
-                    sistEndretAvBruker = ZonedDateTime.now()
+                    sistEndretAvBruker = ZonedDateTime.now(),
+                    tilstandsType = Journalført.name
                 )
             )
         }

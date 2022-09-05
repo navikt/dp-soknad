@@ -20,8 +20,9 @@ import java.util.UUID
 class Søknad private constructor(
     private val søknadId: UUID,
     private val søknadhåndterer: Søknadhåndterer,
-    private var tilstand: Tilstand,
+    private val ident: String,
     // @todo: Endre navn fra dokument til journalføringer? (og liste)?
+    private var tilstand: Tilstand,
     private var dokument: Dokument?,
     private var journalpostId: String?,
     private var innsendtTidspunkt: ZonedDateTime?,
@@ -31,9 +32,10 @@ class Søknad private constructor(
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : Aktivitetskontekst {
 
-    constructor(søknadId: UUID, språk: Språk, søknadhåndterer: Søknadhåndterer) : this(
+    constructor(søknadId: UUID, språk: Språk, søknadhåndterer: Søknadhåndterer, ident: String) : this(
         søknadId = søknadId,
         søknadhåndterer = søknadhåndterer,
+        ident = ident,
         tilstand = UnderOpprettelse,
         dokument = null,
         journalpostId = null,
@@ -54,13 +56,14 @@ class Søknad private constructor(
         fun rehydrer(
             søknadId: UUID,
             søknadhåndterer: Søknadhåndterer,
-            tilstandsType: String,
+            ident: String,
             dokument: Dokument?,
             journalpostId: String?,
             innsendtTidspunkt: ZonedDateTime?,
             språk: Språk,
             dokumentkrav: Dokumentkrav,
             sistEndretAvBruker: ZonedDateTime?,
+            tilstandsType: String
         ): Søknad {
             val tilstand: Tilstand = when (Tilstand.Type.valueOf(tilstandsType)) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
@@ -74,6 +77,7 @@ class Søknad private constructor(
             return Søknad(
                 søknadId = søknadId,
                 søknadhåndterer = søknadhåndterer,
+                ident = ident,
                 tilstand = tilstand,
                 dokument = dokument,
                 journalpostId = journalpostId,
@@ -84,7 +88,6 @@ class Søknad private constructor(
             )
         }
     }
-
     fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         kontekst(ønskeOmNySøknadHendelse)
         tilstand.håndter(ønskeOmNySøknadHendelse, this)
@@ -261,7 +264,7 @@ class Søknad private constructor(
             get() = Tilstand.Type.Slettet
 
         override fun entering(søknadHendelse: Hendelse, søknad: Søknad) {
-            søknad.slettet(søknad.søknadhåndterer.ident())
+            søknad.slettet(søknad.ident)
         }
     }
 

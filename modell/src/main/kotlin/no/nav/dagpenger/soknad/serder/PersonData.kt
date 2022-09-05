@@ -32,13 +32,14 @@ class PersonData(
                 Søknad.rehydrer(
                     søknadId = it.søknadsId,
                     søknadhåndterer = person,
-                    tilstandsType = it.tilstandType.name,
+                    ident = person.ident(),
                     dokument = it.dokumenter.rehydrer(),
                     journalpostId = it.journalpostId,
                     innsendtTidspunkt = it.innsendtTidspunkt,
                     språk = it.språkData.somSpråk(),
                     dokumentkrav = it.dokumentkrav.rehydrer(),
-                    sistEndretAvBruker = it.sistEndretAvBruker
+                    sistEndretAvBruker = it.sistEndretAvBruker,
+                    tilstandsType = it.tilstandType.name
                 )
             }.toMutableList()
         }

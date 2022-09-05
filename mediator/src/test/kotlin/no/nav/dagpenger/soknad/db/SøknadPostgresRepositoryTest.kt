@@ -49,7 +49,7 @@ internal class SøknadPostgresRepositoryTest {
             Søknad.rehydrer(
                 søknadId = søknadId,
                 søknadhåndterer = it,
-                tilstandsType = "Journalført",
+                ident = it.ident(),
                 dokument = Søknad.Dokument(
                     varianter = listOf(
                         Søknad.Dokument.Variant(
@@ -70,7 +70,8 @@ internal class SøknadPostgresRepositoryTest {
                 dokumentkrav = Dokumentkrav.rehydrer(
                     krav = setOf(krav)
                 ),
-                sistEndretAvBruker = ZonedDateTime.now()
+                sistEndretAvBruker = ZonedDateTime.now(),
+                tilstandsType = "Journalført"
             )
         )
     }

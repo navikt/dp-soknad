@@ -128,39 +128,42 @@ internal class VaktmesterRepositoryTest {
         Søknad.rehydrer(
             søknadId = journalførtSøknadId,
             søknadhåndterer = søknadhåndterer,
-            tilstandsType = Journalført.name,
+            søknadhåndterer.ident(),
             dokument = null,
             journalpostId = "journalpostid",
             innsendtTidspunkt = ZonedDateTime.now(),
             språk = språk,
             Dokumentkrav(),
-            sistEndretAvBruker = null
+            sistEndretAvBruker = null,
+            tilstandsType = Journalført.name
         )
 
     private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, søknadhåndterer: Søknadhåndterer) =
         Søknad.rehydrer(
             søknadId = gammelPåbegyntSøknadId,
             søknadhåndterer = søknadhåndterer,
-            tilstandsType = Påbegynt.name,
+            søknadhåndterer.ident(),
             dokument = null,
             journalpostId = "1456",
             innsendtTidspunkt = ZonedDateTime.now(),
             språk = språk,
             Dokumentkrav(),
-            sistEndretAvBruker = null
+            sistEndretAvBruker = null,
+            tilstandsType = Påbegynt.name
         )
 
     private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, søknadhåndterer: Søknadhåndterer) =
         Søknad.rehydrer(
             søknadId = nyPåbegyntSøknadId,
             søknadhåndterer = søknadhåndterer,
-            tilstandsType = Påbegynt.name,
+            ident = søknadhåndterer.ident(),
             dokument = null,
             journalpostId = "1457",
             innsendtTidspunkt = null,
             språk = språk,
             dokumentkrav = Dokumentkrav(),
-            sistEndretAvBruker = null
+            sistEndretAvBruker = null,
+            tilstandsType = Påbegynt.name
         )
 }
 

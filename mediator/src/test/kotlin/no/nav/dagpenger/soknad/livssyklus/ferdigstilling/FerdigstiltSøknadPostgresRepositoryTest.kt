@@ -101,17 +101,18 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
         val søknadId = UUID.randomUUID()
         val originalSøknadhåndterer = Søknadhåndterer("12345678910") {
             mutableListOf(
-                Søknad(søknadId, Språk(språkVerdi), it),
+                Søknad(søknadId, Språk(språkVerdi), it, it.ident()),
                 Søknad.rehydrer(
                     søknadId = søknadId,
                     søknadhåndterer = it,
-                    tilstandsType = Journalført.name,
+                    it.ident(),
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = ZonedDateTime.now(),
                     Språk(språkVerdi),
                     Dokumentkrav(),
-                    sistEndretAvBruker = ZonedDateTime.now()
+                    sistEndretAvBruker = ZonedDateTime.now(),
+                    tilstandsType = Journalført.name
                 )
             )
         }
