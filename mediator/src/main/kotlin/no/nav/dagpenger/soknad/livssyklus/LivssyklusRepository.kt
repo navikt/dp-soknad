@@ -12,16 +12,14 @@ import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Sannsynliggjøring
-import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
-import no.nav.dagpenger.soknad.SøknadObserver
 import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.SøknadhåndtererVisitor
+import no.nav.dagpenger.soknad.db.SøknadPersistenceVisitor
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.soknad.serder.PersonDTO
 import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO
-import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO.Companion.toKravdata
 import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.SpråkDTO
 import no.nav.dagpenger.soknad.toMap
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
@@ -30,7 +28,6 @@ import org.postgresql.util.PGobject
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -424,50 +421,11 @@ private class SøknadhåndtererPersistenceVisitor(søknadhåndterer: Søknadhån
         this.aktivitetslogg = aktivitetslogg
     }
 
-    override fun visitSøknad(
-        søknadId: UUID,
-        søknadObserver: SøknadObserver,
-        tilstand: Søknad.Tilstand,
-        dokument: Søknad.Dokument?,
-        journalpostId: String?,
-        innsendtTidspunkt: ZonedDateTime?,
-        språk: Språk,
-        dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime?
-    ) {
-        søknader.add(
-            PersonDTO.SøknadDTO(
-                søknadsId = søknadId,
-                tilstandType = when (tilstand.tilstandType) {
-                    Søknad.Tilstand.Type.UnderOpprettelse -> PersonDTO.SøknadDTO.TilstandDTO.UnderOpprettelse
-                    Søknad.Tilstand.Type.Påbegynt -> PersonDTO.SøknadDTO.TilstandDTO.Påbegynt
-                    Søknad.Tilstand.Type.AvventerArkiverbarSøknad -> PersonDTO.SøknadDTO.TilstandDTO.AvventerArkiverbarSøknad
-                    Søknad.Tilstand.Type.AvventerMidlertidligJournalføring -> PersonDTO.SøknadDTO.TilstandDTO.AvventerMidlertidligJournalføring
-                    Søknad.Tilstand.Type.AvventerJournalføring -> PersonDTO.SøknadDTO.TilstandDTO.AvventerJournalføring
-                    Søknad.Tilstand.Type.Journalført -> PersonDTO.SøknadDTO.TilstandDTO.Journalført
-                    Søknad.Tilstand.Type.Slettet -> PersonDTO.SøknadDTO.TilstandDTO.Slettet
-                },
-                dokumenter = dokument.toDokumentData(),
-                journalpostId = journalpostId,
-                innsendtTidspunkt = innsendtTidspunkt,
-                språkDTO = SpråkDTO(språk.verdi),
-                dokumentkrav = dokumentkrav.toDokumentKravData(),
-                sistEndretAvBruker = sistEndretAvBruker
-            )
+    override fun visitSøknader(søknader: List<Søknad>) {
+        this.søknader.addAll(
+            søknader.map { SøknadPersistenceVisitor(it).søknadDTO }
         )
     }
-
-    private fun Søknad.Dokument?.toDokumentData(): List<PersonDTO.SøknadDTO.DokumentDTO> {
-        return this?.let { it.varianter.map { v -> PersonDTO.SøknadDTO.DokumentDTO(urn = v.urn) } }
-            ?: emptyList()
-    }
-}
-
-internal fun Dokumentkrav.toDokumentKravData(): PersonDTO.SøknadDTO.DokumentkravDTO {
-    return PersonDTO.SøknadDTO.DokumentkravDTO(
-        kravData = (this.aktiveDokumentKrav() + this.inAktiveDokumentKrav()).map { krav -> krav.toKravdata() }
-            .toSet()
-    )
 }
 
 data class PåbegyntSøknad(val uuid: UUID, val startDato: LocalDate, val språk: String)

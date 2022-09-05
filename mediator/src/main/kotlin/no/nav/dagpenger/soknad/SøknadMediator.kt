@@ -49,43 +49,43 @@ internal class SøknadMediator(
     private val behovMediator = BehovMediator(rapidsConnection, sikkerLogger)
 
     fun behandle(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
-        behandleSøknad(ønskeOmNySøknadHendelse) { person ->
+        behandle(ønskeOmNySøknadHendelse) { person ->
             person.håndter(ønskeOmNySøknadHendelse)
         }
     }
 
     private fun behandle(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse) {
-        behandleSøknad(ønskeOmNyInnsendingHendelse) { person ->
+        behandle(ønskeOmNyInnsendingHendelse) { person ->
             person.håndter(ønskeOmNyInnsendingHendelse)
         }
     }
 
     fun behandle(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse) {
-        behandleSøknad(harPåbegyntSøknadHendelse) { person ->
+        behandle(harPåbegyntSøknadHendelse) { person ->
             person.håndter(harPåbegyntSøknadHendelse)
         }
     }
 
     fun behandle(søknadOpprettetHendelse: SøknadOpprettetHendelse) {
-        behandleSøknad(søknadOpprettetHendelse) { person ->
+        behandle(søknadOpprettetHendelse) { person ->
             person.håndter(søknadOpprettetHendelse)
         }
     }
 
     fun behandle(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
-        behandleSøknad(søknadInnsendtHendelse) { person ->
+        behandle(søknadInnsendtHendelse) { person ->
             person.håndter(søknadInnsendtHendelse)
         }
     }
 
     fun behandle(arkiverbarSøknadMottattHendelse: ArkiverbarSøknadMottattHendelse) {
-        behandleSøknad(arkiverbarSøknadMottattHendelse) { person ->
+        behandle(arkiverbarSøknadMottattHendelse) { person ->
             person.håndter(arkiverbarSøknadMottattHendelse)
         }
     }
 
     fun behandle(søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse) {
-        behandleSøknad(søknadMidlertidigJournalførtHendelse) { person ->
+        behandle(søknadMidlertidigJournalførtHendelse) { person ->
             person.håndter(søknadMidlertidigJournalførtHendelse)
         }
     }
@@ -97,14 +97,14 @@ internal class SøknadMediator(
     }
 
     fun behandle(slettSøknadHendelse: SlettSøknadHendelse) {
-        behandleSøknad(slettSøknadHendelse) { person ->
+        behandle(slettSøknadHendelse) { person ->
             person.håndter(slettSøknadHendelse)
         }
     }
 
     fun behandle(faktumSvar: FaktumSvar) {
         val faktumOppdatertHendelse = FaktumOppdatertHendelse(faktumSvar.søknadUuid(), faktumSvar.eier())
-        behandleSøknad(faktumOppdatertHendelse) { person ->
+        behandle(faktumOppdatertHendelse) { person ->
             søknadCacheRepository.besvart(faktumSvar.søknadUuid(), faktumSvar.besvart())
             person.håndter(faktumOppdatertHendelse)
             rapidsConnection.publish(faktumSvar.toJson())
@@ -115,7 +115,7 @@ internal class SøknadMediator(
     fun behandle(søkerOppgave: SøkerOppgave) {
         val søkeroppgaveHendelse =
             SøkeroppgaveHendelse(søkerOppgave.søknadUUID(), søkerOppgave.eier(), søkerOppgave.sannsynliggjøringer())
-        behandleSøknad(søkeroppgaveHendelse) { person ->
+        behandle(søkeroppgaveHendelse) { person ->
             person.håndter(søkeroppgaveHendelse)
             søknadCacheRepository.lagre(søkerOppgave)
         }

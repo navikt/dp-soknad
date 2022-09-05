@@ -7,11 +7,16 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.IkkeTilgangExeption
+import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.SøknadObserver
+import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.hentDokumentKrav
 import no.nav.dagpenger.soknad.livssyklus.insertKravData
-import no.nav.dagpenger.soknad.livssyklus.toDokumentKravData
+import no.nav.dagpenger.soknad.serder.PersonDTO
+import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO.Companion.toKravdata
+import java.time.ZonedDateTime
 import java.util.UUID
 
 class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
@@ -80,4 +85,56 @@ class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
 
     private fun sjekkTilgang(ident: String, søknadId: UUID) =
         if (!harTilgang(ident, søknadId)) throw IkkeTilgangExeption("Har ikke tilgang til søknadId $søknadId") else Unit
+}
+
+internal class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
+
+    lateinit var søknadDTO: PersonDTO.SøknadDTO
+
+    init {
+        søknad.accept(this)
+    }
+
+    override fun visitSøknad(
+        søknadId: UUID,
+        søknadObserver: SøknadObserver,
+        tilstand: Søknad.Tilstand,
+        dokument: Søknad.Dokument?,
+        journalpostId: String?,
+        innsendtTidspunkt: ZonedDateTime?,
+        språk: Språk,
+        dokumentkrav: Dokumentkrav,
+        sistEndretAvBruker: ZonedDateTime?
+    ) {
+        søknadDTO = PersonDTO.SøknadDTO(
+            søknadsId = søknadId,
+            tilstandType = when (tilstand.tilstandType) {
+                Søknad.Tilstand.Type.UnderOpprettelse -> PersonDTO.SøknadDTO.TilstandDTO.UnderOpprettelse
+                Søknad.Tilstand.Type.Påbegynt -> PersonDTO.SøknadDTO.TilstandDTO.Påbegynt
+                Søknad.Tilstand.Type.AvventerArkiverbarSøknad -> PersonDTO.SøknadDTO.TilstandDTO.AvventerArkiverbarSøknad
+                Søknad.Tilstand.Type.AvventerMidlertidligJournalføring -> PersonDTO.SøknadDTO.TilstandDTO.AvventerMidlertidligJournalføring
+                Søknad.Tilstand.Type.AvventerJournalføring -> PersonDTO.SøknadDTO.TilstandDTO.AvventerJournalføring
+                Søknad.Tilstand.Type.Journalført -> PersonDTO.SøknadDTO.TilstandDTO.Journalført
+                Søknad.Tilstand.Type.Slettet -> PersonDTO.SøknadDTO.TilstandDTO.Slettet
+            },
+            dokumenter = dokument.toDokumentData(),
+            journalpostId = journalpostId,
+            innsendtTidspunkt = innsendtTidspunkt,
+            språkDTO = PersonDTO.SøknadDTO.SpråkDTO(språk.verdi),
+            dokumentkrav = dokumentkrav.toDokumentKravData(),
+            sistEndretAvBruker = sistEndretAvBruker
+        )
+    }
+
+    private fun Søknad.Dokument?.toDokumentData(): List<PersonDTO.SøknadDTO.DokumentDTO> {
+        return this?.let { it.varianter.map { v -> PersonDTO.SøknadDTO.DokumentDTO(urn = v.urn) } }
+            ?: emptyList()
+    }
+}
+
+internal fun Dokumentkrav.toDokumentKravData(): PersonDTO.SøknadDTO.DokumentkravDTO {
+    return PersonDTO.SøknadDTO.DokumentkravDTO(
+        kravData = (this.aktiveDokumentKrav() + this.inAktiveDokumentKrav()).map { krav -> krav.toKravdata() }
+            .toSet()
+    )
 }
