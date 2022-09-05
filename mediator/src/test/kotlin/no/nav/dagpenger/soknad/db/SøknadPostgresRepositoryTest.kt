@@ -46,44 +46,40 @@ internal class SøknadPostgresRepositoryTest {
     )
 
     val ident = "12345678910"
-    private val originalSøknadhåndterer = Søknadhåndterer {
 
-        mutableListOf(
-            Søknad.rehydrer(
-                søknadId = søknadId,
-                søknadObserver = it,
-                ident = ident,
-                dokument = Søknad.Dokument(
-                    varianter = listOf(
-                        Søknad.Dokument.Variant(
-                            urn = "urn:soknad:fil1",
-                            format = "ARKIV",
-                            type = "PDF"
-                        ),
-                        Søknad.Dokument.Variant(
-                            urn = "urn:soknad:fil2",
-                            format = "ARKIV",
-                            type = "PDF"
-                        )
-                    )
+    val søknad = Søknad.rehydrer(
+        søknadId = søknadId,
+        søknadhåndterer = Søknadhåndterer(),
+        ident = ident,
+        dokument = Søknad.Dokument(
+            varianter = listOf(
+                Søknad.Dokument.Variant(
+                    urn = "urn:soknad:fil1",
+                    format = "ARKIV",
+                    type = "PDF"
                 ),
-                journalpostId = "journalpostid",
-                innsendtTidspunkt = ZonedDateTime.now(),
-                språk = Språk("NO"),
-                dokumentkrav = Dokumentkrav.rehydrer(
-                    krav = setOf(krav)
-                ),
-                sistEndretAvBruker = ZonedDateTime.now(),
-                tilstandsType = "Journalført"
+                Søknad.Dokument.Variant(
+                    urn = "urn:soknad:fil2",
+                    format = "ARKIV",
+                    type = "PDF"
+                )
             )
-        )
-    }
+        ),
+        journalpostId = "journalpostid",
+        innsendtTidspunkt = ZonedDateTime.now(),
+        språk = Språk("NO"),
+        dokumentkrav = Dokumentkrav.rehydrer(
+            krav = setOf(krav)
+        ),
+        sistEndretAvBruker = ZonedDateTime.now(),
+        tilstandsType = "Journalført"
+    )
 
     @Test
     fun hentDokumentkrav() {
         withMigratedDb {
-            LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).lagre(originalSøknadhåndterer, ident)
             val søknadPostgresRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
+            søknadPostgresRepository.lagre(søknad)
             assertThrows<IkkeTilgangExeption> { søknadPostgresRepository.hentDokumentkravFor(søknadId, "ikke-tilgang") }
 
             val dokumentkrav = søknadPostgresRepository.hentDokumentkravFor(søknadId, ident)
@@ -101,14 +97,15 @@ internal class SøknadPostgresRepositoryTest {
         )
         withMigratedDb {
             val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
-            livssyklusPostgresRepository.lagre(originalSøknadhåndterer, ident)
+            val søknadPostgresRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
+            søknadPostgresRepository.lagre(søknad)
             val søknadMediator = SøknadMediator(
                 rapidsConnection = mockk(),
                 søknadCacheRepository = mockk(),
                 livssyklusRepository = livssyklusPostgresRepository,
                 søknadMalRepository = mockk(),
                 ferdigstiltSøknadRepository = mockk(),
-                søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource),
+                søknadRepository = søknadPostgresRepository,
                 søknadObservers = listOf(),
 
             )
@@ -154,14 +151,16 @@ internal class SøknadPostgresRepositoryTest {
         )
         withMigratedDb {
             val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
-            livssyklusPostgresRepository.lagre(originalSøknadhåndterer, ident)
+            val søknadPostgresRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
+            søknadPostgresRepository.lagre(søknad)
+
             val søknadMediator = SøknadMediator(
                 rapidsConnection = mockk(),
                 søknadCacheRepository = mockk(),
                 livssyklusRepository = livssyklusPostgresRepository,
                 søknadMalRepository = mockk(),
                 ferdigstiltSøknadRepository = mockk(),
-                søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource),
+                søknadRepository = søknadPostgresRepository,
                 søknadObservers = listOf(),
 
             )

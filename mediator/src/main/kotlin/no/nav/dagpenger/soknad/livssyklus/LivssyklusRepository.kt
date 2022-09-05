@@ -43,6 +43,8 @@ interface LivssyklusRepository {
 }
 
 interface SøknadRepository {
+    fun hent(søknadId: UUID, ident: String): Søknad?
+    fun lagre(søknad: Søknad): Boolean
     fun hentDokumentkravFor(søknadId: UUID, ident: String): Dokumentkrav
     fun harTilgang(ident: String, søknadId: UUID): Boolean
     fun oppdaterDokumentkrav(søknadId: UUID, ident: String, dokumentkrav: Dokumentkrav)

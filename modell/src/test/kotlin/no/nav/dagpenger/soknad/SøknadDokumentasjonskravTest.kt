@@ -1,0 +1,139 @@
+package no.nav.dagpenger.soknad
+
+import de.slub.urn.URN
+import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
+import no.nav.dagpenger.soknad.hendelse.LeggTilFil
+import no.nav.dagpenger.soknad.hendelse.SlettFil
+import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
+import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import java.time.ZonedDateTime
+import java.util.UUID
+
+class SøknadDokumentasjonskravTest {
+
+    private lateinit var søknad: Søknad
+
+    private val dokumentFaktum =
+        Faktum(faktumJson("1", "f1"))
+    private val faktaSomSannsynliggjøres =
+        mutableSetOf(
+            Faktum(faktumJson("2", "f2"))
+        )
+    private val sannsynliggjøring = Sannsynliggjøring(
+        id = dokumentFaktum.id,
+        faktum = dokumentFaktum,
+        sannsynliggjør = faktaSomSannsynliggjøres
+    )
+
+    @Test
+    fun `håndter svar på dokumentasjonskrav`() {
+        val søknadId = UUID.randomUUID()
+        val ident = "12345678901"
+        val språk = Språk(verdi = "NB")
+        søknad = Søknad(
+            søknadId = søknadId, språk = språk, søknadhåndterer = Søknadhåndterer(ident = ident), ident = ident
+        )
+        søknad.håndter(ØnskeOmNySøknadHendelse(søknadId, språk.verdi.country, ident))
+        søknad.håndter(SøknadOpprettetHendelse(søknadId, ident))
+
+        assertThrows<Aktivitetslogg.AktivitetException> {
+            søknad.håndter(
+                DokumentasjonIkkeTilgjengelig(
+                    søknadId, ident, "1", valg = Krav.Svar.SvarValg.SEND_SENERE, begrunnelse = null
+                )
+            )
+        }
+
+        with(TestSøknadInspektør(søknad).dokumentkrav) {
+            assertEquals(0, this.aktiveDokumentKrav().size)
+        }
+
+        søknad.håndter(
+            SøkeroppgaveHendelse(
+                søknadId, ident, setOf(sannsynliggjøring),
+            )
+        )
+
+        with(TestSøknadInspektør(søknad).dokumentkrav) {
+            assertEquals(1, this.aktiveDokumentKrav().size)
+            this.aktiveDokumentKrav().forEach { krav ->
+                assertEquals(Krav.Svar.SvarValg.IKKE_BESVART, krav.svar.valg)
+                assertEquals(null, krav.svar.begrunnelse)
+                assertEquals(0, krav.svar.filer.size)
+            }
+        }
+
+        søknad.håndter(
+            DokumentasjonIkkeTilgjengelig(
+                søknadId, ident, "1", valg = Krav.Svar.SvarValg.SEND_SENERE, begrunnelse = "Har ikke"
+            )
+        )
+
+        with(TestSøknadInspektør(søknad).dokumentkrav) {
+            assertEquals(1, this.aktiveDokumentKrav().size)
+            this.aktiveDokumentKrav().forEach { krav ->
+                assertEquals(Krav.Svar.SvarValg.SEND_SENERE, krav.svar.valg)
+                assertEquals("Har ikke", krav.svar.begrunnelse)
+                assertEquals(0, krav.svar.filer.size)
+            }
+        }
+
+        søknad.håndter(
+            LeggTilFil(
+                søknadId,
+                ident,
+                "1",
+                fil = Krav.Fil("test.jpg", URN.rfc8141().parse("urn:sid:1"), 0, ZonedDateTime.now())
+            )
+        )
+
+        with(TestSøknadInspektør(søknad).dokumentkrav) {
+            assertEquals(1, this.aktiveDokumentKrav().size)
+            this.aktiveDokumentKrav().forEach { krav ->
+                assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
+                assertEquals(null, krav.svar.begrunnelse)
+                assertEquals(1, krav.svar.filer.size)
+            }
+        }
+
+        søknad.håndter(
+            LeggTilFil(
+                søknadId,
+                ident,
+                "1",
+                fil = Krav.Fil("test2.jpg", URN.rfc8141().parse("urn:sid:2"), 0, ZonedDateTime.now())
+            )
+        )
+
+        with(TestSøknadInspektør(søknad).dokumentkrav) {
+            assertEquals(1, this.aktiveDokumentKrav().size)
+            this.aktiveDokumentKrav().forEach { krav ->
+                assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
+                assertEquals(null, krav.svar.begrunnelse)
+                assertEquals(2, krav.svar.filer.size)
+            }
+        }
+
+        søknad.håndter(
+            SlettFil(
+                søknadId,
+                ident,
+                "1",
+                urn = URN.rfc8141().parse("urn:sid:2")
+            )
+        )
+
+        with(TestSøknadInspektør(søknad).dokumentkrav) {
+            assertEquals(1, this.aktiveDokumentKrav().size)
+            this.aktiveDokumentKrav().forEach { krav ->
+                assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
+                assertEquals(null, krav.svar.begrunnelse)
+                assertEquals(1, krav.svar.filer.size)
+            }
+        }
+    }
+}

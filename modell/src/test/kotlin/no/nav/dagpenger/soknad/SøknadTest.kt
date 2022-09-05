@@ -34,7 +34,7 @@ internal class SøknadTest {
     private lateinit var søknadhåndterer: Søknadhåndterer
     private lateinit var personObserver: TestSøknadObserver
     private lateinit var plantUmlObservatør: PlantUmlObservatør
-    private val inspektør get() = TestSøknadInspektør(søknadhåndterer)
+    private val inspektør get() = TestSøknadhåndtererInspektør(søknadhåndterer)
     private val språk = "NO"
 
     @BeforeEach

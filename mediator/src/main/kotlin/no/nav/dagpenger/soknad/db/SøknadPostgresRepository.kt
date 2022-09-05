@@ -7,6 +7,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.IkkeTilgangExeption
+import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.hentDokumentKrav
 import no.nav.dagpenger.soknad.livssyklus.insertKravData
@@ -15,6 +16,13 @@ import java.util.UUID
 
 class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
     SøknadRepository {
+    override fun hent(søknadId: UUID, ident: String): Søknad? {
+        TODO("not implemented")
+    }
+    override fun lagre(søknad: Søknad): Boolean {
+        TODO("not implemented")
+    }
+
     override fun hentDokumentkravFor(søknadId: UUID, ident: String): Dokumentkrav {
         sjekkTilgang(ident, søknadId)
         return using(sessionOf(dataSource)) { session ->

@@ -3,10 +3,13 @@ package no.nav.dagpenger.soknad
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.SøknadObserver.SøknadSlettetEvent
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
+import no.nav.dagpenger.soknad.hendelse.LeggTilFil
+import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
@@ -156,6 +159,21 @@ class Søknad private constructor(
         tilstand.håndter(slettSøknadHendelse, this)
     }
 
+    fun håndter(dokumentasjonIkkeTilgjengelig: DokumentasjonIkkeTilgjengelig) {
+        kontekst(dokumentasjonIkkeTilgjengelig)
+        tilstand.håndter(dokumentasjonIkkeTilgjengelig, this)
+    }
+
+    fun håndter(leggTilFil: LeggTilFil) {
+        kontekst(leggTilFil)
+        tilstand.håndter(leggTilFil, this)
+    }
+
+    fun håndter(slettFil: SlettFil) {
+        kontekst(slettFil)
+        tilstand.håndter(slettFil, this)
+    }
+
     interface Tilstand : Aktivitetskontekst {
 
         val tilstandType: Type
@@ -195,6 +213,17 @@ class Søknad private constructor(
 
         fun håndter(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
             slettSøknadHendelse.severe("Kan ikke slette søknad i tilstand $tilstandType")
+        }
+
+        fun håndter(dokumentasjonIkkeTilgjengelig: DokumentasjonIkkeTilgjengelig, søknad: Søknad) {
+            dokumentasjonIkkeTilgjengelig.`kan ikke håndteres i denne tilstanden`()
+        }
+        fun håndter(leggTilFil: LeggTilFil, søknad: Søknad) {
+            leggTilFil.`kan ikke håndteres i denne tilstanden`()
+        }
+
+        fun håndter(slettFil: SlettFil, søknad: Søknad) {
+            slettFil.`kan ikke håndteres i denne tilstanden`()
         }
 
         private fun Hendelse.`kan ikke håndteres i denne tilstanden`() =
@@ -255,9 +284,21 @@ class Søknad private constructor(
         override fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse, søknad: Søknad) {
         }
 
+        override fun håndter(dokumentasjonIkkeTilgjengelig: DokumentasjonIkkeTilgjengelig, søknad: Søknad) {
+            søknad.dokumentkrav.håndter(dokumentasjonIkkeTilgjengelig)
+        }
+
+        override fun håndter(leggTilFil: LeggTilFil, søknad: Søknad) {
+            søknad.dokumentkrav.håndter(leggTilFil)
+        }
+
         override fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse, søknad: Søknad) {
             søkeroppgaveHendelse.info("Fikk %d sannsynliggjøringer", søkeroppgaveHendelse.sannsynliggjøringer().size)
             søknad.håndter(søkeroppgaveHendelse.sannsynliggjøringer())
+        }
+
+        override fun håndter(slettFil: SlettFil, søknad: Søknad) {
+            søknad.dokumentkrav.håndter(slettFil)
         }
 
         override fun håndter(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
