@@ -11,11 +11,11 @@ import kotliquery.using
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
-import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.soknad.serder.PersonData
@@ -36,8 +36,8 @@ import javax.sql.DataSource
 private val logger = KotlinLogging.logger { }
 
 interface LivssyklusRepository {
-    fun hent(ident: String, komplettAktivitetslogg: Boolean = false): Person?
-    fun lagre(person: Person)
+    fun hent(ident: String, komplettAktivitetslogg: Boolean = false): Søknadhåndterer?
+    fun lagre(søknadhåndterer: Søknadhåndterer)
     fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad?
 }
 
@@ -49,7 +49,7 @@ interface SøknadRepository {
 }
 
 class LivssyklusPostgresRepository(private val dataSource: DataSource) : LivssyklusRepository {
-    override fun hent(ident: String, komplettAktivitetslogg: Boolean): Person? {
+    override fun hent(ident: String, komplettAktivitetslogg: Boolean): Søknadhåndterer? {
         return using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf(
@@ -75,12 +75,12 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
         }
     }
 
-    override fun lagre(person: Person) {
-        val visitor = PersonPersistenceVisitor(person)
+    override fun lagre(søknadhåndterer: Søknadhåndterer) {
+        val visitor = PersonPersistenceVisitor(søknadhåndterer)
         using(sessionOf(dataSource)) { session ->
             session.transaction { transactionalSession ->
                 val internId =
-                    hentInternPersonId(transactionalSession, person) ?: lagrePerson(transactionalSession, visitor)!!
+                    hentInternPersonId(transactionalSession, søknadhåndterer) ?: lagrePerson(transactionalSession, visitor)!!
 
                 lagreAktivitetslogg(transactionalSession, internId, visitor)
 
@@ -125,12 +125,12 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
             }.asSingle
         )
 
-    private fun hentInternPersonId(transactionalSession: TransactionalSession, person: Person) =
+    private fun hentInternPersonId(transactionalSession: TransactionalSession, søknadhåndterer: Søknadhåndterer) =
         transactionalSession.run(
             queryOf(
                 //language=PostgreSQL
                 "SELECT id FROM person_v1 WHERE ident=:ident",
-                mapOf("ident" to person.ident())
+                mapOf("ident" to søknadhåndterer.ident())
             ).map { row -> row.longOrNull("id") }.asSingle
         )
 
@@ -395,7 +395,7 @@ private fun PersonData.SøknadData.insertDokumentQuery(session: TransactionalSes
         }
     )
 
-private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
+private class PersonPersistenceVisitor(søknadhåndterer: Søknadhåndterer) : PersonVisitor {
     lateinit var ident: String
 
     fun søknader() = søknader.filterNot(slettet())
@@ -407,7 +407,7 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
     lateinit var aktivitetslogg: Aktivitetslogg
 
     init {
-        person.accept(this)
+        søknadhåndterer.accept(this)
     }
 
     override fun visitPerson(ident: String) {
@@ -424,7 +424,7 @@ private class PersonPersistenceVisitor(person: Person) : PersonVisitor {
 
     override fun visitSøknad(
         søknadId: UUID,
-        person: Person,
+        søknadhåndterer: Søknadhåndterer,
         tilstand: Søknad.Tilstand,
         dokument: Søknad.Dokument?,
         journalpostId: String?,

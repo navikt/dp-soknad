@@ -19,7 +19,7 @@ import java.util.UUID
 
 class Søknad private constructor(
     private val søknadId: UUID,
-    private val person: Person,
+    private val søknadhåndterer: Søknadhåndterer,
     private var tilstand: Tilstand,
     // @todo: Endre navn fra dokument til journalføringer? (og liste)?
     private var dokument: Dokument?,
@@ -31,9 +31,9 @@ class Søknad private constructor(
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : Aktivitetskontekst {
 
-    constructor(søknadId: UUID, språk: Språk, person: Person) : this(
+    constructor(søknadId: UUID, språk: Språk, søknadhåndterer: Søknadhåndterer) : this(
         søknadId = søknadId,
-        person = person,
+        søknadhåndterer = søknadhåndterer,
         tilstand = UnderOpprettelse,
         dokument = null,
         journalpostId = null,
@@ -53,7 +53,7 @@ class Søknad private constructor(
 
         fun rehydrer(
             søknadId: UUID,
-            person: Person,
+            søknadhåndterer: Søknadhåndterer,
             tilstandsType: String,
             dokument: Dokument?,
             journalpostId: String?,
@@ -73,7 +73,7 @@ class Søknad private constructor(
             }
             return Søknad(
                 søknadId = søknadId,
-                person = person,
+                søknadhåndterer = søknadhåndterer,
                 tilstand = tilstand,
                 dokument = dokument,
                 journalpostId = journalpostId,
@@ -266,7 +266,7 @@ class Søknad private constructor(
     }
 
     private fun slettet() {
-        person.søknadSlettet(SøknadSlettetEvent(søknadId, person.ident()))
+        søknadhåndterer.søknadSlettet(SøknadSlettetEvent(søknadId, søknadhåndterer.ident()))
     }
 
     private object AvventerArkiverbarSøknad : Tilstand {
@@ -322,7 +322,7 @@ class Søknad private constructor(
     }
 
     fun accept(visitor: SøknadVisitor) {
-        visitor.visitSøknad(søknadId, person, tilstand, dokument, journalpostId, innsendtTidspunkt, språk, dokumentkrav, sistEndretAvBruker)
+        visitor.visitSøknad(søknadId, søknadhåndterer, tilstand, dokument, journalpostId, innsendtTidspunkt, språk, dokumentkrav, sistEndretAvBruker)
         tilstand.accept(visitor)
     }
 
@@ -358,7 +358,7 @@ class Søknad private constructor(
     }
 
     fun deepEquals(other: Any?): Boolean =
-        other is Søknad && other.søknadId == this.søknadId && other.person == this.person &&
+        other is Søknad && other.søknadId == this.søknadId && other.søknadhåndterer == this.søknadhåndterer &&
             other.tilstand == this.tilstand && other.dokument == this.dokument &&
             other.journalpostId == this.journalpostId && this.dokumentkrav == other.dokumentkrav
 
@@ -375,7 +375,7 @@ class Søknad private constructor(
     }
 
     private fun varsleOmEndretTilstand(forrigeTilstand: Tilstand) {
-        person.søknadTilstandEndret(
+        søknadhåndterer.søknadTilstandEndret(
             PersonObserver.SøknadEndretTilstandEvent(
                 søknadId = søknadId,
                 gjeldendeTilstand = tilstand.tilstandType,

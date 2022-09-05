@@ -4,7 +4,7 @@ import io.ktor.server.plugins.NotFoundException
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.dagpenger.soknad.Person
+import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
@@ -131,9 +131,9 @@ class SøknadCacheRepositoryTest {
         )
 
     private fun lagrePersonMedSøknad(søknadUuid: UUID, ident: String = "01234567891") {
-        val person = Person(ident)
-        person.håndter(ØnskeOmNySøknadHendelse(søknadUuid, ident, språkVerdi))
+        val søknadhåndterer = Søknadhåndterer(ident)
+        søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadUuid, ident, språkVerdi))
         val livssyklusPostgresRepository = LivssyklusPostgresRepository(dataSource)
-        livssyklusPostgresRepository.lagre(person)
+        livssyklusPostgresRepository.lagre(søknadhåndterer)
     }
 }

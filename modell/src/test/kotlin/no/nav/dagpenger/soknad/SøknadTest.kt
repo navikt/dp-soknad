@@ -31,18 +31,18 @@ private const val testIdent = "12345678912"
 private const val testJournalpostId = "J123"
 
 internal class SøknadTest {
-    private lateinit var person: Person
+    private lateinit var søknadhåndterer: Søknadhåndterer
     private lateinit var personObserver: TestPersonObserver
     private lateinit var plantUmlObservatør: PlantUmlObservatør
-    private val inspektør get() = TestSøknadInspektør(person)
+    private val inspektør get() = TestSøknadInspektør(søknadhåndterer)
     private val språk = "NO"
 
     @BeforeEach
     internal fun setUp() {
-        person = Person(testIdent)
-        personObserver = TestPersonObserver().also { person.addObserver(it) }
+        søknadhåndterer = Søknadhåndterer(testIdent)
+        personObserver = TestPersonObserver().also { søknadhåndterer.addObserver(it) }
         plantUmlObservatør = PlantUmlObservatør().also {
-            person.addObserver(it)
+            søknadhåndterer.addObserver(it)
         }
     }
 
@@ -108,10 +108,10 @@ internal class SøknadTest {
 
     @Test
     fun `oppretter en person `() {
-        val person = Person(testIdent)
+        val søknadhåndterer = Søknadhåndterer(testIdent)
         object : PersonVisitor {
             init {
-                person.accept(this)
+                søknadhåndterer.accept(this)
             }
 
             override fun visitPerson(ident: String) {
@@ -138,30 +138,30 @@ internal class SøknadTest {
     @Test
     @Disabled("Midlertidig løsning for en enklere feedbackloop for testing av frontend")
     fun `en person kan kun ha én opprettet eller påbegynt søknad av gangen`() {
-        val person = Person(testIdent)
+        val søknadhåndterer = Søknadhåndterer(testIdent)
         val søknadID = UUID.randomUUID()
-        person.håndter(ØnskeOmNySøknadHendelse(søknadID, språk, testIdent))
+        søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadID, språk, testIdent))
         assertThrows<AktivitetException> {
-            person.håndter(ØnskeOmNySøknadHendelse(søknadID, språk, testIdent))
+            søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadID, språk, testIdent))
         }
 
-        person.håndter(SøknadOpprettetHendelse(søknadID, testIdent))
+        søknadhåndterer.håndter(SøknadOpprettetHendelse(søknadID, testIdent))
 
         assertThrows<AktivitetException> {
-            person.håndter(ØnskeOmNySøknadHendelse(søknadID, språk, testIdent))
+            søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadID, språk, testIdent))
         }
     }
 
     private fun håndterNySøknadOpprettet() {
-        person.håndter(SøknadOpprettetHendelse(inspektør.søknadId, testIdent))
+        søknadhåndterer.håndter(SøknadOpprettetHendelse(inspektør.søknadId, testIdent))
     }
 
     private fun håndterSlettet() {
-        person.håndter(SlettSøknadHendelse(inspektør.søknadId, testIdent))
+        søknadhåndterer.håndter(SlettSøknadHendelse(inspektør.søknadId, testIdent))
     }
 
     private fun håndterArkiverbarSøknad() {
-        person.håndter(
+        søknadhåndterer.håndter(
             ArkiverbarSøknadMottattHendelse(
                 inspektør.søknadId,
                 testIdent,
@@ -171,19 +171,19 @@ internal class SøknadTest {
     }
 
     private fun håndterMidlertidigJournalførtSøknad() {
-        person.håndter(SøknadMidlertidigJournalførtHendelse(inspektør.søknadId, testIdent, testJournalpostId))
+        søknadhåndterer.håndter(SøknadMidlertidigJournalførtHendelse(inspektør.søknadId, testIdent, testJournalpostId))
     }
 
     private fun håndterJournalførtSøknad() {
-        person.håndter(JournalførtHendelse(testJournalpostId, testIdent))
+        søknadhåndterer.håndter(JournalførtHendelse(testJournalpostId, testIdent))
     }
 
     private fun håndterFaktumOppdatering() {
-        person.håndter(FaktumOppdatertHendelse(inspektør.søknadId, testIdent))
+        søknadhåndterer.håndter(FaktumOppdatertHendelse(inspektør.søknadId, testIdent))
     }
 
     private fun håndterSøkerOppgaveHendelse(sannsynliggjøringer: Set<Sannsynliggjøring> = emptySet()) {
-        person.håndter(
+        søknadhåndterer.håndter(
             SøkeroppgaveHendelse(
                 inspektør.søknadId,
                 testIdent,
@@ -194,12 +194,12 @@ internal class SøknadTest {
 
     private fun håndterSendInnSøknad(): SøknadInnsendtHendelse {
         return SøknadInnsendtHendelse(inspektør.søknadId, testIdent).also {
-            person.håndter(it)
+            søknadhåndterer.håndter(it)
         }
     }
 
     private fun håndterØnskeOmNySøknadHendelse() {
-        person.håndter(ØnskeOmNySøknadHendelse(UUID.randomUUID(), språk, testIdent))
+        søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(UUID.randomUUID(), språk, testIdent))
     }
 
     private fun assertTilstander(vararg tilstander: Søknad.Tilstand.Type) {

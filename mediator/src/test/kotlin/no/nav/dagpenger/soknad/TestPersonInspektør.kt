@@ -3,7 +3,7 @@ package no.nav.dagpenger.soknad
 import java.time.ZonedDateTime
 import java.util.UUID
 
-internal class TestPersonInspektør(person: Person) : PersonVisitor {
+internal class TestPersonInspektør(søknadhåndterer: Søknadhåndterer) : PersonVisitor {
     lateinit var gjeldendetilstand: Søknad.Tilstand.Type
     lateinit var gjeldendeSøknadId: String
     var innsendtTidspunkt: ZonedDateTime? = null
@@ -11,12 +11,12 @@ internal class TestPersonInspektør(person: Person) : PersonVisitor {
     var antallSøknader = 0
 
     init {
-        person.accept(this)
+        søknadhåndterer.accept(this)
     }
 
     override fun visitSøknad(
         søknadId: UUID,
-        person: Person,
+        søknadhåndterer: Søknadhåndterer,
         tilstand: Søknad.Tilstand,
         dokument: Søknad.Dokument?,
         journalpostId: String?,

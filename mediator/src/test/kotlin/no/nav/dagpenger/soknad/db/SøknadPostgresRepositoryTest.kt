@@ -6,11 +6,11 @@ import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.IkkeTilgangExeption
 import no.nav.dagpenger.soknad.Krav
-import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
@@ -43,12 +43,12 @@ internal class SøknadPostgresRepositoryTest {
     )
 
     val ident = "12345678910"
-    private val originalPerson = Person(ident) {
+    private val originalSøknadhåndterer = Søknadhåndterer(ident) {
 
         mutableListOf(
             Søknad.rehydrer(
                 søknadId = søknadId,
-                person = it,
+                søknadhåndterer = it,
                 tilstandsType = "Journalført",
                 dokument = Søknad.Dokument(
                     varianter = listOf(
@@ -78,7 +78,7 @@ internal class SøknadPostgresRepositoryTest {
     @Test
     fun hentDokumentkrav() {
         withMigratedDb {
-            LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).lagre(originalPerson)
+            LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).lagre(originalSøknadhåndterer)
             val søknadPostgresRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
             assertThrows<IkkeTilgangExeption> { søknadPostgresRepository.hentDokumentkravFor(søknadId, "ikke-tilgang") }
 
@@ -97,7 +97,7 @@ internal class SøknadPostgresRepositoryTest {
         )
         withMigratedDb {
             val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
-            livssyklusPostgresRepository.lagre(originalPerson)
+            livssyklusPostgresRepository.lagre(originalSøknadhåndterer)
             val søknadMediator = SøknadMediator(
                 rapidsConnection = mockk(),
                 søknadCacheRepository = mockk(),
@@ -150,7 +150,7 @@ internal class SøknadPostgresRepositoryTest {
         )
         withMigratedDb {
             val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
-            livssyklusPostgresRepository.lagre(originalPerson)
+            livssyklusPostgresRepository.lagre(originalSøknadhåndterer)
             val søknadMediator = SøknadMediator(
                 rapidsConnection = mockk(),
                 søknadCacheRepository = mockk(),

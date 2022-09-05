@@ -2,10 +2,10 @@ package no.nav.dagpenger.soknad.livssyklus.ferdigstilling
 
 import io.ktor.server.plugins.NotFoundException
 import no.nav.dagpenger.soknad.Dokumentkrav
-import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
+import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.TestSøkerOppgave
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
@@ -89,9 +89,9 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
         val søknadId = UUID.randomUUID()
         val ident = "01234567891"
         val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
-        val person = Person(ident)
-        person.håndter(ØnskeOmNySøknadHendelse(søknadId, ident, språkVerdi))
-        livssyklusPostgresRepository.lagre(person)
+        val søknadhåndterer = Søknadhåndterer(ident)
+        søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadId, ident, språkVerdi))
+        livssyklusPostgresRepository.lagre(søknadhåndterer)
         val søknadCachePostgresRepository = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource)
         søknadCachePostgresRepository.lagre(TestSøkerOppgave(søknadId, ident, fakta))
         return søknadId
@@ -99,12 +99,12 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
 
     private fun lagRandomPersonOgSøknad(): UUID {
         val søknadId = UUID.randomUUID()
-        val originalPerson = Person("12345678910") {
+        val originalSøknadhåndterer = Søknadhåndterer("12345678910") {
             mutableListOf(
                 Søknad(søknadId, Språk(språkVerdi), it),
                 Søknad.rehydrer(
                     søknadId = søknadId,
-                    person = it,
+                    søknadhåndterer = it,
                     tilstandsType = Journalført.name,
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
@@ -115,7 +115,7 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
                 )
             )
         }
-        LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).lagre(originalPerson)
+        LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).lagre(originalSøknadhåndterer)
         return søknadId
     }
 

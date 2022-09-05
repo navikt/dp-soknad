@@ -8,13 +8,13 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.Krav
-import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
+import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository.PersistentSøkerOppgave
@@ -53,15 +53,15 @@ internal class LivssyklusPostgresRepositoryTest {
     fun `Lagre og hente person uten søknader`() {
         withMigratedDb {
             LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
-                val expectedPerson = Person("12345678910")
-                it.lagre(expectedPerson)
+                val expectedSøknadhåndterer = Søknadhåndterer("12345678910")
+                it.lagre(expectedSøknadhåndterer)
                 val person = it.hent("12345678910")
 
                 assertNotNull(person)
-                assertEquals(expectedPerson, person)
+                assertEquals(expectedSøknadhåndterer, person)
 
                 assertDoesNotThrow {
-                    it.lagre(expectedPerson)
+                    it.lagre(expectedSøknadhåndterer)
                 }
             }
         }
@@ -80,12 +80,12 @@ internal class LivssyklusPostgresRepositoryTest {
     fun `Lagre og hente person med søknader, dokumenter, dokumentkrav og aktivitetslogg`() {
         val søknadId1 = UUID.randomUUID()
         val søknadId2 = UUID.randomUUID()
-        val originalPerson = Person("12345678910") {
+        val originalSøknadhåndterer = Søknadhåndterer("12345678910") {
             mutableListOf(
                 Søknad(søknadId1, språk, it),
                 Søknad.rehydrer(
                     søknadId = søknadId2,
-                    person = it,
+                    søknadhåndterer = it,
                     tilstandsType = Journalført.name,
                     dokument = Søknad.Dokument(
                         varianter = listOf(
@@ -114,12 +114,12 @@ internal class LivssyklusPostgresRepositoryTest {
 
         withMigratedDb {
             LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
-                it.lagre(originalPerson)
+                it.lagre(originalSøknadhåndterer)
                 val personFraDatabase = it.hent("12345678910", true)
                 assertNotNull(personFraDatabase)
-                assertEquals(originalPerson, personFraDatabase)
+                assertEquals(originalSøknadhåndterer, personFraDatabase)
                 val fraDatabaseVisitor = TestPersonVisitor(personFraDatabase)
-                val originalVisitor = TestPersonVisitor(originalPerson)
+                val originalVisitor = TestPersonVisitor(originalSøknadhåndterer)
                 val søknaderFraDatabase = fraDatabaseVisitor.søknader
                 val originalSøknader = originalVisitor.søknader
                 assertNull(fraDatabaseVisitor.dokumenter[søknadId1])
@@ -137,11 +137,11 @@ internal class LivssyklusPostgresRepositoryTest {
     @Test
     fun `upsert på dokumentasjonskrav`() {
         val søknadId = UUID.randomUUID()
-        val originalPerson = Person("12345678910") {
+        val originalSøknadhåndterer = Søknadhåndterer("12345678910") {
             mutableListOf(
                 Søknad.rehydrer(
                     søknadId = søknadId,
-                    person = it,
+                    søknadhåndterer = it,
                     tilstandsType = "Journalført",
                     dokument = Søknad.Dokument(
                         varianter = listOf(
@@ -169,8 +169,8 @@ internal class LivssyklusPostgresRepositoryTest {
         }
         withMigratedDb {
             LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
-                it.lagre(originalPerson)
-                it.lagre(originalPerson)
+                it.lagre(originalSøknadhåndterer)
+                it.lagre(originalSøknadhåndterer)
             }
         }
     }
@@ -179,11 +179,11 @@ internal class LivssyklusPostgresRepositoryTest {
     fun `Henter påbegynte søknader`() {
         val påbegyntSøknadUuid = UUID.randomUUID()
         val innsendtTidspunkt = ZonedDateTime.now()
-        val person = Person("12345678910") {
+        val søknadhåndterer = Søknadhåndterer("12345678910") {
             mutableListOf(
                 Søknad.rehydrer(
                     søknadId = påbegyntSøknadUuid,
-                    person = it,
+                    søknadhåndterer = it,
                     tilstandsType = Påbegynt.name,
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "jouhasjk",
@@ -194,7 +194,7 @@ internal class LivssyklusPostgresRepositoryTest {
                 ),
                 Søknad.rehydrer(
                     søknadId = UUID.randomUUID(),
-                    person = it,
+                    søknadhåndterer = it,
                     tilstandsType = Journalført.name,
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
@@ -208,8 +208,8 @@ internal class LivssyklusPostgresRepositoryTest {
 
         withMigratedDb {
             LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
-                it.lagre(person)
-                val påbegyntSøknad = it.hentPåbegyntSøknad(person.ident())!!
+                it.lagre(søknadhåndterer)
+                val påbegyntSøknad = it.hentPåbegyntSøknad(søknadhåndterer.ident())!!
                 assertEquals(påbegyntSøknadUuid, påbegyntSøknad.uuid)
                 assertEquals(LocalDate.from(innsendtTidspunkt), påbegyntSøknad.startDato)
 
@@ -221,12 +221,12 @@ internal class LivssyklusPostgresRepositoryTest {
     @Test
     fun `Kan oppdatere søknader`() {
         val søknadId = UUID.randomUUID()
-        val originalPerson = Person("12345678910") {
+        val originalSøknadhåndterer = Søknadhåndterer("12345678910") {
             mutableListOf(
                 Søknad(søknadId, språk, it),
                 Søknad.rehydrer(
                     søknadId = søknadId,
-                    person = it,
+                    søknadhåndterer = it,
                     tilstandsType = Journalført.name,
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
@@ -240,7 +240,7 @@ internal class LivssyklusPostgresRepositoryTest {
 
         withMigratedDb {
             LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
-                it.lagre(originalPerson)
+                it.lagre(originalSøknadhåndterer)
                 val personFraDatabase = it.hent("12345678910")
                 assertNotNull(personFraDatabase)
                 val søknaderFraDatabase = TestPersonVisitor(personFraDatabase).søknader
@@ -262,14 +262,14 @@ internal class LivssyklusPostgresRepositoryTest {
         assertTrue(expected.deepEquals(result), "Søknadene var ikke like")
     }
 
-    private class TestPersonVisitor(person: Person?) : PersonVisitor {
+    private class TestPersonVisitor(søknadhåndterer: Søknadhåndterer?) : PersonVisitor {
         val dokumenter: MutableMap<UUID, Søknad.Dokument> = mutableMapOf()
         val dokumentkrav: MutableMap<UUID, Dokumentkrav> = mutableMapOf()
         lateinit var søknader: List<Søknad>
         lateinit var aktivitetslogg: Aktivitetslogg
 
         init {
-            person?.accept(this)
+            søknadhåndterer?.accept(this)
         }
 
         override fun visitPerson(ident: String, søknader: List<Søknad>) {
@@ -278,7 +278,7 @@ internal class LivssyklusPostgresRepositoryTest {
 
         override fun visitSøknad(
             søknadId: UUID,
-            person: Person,
+            søknadhåndterer: Søknadhåndterer,
             tilstand: Søknad.Tilstand,
             dokument: Søknad.Dokument?,
             journalpostId: String?,

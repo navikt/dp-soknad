@@ -15,8 +15,8 @@ import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNyInnsendingHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 
-class Person private constructor(
-    søknadsfunksjon: (person: Person) -> MutableList<Søknad>,
+class Søknadhåndterer private constructor(
+    søknadsfunksjon: (søknadhåndterer: Søknadhåndterer) -> MutableList<Søknad>,
     private val ident: String,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : Aktivitetskontekst, PersonObserver {
@@ -25,8 +25,8 @@ class Person private constructor(
         internal fun rehydrer(
             ident: String,
             aktivitetslogg: Aktivitetslogg,
-            søknadsfunksjon: (person: Person) -> MutableList<Søknad>,
-        ): Person = Person(søknadsfunksjon, ident, aktivitetslogg)
+            søknadsfunksjon: (søknadhåndterer: Søknadhåndterer) -> MutableList<Søknad>,
+        ): Søknadhåndterer = Søknadhåndterer(søknadsfunksjon, ident, aktivitetslogg)
     }
 
     // Navneforslag: Dialog? --> Må kunne finne ut av type
@@ -42,7 +42,7 @@ class Person private constructor(
     private val observers = mutableListOf<PersonObserver>()
 
     constructor(ident: String) : this({ mutableListOf() }, ident)
-    constructor(ident: String, søknadsfunksjon: (person: Person) -> MutableList<Søknad>) : this(søknadsfunksjon, ident)
+    constructor(ident: String, søknadsfunksjon: (søknadhåndterer: Søknadhåndterer) -> MutableList<Søknad>) : this(søknadsfunksjon, ident)
 
     fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         // if (søknader.harAlleredeOpprettetSøknad()) {
@@ -166,6 +166,6 @@ class Person private constructor(
         SpesifikkKontekst(kontekstType = "person", mapOf("ident" to ident))
 
     override fun equals(other: Any?): Boolean {
-        return other is Person && this.ident == other.ident
+        return other is Søknadhåndterer && this.ident == other.ident
     }
 }

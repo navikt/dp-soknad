@@ -169,7 +169,7 @@ internal class SøknadMediator(
         // }
     }
 
-    private fun behandle(hendelse: Hendelse, håndter: (Person) -> Unit) =
+    private fun behandle(hendelse: Hendelse, håndter: (Søknadhåndterer) -> Unit) =
         try {
             val person = hentEllerOpprettPerson(hendelse)
             personObservers.forEach { personObserver ->
@@ -203,8 +203,8 @@ internal class SøknadMediator(
         withMDC(context) { sikkerLogger.error("alvorlig feil: ${err.message}\n\t$message", err) }
     }
 
-    private fun finalize(person: Person, hendelse: Hendelse) {
-        lagre(person)
+    private fun finalize(søknadhåndterer: Søknadhåndterer, hendelse: Hendelse) {
+        lagre(søknadhåndterer)
         if (!hendelse.hasMessages()) return
         if (hendelse.hasErrors()) return sikkerLogger.info("aktivitetslogg inneholder errors: ${hendelse.toLogString()}")
         sikkerLogger.info("aktivitetslogg inneholder meldinger: ${hendelse.toLogString()}")
@@ -212,7 +212,7 @@ internal class SøknadMediator(
     }
 
     private fun hentEllerOpprettPerson(hendelse: Hendelse) =
-        livssyklusRepository.hent(hendelse.ident()) ?: Person(hendelse.ident())
+        livssyklusRepository.hent(hendelse.ident()) ?: Søknadhåndterer(hendelse.ident())
 }
 
 enum class Prosesstype {

@@ -6,11 +6,11 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.Krav
-import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.SpesifikkKontekst
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentData.Companion.rehydrer
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.KravData.FilData.Companion.toFilData
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.SannsynliggjøringData.Companion.toSannsynliggjøringData
@@ -23,15 +23,15 @@ class PersonData(
     var søknader: List<SøknadData> = emptyList(),
     var aktivitetsLogg: AktivitetsloggData? = null
 ) {
-    fun createPerson(): Person {
-        return Person.rehydrer(
+    fun createPerson(): Søknadhåndterer {
+        return Søknadhåndterer.rehydrer(
             ident = this.ident,
             aktivitetslogg = this.aktivitetsLogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
         ) { person ->
             søknader.map {
                 Søknad.rehydrer(
                     søknadId = it.søknadsId,
-                    person = person,
+                    søknadhåndterer = person,
                     tilstandsType = it.tilstandType.name,
                     dokument = it.dokumenter.rehydrer(),
                     journalpostId = it.journalpostId,

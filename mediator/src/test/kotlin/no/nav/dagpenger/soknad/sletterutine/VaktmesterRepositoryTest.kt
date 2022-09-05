@@ -6,13 +6,13 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Dokumentkrav
-import no.nav.dagpenger.soknad.Person
 import no.nav.dagpenger.soknad.PersonVisitor
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.TestSøkerOppgave
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
@@ -59,7 +59,7 @@ internal class VaktmesterRepositoryTest {
         val søknadCacheRepository = SøknadCachePostgresRepository(dataSource)
         val søknadMediator = søknadMediator(søknadCacheRepository, livssyklusRepository)
         val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
-        val person = Person(testPersonIdent) {
+        val søknadhåndterer = Søknadhåndterer(testPersonIdent) {
             mutableListOf(
                 gammelPåbegyntSøknad(gammelPåbegyntSøknadUuid, it),
                 nyPåbegyntSøknad(nyPåbegyntSøknadUuid, it),
@@ -67,7 +67,7 @@ internal class VaktmesterRepositoryTest {
             )
         }
 
-        livssyklusRepository.lagre(person)
+        livssyklusRepository.lagre(søknadhåndterer)
         settSistEndretAvBruker(antallDagerSiden = 8, gammelPåbegyntSøknadUuid)
         settSistEndretAvBruker(antallDagerSiden = 2, nyPåbegyntSøknadUuid)
         settSistEndretAvBruker(antallDagerSiden = 30, innsendtSøknadUuid)
@@ -77,7 +77,7 @@ internal class VaktmesterRepositoryTest {
 
         vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
         assertAntallSøknadSlettetEvent(1)
-        assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, person, livssyklusRepository)
+        assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, søknadhåndterer, livssyklusRepository)
         assertCacheSlettet(gammelPåbegyntSøknadUuid, søknadCacheRepository)
         vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
         vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
@@ -112,10 +112,10 @@ internal class VaktmesterRepositoryTest {
 
     private fun assertAtViIkkeSletterForMye(
         antallGjenværendeSøknader: Int,
-        person: Person,
+        søknadhåndterer: Søknadhåndterer,
         livssyklusRepository: LivssyklusPostgresRepository
     ) {
-        livssyklusRepository.hent(person.ident()).also { oppdatertPerson ->
+        livssyklusRepository.hent(søknadhåndterer.ident()).also { oppdatertPerson ->
             assertEquals(antallGjenværendeSøknader, TestPersonVisitor(oppdatertPerson).søknader.size)
         }
     }
@@ -124,10 +124,10 @@ internal class VaktmesterRepositoryTest {
         assertThrows<NotFoundException> { søknadCacheRepository.hent(søknadUuid) }
     }
 
-    private fun innsendtSøknad(journalførtSøknadId: UUID, person: Person) =
+    private fun innsendtSøknad(journalførtSøknadId: UUID, søknadhåndterer: Søknadhåndterer) =
         Søknad.rehydrer(
             søknadId = journalførtSøknadId,
-            person = person,
+            søknadhåndterer = søknadhåndterer,
             tilstandsType = Journalført.name,
             dokument = null,
             journalpostId = "journalpostid",
@@ -137,10 +137,10 @@ internal class VaktmesterRepositoryTest {
             sistEndretAvBruker = null
         )
 
-    private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, person: Person) =
+    private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, søknadhåndterer: Søknadhåndterer) =
         Søknad.rehydrer(
             søknadId = gammelPåbegyntSøknadId,
-            person = person,
+            søknadhåndterer = søknadhåndterer,
             tilstandsType = Påbegynt.name,
             dokument = null,
             journalpostId = "1456",
@@ -150,10 +150,10 @@ internal class VaktmesterRepositoryTest {
             sistEndretAvBruker = null
         )
 
-    private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, person: Person) =
+    private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, søknadhåndterer: Søknadhåndterer) =
         Søknad.rehydrer(
             søknadId = nyPåbegyntSøknadId,
-            person = person,
+            søknadhåndterer = søknadhåndterer,
             tilstandsType = Påbegynt.name,
             dokument = null,
             journalpostId = "1457",
@@ -164,9 +164,9 @@ internal class VaktmesterRepositoryTest {
         )
 }
 
-private class TestPersonVisitor(person: Person?) : PersonVisitor {
+private class TestPersonVisitor(søknadhåndterer: Søknadhåndterer?) : PersonVisitor {
     init {
-        person?.accept(this)
+        søknadhåndterer?.accept(this)
     }
 
     lateinit var søknader: List<Søknad>

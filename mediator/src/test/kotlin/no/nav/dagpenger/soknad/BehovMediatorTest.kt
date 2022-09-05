@@ -25,11 +25,11 @@ internal class BehovMediatorTest {
     private val testSøknadUuid = UUID.randomUUID().toString()
     private val testRapid = TestRapid()
     private lateinit var aktivitetslogg: Aktivitetslogg
-    private lateinit var person: Person
+    private lateinit var søknadhåndterer: Søknadhåndterer
 
     @BeforeEach
     fun setup() {
-        person = Person(testIdent)
+        søknadhåndterer = Søknadhåndterer(testIdent)
         aktivitetslogg = Aktivitetslogg()
         behovMediator = BehovMediator(
             rapidsConnection = testRapid,
@@ -41,7 +41,7 @@ internal class BehovMediatorTest {
     @Test
     internal fun `Behov blir sendt og inneholder det den skal`() {
         val hendelse = TestHendelse("Hendelse1", aktivitetslogg.barn())
-        hendelse.kontekst(person)
+        hendelse.kontekst(søknadhåndterer)
         hendelse.kontekst(Testkontekst("Testkontekst"))
 
         hendelse.behov(
@@ -74,7 +74,7 @@ internal class BehovMediatorTest {
     @Test
     internal fun `Gruppere behov`() {
         val hendelse = TestHendelse("Hendelse1", aktivitetslogg.barn())
-        hendelse.kontekst(person)
+        hendelse.kontekst(søknadhåndterer)
         hendelse.kontekst(Testkontekst("Testkontekst"))
 
         hendelse.behov(
@@ -119,7 +119,7 @@ internal class BehovMediatorTest {
     @Test
     internal fun `sjekker etter duplikatverdier`() {
         val hendelse = TestHendelse("Hendelse1", aktivitetslogg.barn())
-        hendelse.kontekst(person)
+        hendelse.kontekst(søknadhåndterer)
         hendelse.behov(
             NySøknad,
             "Behøver tom søknad for denne søknaden",
@@ -141,7 +141,7 @@ internal class BehovMediatorTest {
     @Test
     internal fun `kan ikke produsere samme behov`() {
         val hendelse = TestHendelse("Hendelse1", aktivitetslogg.barn())
-        hendelse.kontekst(person)
+        hendelse.kontekst(søknadhåndterer)
         hendelse.behov(NySøknad, "Behøver tom søknad for denne søknaden")
         hendelse.behov(NySøknad, "Behøver tom søknad for denne søknaden")
 
