@@ -14,6 +14,7 @@ import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.SøknadObserver
 import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.SøknadhåndtererVisitor
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
@@ -423,7 +424,7 @@ private class SøknadhåndtererPersistenceVisitor(søknadhåndterer: Søknadhån
 
     override fun visitSøknad(
         søknadId: UUID,
-        søknadhåndterer: Søknadhåndterer,
+        søknadObserver: SøknadObserver,
         tilstand: Søknad.Tilstand,
         dokument: Søknad.Dokument?,
         journalpostId: String?,

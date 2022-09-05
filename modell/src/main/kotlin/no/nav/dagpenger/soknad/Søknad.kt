@@ -19,7 +19,7 @@ import java.util.UUID
 
 class Søknad private constructor(
     private val søknadId: UUID,
-    private val søknadhåndterer: Søknadhåndterer,
+    private val søknadObserver: SøknadObserver,
     private val ident: String,
     // @todo: Endre navn fra dokument til journalføringer? (og liste)?
     private var tilstand: Tilstand,
@@ -32,9 +32,9 @@ class Søknad private constructor(
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : Aktivitetskontekst {
 
-    constructor(søknadId: UUID, språk: Språk, søknadhåndterer: Søknadhåndterer, ident: String) : this(
+    constructor(søknadId: UUID, språk: Språk, søknadObserver: SøknadObserver, ident: String) : this(
         søknadId = søknadId,
-        søknadhåndterer = søknadhåndterer,
+        søknadObserver = søknadObserver,
         ident = ident,
         tilstand = UnderOpprettelse,
         dokument = null,
@@ -78,7 +78,7 @@ class Søknad private constructor(
             }
             return Søknad(
                 søknadId = søknadId,
-                søknadhåndterer = søknadhåndterer,
+                søknadObserver = søknadhåndterer,
                 ident = ident,
                 tilstand = tilstand,
                 dokument = dokument,
@@ -279,7 +279,7 @@ class Søknad private constructor(
     }
 
     private fun slettet(ident: String) {
-        søknadhåndterer.søknadSlettet(SøknadSlettetEvent(søknadId, ident))
+        søknadObserver.søknadSlettet(SøknadSlettetEvent(søknadId, ident))
     }
 
     private object AvventerArkiverbarSøknad : Tilstand {
@@ -341,7 +341,7 @@ class Søknad private constructor(
     fun accept(visitor: SøknadVisitor) {
         visitor.visitSøknad(
             søknadId = søknadId,
-            søknadhåndterer = søknadhåndterer,
+            søknadObserver = søknadObserver,
             tilstand = tilstand,
             dokument = dokument,
             journalpostId = journalpostId,
@@ -402,7 +402,7 @@ class Søknad private constructor(
     }
 
     private fun varsleOmEndretTilstand(forrigeTilstand: Tilstand) {
-        søknadhåndterer.søknadTilstandEndret(
+        søknadObserver.søknadTilstandEndret(
             SøknadObserver.SøknadEndretTilstandEvent(
                 søknadId = søknadId,
                 gjeldendeTilstand = tilstand.tilstandType,

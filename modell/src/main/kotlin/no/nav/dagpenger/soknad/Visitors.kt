@@ -11,7 +11,7 @@ interface TilstandVisitor {
 interface SøknadVisitor : TilstandVisitor {
     fun visitSøknad(
         søknadId: UUID,
-        søknadhåndterer: Søknadhåndterer,
+        søknadObserver: SøknadObserver,
         tilstand: Tilstand,
         dokument: Søknad.Dokument?,
         journalpostId: String?,

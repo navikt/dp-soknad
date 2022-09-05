@@ -13,6 +13,7 @@ import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
+import no.nav.dagpenger.soknad.SøknadObserver
 import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.SøknadhåndtererVisitor
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
@@ -282,7 +283,7 @@ internal class LivssyklusPostgresRepositoryTest {
 
         override fun visitSøknad(
             søknadId: UUID,
-            søknadhåndterer: Søknadhåndterer,
+            søknadObserver: SøknadObserver,
             tilstand: Søknad.Tilstand,
             dokument: Søknad.Dokument?,
             journalpostId: String?,
