@@ -91,7 +91,7 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
         val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
         val søknadhåndterer = Søknadhåndterer(ident)
         søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadId, ident, språkVerdi))
-        livssyklusPostgresRepository.lagre(søknadhåndterer)
+        livssyklusPostgresRepository.lagre(søknadhåndterer, ident)
         val søknadCachePostgresRepository = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource)
         søknadCachePostgresRepository.lagre(TestSøkerOppgave(søknadId, ident, fakta))
         return søknadId
@@ -116,7 +116,7 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
                 )
             )
         }
-        LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).lagre(originalSøknadhåndterer)
+        LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).lagre(originalSøknadhåndterer, "12345678910")
         return søknadId
     }
 

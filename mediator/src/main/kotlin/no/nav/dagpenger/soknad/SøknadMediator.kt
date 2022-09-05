@@ -204,7 +204,7 @@ internal class SøknadMediator(
     }
 
     private fun finalize(søknadhåndterer: Søknadhåndterer, hendelse: Hendelse) {
-        lagre(søknadhåndterer)
+        lagre(søknadhåndterer, hendelse.ident())
         if (!hendelse.hasMessages()) return
         if (hendelse.hasErrors()) return sikkerLogger.info("aktivitetslogg inneholder errors: ${hendelse.toLogString()}")
         sikkerLogger.info("aktivitetslogg inneholder meldinger: ${hendelse.toLogString()}")

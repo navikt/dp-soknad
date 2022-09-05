@@ -134,6 +134,6 @@ class SøknadCacheRepositoryTest {
         val søknadhåndterer = Søknadhåndterer(ident)
         søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadUuid, ident, språkVerdi))
         val livssyklusPostgresRepository = LivssyklusPostgresRepository(dataSource)
-        livssyklusPostgresRepository.lagre(søknadhåndterer)
+        livssyklusPostgresRepository.lagre(søknadhåndterer, ident)
     }
 }

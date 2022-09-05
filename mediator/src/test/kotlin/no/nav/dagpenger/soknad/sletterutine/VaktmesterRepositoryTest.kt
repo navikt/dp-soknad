@@ -67,7 +67,7 @@ internal class VaktmesterRepositoryTest {
             )
         }
 
-        livssyklusRepository.lagre(søknadhåndterer)
+        livssyklusRepository.lagre(søknadhåndterer, testPersonIdent)
         settSistEndretAvBruker(antallDagerSiden = 8, gammelPåbegyntSøknadUuid)
         settSistEndretAvBruker(antallDagerSiden = 2, nyPåbegyntSøknadUuid)
         settSistEndretAvBruker(antallDagerSiden = 30, innsendtSøknadUuid)
@@ -173,7 +173,7 @@ private class TestSøknadhåndtererVisitor(søknadhåndterer: Søknadhåndterer?
     }
 
     lateinit var søknader: List<Søknad>
-    override fun visitPerson(ident: String, søknader: List<Søknad>) {
+    override fun visitSøknader(søknader: List<Søknad>) {
         this.søknader = søknader
     }
 }

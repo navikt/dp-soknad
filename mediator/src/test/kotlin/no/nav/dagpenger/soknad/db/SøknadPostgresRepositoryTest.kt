@@ -79,7 +79,7 @@ internal class SøknadPostgresRepositoryTest {
     @Test
     fun hentDokumentkrav() {
         withMigratedDb {
-            LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).lagre(originalSøknadhåndterer)
+            LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).lagre(originalSøknadhåndterer, ident)
             val søknadPostgresRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
             assertThrows<IkkeTilgangExeption> { søknadPostgresRepository.hentDokumentkravFor(søknadId, "ikke-tilgang") }
 
@@ -98,7 +98,7 @@ internal class SøknadPostgresRepositoryTest {
         )
         withMigratedDb {
             val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
-            livssyklusPostgresRepository.lagre(originalSøknadhåndterer)
+            livssyklusPostgresRepository.lagre(originalSøknadhåndterer, ident)
             val søknadMediator = SøknadMediator(
                 rapidsConnection = mockk(),
                 søknadCacheRepository = mockk(),
@@ -151,7 +151,7 @@ internal class SøknadPostgresRepositoryTest {
         )
         withMigratedDb {
             val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
-            livssyklusPostgresRepository.lagre(originalSøknadhåndterer)
+            livssyklusPostgresRepository.lagre(originalSøknadhåndterer, ident)
             val søknadMediator = SøknadMediator(
                 rapidsConnection = mockk(),
                 søknadCacheRepository = mockk(),

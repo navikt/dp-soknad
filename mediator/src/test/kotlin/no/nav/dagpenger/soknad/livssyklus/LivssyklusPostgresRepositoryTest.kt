@@ -54,14 +54,14 @@ internal class LivssyklusPostgresRepositoryTest {
         withMigratedDb {
             LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
                 val expectedSøknadhåndterer = Søknadhåndterer("12345678910")
-                it.lagre(expectedSøknadhåndterer)
+                it.lagre(expectedSøknadhåndterer, "12345678910")
                 val person = it.hent("12345678910")
 
                 assertNotNull(person)
                 assertEquals(expectedSøknadhåndterer, person)
 
                 assertDoesNotThrow {
-                    it.lagre(expectedSøknadhåndterer)
+                    it.lagre(expectedSøknadhåndterer, "12345678910")
                 }
             }
         }
@@ -115,7 +115,7 @@ internal class LivssyklusPostgresRepositoryTest {
 
         withMigratedDb {
             LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
-                it.lagre(originalSøknadhåndterer)
+                it.lagre(originalSøknadhåndterer, "12345678910")
                 val personFraDatabase = it.hent("12345678910", true)
                 assertNotNull(personFraDatabase)
                 assertEquals(originalSøknadhåndterer, personFraDatabase)
@@ -171,8 +171,8 @@ internal class LivssyklusPostgresRepositoryTest {
         }
         withMigratedDb {
             LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
-                it.lagre(originalSøknadhåndterer)
-                it.lagre(originalSøknadhåndterer)
+                it.lagre(originalSøknadhåndterer, "12345678910")
+                it.lagre(originalSøknadhåndterer, "12345678910")
             }
         }
     }
@@ -212,7 +212,7 @@ internal class LivssyklusPostgresRepositoryTest {
 
         withMigratedDb {
             LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
-                it.lagre(søknadhåndterer)
+                it.lagre(søknadhåndterer, "12345678910")
                 val påbegyntSøknad = it.hentPåbegyntSøknad("12345678910")!!
                 assertEquals(påbegyntSøknadUuid, påbegyntSøknad.uuid)
                 assertEquals(LocalDate.from(innsendtTidspunkt), påbegyntSøknad.startDato)
@@ -245,7 +245,7 @@ internal class LivssyklusPostgresRepositoryTest {
 
         withMigratedDb {
             LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
-                it.lagre(originalSøknadhåndterer)
+                it.lagre(originalSøknadhåndterer, "12345678910")
                 val personFraDatabase = it.hent("12345678910")
                 assertNotNull(personFraDatabase)
                 val søknaderFraDatabase = TestSøknadhåndtererVisitor(personFraDatabase).søknader
@@ -277,7 +277,7 @@ internal class LivssyklusPostgresRepositoryTest {
             søknadhåndterer?.accept(this)
         }
 
-        override fun visitPerson(ident: String, søknader: List<Søknad>) {
+        override fun visitSøknader(søknader: List<Søknad>) {
             this.søknader = søknader
         }
 

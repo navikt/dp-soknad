@@ -37,7 +37,7 @@ private val logger = KotlinLogging.logger { }
 
 interface LivssyklusRepository {
     fun hent(ident: String, komplettAktivitetslogg: Boolean = false): Søknadhåndterer?
-    fun lagre(søknadhåndterer: Søknadhåndterer)
+    fun lagre(søknadhåndterer: Søknadhåndterer, ident: String)
     fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad?
 }
 
@@ -75,17 +75,17 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
         }
     }
 
-    override fun lagre(søknadhåndterer: Søknadhåndterer) {
+    override fun lagre(søknadhåndterer: Søknadhåndterer, ident: String) {
         val visitor = SøknadhåndtererPersistenceVisitor(søknadhåndterer)
         using(sessionOf(dataSource)) { session ->
             session.transaction { transactionalSession ->
                 val internId =
-                    hentInternPersonId(transactionalSession, visitor.ident) ?: lagrePerson(transactionalSession, visitor.ident)!!
+                    hentInternPersonId(transactionalSession, ident) ?: lagrePerson(transactionalSession, ident)!!
 
                 lagreAktivitetslogg(transactionalSession, internId, visitor.aktivitetslogg)
 
                 logger.info { "Lagrer ${visitor.søknader().size} søknader" }
-                visitor.søknader().insertQuery(visitor.ident, transactionalSession)
+                visitor.søknader().insertQuery(ident, transactionalSession)
                 visitor.søknader().forEach {
                     it.insertDokumentQuery(transactionalSession)
                 }
@@ -398,7 +398,6 @@ private fun PersonDTO.SøknadDTO.insertDokumentQuery(session: TransactionalSessi
     )
 
 private class SøknadhåndtererPersistenceVisitor(søknadhåndterer: Søknadhåndterer) : SøknadhåndtererVisitor {
-    lateinit var ident: String
 
     fun søknader() = søknader.filterNot(slettet())
     fun slettedeSøknader() = søknader.filter(slettet())
@@ -410,14 +409,6 @@ private class SøknadhåndtererPersistenceVisitor(søknadhåndterer: Søknadhån
 
     init {
         søknadhåndterer.accept(this)
-    }
-
-    override fun visitPerson(ident: String) {
-        this.ident = ident
-    }
-
-    override fun visitPerson(ident: String, søknader: List<Søknad>) {
-        this.ident = ident
     }
 
     override fun preVisitAktivitetslogg(aktivitetslogg: Aktivitetslogg) {

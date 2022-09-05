@@ -107,20 +107,6 @@ internal class SøknadTest {
     }
 
     @Test
-    fun `oppretter en person `() {
-        val søknadhåndterer = Søknadhåndterer(testIdent)
-        object : SøknadhåndtererVisitor {
-            init {
-                søknadhåndterer.accept(this)
-            }
-
-            override fun visitPerson(ident: String) {
-                assertEquals(testIdent, ident)
-            }
-        }
-    }
-
-    @Test
     fun `Slett søknad for person`() {
         håndterØnskeOmNySøknadHendelse()
         håndterNySøknadOpprettet()
