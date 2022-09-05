@@ -18,10 +18,10 @@ import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
-import no.nav.dagpenger.soknad.serder.PersonData
-import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.KravData
-import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.KravData.Companion.toKravdata
-import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.SpråkData
+import no.nav.dagpenger.soknad.serder.PersonDTO
+import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO
+import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO.Companion.toKravdata
+import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.SpråkDTO
 import no.nav.dagpenger.soknad.toMap
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import no.nav.helse.rapids_rivers.asLocalDateTime
@@ -62,7 +62,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     paramMap = mapOf("ident" to ident)
                 ).map { row ->
                     row.stringOrNull("person_ident")?.let { ident ->
-                        PersonData(
+                        PersonDTO(
                             ident = row.string("person_ident"),
                             søknader = session.hentSøknadsData(ident)
                         ).also {
@@ -152,7 +152,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
         }
     }
 
-    private fun Session.hentDokumentData(søknadId: UUID): List<PersonData.SøknadData.DokumentData> {
+    private fun Session.hentDokumentData(søknadId: UUID): List<PersonDTO.SøknadDTO.DokumentDTO> {
         return this.run(
             queryOf(
                 //language=PostgreSQL
@@ -164,12 +164,12 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     "soknadId" to søknadId.toString()
                 )
             ).map { row ->
-                PersonData.SøknadData.DokumentData(urn = row.string("dokument_lokasjon"))
+                PersonDTO.SøknadDTO.DokumentDTO(urn = row.string("dokument_lokasjon"))
             }.asList
         )
     }
 
-    private fun Session.hentAktivitetslogg(ident: Int): PersonData.AktivitetsloggData = run(
+    private fun Session.hentAktivitetslogg(ident: Int): PersonDTO.AktivitetsloggDTO = run(
         queryOf(
             //language=PostgreSQL
             statement = """
@@ -184,11 +184,11 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
         ).map { row ->
             row.binaryStream("aktivitetslogg").aktivitetslogg()
         }.asList
-    ).fold(PersonData.AktivitetsloggData(mutableListOf())) { acc, data ->
-        PersonData.AktivitetsloggData(acc.aktiviteter + data.aktiviteter)
+    ).fold(PersonDTO.AktivitetsloggDTO(mutableListOf())) { acc, data ->
+        PersonDTO.AktivitetsloggDTO(acc.aktiviteter + data.aktiviteter)
     }
 
-    private fun Session.hentSøknadsData(ident: String): List<PersonData.SøknadData> {
+    private fun Session.hentSøknadsData(ident: String): List<PersonDTO.SøknadDTO> {
         return this.run(
             queryOf(
                 //language=PostgreSQL
@@ -202,14 +202,14 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                 )
             ).map { row ->
                 val søknadsId = UUID.fromString(row.string("uuid"))
-                PersonData.SøknadData(
+                PersonDTO.SøknadDTO(
                     søknadsId = søknadsId,
-                    tilstandType = PersonData.SøknadData.TilstandData.rehydrer(row.string("tilstand")),
+                    tilstandType = PersonDTO.SøknadDTO.TilstandDTO.rehydrer(row.string("tilstand")),
                     dokumenter = hentDokumentData(søknadsId),
                     journalpostId = row.stringOrNull("journalpost_id"),
                     innsendtTidspunkt = row.zonedDateTimeOrNull("innsendt_tidspunkt"),
-                    språkData = SpråkData(row.string("spraak")),
-                    dokumentkrav = PersonData.SøknadData.DokumentkravData(
+                    språkDTO = SpråkDTO(row.string("spraak")),
+                    dokumentkrav = PersonDTO.SøknadDTO.DokumentkravDTO(
                         this.hentDokumentKrav(søknadsId)
                     ),
                     sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")
@@ -238,7 +238,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
     }
 }
 
-private fun Session.hentFiler(søknadsId: UUID, faktumId: String): Set<KravData.FilData> {
+private fun Session.hentFiler(søknadsId: UUID, faktumId: String): Set<KravDTO.FilDTO> {
     return this.run(
         queryOf(
             statement = """
@@ -252,7 +252,7 @@ private fun Session.hentFiler(søknadsId: UUID, faktumId: String): Set<KravData.
                 "faktum_id" to faktumId
             )
         ).map { row ->
-            KravData.FilData(
+            KravDTO.FilDTO(
                 filnavn = row.string("filnavn"),
                 urn = URN.rfc8141().parse(row.string("urn")),
                 storrelse = row.long("storrelse"),
@@ -262,7 +262,7 @@ private fun Session.hentFiler(søknadsId: UUID, faktumId: String): Set<KravData.
     ).toSet()
 }
 
-internal fun Session.hentDokumentKrav(søknadsId: UUID): Set<KravData> =
+internal fun Session.hentDokumentKrav(søknadsId: UUID): Set<KravDTO> =
     this.run(
         queryOf(
             // language=PostgreSQL
@@ -276,30 +276,30 @@ internal fun Session.hentDokumentKrav(søknadsId: UUID): Set<KravData> =
             )
         ).map { row ->
             val faktumId = row.string("faktum_id")
-            KravData(
+            KravDTO(
                 id = faktumId,
                 beskrivendeId = row.string("beskrivende_id"),
-                sannsynliggjøring = PersonData.SøknadData.DokumentkravData.SannsynliggjøringData(
+                sannsynliggjøring = PersonDTO.SøknadDTO.DokumentkravDTO.SannsynliggjøringDTO(
                     id = faktumId,
                     faktum = objectMapper.readTree(row.binaryStream("faktum")),
                     sannsynliggjør = objectMapper.readTree(row.binaryStream("sannsynliggjoer")).toSet(),
 
                 ),
-                svar = PersonData.SøknadData.DokumentkravData.SvarData(
+                svar = PersonDTO.SøknadDTO.DokumentkravDTO.SvarDTO(
                     begrunnelse = null, filer = hentFiler(søknadsId, faktumId)
                 ),
                 tilstand = row.string("tilstand")
-                    .let { KravData.KravTilstandData.valueOf(it) }
+                    .let { KravDTO.KravTilstandDTO.valueOf(it) }
             )
         }.asList
     ).toSet()
 
-private fun List<PersonData.SøknadData>.insertDokumentkrav(transactionalSession: TransactionalSession) =
+private fun List<PersonDTO.SøknadDTO>.insertDokumentkrav(transactionalSession: TransactionalSession) =
     this.map {
         it.dokumentkrav.kravData.insertKravData(it.søknadsId, transactionalSession)
     }
 
-internal fun Set<KravData>.insertKravData(
+internal fun Set<KravDTO>.insertKravData(
     søknadsId: UUID,
     transactionalSession: TransactionalSession
 ) {
@@ -358,7 +358,7 @@ internal fun Set<KravData>.insertKravData(
     )
 }
 
-private fun List<PersonData.SøknadData>.insertQuery(personIdent: String, session: Session) =
+private fun List<PersonDTO.SøknadDTO>.insertQuery(personIdent: String, session: Session) =
     session.batchPreparedNamedStatement(
         // language=PostgreSQL
         statement = """
@@ -376,13 +376,13 @@ private fun List<PersonData.SøknadData>.insertQuery(personIdent: String, sessio
                 "tilstand" to it.tilstandType.name,
                 "journalpostID" to it.journalpostId,
                 "innsendtTidspunkt" to it.innsendtTidspunkt,
-                "spraak" to it.språkData.verdi,
+                "spraak" to it.språkDTO.verdi,
                 "sistEndretAvBruker" to it.sistEndretAvBruker
             )
         }
     )
 
-private fun PersonData.SøknadData.insertDokumentQuery(session: TransactionalSession) =
+private fun PersonDTO.SøknadDTO.insertDokumentQuery(session: TransactionalSession) =
     session.batchPreparedNamedStatement(
         //language=PostgreSQL
         statement = """
@@ -402,10 +402,10 @@ private class PersonPersistenceVisitor(søknadhåndterer: Søknadhåndterer) : P
 
     fun søknader() = søknader.filterNot(slettet())
     fun slettedeSøknader() = søknader.filter(slettet())
-    private fun slettet(): (PersonData.SøknadData) -> Boolean =
-        { it.tilstandType == PersonData.SøknadData.TilstandData.Slettet }
+    private fun slettet(): (PersonDTO.SøknadDTO) -> Boolean =
+        { it.tilstandType == PersonDTO.SøknadDTO.TilstandDTO.Slettet }
 
-    private val søknader: MutableList<PersonData.SøknadData> = mutableListOf()
+    private val søknader: MutableList<PersonDTO.SøknadDTO> = mutableListOf()
     lateinit var aktivitetslogg: Aktivitetslogg
 
     init {
@@ -436,35 +436,35 @@ private class PersonPersistenceVisitor(søknadhåndterer: Søknadhåndterer) : P
         sistEndretAvBruker: ZonedDateTime?
     ) {
         søknader.add(
-            PersonData.SøknadData(
+            PersonDTO.SøknadDTO(
                 søknadsId = søknadId,
                 tilstandType = when (tilstand.tilstandType) {
-                    Søknad.Tilstand.Type.UnderOpprettelse -> PersonData.SøknadData.TilstandData.UnderOpprettelse
-                    Søknad.Tilstand.Type.Påbegynt -> PersonData.SøknadData.TilstandData.Påbegynt
-                    Søknad.Tilstand.Type.AvventerArkiverbarSøknad -> PersonData.SøknadData.TilstandData.AvventerArkiverbarSøknad
-                    Søknad.Tilstand.Type.AvventerMidlertidligJournalføring -> PersonData.SøknadData.TilstandData.AvventerMidlertidligJournalføring
-                    Søknad.Tilstand.Type.AvventerJournalføring -> PersonData.SøknadData.TilstandData.AvventerJournalføring
-                    Søknad.Tilstand.Type.Journalført -> PersonData.SøknadData.TilstandData.Journalført
-                    Søknad.Tilstand.Type.Slettet -> PersonData.SøknadData.TilstandData.Slettet
+                    Søknad.Tilstand.Type.UnderOpprettelse -> PersonDTO.SøknadDTO.TilstandDTO.UnderOpprettelse
+                    Søknad.Tilstand.Type.Påbegynt -> PersonDTO.SøknadDTO.TilstandDTO.Påbegynt
+                    Søknad.Tilstand.Type.AvventerArkiverbarSøknad -> PersonDTO.SøknadDTO.TilstandDTO.AvventerArkiverbarSøknad
+                    Søknad.Tilstand.Type.AvventerMidlertidligJournalføring -> PersonDTO.SøknadDTO.TilstandDTO.AvventerMidlertidligJournalføring
+                    Søknad.Tilstand.Type.AvventerJournalføring -> PersonDTO.SøknadDTO.TilstandDTO.AvventerJournalføring
+                    Søknad.Tilstand.Type.Journalført -> PersonDTO.SøknadDTO.TilstandDTO.Journalført
+                    Søknad.Tilstand.Type.Slettet -> PersonDTO.SøknadDTO.TilstandDTO.Slettet
                 },
                 dokumenter = dokument.toDokumentData(),
                 journalpostId = journalpostId,
                 innsendtTidspunkt = innsendtTidspunkt,
-                språkData = SpråkData(språk.verdi),
+                språkDTO = SpråkDTO(språk.verdi),
                 dokumentkrav = dokumentkrav.toDokumentKravData(),
                 sistEndretAvBruker = sistEndretAvBruker
             )
         )
     }
 
-    private fun Søknad.Dokument?.toDokumentData(): List<PersonData.SøknadData.DokumentData> {
-        return this?.let { it.varianter.map { v -> PersonData.SøknadData.DokumentData(urn = v.urn) } }
+    private fun Søknad.Dokument?.toDokumentData(): List<PersonDTO.SøknadDTO.DokumentDTO> {
+        return this?.let { it.varianter.map { v -> PersonDTO.SøknadDTO.DokumentDTO(urn = v.urn) } }
             ?: emptyList()
     }
 }
 
-internal fun Dokumentkrav.toDokumentKravData(): PersonData.SøknadData.DokumentkravData {
-    return PersonData.SøknadData.DokumentkravData(
+internal fun Dokumentkrav.toDokumentKravData(): PersonDTO.SøknadDTO.DokumentkravDTO {
+    return PersonDTO.SøknadDTO.DokumentkravDTO(
         kravData = (this.aktiveDokumentKrav() + this.inAktiveDokumentKrav()).map { krav -> krav.toKravdata() }
             .toSet()
     )

@@ -4,8 +4,8 @@ import de.slub.urn.RFC
 import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Krav.Companion.aktive
 import no.nav.dagpenger.soknad.Krav.Svar.Companion.TOMT_SVAR
+import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.IKKE_BESVART
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SEND_NÅ
-import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.TOMT
 import java.time.ZonedDateTime
 
 class Dokumentkrav private constructor(
@@ -74,7 +74,7 @@ data class Krav(
 
     data class Svar(
         val filer: MutableSet<Fil> = mutableSetOf(),
-        var valg: SvarValg = TOMT,
+        var valg: SvarValg,
         val begrunnelse: String?
     ) {
 
@@ -84,11 +84,11 @@ data class Krav(
         }
 
         companion object {
-            val TOMT_SVAR = Svar(filer = mutableSetOf(), valg = TOMT, begrunnelse = null)
+            val TOMT_SVAR = Svar(filer = mutableSetOf(), valg = IKKE_BESVART, begrunnelse = null)
         }
 
         enum class SvarValg {
-            TOMT,
+            IKKE_BESVART,
             SEND_NÅ,
             SEND_SENERE,
             ANDRE_SENDER,

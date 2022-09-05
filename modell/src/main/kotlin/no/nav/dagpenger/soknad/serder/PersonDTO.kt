@@ -11,17 +11,17 @@ import no.nav.dagpenger.soknad.SpesifikkKontekst
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknadhåndterer
-import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentData.Companion.rehydrer
-import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.KravData.FilData.Companion.toFilData
-import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.SannsynliggjøringData.Companion.toSannsynliggjøringData
-import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.SvarData.Companion.tilSvarData
+import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentDTO.Companion.rehydrer
+import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO.FilDTO.Companion.toFilData
+import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.SannsynliggjøringDTO.Companion.toSannsynliggjøringData
+import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.SvarDTO.Companion.tilSvarData
 import java.time.ZonedDateTime
 import java.util.Locale
 import java.util.UUID
-class PersonData( // TODO: Verken Person eller Søknadhåndterer skal være rotaggregat
+class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotaggregat
     val ident: String,
-    var søknader: List<SøknadData> = emptyList(),
-    var aktivitetsLogg: AktivitetsloggData? = null
+    var søknader: List<SøknadDTO> = emptyList(),
+    var aktivitetsLogg: AktivitetsloggDTO? = null
 ) {
     fun createSøknadhåndterer(): Søknadhåndterer {
         return Søknadhåndterer.rehydrer(
@@ -36,7 +36,7 @@ class PersonData( // TODO: Verken Person eller Søknadhåndterer skal være rota
                     dokument = it.dokumenter.rehydrer(),
                     journalpostId = it.journalpostId,
                     innsendtTidspunkt = it.innsendtTidspunkt,
-                    språk = it.språkData.somSpråk(),
+                    språk = it.språkDTO.somSpråk(),
                     dokumentkrav = it.dokumentkrav.rehydrer(),
                     sistEndretAvBruker = it.sistEndretAvBruker,
                     tilstandsType = it.tilstandType.name
@@ -45,21 +45,21 @@ class PersonData( // TODO: Verken Person eller Søknadhåndterer skal være rota
         }
     }
 
-    class SøknadData(
+    class SøknadDTO(
         val søknadsId: UUID,
-        val tilstandType: TilstandData,
-        var dokumenter: List<DokumentData>,
+        val tilstandType: TilstandDTO,
+        var dokumenter: List<DokumentDTO>,
         val journalpostId: String?,
         val innsendtTidspunkt: ZonedDateTime?,
-        val språkData: SpråkData,
-        var dokumentkrav: DokumentkravData,
+        val språkDTO: SpråkDTO,
+        var dokumentkrav: DokumentkravDTO,
         val sistEndretAvBruker: ZonedDateTime?
     ) {
-        class DokumentData(
+        class DokumentDTO(
             val urn: String
         ) {
             companion object {
-                fun List<DokumentData>.rehydrer(): Søknad.Dokument? {
+                fun List<DokumentDTO>.rehydrer(): Søknad.Dokument? {
                     return if (this.isEmpty()) null else {
                         Søknad.Dokument(
                             varianter = this.map {
@@ -75,20 +75,20 @@ class PersonData( // TODO: Verken Person eller Søknadhåndterer skal være rota
             }
         }
 
-        class SpråkData(val verdi: String) {
+        class SpråkDTO(val verdi: String) {
             constructor(språk: Locale) : this(språk.toLanguageTag())
 
             fun somSpråk() = Språk(verdi)
         }
 
-        data class DokumentkravData(
-            val kravData: Set<KravData>
+        data class DokumentkravDTO(
+            val kravData: Set<KravDTO>
         ) {
             fun rehydrer(): Dokumentkrav = Dokumentkrav.rehydrer(
                 krav = kravData.map { it.rehydrer() }.toSet()
             )
 
-            data class SannsynliggjøringData(
+            data class SannsynliggjøringDTO(
                 val id: String,
                 val faktum: JsonNode,
                 val sannsynliggjør: Set<JsonNode>
@@ -100,7 +100,7 @@ class PersonData( // TODO: Verken Person eller Søknadhåndterer skal være rota
                 )
 
                 companion object {
-                    fun Sannsynliggjøring.toSannsynliggjøringData() = SannsynliggjøringData(
+                    fun Sannsynliggjøring.toSannsynliggjøringData() = SannsynliggjøringDTO(
                         id = this.id,
                         faktum = this.faktum().json,
                         sannsynliggjør = this.sannsynliggjør().map { it.json }.toSet()
@@ -108,14 +108,14 @@ class PersonData( // TODO: Verken Person eller Søknadhåndterer skal være rota
                 }
             }
 
-            data class SvarData(
+            data class SvarDTO(
                 val begrunnelse: String?,
-                val filer: Set<KravData.FilData>,
+                val filer: Set<KravDTO.FilDTO>,
             ) {
                 companion object {
 
-                    fun Krav.Svar.tilSvarData(): SvarData {
-                        return SvarData(
+                    fun Krav.Svar.tilSvarData(): SvarDTO {
+                        return SvarDTO(
                             begrunnelse = this.begrunnelse,
                             filer = this.filer.map { it.toFilData() }.toSet()
                         )
@@ -125,48 +125,48 @@ class PersonData( // TODO: Verken Person eller Søknadhåndterer skal være rota
                 fun rehydrer(): Krav.Svar {
                     return Krav.Svar(
                         filer = this.filer.map { it.rehydrer() }.toMutableSet(),
-                        valg = Krav.Svar.SvarValg.TOMT,
+                        valg = Krav.Svar.SvarValg.IKKE_BESVART,
                         begrunnelse = null
                     )
                 }
             }
 
-            data class KravData(
+            data class KravDTO(
                 val id: String,
                 val beskrivendeId: String,
-                val sannsynliggjøring: SannsynliggjøringData,
-                val tilstand: KravTilstandData,
-                val svar: SvarData
+                val sannsynliggjøring: SannsynliggjøringDTO,
+                val tilstand: KravTilstandDTO,
+                val svar: SvarDTO
             ) {
                 fun rehydrer() = Krav(
                     id = this.id,
                     svar = this.svar.rehydrer(),
                     sannsynliggjøring = this.sannsynliggjøring.rehydrer(),
                     tilstand = when (this.tilstand) {
-                        KravTilstandData.AKTIV -> Krav.KravTilstand.AKTIV
-                        KravTilstandData.INAKTIV -> Krav.KravTilstand.INAKTIV
+                        KravTilstandDTO.AKTIV -> Krav.KravTilstand.AKTIV
+                        KravTilstandDTO.INAKTIV -> Krav.KravTilstand.INAKTIV
                     },
                 )
 
                 companion object {
-                    fun Krav.toKravdata() = KravData(
+                    fun Krav.toKravdata() = KravDTO(
                         id = this.id,
                         beskrivendeId = this.beskrivendeId,
                         svar = this.svar.tilSvarData(),
                         sannsynliggjøring = this.sannsynliggjøring.toSannsynliggjøringData(),
                         tilstand = when (this.tilstand) {
-                            Krav.KravTilstand.AKTIV -> KravTilstandData.AKTIV
-                            Krav.KravTilstand.INAKTIV -> KravTilstandData.INAKTIV
+                            Krav.KravTilstand.AKTIV -> KravTilstandDTO.AKTIV
+                            Krav.KravTilstand.INAKTIV -> KravTilstandDTO.INAKTIV
                         }
                     )
                 }
 
-                enum class KravTilstandData {
+                enum class KravTilstandDTO {
                     AKTIV,
                     INAKTIV
                 }
 
-                data class FilData(
+                data class FilDTO(
                     val filnavn: String,
                     val urn: URN,
                     val storrelse: Long,
@@ -174,7 +174,7 @@ class PersonData( // TODO: Verken Person eller Søknadhåndterer skal være rota
                 ) {
 
                     companion object {
-                        fun Krav.Fil.toFilData() = FilData(
+                        fun Krav.Fil.toFilData() = FilDTO(
                             filnavn = this.filnavn,
                             urn = this.urn,
                             storrelse = this.storrelse,
@@ -192,7 +192,7 @@ class PersonData( // TODO: Verken Person eller Søknadhåndterer skal være rota
             }
         }
 
-        enum class TilstandData {
+        enum class TilstandDTO {
             UnderOpprettelse,
             Påbegynt,
             AvventerArkiverbarSøknad,
@@ -202,27 +202,27 @@ class PersonData( // TODO: Verken Person eller Søknadhåndterer skal være rota
             Slettet;
 
             companion object {
-                fun rehydrer(dbTilstand: String): TilstandData {
-                    return TilstandData.valueOf(dbTilstand)
+                fun rehydrer(dbTilstand: String): TilstandDTO {
+                    return TilstandDTO.valueOf(dbTilstand)
                 }
             }
         }
     }
 
-    data class AktivitetsloggData(
-        val aktiviteter: List<AktivitetData>
+    data class AktivitetsloggDTO(
+        val aktiviteter: List<AktivitetDTO>
     ) {
-        data class AktivitetData(
+        data class AktivitetDTO(
             val alvorlighetsgrad: Alvorlighetsgrad,
             val label: Char,
             val behovtype: String?,
             val melding: String,
             val tidsstempel: String,
-            val kontekster: List<SpesifikkKontekstData>,
+            val kontekster: List<SpesifikkKontekstDTO>,
             val detaljer: Map<String, Any>
         )
 
-        data class SpesifikkKontekstData(
+        data class SpesifikkKontekstDTO(
             val kontekstType: String,
             val kontekstMap: Map<String, String>
         )
@@ -237,9 +237,9 @@ class PersonData( // TODO: Verken Person eller Søknadhåndterer skal være rota
 
         fun konverterTilAktivitetslogg(): Aktivitetslogg = konverterTilAktivitetslogg(this)
 
-        private fun konverterTilAktivitetslogg(aktivitetsloggData: AktivitetsloggData): Aktivitetslogg {
+        private fun konverterTilAktivitetslogg(aktivitetsloggDTO: AktivitetsloggDTO): Aktivitetslogg {
             val aktiviteter = mutableListOf<Aktivitetslogg.Aktivitet>()
-            aktivitetsloggData.aktiviteter.forEach {
+            aktivitetsloggDTO.aktiviteter.forEach {
                 val kontekster = it.kontekster.map { spesifikkKontekstData ->
                     SpesifikkKontekst(
                         spesifikkKontekstData.kontekstType,
