@@ -1,8 +1,8 @@
 package no.nav.dagpenger.soknad
 
-import no.nav.dagpenger.soknad.PersonObserver.SøknadEndretTilstandEvent
+import no.nav.dagpenger.soknad.SøknadObserver.SøknadEndretTilstandEvent
 
-class TestPersonObserver : PersonObserver {
+class TestSøknadObserver : SøknadObserver {
 
     internal var slettet: Boolean = false
     internal val tilstander = mutableListOf<Søknad.Tilstand.Type>().also {
@@ -13,7 +13,7 @@ class TestPersonObserver : PersonObserver {
         tilstander.add(event.gjeldendeTilstand)
     }
 
-    override fun søknadSlettet(event: PersonObserver.SøknadSlettetEvent) {
+    override fun søknadSlettet(event: SøknadObserver.SøknadSlettetEvent) {
         slettet = true
     }
 }

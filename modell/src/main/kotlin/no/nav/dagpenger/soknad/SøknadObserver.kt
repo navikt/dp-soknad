@@ -2,7 +2,7 @@ package no.nav.dagpenger.soknad
 
 import java.util.UUID
 
-interface PersonObserver {
+interface SøknadObserver {
     fun søknadTilstandEndret(event: SøknadEndretTilstandEvent) {}
 
     fun søknadSlettet(event: SøknadSlettetEvent) {}

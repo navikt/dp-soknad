@@ -109,7 +109,7 @@ internal class SøknadPostgresRepositoryTest {
                 søknadMalRepository = mockk(),
                 ferdigstiltSøknadRepository = mockk(),
                 søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource),
-                personObservers = listOf(),
+                søknadObservers = listOf(),
 
             )
 
@@ -162,7 +162,7 @@ internal class SøknadPostgresRepositoryTest {
                 søknadMalRepository = mockk(),
                 ferdigstiltSøknadRepository = mockk(),
                 søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource),
-                personObservers = listOf(),
+                søknadObservers = listOf(),
 
             )
 

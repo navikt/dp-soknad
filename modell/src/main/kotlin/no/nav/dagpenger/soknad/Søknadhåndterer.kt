@@ -18,7 +18,7 @@ import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 class Søknadhåndterer private constructor(
     søknadsfunksjon: (søknadhåndterer: Søknadhåndterer) -> MutableList<Søknad>,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
-) : PersonObserver {
+) : SøknadObserver {
 
     companion object {
         internal fun rehydrer(
@@ -34,7 +34,7 @@ class Søknadhåndterer private constructor(
         this.søknader = søknadsfunksjon(this)
     }
 
-    private val observers = mutableListOf<PersonObserver>()
+    private val observers = mutableListOf<SøknadObserver>()
 
     constructor() : this({ mutableListOf() })
     constructor(søknadsfunksjon: (søknadhåndterer: Søknadhåndterer) -> MutableList<Søknad>) : this(
@@ -142,17 +142,17 @@ class Søknadhåndterer private constructor(
         aktivitetslogg.accept(visitor)
     }
 
-    fun addObserver(søknadObserver: PersonObserver) {
+    fun addObserver(søknadObserver: SøknadObserver) {
         observers.add(søknadObserver)
     }
 
-    override fun søknadTilstandEndret(event: PersonObserver.SøknadEndretTilstandEvent) {
+    override fun søknadTilstandEndret(event: SøknadObserver.SøknadEndretTilstandEvent) {
         observers.forEach {
             it.søknadTilstandEndret(event)
         }
     }
 
-    override fun søknadSlettet(event: PersonObserver.SøknadSlettetEvent) {
+    override fun søknadSlettet(event: SøknadObserver.SøknadSlettetEvent) {
         observers.forEach {
             it.søknadSlettet(event)
         }

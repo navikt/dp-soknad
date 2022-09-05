@@ -1,7 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
-import no.nav.dagpenger.soknad.PersonObserver.SøknadSlettetEvent
+import no.nav.dagpenger.soknad.SøknadObserver.SøknadSlettetEvent
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
@@ -403,7 +403,7 @@ class Søknad private constructor(
 
     private fun varsleOmEndretTilstand(forrigeTilstand: Tilstand) {
         søknadhåndterer.søknadTilstandEndret(
-            PersonObserver.SøknadEndretTilstandEvent(
+            SøknadObserver.SøknadEndretTilstandEvent(
                 søknadId = søknadId,
                 gjeldendeTilstand = tilstand.tilstandType,
                 forrigeTilstand = forrigeTilstand.tilstandType

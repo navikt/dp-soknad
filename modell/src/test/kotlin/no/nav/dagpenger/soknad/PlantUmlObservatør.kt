@@ -6,7 +6,7 @@ import org.approvaltests.core.Options
 import org.approvaltests.namer.NamerWrapper
 import java.nio.file.Paths
 
-class PlantUmlObservatør() : PersonObserver {
+class PlantUmlObservatør() : SøknadObserver {
     private val tilstander = mutableListOf<String>()
 
     private companion object {
@@ -18,7 +18,7 @@ class PlantUmlObservatør() : PersonObserver {
             .withExtension(".puml")
     }
 
-    override fun søknadTilstandEndret(event: PersonObserver.SøknadEndretTilstandEvent) {
+    override fun søknadTilstandEndret(event: SøknadObserver.SøknadEndretTilstandEvent) {
         tilstander.add("${event.forrigeTilstand} --> ${event.gjeldendeTilstand.name}")
     }
 

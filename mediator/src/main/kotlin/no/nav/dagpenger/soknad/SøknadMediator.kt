@@ -35,7 +35,7 @@ internal class SøknadMediator(
     private val søknadMalRepository: SøknadMalRepository,
     private val ferdigstiltSøknadRepository: FerdigstiltSøknadRepository,
     private val søknadRepository: SøknadRepository,
-    private val personObservers: List<PersonObserver> = emptyList()
+    private val søknadObservers: List<SøknadObserver> = emptyList()
 ) : SøknadCacheRepository by søknadCacheRepository,
     SøknadMalRepository by søknadMalRepository,
     LivssyklusRepository by livssyklusRepository,
@@ -176,12 +176,12 @@ internal class SøknadMediator(
 
     private fun behandle(hendelse: Hendelse, håndter: (Søknadhåndterer) -> Unit) =
         try {
-            val person = hentEllerOpprettPerson(hendelse)
-            personObservers.forEach { personObserver ->
-                person.addObserver(personObserver)
+            val søknadhåndterer = hentEllerOpprettSøknadhåndterer(hendelse)
+            søknadObservers.forEach { søknadObserver ->
+                søknadhåndterer.addObserver(søknadObserver)
             }
-            håndter(person) // slettet tilstand
-            finalize(person, hendelse)
+            håndter(søknadhåndterer) // slettet tilstand
+            finalize(søknadhåndterer, hendelse)
         } catch (err: Aktivitetslogg.AktivitetException) {
             withMDC(kontekst(hendelse)) {
                 logger.error("alvorlig feil i aktivitetslogg (se sikkerlogg for detaljer)")
@@ -216,7 +216,7 @@ internal class SøknadMediator(
         behovMediator.håndter(hendelse)
     }
 
-    private fun hentEllerOpprettPerson(hendelse: Hendelse) =
+    private fun hentEllerOpprettSøknadhåndterer(hendelse: Hendelse) =
         livssyklusRepository.hent(hendelse.ident()) ?: Søknadhåndterer()
 }
 

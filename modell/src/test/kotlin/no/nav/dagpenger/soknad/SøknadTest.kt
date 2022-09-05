@@ -32,7 +32,7 @@ private const val testJournalpostId = "J123"
 
 internal class SøknadTest {
     private lateinit var søknadhåndterer: Søknadhåndterer
-    private lateinit var personObserver: TestPersonObserver
+    private lateinit var personObserver: TestSøknadObserver
     private lateinit var plantUmlObservatør: PlantUmlObservatør
     private val inspektør get() = TestSøknadInspektør(søknadhåndterer)
     private val språk = "NO"
@@ -40,7 +40,7 @@ internal class SøknadTest {
     @BeforeEach
     internal fun setUp() {
         søknadhåndterer = Søknadhåndterer()
-        personObserver = TestPersonObserver().also { søknadhåndterer.addObserver(it) }
+        personObserver = TestSøknadObserver().also { søknadhåndterer.addObserver(it) }
         plantUmlObservatør = PlantUmlObservatør().also {
             søknadhåndterer.addObserver(it)
         }

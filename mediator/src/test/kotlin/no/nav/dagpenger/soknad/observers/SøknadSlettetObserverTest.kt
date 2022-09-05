@@ -1,6 +1,6 @@
 package no.nav.dagpenger.soknad.observers
 
-import no.nav.dagpenger.soknad.PersonObserver.SøknadSlettetEvent
+import no.nav.dagpenger.soknad.SøknadObserver.SøknadSlettetEvent
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull

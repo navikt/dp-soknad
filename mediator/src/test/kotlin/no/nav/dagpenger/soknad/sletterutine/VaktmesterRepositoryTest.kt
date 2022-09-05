@@ -105,7 +105,7 @@ internal class VaktmesterRepositoryTest {
         søknadMalRepository = mockk(),
         ferdigstiltSøknadRepository = mockk(),
         søknadRepository = mockk(),
-        personObservers = listOf(SøknadSlettetObserver(testRapid))
+        søknadObservers = listOf(SøknadSlettetObserver(testRapid))
     )
 
     private fun assertAntallSøknadSlettetEvent(antall: Int) = assertEquals(antall, testRapid.inspektør.size)

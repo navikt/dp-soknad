@@ -13,7 +13,7 @@ import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadCachePostgresReposito
 import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak
 import no.nav.dagpenger.soknad.mal.SøknadMalPostgresRepository
 import no.nav.dagpenger.soknad.mal.SøknadsMalMottak
-import no.nav.dagpenger.soknad.observers.PersonLoggerObserver
+import no.nav.dagpenger.soknad.observers.SøknadLoggerObserver
 import no.nav.dagpenger.soknad.observers.SøknadSlettetObserver
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
@@ -57,8 +57,8 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         livssyklusRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource),
         søknadMalRepository = søknadMalRepository,
         ferdigstiltSøknadRepository = ferdigstiltRepository,
-        personObservers = listOf(
-            PersonLoggerObserver,
+        søknadObservers = listOf(
+            SøknadLoggerObserver,
             SøknadSlettetObserver(rapidsConnection)
         ),
         søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
