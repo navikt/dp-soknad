@@ -131,7 +131,7 @@ class SøknadCacheRepositoryTest {
         )
 
     private fun lagrePersonMedSøknad(søknadUuid: UUID, ident: String = "01234567891") {
-        val søknadhåndterer = Søknadhåndterer(ident)
+        val søknadhåndterer = Søknadhåndterer()
         søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadUuid, ident, språkVerdi))
         val livssyklusPostgresRepository = LivssyklusPostgresRepository(dataSource)
         livssyklusPostgresRepository.lagre(søknadhåndterer, ident)

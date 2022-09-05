@@ -46,7 +46,7 @@ internal class SøknadPostgresRepositoryTest {
     )
 
     val ident = "12345678910"
-    private val originalSøknadhåndterer = Søknadhåndterer(ident) {
+    private val originalSøknadhåndterer = Søknadhåndterer {
 
         mutableListOf(
             Søknad.rehydrer(

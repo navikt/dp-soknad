@@ -40,13 +40,15 @@ class Søknad private constructor(
         dokument = null,
         journalpostId = null,
         innsendtTidspunkt = null,
-        språk,
+        språk = språk,
         dokumentkrav = Dokumentkrav(),
         sistEndretAvBruker = null
     )
 
     companion object {
-        internal fun List<Søknad>.harAlleredeOpprettetSøknad() = this.any { it.tilstand == UnderOpprettelse || it.tilstand == Påbegynt }
+        internal fun List<Søknad>.harAlleredeOpprettetSøknad() =
+            this.any { it.tilstand == UnderOpprettelse || it.tilstand == Påbegynt }
+
         internal fun List<Søknad>.harPåbegyntSøknad(): Boolean = this.filter { it.tilstand == Påbegynt }.size == 1
         internal fun List<Søknad>.hentPåbegyntSøknad(): Søknad = this.single { it.tilstand == Påbegynt }
         internal fun List<Søknad>.finnSøknad(søknadId: UUID): Søknad? = this.find { it.søknadId == søknadId }
@@ -88,6 +90,7 @@ class Søknad private constructor(
             )
         }
     }
+
     fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         kontekst(ønskeOmNySøknadHendelse)
         tilstand.håndter(ønskeOmNySøknadHendelse, this)
@@ -142,14 +145,17 @@ class Søknad private constructor(
             faktumOppdatertHendelse.severe("Kan ikke oppdatere faktum for søknader i tilstand ${tilstand.tilstandType.name}")
         }
     }
+
     fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse) {
         kontekst(søkeroppgaveHendelse)
         tilstand.håndter(søkeroppgaveHendelse, this)
     }
+
     fun håndter(slettSøknadHendelse: SlettSøknadHendelse) {
         kontekst(slettSøknadHendelse)
         tilstand.håndter(slettSøknadHendelse, this)
     }
+
     interface Tilstand : Aktivitetskontekst {
 
         val tilstandType: Type
@@ -219,12 +225,15 @@ class Søknad private constructor(
 
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.UnderOpprettelse
+
         override fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) {
             ønskeOmNySøknadHendelse.behov(Behovtype.NySøknad, "Behov for å starte søknadsprosess")
         }
+
         override fun håndter(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse, søknad: Søknad) {
             ønskeOmNyInnsendingHendelse.behov(Behovtype.NyInnsending, "Behov for å starte ny innsending")
         }
+
         override fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse, søknad: Søknad) {
             søknad.endreTilstand(Påbegynt, søknadOpprettetHendelse)
         }
@@ -245,6 +254,7 @@ class Søknad private constructor(
 
         override fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse, søknad: Søknad) {
         }
+
         override fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse, søknad: Søknad) {
             søkeroppgaveHendelse.info("Fikk %d sannsynliggjøringer", søkeroppgaveHendelse.sannsynliggjøringer().size)
             søknad.håndter(søkeroppgaveHendelse.sannsynliggjøringer())
@@ -288,6 +298,7 @@ class Søknad private constructor(
             )
             // TODO: Emit en hendelse som fører til at vi besvarer faktum i quiz for når søknaden/kravet ble fremsatt
         }
+
         override fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse, søknad: Søknad) {
             søknad.dokument = arkiverbarSøknadMotattHendelse.dokument()
             søknad.endreTilstand(AvventerMidlertidligJournalføring, arkiverbarSøknadMotattHendelse)
@@ -298,9 +309,11 @@ class Søknad private constructor(
 
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.AvventerMidlertidligJournalføring
+
         override fun entering(søknadHendelse: Hendelse, søknad: Søknad) {
             søknad.trengerNyJournalpost(søknadHendelse)
         }
+
         override fun håndter(
             søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse,
             søknad: Søknad
@@ -313,6 +326,7 @@ class Søknad private constructor(
     private object AvventerJournalføring : Tilstand {
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.AvventerJournalføring
+
         override fun håndter(journalførtHendelse: JournalførtHendelse, søknad: Søknad) {
             // TODO: Legg til sjekk om at det er DENNE søknaden som er journalført.
             søknad.endreTilstand(Journalført, journalførtHendelse)
@@ -325,7 +339,17 @@ class Søknad private constructor(
     }
 
     fun accept(visitor: SøknadVisitor) {
-        visitor.visitSøknad(søknadId, søknadhåndterer, tilstand, dokument, journalpostId, innsendtTidspunkt, språk, dokumentkrav, sistEndretAvBruker)
+        visitor.visitSøknad(
+            søknadId = søknadId,
+            søknadhåndterer = søknadhåndterer,
+            tilstand = tilstand,
+            dokument = dokument,
+            journalpostId = journalpostId,
+            innsendtTidspunkt = innsendtTidspunkt,
+            språk = språk,
+            dokumentkrav = dokumentkrav,
+            sistEndretAvBruker = sistEndretAvBruker
+        )
         tilstand.accept(visitor)
     }
 
@@ -361,7 +385,7 @@ class Søknad private constructor(
     }
 
     fun deepEquals(other: Any?): Boolean =
-        other is Søknad && other.søknadId == this.søknadId && other.søknadhåndterer == this.søknadhåndterer &&
+        other is Søknad && other.søknadId == this.søknadId &&
             other.tilstand == this.tilstand && other.dokument == this.dokument &&
             other.journalpostId == this.journalpostId && this.dokumentkrav == other.dokumentkrav
 

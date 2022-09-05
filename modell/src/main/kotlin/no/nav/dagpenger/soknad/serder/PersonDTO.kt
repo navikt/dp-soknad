@@ -26,7 +26,6 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
 ) {
     fun createSøknadhåndterer(): Søknadhåndterer {
         return Søknadhåndterer.rehydrer(
-            ident = this.ident,
             aktivitetslogg = this.aktivitetsLogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
         ) { søknadhåndterer ->
             søknader.map {

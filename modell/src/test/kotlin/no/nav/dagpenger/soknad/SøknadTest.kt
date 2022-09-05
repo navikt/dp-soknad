@@ -39,7 +39,7 @@ internal class SøknadTest {
 
     @BeforeEach
     internal fun setUp() {
-        søknadhåndterer = Søknadhåndterer(testIdent)
+        søknadhåndterer = Søknadhåndterer()
         personObserver = TestPersonObserver().also { søknadhåndterer.addObserver(it) }
         plantUmlObservatør = PlantUmlObservatør().also {
             søknadhåndterer.addObserver(it)
@@ -124,17 +124,17 @@ internal class SøknadTest {
     @Test
     @Disabled("Midlertidig løsning for en enklere feedbackloop for testing av frontend")
     fun `en person kan kun ha én opprettet eller påbegynt søknad av gangen`() {
-        val søknadhåndterer = Søknadhåndterer(testIdent)
+        val søknadhåndterer = Søknadhåndterer()
         val søknadID = UUID.randomUUID()
-        søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadID, språk, testIdent))
+        søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadID = søknadID, ident = testIdent, språk = språk))
         assertThrows<AktivitetException> {
-            søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadID, språk, testIdent))
+            søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadID = søknadID, ident = testIdent, språk = språk))
         }
 
-        søknadhåndterer.håndter(SøknadOpprettetHendelse(søknadID, testIdent))
+        søknadhåndterer.håndter(SøknadOpprettetHendelse(søknadID = søknadID, ident = testIdent))
 
         assertThrows<AktivitetException> {
-            søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadID, språk, testIdent))
+            søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadID = søknadID, ident = testIdent, språk = språk))
         }
     }
 
@@ -185,7 +185,7 @@ internal class SøknadTest {
     }
 
     private fun håndterØnskeOmNySøknadHendelse() {
-        søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(UUID.randomUUID(), språk, testIdent))
+        søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadID = UUID.randomUUID(), ident = testIdent, språk = språk))
     }
 
     private fun assertTilstander(vararg tilstander: Søknad.Tilstand.Type) {

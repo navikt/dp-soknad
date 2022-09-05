@@ -217,7 +217,7 @@ internal class SøknadMediator(
     }
 
     private fun hentEllerOpprettPerson(hendelse: Hendelse) =
-        livssyklusRepository.hent(hendelse.ident()) ?: Søknadhåndterer(hendelse.ident())
+        livssyklusRepository.hent(hendelse.ident()) ?: Søknadhåndterer()
 }
 
 enum class Prosesstype {

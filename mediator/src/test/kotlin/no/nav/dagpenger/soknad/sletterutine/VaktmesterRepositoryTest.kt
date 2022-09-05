@@ -59,7 +59,7 @@ internal class VaktmesterRepositoryTest {
         val søknadCacheRepository = SøknadCachePostgresRepository(dataSource)
         val søknadMediator = søknadMediator(søknadCacheRepository, livssyklusRepository)
         val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
-        val søknadhåndterer = Søknadhåndterer(testPersonIdent) {
+        val søknadhåndterer = Søknadhåndterer {
             mutableListOf(
                 gammelPåbegyntSøknad(gammelPåbegyntSøknadUuid, it, testPersonIdent),
                 nyPåbegyntSøknad(nyPåbegyntSøknadUuid, it, testPersonIdent),

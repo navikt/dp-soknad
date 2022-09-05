@@ -17,30 +17,29 @@ import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 
 class Søknadhåndterer private constructor(
     søknadsfunksjon: (søknadhåndterer: Søknadhåndterer) -> MutableList<Søknad>,
-    @Deprecated("Ident hører ikke hjemme på en Søknadhåndterer.") private val ident: String,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
-) : Aktivitetskontekst, PersonObserver {
+) : PersonObserver {
 
     companion object {
         internal fun rehydrer(
-            ident: String,
             aktivitetslogg: Aktivitetslogg,
             søknadsfunksjon: (søknadhåndterer: Søknadhåndterer) -> MutableList<Søknad>,
-        ): Søknadhåndterer = Søknadhåndterer(søknadsfunksjon, ident, aktivitetslogg)
+        ): Søknadhåndterer = Søknadhåndterer(søknadsfunksjon, aktivitetslogg)
     }
 
     // Navneforslag: Dialog? --> Må kunne finne ut av type
     private val søknader: MutableList<Søknad>
 
     init {
-        require(ident.matches("\\d{11}".toRegex())) { "Ugyldig ident, må være 11 sifre" }
         this.søknader = søknadsfunksjon(this)
     }
 
     private val observers = mutableListOf<PersonObserver>()
 
-    constructor(ident: String) : this({ mutableListOf() }, ident)
-    constructor(ident: String, søknadsfunksjon: (søknadhåndterer: Søknadhåndterer) -> MutableList<Søknad>) : this(søknadsfunksjon, ident)
+    constructor() : this({ mutableListOf() })
+    constructor(søknadsfunksjon: (søknadhåndterer: Søknadhåndterer) -> MutableList<Søknad>) : this(
+        søknadsfunksjon = søknadsfunksjon, aktivitetslogg = Aktivitetslogg()
+    )
 
     fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         // if (søknader.harAlleredeOpprettetSøknad()) {
@@ -48,7 +47,12 @@ class Søknadhåndterer private constructor(
         // }
         kontekst(ønskeOmNySøknadHendelse, "Ønske om søknad registrert")
         søknader.add(
-            Søknad(ønskeOmNySøknadHendelse.søknadID(), ønskeOmNySøknadHendelse.språk(), this, ønskeOmNySøknadHendelse.ident()).also {
+            Søknad(
+                ønskeOmNySøknadHendelse.søknadID(),
+                ønskeOmNySøknadHendelse.språk(),
+                this,
+                ønskeOmNySøknadHendelse.ident()
+            ).also {
                 it.håndter(ønskeOmNySøknadHendelse)
             }
         )
@@ -57,7 +61,12 @@ class Søknadhåndterer private constructor(
     fun håndter(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse) {
         kontekst(ønskeOmNyInnsendingHendelse, "Ønske om innsending registrert")
         søknader.add(
-            Søknad(ønskeOmNyInnsendingHendelse.søknadID(), ønskeOmNyInnsendingHendelse.språk(), this, ønskeOmNyInnsendingHendelse.ident()).also {
+            Søknad(
+                ønskeOmNyInnsendingHendelse.søknadID(),
+                ønskeOmNyInnsendingHendelse.språk(),
+                this,
+                ønskeOmNyInnsendingHendelse.ident()
+            ).also {
                 it.håndter(ønskeOmNyInnsendingHendelse)
             }
         )
@@ -74,12 +83,14 @@ class Søknadhåndterer private constructor(
 
         søknaden.håndter(søknadOpprettetHendelse)
     }
+
     fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse) {
         kontekst(faktumOppdatertHendelse, "Faktum oppdatert")
         finnSøknad(faktumOppdatertHendelse).also { søknaden ->
             søknaden.håndter(faktumOppdatertHendelse)
         }
     }
+
     fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse) {
         kontekst(søkeroppgaveHendelse, "Søkeroppgave mottatt")
         finnSøknad(søkeroppgaveHendelse).also { søknaden ->
@@ -155,14 +166,12 @@ class Søknadhåndterer private constructor(
     }
 
     private fun kontekst(hendelse: Hendelse, melding: String) {
-        hendelse.kontekst(this)
+        hendelse.kontekst(Personkontekst(hendelse.ident(), aktivitetslogg))
         hendelse.info(melding)
     }
+}
 
+class Personkontekst(val ident: String, internal val aktivitetslogg: Aktivitetslogg) : Aktivitetskontekst {
     override fun toSpesifikkKontekst(): SpesifikkKontekst =
         SpesifikkKontekst(kontekstType = "person", mapOf("ident" to ident))
-
-    override fun equals(other: Any?): Boolean {
-        return other is Søknadhåndterer && this.ident == other.ident
-    }
 }

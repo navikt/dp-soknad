@@ -89,7 +89,7 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
         val søknadId = UUID.randomUUID()
         val ident = "01234567891"
         val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
-        val søknadhåndterer = Søknadhåndterer(ident)
+        val søknadhåndterer = Søknadhåndterer()
         søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadId, ident, språkVerdi))
         livssyklusPostgresRepository.lagre(søknadhåndterer, ident)
         val søknadCachePostgresRepository = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource)
@@ -99,7 +99,7 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
 
     private fun lagRandomPersonOgSøknad(): UUID {
         val søknadId = UUID.randomUUID()
-        val originalSøknadhåndterer = Søknadhåndterer("12345678910") {
+        val originalSøknadhåndterer = Søknadhåndterer {
             mutableListOf(
                 Søknad(søknadId, Språk(språkVerdi), it, "12345678910"),
                 Søknad.rehydrer(

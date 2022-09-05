@@ -25,12 +25,12 @@ internal class BehovMediatorTest {
     private val testSøknadUuid = UUID.randomUUID().toString()
     private val testRapid = TestRapid()
     private lateinit var aktivitetslogg: Aktivitetslogg
-    private lateinit var søknadhåndterer: Søknadhåndterer
+    private lateinit var personkontekst: Personkontekst
 
     @BeforeEach
     fun setup() {
-        søknadhåndterer = Søknadhåndterer(testIdent)
         aktivitetslogg = Aktivitetslogg()
+        personkontekst = Personkontekst(testIdent, aktivitetslogg)
         behovMediator = BehovMediator(
             rapidsConnection = testRapid,
             sikkerLogg = mockk(relaxed = true)
@@ -41,7 +41,7 @@ internal class BehovMediatorTest {
     @Test
     internal fun `Behov blir sendt og inneholder det den skal`() {
         val hendelse = TestHendelse("Hendelse1", aktivitetslogg.barn())
-        hendelse.kontekst(søknadhåndterer)
+        hendelse.kontekst(personkontekst)
         hendelse.kontekst(Testkontekst("Testkontekst"))
 
         hendelse.behov(
@@ -74,7 +74,7 @@ internal class BehovMediatorTest {
     @Test
     internal fun `Gruppere behov`() {
         val hendelse = TestHendelse("Hendelse1", aktivitetslogg.barn())
-        hendelse.kontekst(søknadhåndterer)
+        hendelse.kontekst(personkontekst)
         hendelse.kontekst(Testkontekst("Testkontekst"))
 
         hendelse.behov(
@@ -119,7 +119,7 @@ internal class BehovMediatorTest {
     @Test
     internal fun `sjekker etter duplikatverdier`() {
         val hendelse = TestHendelse("Hendelse1", aktivitetslogg.barn())
-        hendelse.kontekst(søknadhåndterer)
+        hendelse.kontekst(personkontekst)
         hendelse.behov(
             NySøknad,
             "Behøver tom søknad for denne søknaden",
@@ -141,7 +141,7 @@ internal class BehovMediatorTest {
     @Test
     internal fun `kan ikke produsere samme behov`() {
         val hendelse = TestHendelse("Hendelse1", aktivitetslogg.barn())
-        hendelse.kontekst(søknadhåndterer)
+        hendelse.kontekst(personkontekst)
         hendelse.behov(NySøknad, "Behøver tom søknad for denne søknaden")
         hendelse.behov(NySøknad, "Behøver tom søknad for denne søknaden")
 

@@ -19,7 +19,7 @@ import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository.PersistentSøkerOppgave
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
-import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
+import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -52,13 +52,13 @@ internal class LivssyklusPostgresRepositoryTest {
     @Test
     fun `Lagre og hente person uten søknader`() {
         withMigratedDb {
-            LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
-                val expectedSøknadhåndterer = Søknadhåndterer("12345678910")
+            LivssyklusPostgresRepository(dataSource).let {
+                val expectedSøknadhåndterer = Søknadhåndterer()
                 it.lagre(expectedSøknadhåndterer, "12345678910")
-                val person = it.hent("12345678910")
+                val søknadhåndterer: Søknadhåndterer? = it.hent("12345678910")
 
-                assertNotNull(person)
-                assertEquals(expectedSøknadhåndterer, person)
+                assertNotNull(søknadhåndterer)
+                assertTrue(TestSøknadhåndtererVisitor(søknadhåndterer).søknader.isEmpty())
 
                 assertDoesNotThrow {
                     it.lagre(expectedSøknadhåndterer, "12345678910")
@@ -70,7 +70,7 @@ internal class LivssyklusPostgresRepositoryTest {
     @Test
     fun `Hent person som ikke finnes`() {
         withMigratedDb {
-            LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
+            LivssyklusPostgresRepository(dataSource).let {
                 assertNull(it.hent("finnes ikke"))
             }
         }
@@ -80,7 +80,7 @@ internal class LivssyklusPostgresRepositoryTest {
     fun `Lagre og hente person med søknader, dokumenter, dokumentkrav og aktivitetslogg`() {
         val søknadId1 = UUID.randomUUID()
         val søknadId2 = UUID.randomUUID()
-        val originalSøknadhåndterer = Søknadhåndterer("12345678910") {
+        val originalSøknadhåndterer = Søknadhåndterer {
             mutableListOf(
                 Søknad(søknadId1, språk, it, "12345678910"),
                 Søknad.rehydrer(
@@ -114,12 +114,11 @@ internal class LivssyklusPostgresRepositoryTest {
         }
 
         withMigratedDb {
-            LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
+            LivssyklusPostgresRepository(dataSource).let {
                 it.lagre(originalSøknadhåndterer, "12345678910")
-                val personFraDatabase = it.hent("12345678910", true)
-                assertNotNull(personFraDatabase)
-                assertEquals(originalSøknadhåndterer, personFraDatabase)
-                val fraDatabaseVisitor = TestSøknadhåndtererVisitor(personFraDatabase)
+                val søknadhåndtererFraDatabase = it.hent("12345678910", true)
+                assertNotNull(søknadhåndtererFraDatabase)
+                val fraDatabaseVisitor = TestSøknadhåndtererVisitor(søknadhåndtererFraDatabase)
                 val originalVisitor = TestSøknadhåndtererVisitor(originalSøknadhåndterer)
                 val søknaderFraDatabase = fraDatabaseVisitor.søknader
                 val originalSøknader = originalVisitor.søknader
@@ -138,7 +137,7 @@ internal class LivssyklusPostgresRepositoryTest {
     @Test
     fun `upsert på dokumentasjonskrav`() {
         val søknadId = UUID.randomUUID()
-        val originalSøknadhåndterer = Søknadhåndterer("12345678910") {
+        val originalSøknadhåndterer = Søknadhåndterer {
             mutableListOf(
                 Søknad.rehydrer(
                     søknadId = søknadId,
@@ -170,7 +169,7 @@ internal class LivssyklusPostgresRepositoryTest {
             )
         }
         withMigratedDb {
-            LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
+            LivssyklusPostgresRepository(dataSource).let {
                 it.lagre(originalSøknadhåndterer, "12345678910")
                 it.lagre(originalSøknadhåndterer, "12345678910")
             }
@@ -181,7 +180,7 @@ internal class LivssyklusPostgresRepositoryTest {
     fun `Henter påbegynte søknader`() {
         val påbegyntSøknadUuid = UUID.randomUUID()
         val innsendtTidspunkt = ZonedDateTime.now()
-        val søknadhåndterer = Søknadhåndterer("12345678910") {
+        val søknadhåndterer = Søknadhåndterer {
             mutableListOf(
                 Søknad.rehydrer(
                     søknadId = påbegyntSøknadUuid,
@@ -211,7 +210,7 @@ internal class LivssyklusPostgresRepositoryTest {
         }
 
         withMigratedDb {
-            LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
+            LivssyklusPostgresRepository(dataSource).let {
                 it.lagre(søknadhåndterer, "12345678910")
                 val påbegyntSøknad = it.hentPåbegyntSøknad("12345678910")!!
                 assertEquals(påbegyntSøknadUuid, påbegyntSøknad.uuid)
@@ -225,7 +224,7 @@ internal class LivssyklusPostgresRepositoryTest {
     @Test
     fun `Kan oppdatere søknader`() {
         val søknadId = UUID.randomUUID()
-        val originalSøknadhåndterer = Søknadhåndterer("12345678910") {
+        val originalSøknadhåndterer = Søknadhåndterer {
             mutableListOf(
                 Søknad(søknadId, språk, it, "12345678910"),
                 Søknad.rehydrer(
@@ -244,7 +243,7 @@ internal class LivssyklusPostgresRepositoryTest {
         }
 
         withMigratedDb {
-            LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
+            LivssyklusPostgresRepository(dataSource).let {
                 it.lagre(originalSøknadhåndterer, "12345678910")
                 val personFraDatabase = it.hent("12345678910")
                 assertNotNull(personFraDatabase)
@@ -302,7 +301,7 @@ internal class LivssyklusPostgresRepositoryTest {
     }
 
     private fun assertAntallRader(tabell: String, antallRader: Int) {
-        val faktiskeRader = using(sessionOf(PostgresDataSourceBuilder.dataSource)) { session ->
+        val faktiskeRader = using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf("select count(1) from $tabell").map { row ->
                     row.int(1)
