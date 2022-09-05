@@ -35,7 +35,7 @@ class SøknadDokumentasjonskravTest {
         val ident = "12345678901"
         val språk = Språk(verdi = "NB")
         søknad = Søknad(
-            søknadId = søknadId, språk = språk, søknadhåndterer = Søknadhåndterer(ident = ident), ident = ident
+            søknadId = søknadId, språk = språk, søknadObserver = TestSøknadObserver(), ident = ident
         )
         søknad.håndter(ØnskeOmNySøknadHendelse(søknadId, språk.verdi.country, ident))
         søknad.håndter(SøknadOpprettetHendelse(søknadId, ident))
@@ -48,7 +48,7 @@ class SøknadDokumentasjonskravTest {
             )
         }
 
-        with(TestSøknadInspektør(søknad).dokumentkrav) {
+        with(TestSøknadInspektør2(søknad).dokumentkrav) {
             assertEquals(0, this.aktiveDokumentKrav().size)
         }
 
@@ -58,7 +58,7 @@ class SøknadDokumentasjonskravTest {
             )
         )
 
-        with(TestSøknadInspektør(søknad).dokumentkrav) {
+        with(TestSøknadInspektør2(søknad).dokumentkrav) {
             assertEquals(1, this.aktiveDokumentKrav().size)
             this.aktiveDokumentKrav().forEach { krav ->
                 assertEquals(Krav.Svar.SvarValg.IKKE_BESVART, krav.svar.valg)
@@ -73,7 +73,7 @@ class SøknadDokumentasjonskravTest {
             )
         )
 
-        with(TestSøknadInspektør(søknad).dokumentkrav) {
+        with(TestSøknadInspektør2(søknad).dokumentkrav) {
             assertEquals(1, this.aktiveDokumentKrav().size)
             this.aktiveDokumentKrav().forEach { krav ->
                 assertEquals(Krav.Svar.SvarValg.SEND_SENERE, krav.svar.valg)
@@ -91,7 +91,7 @@ class SøknadDokumentasjonskravTest {
             )
         )
 
-        with(TestSøknadInspektør(søknad).dokumentkrav) {
+        with(TestSøknadInspektør2(søknad).dokumentkrav) {
             assertEquals(1, this.aktiveDokumentKrav().size)
             this.aktiveDokumentKrav().forEach { krav ->
                 assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
@@ -109,7 +109,7 @@ class SøknadDokumentasjonskravTest {
             )
         )
 
-        with(TestSøknadInspektør(søknad).dokumentkrav) {
+        with(TestSøknadInspektør2(søknad).dokumentkrav) {
             assertEquals(1, this.aktiveDokumentKrav().size)
             this.aktiveDokumentKrav().forEach { krav ->
                 assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
@@ -127,7 +127,7 @@ class SøknadDokumentasjonskravTest {
             )
         )
 
-        with(TestSøknadInspektør(søknad).dokumentkrav) {
+        with(TestSøknadInspektør2(søknad).dokumentkrav) {
             assertEquals(1, this.aktiveDokumentKrav().size)
             this.aktiveDokumentKrav().forEach { krav ->
                 assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
@@ -135,5 +135,36 @@ class SøknadDokumentasjonskravTest {
                 assertEquals(1, krav.svar.filer.size)
             }
         }
+    }
+}
+
+internal class TestSøknadInspektør2(søknad: Søknad) : SøknadVisitor {
+
+    lateinit var søknadId: UUID
+    lateinit var gjeldendetilstand: Søknad.Tilstand.Type
+    lateinit var dokumentkrav: Dokumentkrav
+    internal lateinit var personLogg: Aktivitetslogg
+
+    init {
+        søknad.accept(this)
+    }
+
+    override fun visitSøknad(
+        søknadId: UUID,
+        søknadObserver: SøknadObserver,
+        tilstand: Søknad.Tilstand,
+        dokument: Søknad.Dokument?,
+        journalpostId: String?,
+        innsendtTidspunkt: ZonedDateTime?,
+        språk: Språk,
+        dokumentkrav: Dokumentkrav,
+        sistEndretAvBruker: ZonedDateTime?
+    ) {
+        this.søknadId = søknadId
+        this.dokumentkrav = dokumentkrav
+    }
+
+    override fun visitTilstand(tilstand: Søknad.Tilstand.Type) {
+        gjeldendetilstand = tilstand
     }
 }

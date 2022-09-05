@@ -49,7 +49,7 @@ internal class SøknadPostgresRepositoryTest {
 
     val søknad = Søknad.rehydrer(
         søknadId = søknadId,
-        søknadhåndterer = Søknadhåndterer(),
+        søknadObserver = Søknadhåndterer(),
         ident = ident,
         dokument = Søknad.Dokument(
             varianter = listOf(
@@ -153,7 +153,6 @@ internal class SøknadPostgresRepositoryTest {
             val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
             val søknadPostgresRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
             søknadPostgresRepository.lagre(søknad)
-
             val søknadMediator = SøknadMediator(
                 rapidsConnection = mockk(),
                 søknadCacheRepository = mockk(),

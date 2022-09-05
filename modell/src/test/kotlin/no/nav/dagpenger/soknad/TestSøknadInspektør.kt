@@ -7,7 +7,8 @@ internal class TestSøknadInspektør(søknadhåndterer: Søknadhåndterer) : Sø
 
     lateinit var søknadId: UUID
     lateinit var gjeldendetilstand: Søknad.Tilstand.Type
-    internal lateinit var personLogg: Aktivitetslogg
+    lateinit var dokumentkrav: Dokumentkrav
+    lateinit var personLogg: Aktivitetslogg
 
     init {
         søknadhåndterer.accept(this)
@@ -25,6 +26,7 @@ internal class TestSøknadInspektør(søknadhåndterer: Søknadhåndterer) : Sø
         sistEndretAvBruker: ZonedDateTime?
     ) {
         this.søknadId = søknadId
+        this.dokumentkrav = dokumentkrav
     }
 
     override fun visitTilstand(tilstand: Søknad.Tilstand.Type) {
