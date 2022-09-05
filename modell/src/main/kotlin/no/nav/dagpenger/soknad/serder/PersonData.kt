@@ -14,6 +14,7 @@ import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentData.Companion.rehydrer
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.KravData.FilData.Companion.toFilData
 import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.SannsynliggjøringData.Companion.toSannsynliggjøringData
+import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.SvarData.Companion.tilSvarData
 import java.time.ZonedDateTime
 import java.util.Locale
 import java.util.UUID
@@ -107,16 +108,39 @@ class PersonData( // TODO: Verken Person eller Søknadhåndterer skal være rota
                 }
             }
 
+            data class SvarData(
+                val begrunnelse: String?,
+                val filer: Set<KravData.FilData>,
+            ) {
+                companion object {
+
+                    fun Krav.Svar.tilSvarData(): SvarData {
+                        return SvarData(
+                            begrunnelse = this.begrunnelse,
+                            filer = this.filer.map { it.toFilData() }.toSet()
+                        )
+                    }
+                }
+
+                fun rehydrer(): Krav.Svar {
+                    return Krav.Svar(
+                        filer = this.filer.map { it.rehydrer() }.toMutableSet(),
+                        valg = Krav.Svar.SvarValg.TOMT,
+                        begrunnelse = null
+                    )
+                }
+            }
+
             data class KravData(
                 val id: String,
                 val beskrivendeId: String,
                 val sannsynliggjøring: SannsynliggjøringData,
                 val tilstand: KravTilstandData,
-                val filer: Set<FilData>
+                val svar: SvarData
             ) {
                 fun rehydrer() = Krav(
                     id = this.id,
-                    filer = this.filer.map { it.rehydrer() }.toMutableSet(),
+                    svar = this.svar.rehydrer(),
                     sannsynliggjøring = this.sannsynliggjøring.rehydrer(),
                     tilstand = when (this.tilstand) {
                         KravTilstandData.AKTIV -> Krav.KravTilstand.AKTIV
@@ -128,7 +152,7 @@ class PersonData( // TODO: Verken Person eller Søknadhåndterer skal være rota
                     fun Krav.toKravdata() = KravData(
                         id = this.id,
                         beskrivendeId = this.beskrivendeId,
-                        filer = this.filer.map { it.toFilData() }.toSet(),
+                        svar = this.svar.tilSvarData(),
                         sannsynliggjøring = this.sannsynliggjøring.toSannsynliggjøringData(),
                         tilstand = when (this.tilstand) {
                             Krav.KravTilstand.AKTIV -> KravTilstandData.AKTIV

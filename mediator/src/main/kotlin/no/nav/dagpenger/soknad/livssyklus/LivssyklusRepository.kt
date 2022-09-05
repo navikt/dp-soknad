@@ -285,7 +285,9 @@ internal fun Session.hentDokumentKrav(søknadsId: UUID): Set<KravData> =
                     sannsynliggjør = objectMapper.readTree(row.binaryStream("sannsynliggjoer")).toSet(),
 
                 ),
-                filer = this.hentFiler(søknadsId, faktumId),
+                svar = PersonData.SøknadData.DokumentkravData.SvarData(
+                    begrunnelse = null, filer = hentFiler(søknadsId, faktumId)
+                ),
                 tilstand = row.string("tilstand")
                     .let { KravData.KravTilstandData.valueOf(it) }
             )
@@ -342,7 +344,7 @@ internal fun Set<KravData>.insertKravData(
 
         """.trimIndent(),
         params = flatMap { krav ->
-            krav.filer.map { fil ->
+            krav.svar.filer.map { fil ->
                 mapOf<String, Any>(
                     "faktum_id" to krav.id,
                     "soknad_uuid" to søknadsId,

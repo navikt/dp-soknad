@@ -3,6 +3,9 @@ package no.nav.dagpenger.soknad
 import de.slub.urn.RFC
 import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Krav.Companion.aktive
+import no.nav.dagpenger.soknad.Krav.Svar.Companion.TOMT_SVAR
+import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SEND_NÅ
+import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.TOMT
 import java.time.ZonedDateTime
 
 class Dokumentkrav private constructor(
@@ -36,9 +39,10 @@ class Dokumentkrav private constructor(
 
     override fun hashCode(): Int = 31 * krav.hashCode()
 }
+
 data class Krav(
     val id: String,
-    val filer: MutableSet<Fil> = mutableSetOf(),
+    val svar: Svar,
     val sannsynliggjøring: Sannsynliggjøring,
     internal var tilstand: KravTilstand
 ) {
@@ -58,7 +62,7 @@ data class Krav(
 
     constructor(sannsynliggjøring: Sannsynliggjøring) : this(
         sannsynliggjøring.id,
-        mutableSetOf(),
+        TOMT_SVAR,
         sannsynliggjøring,
         KravTilstand.AKTIV
     )
@@ -66,6 +70,31 @@ data class Krav(
     enum class KravTilstand {
         AKTIV,
         INAKTIV
+    }
+
+    data class Svar(
+        val filer: MutableSet<Fil> = mutableSetOf(),
+        var valg: SvarValg = TOMT,
+        val begrunnelse: String?
+    ) {
+
+        fun håndter(fil: Fil) {
+            filer.add(fil)
+            valg = SEND_NÅ
+        }
+
+        companion object {
+            val TOMT_SVAR = Svar(filer = mutableSetOf(), valg = TOMT, begrunnelse = null)
+        }
+
+        enum class SvarValg {
+            TOMT,
+            SEND_NÅ,
+            SEND_SENERE,
+            ANDRE_SENDER,
+            SEND_TIDLIGERE,
+            SENDER_IKKE
+        }
     }
 
     data class Fil(

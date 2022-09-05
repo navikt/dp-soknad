@@ -189,7 +189,7 @@ internal class SøknadPostgresRepositoryTest {
                 )
             )
             søknadMediator.hentDokumentkravFor(søknadId, ident).let {
-                assertEquals(2, it.aktiveDokumentKrav().first().filer.size)
+                assertEquals(2, it.aktiveDokumentKrav().first().svar.filer.size)
             }
 
             søknadMediator.behandle(
@@ -201,7 +201,7 @@ internal class SøknadPostgresRepositoryTest {
                 )
             )
             søknadMediator.hentDokumentkravFor(søknadId, ident).let {
-                assertEquals(1, it.aktiveDokumentKrav().first().filer.size)
+                assertEquals(1, it.aktiveDokumentKrav().first().svar.filer.size)
             }
 
             søknadMediator.behandle(
@@ -214,7 +214,7 @@ internal class SøknadPostgresRepositoryTest {
             )
 
             søknadMediator.hentDokumentkravFor(søknadId, ident).let {
-                assertEquals(0, it.aktiveDokumentKrav().first().filer.size)
+                assertEquals(0, it.aktiveDokumentKrav().first().svar.filer.size)
             }
 
             assertDoesNotThrow {
