@@ -82,11 +82,11 @@ internal class LivssyklusPostgresRepositoryTest {
         val søknadId2 = UUID.randomUUID()
         val originalSøknadhåndterer = Søknadhåndterer("12345678910") {
             mutableListOf(
-                Søknad(søknadId1, språk, it, it.ident()),
+                Søknad(søknadId1, språk, it, "12345678910"),
                 Søknad.rehydrer(
                     søknadId = søknadId2,
                     søknadhåndterer = it,
-                    it.ident(),
+                    ident = "12345678910",
                     dokument = Søknad.Dokument(
                         varianter = listOf(
                             Søknad.Dokument.Variant(
@@ -103,7 +103,7 @@ internal class LivssyklusPostgresRepositoryTest {
                     ),
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = ZonedDateTime.now(),
-                    språk,
+                    språk = språk,
                     dokumentkrav = Dokumentkrav.rehydrer(
                         krav = setOf(krav)
                     ),
@@ -143,7 +143,7 @@ internal class LivssyklusPostgresRepositoryTest {
                 Søknad.rehydrer(
                     søknadId = søknadId,
                     søknadhåndterer = it,
-                    it.ident(),
+                    ident = "12345678910",
                     dokument = Søknad.Dokument(
                         varianter = listOf(
                             Søknad.Dokument.Variant(
@@ -160,7 +160,7 @@ internal class LivssyklusPostgresRepositoryTest {
                     ),
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = ZonedDateTime.now(),
-                    språk,
+                    språk = språk,
                     dokumentkrav = Dokumentkrav.rehydrer(
                         krav = setOf(krav)
                     ),
@@ -186,24 +186,24 @@ internal class LivssyklusPostgresRepositoryTest {
                 Søknad.rehydrer(
                     søknadId = påbegyntSøknadUuid,
                     søknadhåndterer = it,
-                    it.ident(),
+                    ident = "12345678910",
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "jouhasjk",
                     innsendtTidspunkt = innsendtTidspunkt,
-                    språk,
-                    Dokumentkrav(),
+                    språk = språk,
+                    dokumentkrav = Dokumentkrav(),
                     sistEndretAvBruker = innsendtTidspunkt,
                     tilstandsType = Påbegynt.name
                 ),
                 Søknad.rehydrer(
                     søknadId = UUID.randomUUID(),
                     søknadhåndterer = it,
-                    it.ident(),
+                    ident = "12345678910",
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = innsendtTidspunkt,
-                    språk,
-                    Dokumentkrav(),
+                    språk = språk,
+                    dokumentkrav = Dokumentkrav(),
                     sistEndretAvBruker = innsendtTidspunkt,
                     tilstandsType = Journalført.name
                 )
@@ -213,7 +213,7 @@ internal class LivssyklusPostgresRepositoryTest {
         withMigratedDb {
             LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).let {
                 it.lagre(søknadhåndterer)
-                val påbegyntSøknad = it.hentPåbegyntSøknad(søknadhåndterer.ident())!!
+                val påbegyntSøknad = it.hentPåbegyntSøknad("12345678910")!!
                 assertEquals(påbegyntSøknadUuid, påbegyntSøknad.uuid)
                 assertEquals(LocalDate.from(innsendtTidspunkt), påbegyntSøknad.startDato)
 
@@ -227,16 +227,16 @@ internal class LivssyklusPostgresRepositoryTest {
         val søknadId = UUID.randomUUID()
         val originalSøknadhåndterer = Søknadhåndterer("12345678910") {
             mutableListOf(
-                Søknad(søknadId, språk, it, it.ident()),
+                Søknad(søknadId, språk, it, "12345678910"),
                 Søknad.rehydrer(
                     søknadId = søknadId,
                     søknadhåndterer = it,
-                    it.ident(),
+                    ident = "12345678910",
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
                     innsendtTidspunkt = ZonedDateTime.now(),
-                    språk,
-                    Dokumentkrav(),
+                    språk = språk,
+                    dokumentkrav = Dokumentkrav(),
                     sistEndretAvBruker = ZonedDateTime.now(),
                     tilstandsType = Journalført.name
                 )

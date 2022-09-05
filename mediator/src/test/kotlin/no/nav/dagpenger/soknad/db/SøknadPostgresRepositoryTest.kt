@@ -49,7 +49,7 @@ internal class SøknadPostgresRepositoryTest {
             Søknad.rehydrer(
                 søknadId = søknadId,
                 søknadhåndterer = it,
-                ident = it.ident(),
+                ident = ident,
                 dokument = Søknad.Dokument(
                     varianter = listOf(
                         Søknad.Dokument.Variant(

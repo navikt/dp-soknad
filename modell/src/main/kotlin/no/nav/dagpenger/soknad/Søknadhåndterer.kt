@@ -17,7 +17,7 @@ import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 
 class Søknadhåndterer private constructor(
     søknadsfunksjon: (søknadhåndterer: Søknadhåndterer) -> MutableList<Søknad>,
-    private val ident: String,
+    @Deprecated("Ident hører ikke hjemme på en Søknadhåndterer.") private val ident: String,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : Aktivitetskontekst, PersonObserver {
 
@@ -36,9 +36,6 @@ class Søknadhåndterer private constructor(
         require(ident.matches("\\d{11}".toRegex())) { "Ugyldig ident, må være 11 sifre" }
         this.søknader = søknadsfunksjon(this)
     }
-
-    @Deprecated("Ident hører ikke hjemme på en Søknadhåndterer.")
-    fun ident() = ident
 
     private val observers = mutableListOf<PersonObserver>()
 

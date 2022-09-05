@@ -61,9 +61,9 @@ internal class VaktmesterRepositoryTest {
         val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
         val søknadhåndterer = Søknadhåndterer(testPersonIdent) {
             mutableListOf(
-                gammelPåbegyntSøknad(gammelPåbegyntSøknadUuid, it),
-                nyPåbegyntSøknad(nyPåbegyntSøknadUuid, it),
-                innsendtSøknad(innsendtSøknadUuid, it)
+                gammelPåbegyntSøknad(gammelPåbegyntSøknadUuid, it, testPersonIdent),
+                nyPåbegyntSøknad(nyPåbegyntSøknadUuid, it, testPersonIdent),
+                innsendtSøknad(innsendtSøknadUuid, it, testPersonIdent)
             )
         }
 
@@ -77,7 +77,7 @@ internal class VaktmesterRepositoryTest {
 
         vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
         assertAntallSøknadSlettetEvent(1)
-        assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, søknadhåndterer, livssyklusRepository)
+        assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, livssyklusRepository, testPersonIdent)
         assertCacheSlettet(gammelPåbegyntSøknadUuid, søknadCacheRepository)
         vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
         vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
@@ -112,10 +112,10 @@ internal class VaktmesterRepositoryTest {
 
     private fun assertAtViIkkeSletterForMye(
         antallGjenværendeSøknader: Int,
-        søknadhåndterer: Søknadhåndterer,
-        livssyklusRepository: LivssyklusPostgresRepository
+        livssyklusRepository: LivssyklusPostgresRepository,
+        ident: String
     ) {
-        livssyklusRepository.hent(søknadhåndterer.ident()).also { oppdatertPerson ->
+        livssyklusRepository.hent(ident).also { oppdatertPerson ->
             assertEquals(antallGjenværendeSøknader, TestPersonVisitor(oppdatertPerson).søknader.size)
         }
     }
@@ -124,39 +124,39 @@ internal class VaktmesterRepositoryTest {
         assertThrows<NotFoundException> { søknadCacheRepository.hent(søknadUuid) }
     }
 
-    private fun innsendtSøknad(journalførtSøknadId: UUID, søknadhåndterer: Søknadhåndterer) =
+    private fun innsendtSøknad(journalførtSøknadId: UUID, søknadhåndterer: Søknadhåndterer, ident: String) =
         Søknad.rehydrer(
             søknadId = journalførtSøknadId,
             søknadhåndterer = søknadhåndterer,
-            søknadhåndterer.ident(),
+            ident = ident,
             dokument = null,
             journalpostId = "journalpostid",
             innsendtTidspunkt = ZonedDateTime.now(),
             språk = språk,
-            Dokumentkrav(),
+            dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
             tilstandsType = Journalført.name
         )
 
-    private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, søknadhåndterer: Søknadhåndterer) =
+    private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, søknadhåndterer: Søknadhåndterer, ident: String) =
         Søknad.rehydrer(
             søknadId = gammelPåbegyntSøknadId,
             søknadhåndterer = søknadhåndterer,
-            søknadhåndterer.ident(),
+            ident = ident,
             dokument = null,
             journalpostId = "1456",
             innsendtTidspunkt = ZonedDateTime.now(),
             språk = språk,
-            Dokumentkrav(),
+            dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
             tilstandsType = Påbegynt.name
         )
 
-    private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, søknadhåndterer: Søknadhåndterer) =
+    private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, søknadhåndterer: Søknadhåndterer, ident: String) =
         Søknad.rehydrer(
             søknadId = nyPåbegyntSøknadId,
             søknadhåndterer = søknadhåndterer,
-            ident = søknadhåndterer.ident(),
+            ident = ident,
             dokument = null,
             journalpostId = "1457",
             innsendtTidspunkt = null,
