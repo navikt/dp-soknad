@@ -37,6 +37,7 @@ class Søknadhåndterer private constructor(
         this.søknader = søknadsfunksjon(this)
     }
 
+    @Deprecated("Ident hører ikke hjemme på en Søknadhåndterer.")
     fun ident() = ident
 
     private val observers = mutableListOf<PersonObserver>()
