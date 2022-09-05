@@ -342,6 +342,7 @@ class Søknad private constructor(
         visitor.visitSøknad(
             søknadId = søknadId,
             søknadObserver = søknadObserver,
+            ident = ident,
             tilstand = tilstand,
             dokument = dokument,
             journalpostId = journalpostId,
