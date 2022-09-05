@@ -71,7 +71,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                         }
                     }
                 }.asSingle
-            )?.createPerson()
+            )?.createSøknadhåndterer()
         }
     }
 

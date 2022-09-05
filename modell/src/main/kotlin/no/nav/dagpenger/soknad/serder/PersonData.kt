@@ -17,22 +17,21 @@ import no.nav.dagpenger.soknad.serder.PersonData.SøknadData.DokumentkravData.Sa
 import java.time.ZonedDateTime
 import java.util.Locale
 import java.util.UUID
-
-class PersonData(
+class PersonData( // TODO: Verken Person eller Søknadhåndterer skal være rotaggregat
     val ident: String,
     var søknader: List<SøknadData> = emptyList(),
     var aktivitetsLogg: AktivitetsloggData? = null
 ) {
-    fun createPerson(): Søknadhåndterer {
+    fun createSøknadhåndterer(): Søknadhåndterer {
         return Søknadhåndterer.rehydrer(
             ident = this.ident,
             aktivitetslogg = this.aktivitetsLogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
-        ) { person ->
+        ) { søknadhåndterer ->
             søknader.map {
                 Søknad.rehydrer(
                     søknadId = it.søknadsId,
-                    søknadhåndterer = person,
-                    ident = person.ident(),
+                    søknadhåndterer = søknadhåndterer,
+                    ident = ident,
                     dokument = it.dokumenter.rehydrer(),
                     journalpostId = it.journalpostId,
                     innsendtTidspunkt = it.innsendtTidspunkt,
