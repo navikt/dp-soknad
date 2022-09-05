@@ -261,12 +261,12 @@ class Søknad private constructor(
             get() = Tilstand.Type.Slettet
 
         override fun entering(søknadHendelse: Hendelse, søknad: Søknad) {
-            søknad.slettet()
+            søknad.slettet(søknad.søknadhåndterer.ident())
         }
     }
 
-    private fun slettet() {
-        søknadhåndterer.søknadSlettet(SøknadSlettetEvent(søknadId, søknadhåndterer.ident()))
+    private fun slettet(ident: String) {
+        søknadhåndterer.søknadSlettet(SøknadSlettetEvent(søknadId, ident))
     }
 
     private object AvventerArkiverbarSøknad : Tilstand {
