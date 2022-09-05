@@ -51,7 +51,7 @@ class Søknadhåndterer private constructor(
         // }
         kontekst(ønskeOmNySøknadHendelse, "Ønske om søknad registrert")
         søknader.add(
-            Søknad(ønskeOmNySøknadHendelse.søknadID(), ønskeOmNySøknadHendelse.språk(), this, ident()).also {
+            Søknad(ønskeOmNySøknadHendelse.søknadID(), ønskeOmNySøknadHendelse.språk(), this, ønskeOmNySøknadHendelse.ident()).also {
                 it.håndter(ønskeOmNySøknadHendelse)
             }
         )
@@ -60,7 +60,7 @@ class Søknadhåndterer private constructor(
     fun håndter(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse) {
         kontekst(ønskeOmNyInnsendingHendelse, "Ønske om innsending registrert")
         søknader.add(
-            Søknad(ønskeOmNyInnsendingHendelse.søknadID(), ønskeOmNyInnsendingHendelse.språk(), this, ident()).also {
+            Søknad(ønskeOmNyInnsendingHendelse.søknadID(), ønskeOmNyInnsendingHendelse.språk(), this, ønskeOmNyInnsendingHendelse.ident()).also {
                 it.håndter(ønskeOmNyInnsendingHendelse)
             }
         )
