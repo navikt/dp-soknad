@@ -15,6 +15,7 @@ import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentDTO.Companion
 import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO.FilDTO.Companion.toFilData
 import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.SannsynliggjøringDTO.Companion.toSannsynliggjøringData
 import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.SvarDTO.Companion.tilSvarData
+import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.SvarDTO.SvarValgDTO.Companion.tilSvarValgDTO
 import java.time.ZonedDateTime
 import java.util.Locale
 import java.util.UUID
@@ -111,13 +112,16 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
             data class SvarDTO(
                 val begrunnelse: String?,
                 val filer: Set<KravDTO.FilDTO>,
+                val valg: SvarValgDTO
             ) {
+
                 companion object {
 
                     fun Krav.Svar.tilSvarData(): SvarDTO {
                         return SvarDTO(
                             begrunnelse = this.begrunnelse,
-                            filer = this.filer.map { it.toFilData() }.toSet()
+                            filer = this.filer.map { it.toFilData() }.toSet(),
+                            valg = this.valg.tilSvarValgDTO()
                         )
                     }
                 }
@@ -125,9 +129,36 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
                 fun rehydrer(): Krav.Svar {
                     return Krav.Svar(
                         filer = this.filer.map { it.rehydrer() }.toMutableSet(),
-                        valg = Krav.Svar.SvarValg.IKKE_BESVART,
-                        begrunnelse = null
+                        valg = when (this.valg) {
+                            SvarValgDTO.IKKE_BESVART -> Krav.Svar.SvarValg.IKKE_BESVART
+                            SvarValgDTO.SEND_NÅ -> Krav.Svar.SvarValg.SEND_NÅ
+                            SvarValgDTO.SEND_SENERE -> Krav.Svar.SvarValg.SEND_SENERE
+                            SvarValgDTO.ANDRE_SENDER -> Krav.Svar.SvarValg.ANDRE_SENDER
+                            SvarValgDTO.SEND_TIDLIGERE -> Krav.Svar.SvarValg.SEND_TIDLIGERE
+                            SvarValgDTO.SENDER_IKKE -> Krav.Svar.SvarValg.SENDER_IKKE
+                        },
+                        begrunnelse = this.begrunnelse
                     )
+                }
+
+                enum class SvarValgDTO {
+                    IKKE_BESVART,
+                    SEND_NÅ,
+                    SEND_SENERE,
+                    ANDRE_SENDER,
+                    SEND_TIDLIGERE,
+                    SENDER_IKKE;
+
+                    companion object {
+                        fun Krav.Svar.SvarValg.tilSvarValgDTO() = when (this) {
+                            Krav.Svar.SvarValg.IKKE_BESVART -> IKKE_BESVART
+                            Krav.Svar.SvarValg.SEND_NÅ -> SEND_NÅ
+                            Krav.Svar.SvarValg.SEND_SENERE -> SEND_SENERE
+                            Krav.Svar.SvarValg.ANDRE_SENDER -> ANDRE_SENDER
+                            Krav.Svar.SvarValg.SEND_TIDLIGERE -> SEND_TIDLIGERE
+                            Krav.Svar.SvarValg.SENDER_IKKE -> SENDER_IKKE
+                        }
+                    }
                 }
             }
 

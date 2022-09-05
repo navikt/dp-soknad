@@ -267,7 +267,7 @@ internal fun Session.hentDokumentKrav(søknadsId: UUID): Set<KravDTO> =
         queryOf(
             // language=PostgreSQL
             """
-                  SELECT faktum_id, beskrivende_id, faktum, sannsynliggjoer, tilstand 
+                  SELECT faktum_id, beskrivende_id, faktum, sannsynliggjoer, tilstand, valg, begrunnelse 
                   FROM dokumentkrav_v1 
                   WHERE soknad_uuid = :soknad_uuid
             """.trimIndent(),
@@ -286,7 +286,9 @@ internal fun Session.hentDokumentKrav(søknadsId: UUID): Set<KravDTO> =
 
                 ),
                 svar = PersonDTO.SøknadDTO.DokumentkravDTO.SvarDTO(
-                    begrunnelse = null, filer = hentFiler(søknadsId, faktumId)
+                    begrunnelse = row.stringOrNull("begrunnelse"),
+                    filer = hentFiler(søknadsId, faktumId),
+                    valg = PersonDTO.SøknadDTO.DokumentkravDTO.SvarDTO.SvarValgDTO.valueOf(row.string("valg"))
                 ),
                 tilstand = row.string("tilstand")
                     .let { KravDTO.KravTilstandDTO.valueOf(it) }
@@ -306,17 +308,19 @@ internal fun Set<KravDTO>.insertKravData(
     transactionalSession.batchPreparedNamedStatement(
         // language=PostgreSQL
         statement = """
-            INSERT INTO dokumentkrav_v1(faktum_id, beskrivende_id, soknad_uuid, faktum, sannsynliggjoer, tilstand)
-            VALUES (:faktum_id, :beskrivende_id, :soknad_uuid, :faktum, :sannsynliggjoer, :tilstand)
+            INSERT INTO dokumentkrav_v1(faktum_id, beskrivende_id, soknad_uuid, faktum, sannsynliggjoer, tilstand, valg, begrunnelse)
+            VALUES (:faktum_id, :beskrivende_id, :soknad_uuid, :faktum, :sannsynliggjoer, :tilstand, :valg, :begrunnelse)
             ON CONFLICT (faktum_id, soknad_uuid) DO UPDATE SET beskrivende_id = :beskrivende_id,
                                                                faktum = :faktum,
                                                                sannsynliggjoer = :sannsynliggjoer,
-                                                               tilstand = :tilstand
+                                                               tilstand = :tilstand, 
+                                                               valg = :valg,
+                                                               begrunnelse = :begrunnelse
                                                                
                                                                
         """.trimIndent(),
         params = map { krav ->
-            mapOf<String, Any>(
+            mapOf<String, Any?>(
                 "faktum_id" to krav.id,
                 "soknad_uuid" to søknadsId,
                 "beskrivende_id" to krav.beskrivendeId,
@@ -328,7 +332,9 @@ internal fun Set<KravDTO>.insertKravData(
                     type = "jsonb"
                     value = objectMapper.writeValueAsString(krav.sannsynliggjøring.sannsynliggjør)
                 },
-                "tilstand" to krav.tilstand.name
+                "tilstand" to krav.tilstand.name,
+                "valg" to krav.svar.valg.name,
+                "begrunnelse" to krav.svar.begrunnelse
             )
         }
     )

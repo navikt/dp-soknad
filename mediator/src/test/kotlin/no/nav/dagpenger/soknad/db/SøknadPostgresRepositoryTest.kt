@@ -13,11 +13,14 @@ import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.faktumJson
+import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -135,7 +138,7 @@ internal class SøknadPostgresRepositoryTest {
     }
 
     @Test
-    fun `livssyklus tii dokumentasjons krav filer`() {
+    fun `livssyklus til dokumentasjonskrav svar`() {
         val tidspunkt = ZonedDateTime.now()
         val fil1 = Krav.Fil(
             filnavn = "ja.jpg",
@@ -162,6 +165,14 @@ internal class SøknadPostgresRepositoryTest {
                 personObservers = listOf(),
 
             )
+
+            søknadMediator.hentDokumentkravFor(søknadId, ident).let {
+                it.aktiveDokumentKrav().forEach { krav ->
+                    assertTrue(krav.svar.filer.isEmpty())
+                    assertEquals(Krav.Svar.SvarValg.IKKE_BESVART, krav.svar.valg)
+                    assertNull(krav.svar.begrunnelse)
+                }
+            }
 
             søknadMediator.behandle(
                 LeggTilFil(
@@ -190,6 +201,28 @@ internal class SøknadPostgresRepositoryTest {
             )
             søknadMediator.hentDokumentkravFor(søknadId, ident).let {
                 assertEquals(2, it.aktiveDokumentKrav().first().svar.filer.size)
+                it.aktiveDokumentKrav().forEach { krav ->
+                    assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
+                    assertNull(krav.svar.begrunnelse)
+                }
+            }
+
+            søknadMediator.behandle(
+                DokumentasjonIkkeTilgjengelig(
+                    søknadId,
+                    ident,
+                    "1",
+                    valg = Krav.Svar.SvarValg.SEND_SENERE,
+                    begrunnelse = "Har ikke"
+                )
+            )
+
+            søknadMediator.hentDokumentkravFor(søknadId, ident).let {
+                assertEquals(2, it.aktiveDokumentKrav().first().svar.filer.size)
+                it.aktiveDokumentKrav().forEach { krav ->
+                    assertEquals(Krav.Svar.SvarValg.SEND_SENERE, krav.svar.valg)
+                    assertEquals("Har ikke", krav.svar.begrunnelse)
+                }
             }
 
             søknadMediator.behandle(

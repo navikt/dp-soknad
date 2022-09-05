@@ -116,13 +116,23 @@ internal class DokumentasjonKravApiTest {
             client.put("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451/svar") {
                 autentisert()
                 header(HttpHeaders.ContentType, "application/json")
-                setBody(svar())
+
+                // language=JSON
+                setBody(
+                    """
+                    {
+                      "begrunnelse": "har ikke",
+                      "svar": "dokumentkrav.svar.send.senere"
+                    }
+                    """.trimIndent()
+                )
             }.let { response ->
                 assertEquals(HttpStatusCode.Created, response.status)
                 assertTrue(slot.isCaptured)
                 with(slot.captured) {
                     assertEquals("451", this.kravId)
-                    assertEquals("dokumentkrav.svar.send.senere", this.svar)
+                    assertEquals(Krav.Svar.SvarValg.SEND_SENERE, this.valg)
+                    assertEquals("har ikke", this.begrunnelse)
                 }
             }
         }
@@ -200,56 +210,5 @@ internal class DokumentasjonKravApiTest {
                 }
             }
         }
-    }
-
-    private fun svar(): String {
-        return """
-    {"id": "7002",
-    "beskrivendeId": "faktum.avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd-dokumentasjon",
-    "fakta": [
-        {
-            "id": "7001",
-            "svar": true,
-            "type": "boolean",
-            "roller": [
-                "søker"
-            ],
-            "readOnly": false,
-            "gyldigeValg": [
-                "faktum.avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd.svar.ja",
-                "faktum.avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd.svar.nei"
-            ],
-            "beskrivendeId": "faktum.avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd",
-            "sannsynliggjøresAv": [
-                {
-                    "id": "7002",
-                    "type": "dokument",
-                    "roller": [],
-                    "readOnly": true,
-                    "beskrivendeId": "faktum.avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd-dokumentasjon",
-                    "sannsynliggjøresAv": []
-                }
-            ]
-        }
-    ],
-    "filer": [
-        {
-            "filnavn": "this_is_fine.jpg",
-            "urn": "urn:vedlegg:728aafa0-2d83-4703-95c1-dfe905c1ad8e/7002/8690fc2e-5b7b-4488-9f90-56bd449bd0c0",
-            "filsti": "728aafa0-2d83-4703-95c1-dfe905c1ad8e/7002/8690fc2e-5b7b-4488-9f90-56bd449bd0c0",
-            "storrelse": 53072,
-            "tidspunkt": "2022-09-02T09:08:52.944690496+02:00"
-        }
-    ],
-    "gyldigeValg": [
-        "dokumentkrav.svar.send.naa",
-        "dokumentkrav.svar.send.senere",
-        "dokumentkrav.svar.send.noen_andre",
-        "dokumentkrav.svar.sendt.tidligere",
-        "dokumentkrav.svar.sender.ikke"
-    ],
-    "begrunnelse": null,
-    "svar": "dokumentkrav.svar.send.senere" } 
-        """.trimIndent()
     }
 }

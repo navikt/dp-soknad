@@ -6,6 +6,9 @@ import no.nav.dagpenger.soknad.Krav.Companion.aktive
 import no.nav.dagpenger.soknad.Krav.Svar.Companion.TOMT_SVAR
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.IKKE_BESVART
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SEND_NÅ
+import no.nav.dagpenger.soknad.hendelse.DokumentKravHendelse
+import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
+import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import java.time.ZonedDateTime
 
 class Dokumentkrav private constructor(
@@ -38,6 +41,21 @@ class Dokumentkrav private constructor(
         other is Dokumentkrav && this.krav == other.krav
 
     override fun hashCode(): Int = 31 * krav.hashCode()
+    fun håndter(dokumentasjonIkkeTilgjengelig: DokumentasjonIkkeTilgjengelig) {
+        val krav = hentKrav(dokumentasjonIkkeTilgjengelig)
+        krav.håndter(dokumentasjonIkkeTilgjengelig)
+    }
+
+    private fun hentKrav(hendelse: DokumentKravHendelse) =
+        (
+            this.aktiveDokumentKrav().find { it.id == hendelse.kravId }
+                ?: hendelse.severe("Fant ikke Dokumentasjonskrav id")
+            )
+
+    fun håndter(hendelse: LeggTilFil) {
+        val krav = hentKrav(hendelse)
+        krav.svar.håndter(hendelse.fil)
+    }
 }
 
 data class Krav(
@@ -60,6 +78,11 @@ data class Krav(
             }
         }
 
+    fun håndter(dokumentasjonIkkeTilgjengelig: DokumentasjonIkkeTilgjengelig) {
+        this.svar.valg = dokumentasjonIkkeTilgjengelig.valg
+        this.svar.begrunnelse = dokumentasjonIkkeTilgjengelig.begrunnelse
+    }
+
     constructor(sannsynliggjøring: Sannsynliggjøring) : this(
         sannsynliggjøring.id,
         TOMT_SVAR,
@@ -75,7 +98,7 @@ data class Krav(
     data class Svar(
         val filer: MutableSet<Fil> = mutableSetOf(),
         var valg: SvarValg,
-        val begrunnelse: String?
+        var begrunnelse: String?
     ) {
 
         fun håndter(fil: Fil) {

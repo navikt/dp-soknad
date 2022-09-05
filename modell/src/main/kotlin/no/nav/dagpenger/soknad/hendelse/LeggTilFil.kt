@@ -12,5 +12,5 @@ class LeggTilFil(søknadID: UUID, ident: String, kravId: String, val fil: Krav.F
 class SlettFil(søknadID: UUID, ident: String, kravId: String, val urn: URN) :
     DokumentKravHendelse(søknadID, ident, kravId)
 
-class DokumentasjonIkkeTilgjengelig(søknadID: UUID, ident: String, kravId: String, val svar: String) :
+class DokumentasjonIkkeTilgjengelig(søknadID: UUID, ident: String, kravId: String, val valg: Krav.Svar.SvarValg, val begrunnelse: String?) :
     DokumentKravHendelse(søknadID, ident, kravId)

@@ -122,15 +122,20 @@ internal class SøknadMediator(
     }
 
     fun behandle(hendelse: DokumentasjonIkkeTilgjengelig) {
-        TODO("Not implementetd")
+        val dokumentkrav =
+            søknadRepository.hentDokumentkravFor(hendelse.søknadID(), hendelse.ident())
+        dokumentkrav.håndter(hendelse)
+        søknadRepository.oppdaterDokumentkrav(
+            hendelse.søknadID(),
+            hendelse.ident(),
+            dokumentkrav
+        )
     }
 
     fun behandle(hendelse: LeggTilFil) {
         val dokumentkrav =
             søknadRepository.hentDokumentkravFor(hendelse.søknadID(), hendelse.ident())
-        val krav = dokumentkrav.aktiveDokumentKrav().find { it.id == hendelse.kravId }
-            ?: hendelse.severe("Fant ikke Dokumentasjonskrav id")
-        krav.svar.håndter(hendelse.fil)
+        dokumentkrav.håndter(hendelse)
         søknadRepository.oppdaterDokumentkrav(
             hendelse.søknadID(),
             hendelse.ident(),

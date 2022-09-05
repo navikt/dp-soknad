@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.dokumentasjonskrav
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.JsonNode
 import de.slub.urn.URN
 import io.ktor.http.HttpStatusCode
@@ -57,8 +58,8 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
             val ident = call.ident()
             val søknadUuid = søknadUuid()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
-                val svar = call.receive<JsonNode>().get("svar")?.asText() ?: throw IllegalArgumentException("Fant ingen svar")
-                søknadMediator.behandle(DokumentasjonIkkeTilgjengelig(søknadUuid, ident, kravId, svar))
+                val svar = call.receive<Svar>()
+                søknadMediator.behandle(DokumentasjonIkkeTilgjengelig(søknadUuid, ident, kravId, svar.svar.tilSvarValg(), svar.begrunnelse))
                 call.respond(HttpStatusCode.Created)
             }
         }
@@ -100,6 +101,11 @@ internal data class ApiFil(
     )
 }
 
+private data class Svar(
+    val svar: GyldigValg,
+    val begrunnelse: String?
+)
+
 private data class ApiDokumentkravResponse(
     val soknad_uuid: UUID,
     val krav: List<ApiDokumentKrav>,
@@ -119,13 +125,28 @@ data class ApiDokumentKrav(
     val beskrivendeId: String,
     val fakta: JsonNode,
     val filer: List<String>,
-    val gyldigeValg: Set<String> = setOf(
-        "dokumentkrav.svar.send.naa",
-        "dokumentkrav.svar.send.senere",
-        "dokumentkrav.svar.send.noen_andre",
-        "dokumentkrav.svar.sendt.tidligere",
-        "dokumentkrav.svar.sender.ikke",
-    ),
+    val gyldigeValg: Set<GyldigValg> = GyldigValg.values().toSet(),
     val begrunnelse: String? = null,
     val svar: String? = null
 )
+
+enum class GyldigValg {
+    @JsonProperty("dokumentkrav.svar.send.naa")
+    SEND_NAA,
+    @JsonProperty("dokumentkrav.svar.send.senere")
+    SEND_SENERE,
+    @JsonProperty("dokumentkrav.svar.sendt.tidligere")
+    SENDT_TIDLIGERE,
+    @JsonProperty("dokumentkrav.svar.sender.ikke")
+    SENDER_IKKE,
+    @JsonProperty("dokumentkrav.svar.andre.sender")
+    ANDRE_SENDER;
+
+    fun tilSvarValg(): Krav.Svar.SvarValg = when (this) {
+        SEND_NAA -> Krav.Svar.SvarValg.SEND_NÅ
+        SEND_SENERE -> Krav.Svar.SvarValg.SEND_SENERE
+        SENDT_TIDLIGERE -> Krav.Svar.SvarValg.SEND_TIDLIGERE
+        SENDER_IKKE -> Krav.Svar.SvarValg.SENDER_IKKE
+        ANDRE_SENDER -> Krav.Svar.SvarValg.ANDRE_SENDER
+    }
+}
