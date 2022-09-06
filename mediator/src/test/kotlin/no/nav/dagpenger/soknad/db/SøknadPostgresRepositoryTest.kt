@@ -13,6 +13,8 @@ import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.SøknadObserver
+import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.faktumJson
@@ -137,18 +139,6 @@ internal class SøknadPostgresRepositoryTest {
     }
 
     @Test
-    fun hentDokumentkrav() {
-        withMigratedDb {
-            val søknadPostgresRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
-            søknadPostgresRepository.lagre(søknad)
-            assertThrows<IkkeTilgangExeption> { søknadPostgresRepository.hentDokumentkravFor(søknadId, "ikke-tilgang") }
-
-            val dokumentkrav = søknadPostgresRepository.hentDokumentkravFor(søknadId, ident)
-            assertEquals(krav, dokumentkrav.aktiveDokumentKrav().first())
-        }
-    }
-
-    @Test
     fun `Tilgangs kontroll til dokumentasjonskrav filer`() {
         val fil1 = Krav.Fil(
             filnavn = "ja.jpg",
@@ -225,7 +215,7 @@ internal class SøknadPostgresRepositoryTest {
 
             )
 
-            søknadMediator.hentDokumentkravFor(søknadId, ident).let {
+            hentDokumentKrav(søknadMediator.hent(søknadId, ident)).let {
                 it.aktiveDokumentKrav().forEach { krav ->
                     assertTrue(krav.svar.filer.isEmpty())
                     assertEquals(Krav.Svar.SvarValg.IKKE_BESVART, krav.svar.valg)
@@ -258,7 +248,7 @@ internal class SøknadPostgresRepositoryTest {
                     fil2
                 )
             )
-            søknadMediator.hentDokumentkravFor(søknadId, ident).let {
+            hentDokumentKrav(søknadMediator.hent(søknadId, ident)).let {
                 assertEquals(2, it.aktiveDokumentKrav().first().svar.filer.size)
                 it.aktiveDokumentKrav().forEach { krav ->
                     assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
@@ -276,7 +266,7 @@ internal class SøknadPostgresRepositoryTest {
                 )
             )
 
-            søknadMediator.hentDokumentkravFor(søknadId, ident).let {
+            hentDokumentKrav(søknadMediator.hent(søknadId, ident)).let {
                 assertEquals(2, it.aktiveDokumentKrav().first().svar.filer.size)
                 it.aktiveDokumentKrav().forEach { krav ->
                     assertEquals(Krav.Svar.SvarValg.SEND_SENERE, krav.svar.valg)
@@ -292,7 +282,7 @@ internal class SøknadPostgresRepositoryTest {
                     urn = fil1.urn
                 )
             )
-            søknadMediator.hentDokumentkravFor(søknadId, ident).let {
+            hentDokumentKrav(søknadMediator.hent(søknadId, ident)).let {
                 assertEquals(1, it.aktiveDokumentKrav().first().svar.filer.size)
             }
 
@@ -305,7 +295,7 @@ internal class SøknadPostgresRepositoryTest {
                 )
             )
 
-            søknadMediator.hentDokumentkravFor(søknadId, ident).let {
+            hentDokumentKrav(søknadMediator.hent(søknadId, ident)).let {
                 assertEquals(0, it.aktiveDokumentKrav().first().svar.filer.size)
             }
 
@@ -320,6 +310,32 @@ internal class SøknadPostgresRepositoryTest {
                 )
             }
         }
+    }
+
+    private fun hentDokumentKrav(søknad: Søknad): Dokumentkrav {
+        class TestSøknadVisitor(søknad: Søknad) : SøknadVisitor {
+            lateinit var dokumentKrav: Dokumentkrav
+
+            init {
+                søknad.accept(this)
+            }
+
+            override fun visitSøknad(
+                søknadId: UUID,
+                ident: String,
+                søknadObserver: SøknadObserver,
+                tilstand: Søknad.Tilstand,
+                dokument: Søknad.Dokument?,
+                journalpostId: String?,
+                innsendtTidspunkt: ZonedDateTime?,
+                språk: Språk,
+                dokumentkrav: Dokumentkrav,
+                sistEndretAvBruker: ZonedDateTime?
+            ) {
+                this.dokumentKrav = dokumentkrav
+            }
+        }
+        return TestSøknadVisitor(søknad).dokumentKrav
     }
 
     private fun assertAntallRader(tabell: String, antallRader: Int) {

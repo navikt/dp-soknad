@@ -162,7 +162,7 @@ internal class SøknadMediator(
     }
 
     private fun behandleSøknad(hendelse: SøknadHendelse, håndter: (Søknad) -> Unit) = try {
-        val søknad = hent(hendelse.søknadID(), hendelse.ident()) ?: hendelse.severe("Fant ikke søknad")
+        val søknad = hent(hendelse.søknadID(), hendelse.ident())
         // todo: Add obervers
         håndter(søknad)
         lagre(søknad)

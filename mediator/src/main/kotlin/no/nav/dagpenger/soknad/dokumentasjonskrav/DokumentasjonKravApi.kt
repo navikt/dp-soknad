@@ -15,8 +15,13 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import mu.KotlinLogging
 import mu.withLoggingContext
+import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Krav
+import no.nav.dagpenger.soknad.Språk
+import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.SøknadObserver
+import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
@@ -35,12 +40,7 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
             val søknadUuid = søknadUuid()
             val ident = call.ident()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
-                val dokumentkrav = søknadMediator.hentDokumentkravFor(søknadUuid, ident)
-                val apiDokumentkravResponse = ApiDokumentkravResponse(
-                    soknad_uuid = søknadUuid,
-                    krav = dokumentkrav.aktiveDokumentKrav().toApiKrav()
-                )
-                call.respond(apiDokumentkravResponse)
+                call.respond(ApiDokumentkravResponse(søknadMediator.hent(søknadUuid, ident)))
             }
         }
         put("/{kravId}/fil") {
@@ -59,7 +59,15 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
             val søknadUuid = søknadUuid()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
                 val svar = call.receive<Svar>()
-                søknadMediator.behandle(DokumentasjonIkkeTilgjengelig(søknadUuid, ident, kravId, svar.svar.tilSvarValg(), svar.begrunnelse))
+                søknadMediator.behandle(
+                    DokumentasjonIkkeTilgjengelig(
+                        søknadUuid,
+                        ident,
+                        kravId,
+                        svar.svar.tilSvarValg(),
+                        svar.begrunnelse
+                    )
+                )
                 call.respond(HttpStatusCode.Created)
             }
         }
@@ -106,18 +114,42 @@ private data class Svar(
     val begrunnelse: String?
 )
 
-private data class ApiDokumentkravResponse(
-    val soknad_uuid: UUID,
-    val krav: List<ApiDokumentKrav>,
-)
+private class ApiDokumentkravResponse(
+    søknad: Søknad
+) : SøknadVisitor {
+    init {
+        søknad.accept(this)
+    }
 
-fun Set<Krav>.toApiKrav(): List<ApiDokumentKrav> = map {
-    ApiDokumentKrav(
-        id = it.id,
-        beskrivendeId = it.beskrivendeId,
-        fakta = it.fakta.fold(objectMapper.createArrayNode()) { acc, faktum -> acc.add(faktum.json) },
-        filer = emptyList(),
-    )
+    lateinit var soknad_uuid: UUID
+    lateinit var krav: List<ApiDokumentKrav>
+
+    override fun visitSøknad(
+        søknadId: UUID,
+        ident: String,
+        søknadObserver: SøknadObserver,
+        tilstand: Søknad.Tilstand,
+        dokument: Søknad.Dokument?,
+        journalpostId: String?,
+        innsendtTidspunkt: ZonedDateTime?,
+        språk: Språk,
+        dokumentkrav: Dokumentkrav,
+        sistEndretAvBruker: ZonedDateTime?
+    ) {
+        soknad_uuid = søknadId
+        krav = dokumentkrav.aktiveDokumentKrav().toApiKrav()
+    }
+
+    companion object {
+        fun Set<Krav>.toApiKrav(): List<ApiDokumentKrav> = map {
+            ApiDokumentKrav(
+                id = it.id,
+                beskrivendeId = it.beskrivendeId,
+                fakta = it.fakta.fold(objectMapper.createArrayNode()) { acc, faktum -> acc.add(faktum.json) },
+                filer = emptyList(),
+            )
+        }
+    }
 }
 
 data class ApiDokumentKrav(
@@ -133,12 +165,16 @@ data class ApiDokumentKrav(
 enum class GyldigValg {
     @JsonProperty("dokumentkrav.svar.send.naa")
     SEND_NAA,
+
     @JsonProperty("dokumentkrav.svar.send.senere")
     SEND_SENERE,
+
     @JsonProperty("dokumentkrav.svar.sendt.tidligere")
     SENDT_TIDLIGERE,
+
     @JsonProperty("dokumentkrav.svar.sender.ikke")
     SENDER_IKKE,
+
     @JsonProperty("dokumentkrav.svar.andre.sender")
     ANDRE_SENDER;
 

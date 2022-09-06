@@ -21,7 +21,10 @@ import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Sannsynliggjøring
+import no.nav.dagpenger.soknad.Språk
+import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
@@ -52,13 +55,25 @@ internal class DokumentasjonKravApiTest {
         faktum = dokumentFaktum,
         sannsynliggjør = faktaSomSannsynliggjøres
     )
-
     private val dokumentKrav = Dokumentkrav().also {
         it.håndter(setOf(sannsynliggjøring))
     }
 
+    private val søknad = Søknad.rehydrer(
+        søknadId = testSoknadId,
+        søknadObserver = Søknadhåndterer(),
+        ident = defaultDummyFodselsnummer,
+        dokument = null,
+        journalpostId = "journalpostid",
+        innsendtTidspunkt = ZonedDateTime.now(),
+        språk = Språk("NO"),
+        dokumentkrav = dokumentKrav,
+        sistEndretAvBruker = ZonedDateTime.now(),
+        tilstandsType = Søknad.Tilstand.Type.Påbegynt.name,
+    )
+
     private val søknadMediatorMock = mockk<SøknadMediator>().also {
-        every { it.hentDokumentkravFor(testSoknadId, defaultDummyFodselsnummer) } returns dokumentKrav
+        every { it.hent(testSoknadId, defaultDummyFodselsnummer) } returns søknad
     }
 
     @Test

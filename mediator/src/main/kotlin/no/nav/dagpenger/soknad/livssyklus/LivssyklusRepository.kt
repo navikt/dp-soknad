@@ -9,7 +9,6 @@ import kotliquery.sessionOf
 import kotliquery.using
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Aktivitetslogg
-import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknadhåndterer
@@ -42,11 +41,8 @@ interface LivssyklusRepository {
 }
 
 interface SøknadRepository {
-    fun hent(søknadId: UUID, ident: String, komplettAktivitetslogg: Boolean = false): Søknad?
+    fun hent(søknadId: UUID, ident: String, komplettAktivitetslogg: Boolean = false): Søknad
     fun lagre(søknad: Søknad)
-
-    @Deprecated("Bruk hent(søknadId) istedet")
-    fun hentDokumentkravFor(søknadId: UUID, ident: String): Dokumentkrav
 }
 
 class LivssyklusPostgresRepository(private val dataSource: DataSource) : LivssyklusRepository {

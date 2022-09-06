@@ -79,13 +79,6 @@ class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
         }
     }
 
-    override fun hentDokumentkravFor(søknadId: UUID, ident: String): Dokumentkrav {
-        sjekkTilgang(ident, søknadId)
-        return using(sessionOf(dataSource)) { session ->
-            Dokumentkrav.rehydrer(session.hentDokumentKrav(søknadId).map { it.rehydrer() }.toSet())
-        }
-    }
-
     private fun harTilgang(ident: String, søknadId: UUID): Boolean =
         using(sessionOf(dataSource)) { session ->
             session.run(
