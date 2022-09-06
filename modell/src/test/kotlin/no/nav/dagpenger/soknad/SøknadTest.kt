@@ -32,7 +32,7 @@ private const val testJournalpostId = "J123"
 
 internal class SøknadTest {
     private lateinit var søknadhåndterer: Søknadhåndterer
-    private lateinit var personObserver: TestSøknadObserver
+    private lateinit var testSøknadObserver: TestSøknadObserver
     private lateinit var plantUmlObservatør: PlantUmlObservatør
     private val inspektør get() = TestSøknadhåndtererInspektør(søknadhåndterer)
     private val språk = "NO"
@@ -40,7 +40,7 @@ internal class SøknadTest {
     @BeforeEach
     internal fun setUp() {
         søknadhåndterer = Søknadhåndterer()
-        personObserver = TestSøknadObserver().also { søknadhåndterer.addObserver(it) }
+        testSøknadObserver = TestSøknadObserver().also { søknadhåndterer.addObserver(it) }
         plantUmlObservatør = PlantUmlObservatør().also {
             søknadhåndterer.addObserver(it)
         }
@@ -112,7 +112,7 @@ internal class SøknadTest {
         håndterNySøknadOpprettet()
         håndterSlettet()
 
-        assertTrue(personObserver.slettet)
+        assertTrue(testSøknadObserver.slettet)
 
         assertTilstander(
             UnderOpprettelse,
@@ -189,7 +189,7 @@ internal class SøknadTest {
     }
 
     private fun assertTilstander(vararg tilstander: Søknad.Tilstand.Type) {
-        assertEquals(tilstander.asList(), personObserver.tilstander)
+        assertEquals(tilstander.asList(), testSøknadObserver.tilstander)
     }
 
     private fun assertPuml(tittel: String) {
