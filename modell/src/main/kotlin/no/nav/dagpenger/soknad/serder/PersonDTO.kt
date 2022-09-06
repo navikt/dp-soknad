@@ -39,7 +39,7 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
                         språk = it.språkDTO.rehydrer(),
                         dokumentkrav = it.dokumentkrav.rehydrer(),
                         sistEndretAvBruker = it.sistEndretAvBruker,
-                        tilstandsType = it.tilstandType.name
+                        tilstandsType = it.tilstandType.rehydrer()
                     )
                 }.toMutableList()
             },
@@ -68,7 +68,7 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
             språk = this.språkDTO.rehydrer(),
             dokumentkrav = this.dokumentkrav.rehydrer(),
             sistEndretAvBruker = this.sistEndretAvBruker,
-            tilstandsType = this.tilstandType.name
+            tilstandsType = this.tilstandType.rehydrer()
 
         )
         class DokumentDTO(
@@ -246,6 +246,16 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
             AvventerJournalføring,
             Journalført,
             Slettet;
+
+            fun rehydrer(): Søknad.Tilstand.Type = when (this) {
+                UnderOpprettelse -> Søknad.Tilstand.Type.UnderOpprettelse
+                Påbegynt -> Søknad.Tilstand.Type.Påbegynt
+                AvventerArkiverbarSøknad -> Søknad.Tilstand.Type.AvventerArkiverbarSøknad
+                AvventerMidlertidligJournalføring -> Søknad.Tilstand.Type.AvventerMidlertidligJournalføring
+                AvventerJournalføring -> Søknad.Tilstand.Type.AvventerJournalføring
+                Journalført -> Søknad.Tilstand.Type.Journalført
+                Slettet -> Søknad.Tilstand.Type.Slettet
+            }
 
             companion object {
                 fun rehydrer(dbTilstand: String): TilstandDTO {

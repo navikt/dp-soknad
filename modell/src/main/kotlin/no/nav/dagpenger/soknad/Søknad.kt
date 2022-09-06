@@ -35,6 +35,10 @@ class Søknad private constructor(
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : Aktivitetskontekst {
 
+    private val observers = mutableListOf<SøknadObserver>()
+    init {
+        observers.add(søknadObserver)
+    }
     constructor(søknadId: UUID, språk: Språk, søknadObserver: SøknadObserver, ident: String) : this(
         søknadId = søknadId,
         søknadObserver = søknadObserver,
@@ -68,9 +72,9 @@ class Søknad private constructor(
             språk: Språk,
             dokumentkrav: Dokumentkrav,
             sistEndretAvBruker: ZonedDateTime?,
-            tilstandsType: String
+            tilstandsType: Tilstand.Type
         ): Søknad {
-            val tilstand: Tilstand = when (Tilstand.Type.valueOf(tilstandsType)) {
+            val tilstand: Tilstand = when (tilstandsType) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
                 Tilstand.Type.Påbegynt -> Påbegynt
                 Tilstand.Type.AvventerArkiverbarSøknad -> AvventerArkiverbarSøknad
@@ -172,6 +176,10 @@ class Søknad private constructor(
     fun håndter(slettFil: SlettFil) {
         kontekst(slettFil)
         tilstand.håndter(slettFil, this)
+    }
+
+    fun addObserver(søknadObserver: SøknadObserver) {
+        observers.add(søknadObserver)
     }
 
     interface Tilstand : Aktivitetskontekst {
@@ -320,7 +328,9 @@ class Søknad private constructor(
     }
 
     private fun slettet(ident: String) {
-        søknadObserver.søknadSlettet(SøknadSlettetEvent(søknadId, ident))
+        observers.forEach {
+            it.søknadSlettet(SøknadSlettetEvent(søknadId, ident))
+        }
     }
 
     private object AvventerArkiverbarSøknad : Tilstand {
@@ -444,12 +454,14 @@ class Søknad private constructor(
     }
 
     private fun varsleOmEndretTilstand(forrigeTilstand: Tilstand) {
-        søknadObserver.søknadTilstandEndret(
-            SøknadObserver.SøknadEndretTilstandEvent(
-                søknadId = søknadId,
-                gjeldendeTilstand = tilstand.tilstandType,
-                forrigeTilstand = forrigeTilstand.tilstandType
+        observers.forEach {
+            it.søknadTilstandEndret(
+                SøknadObserver.SøknadEndretTilstandEvent(
+                    søknadId = søknadId,
+                    gjeldendeTilstand = tilstand.tilstandType,
+                    forrigeTilstand = forrigeTilstand.tilstandType
+                )
             )
-        )
+        }
     }
 }

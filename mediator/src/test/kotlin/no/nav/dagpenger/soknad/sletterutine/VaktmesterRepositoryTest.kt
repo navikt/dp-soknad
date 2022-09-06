@@ -135,7 +135,7 @@ internal class VaktmesterRepositoryTest {
             språk = språk,
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
-            tilstandsType = Journalført.name
+            tilstandsType = Journalført
         )
 
     private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, søknadhåndterer: Søknadhåndterer, ident: String) =
@@ -149,7 +149,7 @@ internal class VaktmesterRepositoryTest {
             språk = språk,
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
-            tilstandsType = Påbegynt.name
+            tilstandsType = Påbegynt
         )
 
     private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, søknadhåndterer: Søknadhåndterer, ident: String) =
@@ -163,7 +163,7 @@ internal class VaktmesterRepositoryTest {
             språk = språk,
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
-            tilstandsType = Påbegynt.name
+            tilstandsType = Påbegynt
         )
 }
 

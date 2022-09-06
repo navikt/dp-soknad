@@ -112,7 +112,7 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
                     språk = Språk(språkVerdi),
                     dokumentkrav = Dokumentkrav(),
                     sistEndretAvBruker = ZonedDateTime.now(),
-                    tilstandsType = Journalført.name
+                    tilstandsType = Journalført
                 )
             )
         }

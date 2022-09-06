@@ -108,7 +108,7 @@ internal class LivssyklusPostgresRepositoryTest {
                         krav = setOf(krav)
                     ),
                     sistEndretAvBruker = ZonedDateTime.now().minusDays(1),
-                    tilstandsType = Journalført.name
+                    tilstandsType = Journalført
                 )
             )
         }
@@ -164,7 +164,7 @@ internal class LivssyklusPostgresRepositoryTest {
                         krav = setOf(krav)
                     ),
                     sistEndretAvBruker = ZonedDateTime.now(),
-                    tilstandsType = "Journalført"
+                    tilstandsType = Journalført
                 )
             )
         }
@@ -192,7 +192,7 @@ internal class LivssyklusPostgresRepositoryTest {
                     språk = språk,
                     dokumentkrav = Dokumentkrav(),
                     sistEndretAvBruker = innsendtTidspunkt,
-                    tilstandsType = Påbegynt.name
+                    tilstandsType = Påbegynt
                 ),
                 Søknad.rehydrer(
                     søknadId = UUID.randomUUID(),
@@ -204,7 +204,7 @@ internal class LivssyklusPostgresRepositoryTest {
                     språk = språk,
                     dokumentkrav = Dokumentkrav(),
                     sistEndretAvBruker = innsendtTidspunkt,
-                    tilstandsType = Journalført.name
+                    tilstandsType = Journalført
                 )
             )
         }
@@ -237,7 +237,7 @@ internal class LivssyklusPostgresRepositoryTest {
                     språk = språk,
                     dokumentkrav = Dokumentkrav(),
                     sistEndretAvBruker = ZonedDateTime.now(),
-                    tilstandsType = Journalført.name
+                    tilstandsType = Journalført
                 )
             )
         }

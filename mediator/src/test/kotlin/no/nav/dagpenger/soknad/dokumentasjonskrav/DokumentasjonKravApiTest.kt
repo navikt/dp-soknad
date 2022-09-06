@@ -69,7 +69,7 @@ internal class DokumentasjonKravApiTest {
         språk = Språk("NO"),
         dokumentkrav = dokumentKrav,
         sistEndretAvBruker = ZonedDateTime.now(),
-        tilstandsType = Søknad.Tilstand.Type.Påbegynt.name,
+        tilstandsType = Søknad.Tilstand.Type.Påbegynt,
     )
 
     private val søknadMediatorMock = mockk<SøknadMediator>().also {

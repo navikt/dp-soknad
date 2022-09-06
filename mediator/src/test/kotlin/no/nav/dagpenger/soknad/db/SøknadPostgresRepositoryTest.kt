@@ -77,7 +77,7 @@ internal class SøknadPostgresRepositoryTest {
             krav = setOf(krav)
         ),
         sistEndretAvBruker = ZonedDateTime.now(),
-        tilstandsType = Søknad.Tilstand.Type.Påbegynt.name
+        tilstandsType = Søknad.Tilstand.Type.Påbegynt
     )
 
     @Test
@@ -110,7 +110,7 @@ internal class SøknadPostgresRepositoryTest {
                 krav = setOf(krav)
             ),
             sistEndretAvBruker = ZonedDateTime.now().minusDays(1),
-            tilstandsType = Søknad.Tilstand.Type.Journalført.name
+            tilstandsType = Søknad.Tilstand.Type.Journalført
         )
 
         withMigratedDb {
