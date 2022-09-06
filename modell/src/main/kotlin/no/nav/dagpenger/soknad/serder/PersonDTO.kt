@@ -27,22 +27,23 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
     fun createSøknadhåndterer(): Søknadhåndterer {
         return Søknadhåndterer.rehydrer(
             aktivitetslogg = this.aktivitetsLogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
-        ) { søknadhåndterer ->
-            søknader.map {
-                Søknad.rehydrer(
-                    søknadId = it.søknadsId,
-                    søknadObserver = søknadhåndterer,
-                    ident = ident,
-                    dokument = it.dokumenter.rehydrer(),
-                    journalpostId = it.journalpostId,
-                    innsendtTidspunkt = it.innsendtTidspunkt,
-                    språk = it.språkDTO.rehydrer(),
-                    dokumentkrav = it.dokumentkrav.rehydrer(),
-                    sistEndretAvBruker = it.sistEndretAvBruker,
-                    tilstandsType = it.tilstandType.name
-                )
-            }.toMutableList()
-        }
+            søknadsfunksjon = { søknadhåndterer: Søknadhåndterer ->
+                søknader.map { it: SøknadDTO ->
+                    Søknad.rehydrer(
+                        søknadId = it.søknadsId,
+                        søknadObserver = søknadhåndterer,
+                        ident = ident,
+                        dokument = it.dokumenter.rehydrer(),
+                        journalpostId = it.journalpostId,
+                        innsendtTidspunkt = it.innsendtTidspunkt,
+                        språk = it.språkDTO.rehydrer(),
+                        dokumentkrav = it.dokumentkrav.rehydrer(),
+                        sistEndretAvBruker = it.sistEndretAvBruker,
+                        tilstandsType = it.tilstandType.name
+                    )
+                }.toMutableList()
+            },
+        )
     }
 
     class SøknadDTO(
