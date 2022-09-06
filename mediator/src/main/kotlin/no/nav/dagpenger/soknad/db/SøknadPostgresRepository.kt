@@ -104,36 +104,6 @@ class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
             ) ?: false
         }
 
-    override fun oppdaterDokumentkrav(søknadId: UUID, ident: String, dokumentkrav: Dokumentkrav) {
-        sjekkTilgang(ident, søknadId)
-        using(sessionOf(dataSource)) { session ->
-            session.transaction { transactionalSession ->
-                dokumentkrav.toDokumentKravData().kravData.insertKravData(søknadId, transactionalSession)
-            }
-        }
-    }
-
-    override fun slettDokumentasjonkravFil(søknadId: UUID, ident: String, kravId: String, urn: URN) {
-        sjekkTilgang(ident, søknadId)
-        using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf(
-                    statement = """
-                       DELETE FROM dokumentkrav_filer_v1 
-                       WHERE soknad_uuid = :soknadId
-                       AND faktum_id = :kravId 
-                       AND urn = :urn 
-                    """.trimIndent(),
-                    paramMap = mapOf(
-                        "soknadId" to søknadId.toString(),
-                        "kravId" to kravId,
-                        "urn" to urn.toString()
-                    )
-                ).asUpdate
-            )
-        }
-    }
-
     private fun lagreAktivitetslogg(
         transactionalSession: TransactionalSession,
         internId: Long,

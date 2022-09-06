@@ -2,7 +2,6 @@ package no.nav.dagpenger.soknad.livssyklus
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
-import de.slub.urn.URN
 import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
@@ -48,11 +47,6 @@ interface SøknadRepository {
 
     @Deprecated("Bruk hent(søknadId) istedet")
     fun hentDokumentkravFor(søknadId: UUID, ident: String): Dokumentkrav
-
-    @Deprecated("Bruk lagre(søknadId) istedet")
-    fun oppdaterDokumentkrav(søknadId: UUID, ident: String, dokumentkrav: Dokumentkrav)
-    @Deprecated("Bruk lagre(søknadId) istedet")
-    fun slettDokumentasjonkravFil(søknadId: UUID, ident: String, kravId: String, urn: URN)
 }
 
 class LivssyklusPostgresRepository(private val dataSource: DataSource) : LivssyklusRepository {
