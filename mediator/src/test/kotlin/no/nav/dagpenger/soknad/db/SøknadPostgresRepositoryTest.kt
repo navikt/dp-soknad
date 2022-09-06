@@ -2,6 +2,9 @@ package no.nav.dagpenger.soknad.db
 
 import de.slub.urn.URN
 import io.mockk.mockk
+import kotliquery.queryOf
+import kotliquery.sessionOf
+import kotliquery.using
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.IkkeTilgangExeption
@@ -29,6 +32,7 @@ import java.util.UUID
 
 internal class SøknadPostgresRepositoryTest {
     private val søknadId = UUID.randomUUID()
+    private val språk = Språk("NO")
 
     private val dokumentFaktum =
         Faktum(faktumJson("1", "f1"))
@@ -72,8 +76,65 @@ internal class SøknadPostgresRepositoryTest {
             krav = setOf(krav)
         ),
         sistEndretAvBruker = ZonedDateTime.now(),
-        tilstandsType = "Journalført"
+        tilstandsType = Søknad.Tilstand.Type.Påbegynt.name
     )
+
+    @Test
+    fun `Lagre og hente søknad med dokument, dokumentkrav og aktivitetslogg`() {
+
+        val søknadId = UUID.randomUUID()
+        val ident = "12345678910"
+        val søknad = Søknad.rehydrer(
+            søknadId = søknadId,
+            søknadObserver = Søknadhåndterer(),
+            ident = ident,
+            dokument = Søknad.Dokument(
+                varianter = listOf(
+                    Søknad.Dokument.Variant(
+                        urn = "urn:soknad:fil1",
+                        format = "ARKIV",
+                        type = "PDF"
+                    ),
+                    Søknad.Dokument.Variant(
+                        urn = "urn:soknad:fil2",
+                        format = "ARKIV",
+                        type = "PDF"
+                    )
+                )
+            ),
+            journalpostId = "journalpostid",
+            innsendtTidspunkt = ZonedDateTime.now(),
+            språk = språk,
+            dokumentkrav = Dokumentkrav.rehydrer(
+                krav = setOf(krav)
+            ),
+            sistEndretAvBruker = ZonedDateTime.now().minusDays(1),
+            tilstandsType = Søknad.Tilstand.Type.Journalført.name
+        )
+
+        withMigratedDb {
+            SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).let { søknadPostgresRepository ->
+                søknadPostgresRepository.lagre(søknad)
+
+                assertAntallRader("soknad_v1", 1)
+                assertAntallRader("dokumentkrav_v1", 1)
+                assertAntallRader("aktivitetslogg_v2", 1)
+                assertAntallRader("dokumentkrav_v1", 1)
+
+                val rehydrertSøknad = søknadPostgresRepository.hent(søknadId, ident)
+
+                assertDeepEquals(rehydrertSøknad, søknad)
+
+                assertThrows<IkkeTilgangExeption> {
+                    søknadPostgresRepository.hent(søknadId, "ikke-tilgang")
+                }
+            }
+        }
+    }
+
+    private fun assertDeepEquals(expected: Søknad, result: Søknad) {
+        assertTrue(expected.deepEquals(result), "Søknadene var ikke like")
+    }
 
     @Test
     fun hentDokumentkrav() {
@@ -259,5 +320,16 @@ internal class SøknadPostgresRepositoryTest {
                 )
             }
         }
+    }
+
+    private fun assertAntallRader(tabell: String, antallRader: Int) {
+        val faktiskeRader = using(sessionOf(PostgresDataSourceBuilder.dataSource)) { session ->
+            session.run(
+                queryOf("select count(1) from $tabell").map { row ->
+                    row.int(1)
+                }.asSingle
+            )
+        }
+        assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: $tabell")
     }
 }

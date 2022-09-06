@@ -33,6 +33,15 @@ class Dokumentkrav private constructor(
             }
         )
     }
+    fun håndter(hendelse: LeggTilFil) {
+        val krav = hentKrav(hendelse)
+        krav.svar.håndter(hendelse.fil)
+    }
+
+    fun håndter(slettFil: SlettFil) {
+        val krav = hentKrav(slettFil)
+        krav.svar.slettfil(slettFil.urn)
+    }
 
     fun aktiveDokumentKrav() = krav.filter(aktive()).toSet()
 
@@ -52,16 +61,6 @@ class Dokumentkrav private constructor(
             this.aktiveDokumentKrav().find { it.id == hendelse.kravId }
                 ?: hendelse.severe("Fant ikke Dokumentasjonskrav id")
             )
-
-    fun håndter(hendelse: LeggTilFil) {
-        val krav = hentKrav(hendelse)
-        krav.svar.håndter(hendelse.fil)
-    }
-
-    fun håndter(slettFil: SlettFil) {
-        val krav = hentKrav(slettFil)
-        krav.svar.slettfil(slettFil.urn)
-    }
 }
 
 data class Krav(
@@ -112,10 +111,7 @@ data class Krav(
             valg = SEND_NÅ
             begrunnelse = null
         }
-
-        fun slettfil(urn: URN) {
-            filer.removeIf { it.urn == urn }
-        }
+        fun slettfil(urn: URN) = filer.removeIf { it.urn == urn }
 
         companion object {
             val TOMT_SVAR = Svar(filer = mutableSetOf(), valg = IKKE_BESVART, begrunnelse = null)

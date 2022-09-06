@@ -36,7 +36,7 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
                     dokument = it.dokumenter.rehydrer(),
                     journalpostId = it.journalpostId,
                     innsendtTidspunkt = it.innsendtTidspunkt,
-                    språk = it.språkDTO.somSpråk(),
+                    språk = it.språkDTO.rehydrer(),
                     dokumentkrav = it.dokumentkrav.rehydrer(),
                     sistEndretAvBruker = it.sistEndretAvBruker,
                     tilstandsType = it.tilstandType.name
@@ -47,6 +47,7 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
 
     class SøknadDTO(
         val søknadsId: UUID,
+        val ident: String,
         val tilstandType: TilstandDTO,
         var dokumenter: List<DokumentDTO>,
         val journalpostId: String?,
@@ -55,6 +56,20 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
         var dokumentkrav: DokumentkravDTO,
         val sistEndretAvBruker: ZonedDateTime?
     ) {
+
+        fun rehydrer(): Søknad = Søknad.rehydrer(
+            søknadId = this.søknadsId,
+            søknadObserver = Søknadhåndterer(),
+            ident = this.ident,
+            dokument = this.dokumenter.rehydrer(),
+            journalpostId = this.journalpostId,
+            innsendtTidspunkt = this.innsendtTidspunkt,
+            språk = this.språkDTO.rehydrer(),
+            dokumentkrav = this.dokumentkrav.rehydrer(),
+            sistEndretAvBruker = this.sistEndretAvBruker,
+            tilstandsType = this.tilstandType.name
+
+        )
         class DokumentDTO(
             val urn: String
         ) {
@@ -78,7 +93,7 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
         class SpråkDTO(val verdi: String) {
             constructor(språk: Locale) : this(språk.toLanguageTag())
 
-            fun somSpråk() = Språk(verdi)
+            fun rehydrer() = Språk(verdi)
         }
 
         data class DokumentkravDTO(

@@ -24,8 +24,8 @@ class Søknad private constructor(
     private val søknadId: UUID,
     private val søknadObserver: SøknadObserver,
     private val ident: String,
-    // @todo: Endre navn fra dokument til journalføringer? (og liste)?
     private var tilstand: Tilstand,
+    // @todo: Endre navn fra dokument til journalføringer? (og liste)?
     private var dokument: Dokument?,
     private var journalpostId: String?,
     private var innsendtTidspunkt: ZonedDateTime?,
@@ -382,6 +382,7 @@ class Søknad private constructor(
     fun accept(visitor: SøknadVisitor) {
         visitor.visitSøknad(
             søknadId = søknadId,
+            ident = ident,
             søknadObserver = søknadObserver,
             tilstand = tilstand,
             dokument = dokument,
@@ -392,6 +393,7 @@ class Søknad private constructor(
             sistEndretAvBruker = sistEndretAvBruker
         )
         tilstand.accept(visitor)
+        aktivitetslogg.accept(visitor)
     }
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst =

@@ -176,6 +176,7 @@ internal class SøknadMediator(
         throw err
     } catch (e: Exception) {
         errorHandler(e, e.message ?: "Ukjent feil")
+        throw e
     }
 
     private fun behandle(hendelse: Hendelse, håndter: (Søknadhåndterer) -> Unit) =
