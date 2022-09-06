@@ -13,7 +13,6 @@ import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.SøknadObserver
 import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
@@ -323,7 +322,6 @@ internal class SøknadPostgresRepositoryTest {
             override fun visitSøknad(
                 søknadId: UUID,
                 ident: String,
-                søknadObserver: SøknadObserver,
                 tilstand: Søknad.Tilstand,
                 dokument: Søknad.Dokument?,
                 journalpostId: String?,

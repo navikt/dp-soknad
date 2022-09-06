@@ -16,7 +16,6 @@ internal class TestSøknadhåndtererInspektør(søknadhåndterer: Søknadhåndte
     override fun visitSøknad(
         søknadId: UUID,
         ident: String,
-        søknadObserver: SøknadObserver,
         tilstand: Søknad.Tilstand,
         dokument: Søknad.Dokument?,
         journalpostId: String?,

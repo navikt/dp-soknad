@@ -12,7 +12,6 @@ import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.IkkeTilgangExeption
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
-import no.nav.dagpenger.soknad.SøknadObserver
 import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.serder.PersonDTO
@@ -156,7 +155,6 @@ internal class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
     override fun visitSøknad(
         søknadId: UUID,
         ident: String,
-        søknadObserver: SøknadObserver,
         tilstand: Søknad.Tilstand,
         dokument: Søknad.Dokument?,
         journalpostId: String?,

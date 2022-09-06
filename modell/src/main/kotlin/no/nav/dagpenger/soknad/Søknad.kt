@@ -383,7 +383,6 @@ class Søknad private constructor(
         visitor.visitSøknad(
             søknadId = søknadId,
             ident = ident,
-            søknadObserver = søknadObserver,
             tilstand = tilstand,
             dokument = dokument,
             journalpostId = journalpostId,

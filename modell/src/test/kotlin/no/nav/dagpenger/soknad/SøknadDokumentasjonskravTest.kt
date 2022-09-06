@@ -152,7 +152,6 @@ internal class TestSøknadInspektør2(søknad: Søknad) : SøknadVisitor {
     override fun visitSøknad(
         søknadId: UUID,
         ident: String,
-        søknadObserver: SøknadObserver,
         tilstand: Søknad.Tilstand,
         dokument: Søknad.Dokument?,
         journalpostId: String?,
