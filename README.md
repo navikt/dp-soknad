@@ -1,7 +1,8 @@
 # dp-soknad
 
 1. Eier livsylus på søknad fra Påbegynt til Journalført.
-2. todo
+2. Eier dokumentasjonkrav for søknader
+3. Status for søknader og liste gitt bruker 
 
 ## Komme i gang
 
