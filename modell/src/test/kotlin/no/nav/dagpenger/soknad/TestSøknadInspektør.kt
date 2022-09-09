@@ -3,15 +3,15 @@ package no.nav.dagpenger.soknad
 import java.time.ZonedDateTime
 import java.util.UUID
 
-internal class TestSøknadInspektør(søknadhåndterer: Søknadhåndterer) : SøknadhåndtererVisitor {
+internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
 
     lateinit var søknadId: UUID
     lateinit var gjeldendetilstand: Søknad.Tilstand.Type
     lateinit var dokumentkrav: Dokumentkrav
-    lateinit var personLogg: Aktivitetslogg
+    lateinit var aktivitetslogg: Aktivitetslogg
 
     init {
-        søknadhåndterer.accept(this)
+        søknad.accept(this)
     }
 
     override fun visitSøknad(
@@ -34,6 +34,6 @@ internal class TestSøknadInspektør(søknadhåndterer: Søknadhåndterer) : Sø
     }
 
     override fun postVisitAktivitetslogg(aktivitetslogg: Aktivitetslogg) {
-        personLogg = aktivitetslogg
+        this.aktivitetslogg = aktivitetslogg
     }
 }

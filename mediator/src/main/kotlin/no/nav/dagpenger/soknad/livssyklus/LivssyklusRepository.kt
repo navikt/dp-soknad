@@ -42,6 +42,7 @@ interface LivssyklusRepository {
 
 interface SøknadRepository {
     fun hent(søknadId: UUID, ident: String, komplettAktivitetslogg: Boolean = false): Søknad
+    fun hentSøknader(ident: String, komplettAktivitetslogg: Boolean = false): Set<Søknad>
     fun lagre(søknad: Søknad)
 }
 

@@ -58,6 +58,11 @@ class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
             )?.rehydrer()!!
         }
     }
+
+    override fun hentSøknader(ident: String, komplettAktivitetslogg: Boolean): Set<Søknad> {
+        TODO("balab")
+    }
+
     override fun lagre(søknad: Søknad) {
         val visitor = SøknadPersistenceVisitor(søknad)
         using(sessionOf(dataSource)) { session ->

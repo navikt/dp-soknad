@@ -47,6 +47,7 @@ class Søknadhåndterer constructor(
                 ønskeOmNySøknadHendelse.språk(),
                 ønskeOmNySøknadHendelse.ident()
             ).also {
+                it.addObserver(this)
                 it.håndter(ønskeOmNySøknadHendelse)
             }
         )
@@ -60,6 +61,7 @@ class Søknadhåndterer constructor(
                 ønskeOmNyInnsendingHendelse.språk(),
                 ønskeOmNyInnsendingHendelse.ident()
             ).also {
+                it.addObserver(this)
                 it.håndter(ønskeOmNyInnsendingHendelse)
             }
         )
@@ -134,6 +136,7 @@ class Søknadhåndterer constructor(
 
     fun addObserver(søknadObserver: SøknadObserver) {
         observers.add(søknadObserver)
+        søknader.forEach { it.addObserver(søknadObserver) }
     }
 
     override fun søknadTilstandEndret(event: SøknadObserver.SøknadEndretTilstandEvent) {
