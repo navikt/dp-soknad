@@ -75,7 +75,9 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
             val ident = call.ident()
             val søknadUuid = søknadUuid()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
-                val urn = URN.rfc8141().parse("urn:vedlegg:${call.nss()}")
+                val urn = URN.rfc8141().parse("urn:vedlegg:${call.nss()}").also {
+                    logger.info { "Delete: $it" }
+                }
                 søknadMediator.behandle(SlettFil(søknadUuid, ident, kravId, urn))
                 call.respond(HttpStatusCode.NoContent)
             }
