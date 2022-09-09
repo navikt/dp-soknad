@@ -15,7 +15,7 @@ import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNyInnsendingHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 
-class Søknadhåndterer private constructor(
+class Søknadhåndterer constructor(
     søknadsfunksjon: (søknadhåndterer: Søknadhåndterer) -> MutableList<Søknad>
 ) : SøknadObserver {
 

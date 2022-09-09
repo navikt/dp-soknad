@@ -24,11 +24,12 @@ internal class BehovMediatorTest {
 
     private val testRapid = TestRapid()
     private lateinit var aktivitetslogg: Aktivitetslogg
-    private lateinit var søknad: Søknad
+    private lateinit var testSøknadKontekst: TestSøknadKontekst
 
     @BeforeEach
     fun setup() {
         aktivitetslogg = Aktivitetslogg()
+        testSøknadKontekst = TestSøknadKontekst(søknadID, testIdent)
         behovMediator = BehovMediator(
             rapidsConnection = testRapid,
             sikkerLogg = mockk(relaxed = true)
@@ -39,7 +40,7 @@ internal class BehovMediatorTest {
     @Test
     internal fun `Behov blir sendt og inneholder det den skal`() {
         val hendelse = TestHendelse(aktivitetslogg.barn())
-        hendelse.kontekst(søknad)
+        hendelse.kontekst(testSøknadKontekst)
         hendelse.kontekst(Testkontekst("Testkontekst"))
 
         hendelse.behov(
@@ -72,7 +73,7 @@ internal class BehovMediatorTest {
     @Test
     internal fun `Gruppere behov`() {
         val hendelse = TestHendelse(aktivitetslogg.barn())
-        hendelse.kontekst(søknad)
+        hendelse.kontekst(testSøknadKontekst)
         hendelse.kontekst(Testkontekst("Testkontekst"))
 
         hendelse.behov(
@@ -117,7 +118,7 @@ internal class BehovMediatorTest {
     @Test
     internal fun `sjekker etter duplikatverdier`() {
         val hendelse = TestHendelse(aktivitetslogg.barn())
-        hendelse.kontekst(søknad)
+        hendelse.kontekst(testSøknadKontekst)
         hendelse.behov(
             NySøknad,
             "Behøver tom søknad for denne søknaden",
@@ -139,7 +140,7 @@ internal class BehovMediatorTest {
     @Test
     internal fun `kan ikke produsere samme behov`() {
         val hendelse = TestHendelse(aktivitetslogg.barn())
-        hendelse.kontekst(søknad)
+        hendelse.kontekst(testSøknadKontekst)
         hendelse.behov(NySøknad, "Behøver tom søknad for denne søknaden")
         hendelse.behov(NySøknad, "Behøver tom søknad for denne søknaden")
 
@@ -173,7 +174,7 @@ internal class BehovMediatorTest {
         }
     }
 
-    private class TestKontekst(private val søknadUuid: UUID, private val ident: String) : Aktivitetskontekst {
+    private class TestSøknadKontekst(private val søknadUuid: UUID, private val ident: String) : Aktivitetskontekst {
         override fun toSpesifikkKontekst() =
             SpesifikkKontekst(kontekstType = "søknad", mapOf("søknad_uuid" to søknadUuid.toString(), "ident" to ident))
     }
