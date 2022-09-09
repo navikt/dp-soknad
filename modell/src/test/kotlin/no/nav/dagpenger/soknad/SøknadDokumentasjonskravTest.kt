@@ -35,7 +35,7 @@ class SøknadDokumentasjonskravTest {
         val ident = "12345678901"
         val språk = Språk(verdi = "NB")
         søknad = Søknad(
-            søknadId = søknadId, språk = språk, søknadObserver = TestSøknadObserver(), ident = ident
+            søknadId = søknadId, språk = språk, ident = ident
         )
         søknad.håndter(ØnskeOmNySøknadHendelse(søknadId, språk.verdi.country, ident))
         søknad.håndter(SøknadOpprettetHendelse(søknadId, ident))

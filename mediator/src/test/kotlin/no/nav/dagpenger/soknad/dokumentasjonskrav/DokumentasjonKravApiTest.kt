@@ -24,7 +24,6 @@ import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
@@ -61,7 +60,6 @@ internal class DokumentasjonKravApiTest {
 
     private val søknad = Søknad.rehydrer(
         søknadId = testSoknadId,
-        søknadObserver = Søknadhåndterer(),
         ident = defaultDummyFodselsnummer,
         dokument = null,
         journalpostId = "journalpostid",

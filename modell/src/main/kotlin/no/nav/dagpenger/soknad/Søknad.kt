@@ -22,7 +22,6 @@ import java.util.UUID
 
 class Søknad private constructor(
     private val søknadId: UUID,
-    private val søknadObserver: SøknadObserver,
     private val ident: String,
     private var tilstand: Tilstand,
     // @todo: Endre navn fra dokument til journalføringer? (og liste)?
@@ -36,12 +35,8 @@ class Søknad private constructor(
 ) : Aktivitetskontekst {
 
     private val observers = mutableListOf<SøknadObserver>()
-    init {
-        observers.add(søknadObserver)
-    }
-    constructor(søknadId: UUID, språk: Språk, søknadObserver: SøknadObserver, ident: String) : this(
+    constructor(søknadId: UUID, språk: Språk, ident: String) : this(
         søknadId = søknadId,
-        søknadObserver = søknadObserver,
         ident = ident,
         tilstand = UnderOpprettelse,
         dokument = null,
@@ -64,7 +59,6 @@ class Søknad private constructor(
 
         fun rehydrer(
             søknadId: UUID,
-            søknadObserver: SøknadObserver,
             ident: String,
             dokument: Dokument?,
             journalpostId: String?,
@@ -85,7 +79,6 @@ class Søknad private constructor(
             }
             return Søknad(
                 søknadId = søknadId,
-                søknadObserver = søknadObserver,
                 ident = ident,
                 tilstand = tilstand,
                 dokument = dokument,
@@ -406,7 +399,7 @@ class Søknad private constructor(
     }
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst =
-        SpesifikkKontekst(kontekstType = "søknad", mapOf("søknad_uuid" to søknadId.toString()))
+        SpesifikkKontekst(kontekstType = "søknad", mapOf("søknad_uuid" to søknadId.toString(), "ident" to ident))
 
     private fun kontekst(hendelse: Hendelse) {
         hendelse.kontekst(this)

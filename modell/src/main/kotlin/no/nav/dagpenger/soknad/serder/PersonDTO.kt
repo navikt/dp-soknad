@@ -25,25 +25,21 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
     var aktivitetsLogg: AktivitetsloggDTO? = null
 ) {
     fun createSøknadhåndterer(): Søknadhåndterer {
-        return Søknadhåndterer.rehydrer(
-            aktivitetslogg = this.aktivitetsLogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
-            søknadsfunksjon = { søknadhåndterer: Søknadhåndterer ->
-                søknader.map { it: SøknadDTO ->
-                    Søknad.rehydrer(
-                        søknadId = it.søknadsId,
-                        søknadObserver = søknadhåndterer,
-                        ident = ident,
-                        dokument = it.dokumenter.rehydrer(),
-                        journalpostId = it.journalpostId,
-                        innsendtTidspunkt = it.innsendtTidspunkt,
-                        språk = it.språkDTO.rehydrer(),
-                        dokumentkrav = it.dokumentkrav.rehydrer(),
-                        sistEndretAvBruker = it.sistEndretAvBruker,
-                        tilstandsType = it.tilstandType.rehydrer()
-                    )
-                }.toMutableList()
-            },
-        )
+        return Søknadhåndterer.rehydrer { søknadhåndterer: Søknadhåndterer ->
+            søknader.map { it: SøknadDTO ->
+                Søknad.rehydrer(
+                    søknadId = it.søknadsId,
+                    ident = ident,
+                    dokument = it.dokumenter.rehydrer(),
+                    journalpostId = it.journalpostId,
+                    innsendtTidspunkt = it.innsendtTidspunkt,
+                    språk = it.språkDTO.rehydrer(),
+                    dokumentkrav = it.dokumentkrav.rehydrer(),
+                    sistEndretAvBruker = it.sistEndretAvBruker,
+                    tilstandsType = it.tilstandType.rehydrer()
+                )
+            }.toMutableList()
+        }
     }
 
     class SøknadDTO(
@@ -60,7 +56,6 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
 
         fun rehydrer(): Søknad = Søknad.rehydrer(
             søknadId = this.søknadsId,
-            søknadObserver = Søknadhåndterer(),
             ident = this.ident,
             dokument = this.dokumenter.rehydrer(),
             journalpostId = this.journalpostId,

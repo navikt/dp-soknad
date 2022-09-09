@@ -23,6 +23,6 @@ interface SøknadVisitor : TilstandVisitor, AktivitetsloggVisitor {
     }
 }
 
-interface SøknadhåndtererVisitor : SøknadVisitor, AktivitetsloggVisitor {
+interface SøknadhåndtererVisitor : SøknadVisitor {
     fun visitSøknader(søknader: List<Søknad>) {}
 }

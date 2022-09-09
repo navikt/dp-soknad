@@ -22,15 +22,13 @@ internal class BehovMediatorTest {
         private lateinit var behovMediator: BehovMediator
     }
 
-    private val testSøknadUuid = UUID.randomUUID().toString()
     private val testRapid = TestRapid()
     private lateinit var aktivitetslogg: Aktivitetslogg
-    private lateinit var personkontekst: Personkontekst
+    private lateinit var søknad: Søknad
 
     @BeforeEach
     fun setup() {
         aktivitetslogg = Aktivitetslogg()
-        personkontekst = Personkontekst(testIdent, aktivitetslogg)
         behovMediator = BehovMediator(
             rapidsConnection = testRapid,
             sikkerLogg = mockk(relaxed = true)
@@ -40,8 +38,8 @@ internal class BehovMediatorTest {
 
     @Test
     internal fun `Behov blir sendt og inneholder det den skal`() {
-        val hendelse = TestHendelse("Hendelse1", aktivitetslogg.barn())
-        hendelse.kontekst(personkontekst)
+        val hendelse = TestHendelse(aktivitetslogg.barn())
+        hendelse.kontekst(søknad)
         hendelse.kontekst(Testkontekst("Testkontekst"))
 
         hendelse.behov(
@@ -73,8 +71,8 @@ internal class BehovMediatorTest {
 
     @Test
     internal fun `Gruppere behov`() {
-        val hendelse = TestHendelse("Hendelse1", aktivitetslogg.barn())
-        hendelse.kontekst(personkontekst)
+        val hendelse = TestHendelse(aktivitetslogg.barn())
+        hendelse.kontekst(søknad)
         hendelse.kontekst(Testkontekst("Testkontekst"))
 
         hendelse.behov(
@@ -118,8 +116,8 @@ internal class BehovMediatorTest {
 
     @Test
     internal fun `sjekker etter duplikatverdier`() {
-        val hendelse = TestHendelse("Hendelse1", aktivitetslogg.barn())
-        hendelse.kontekst(personkontekst)
+        val hendelse = TestHendelse(aktivitetslogg.barn())
+        hendelse.kontekst(søknad)
         hendelse.behov(
             NySøknad,
             "Behøver tom søknad for denne søknaden",
@@ -140,8 +138,8 @@ internal class BehovMediatorTest {
 
     @Test
     internal fun `kan ikke produsere samme behov`() {
-        val hendelse = TestHendelse("Hendelse1", aktivitetslogg.barn())
-        hendelse.kontekst(personkontekst)
+        val hendelse = TestHendelse(aktivitetslogg.barn())
+        hendelse.kontekst(søknad)
         hendelse.behov(NySøknad, "Behøver tom søknad for denne søknaden")
         hendelse.behov(NySøknad, "Behøver tom søknad for denne søknaden")
 
@@ -163,18 +161,20 @@ internal class BehovMediatorTest {
     }
 
     private class TestHendelse(
-        private val melding: String,
-        internal val logg: Aktivitetslogg
+        val logg: Aktivitetslogg
     ) : SøknadHendelse(søknadID, testIdent, logg), Aktivitetskontekst {
         init {
             logg.kontekst(this)
         }
 
-        // override fun ident(): String = testIdent
-
         override fun toSpesifikkKontekst() = SpesifikkKontekst("TestHendelse")
         override fun kontekst(kontekst: Aktivitetskontekst) {
             logg.kontekst(kontekst)
         }
+    }
+
+    private class TestKontekst(private val søknadUuid: UUID, private val ident: String) : Aktivitetskontekst {
+        override fun toSpesifikkKontekst() =
+            SpesifikkKontekst(kontekstType = "søknad", mapOf("søknad_uuid" to søknadUuid.toString(), "ident" to ident))
     }
 }

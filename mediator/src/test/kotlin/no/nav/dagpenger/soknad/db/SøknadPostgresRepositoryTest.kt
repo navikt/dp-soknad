@@ -14,7 +14,6 @@ import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.SøknadVisitor
-import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
@@ -54,7 +53,6 @@ internal class SøknadPostgresRepositoryTest {
 
     val søknad = Søknad.rehydrer(
         søknadId = søknadId,
-        søknadObserver = Søknadhåndterer(),
         ident = ident,
         dokument = Søknad.Dokument(
             varianter = listOf(
@@ -87,7 +85,6 @@ internal class SøknadPostgresRepositoryTest {
         val ident = "12345678910"
         val søknad = Søknad.rehydrer(
             søknadId = søknadId,
-            søknadObserver = Søknadhåndterer(),
             ident = ident,
             dokument = Søknad.Dokument(
                 varianter = listOf(

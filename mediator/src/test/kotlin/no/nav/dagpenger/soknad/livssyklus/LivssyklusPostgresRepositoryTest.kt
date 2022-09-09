@@ -82,10 +82,9 @@ internal class LivssyklusPostgresRepositoryTest {
         val søknadId2 = UUID.randomUUID()
         val originalSøknadhåndterer = Søknadhåndterer {
             mutableListOf(
-                Søknad(søknadId1, språk, it, "12345678910"),
+                Søknad(søknadId1, språk, "12345678910"),
                 Søknad.rehydrer(
                     søknadId = søknadId2,
-                    søknadObserver = it,
                     ident = "12345678910",
                     dokument = Søknad.Dokument(
                         varianter = listOf(
@@ -141,7 +140,6 @@ internal class LivssyklusPostgresRepositoryTest {
             mutableListOf(
                 Søknad.rehydrer(
                     søknadId = søknadId,
-                    søknadObserver = it,
                     ident = "12345678910",
                     dokument = Søknad.Dokument(
                         varianter = listOf(
@@ -184,7 +182,6 @@ internal class LivssyklusPostgresRepositoryTest {
             mutableListOf(
                 Søknad.rehydrer(
                     søknadId = påbegyntSøknadUuid,
-                    søknadObserver = it,
                     ident = "12345678910",
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "jouhasjk",
@@ -196,7 +193,6 @@ internal class LivssyklusPostgresRepositoryTest {
                 ),
                 Søknad.rehydrer(
                     søknadId = UUID.randomUUID(),
-                    søknadObserver = it,
                     ident = "12345678910",
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",
@@ -226,10 +222,9 @@ internal class LivssyklusPostgresRepositoryTest {
         val søknadId = UUID.randomUUID()
         val originalSøknadhåndterer = Søknadhåndterer {
             mutableListOf(
-                Søknad(søknadId, språk, it, "12345678910"),
+                Søknad(søknadId, språk, "12345678910"),
                 Søknad.rehydrer(
                     søknadId = søknadId,
-                    søknadObserver = it,
                     ident = "12345678910",
                     dokument = Søknad.Dokument(varianter = emptyList()),
                     journalpostId = "journalpostid",

@@ -75,9 +75,9 @@ class Aktivitetslogg private constructor(
         kontekster.add(kontekst)
     }
 
-    override fun kontekst(personkontekst: Personkontekst) {
-        forelder = personkontekst.aktivitetslogg
-        kontekst(personkontekst as Aktivitetskontekst)
+    override fun kontekst(søknad: Søknad) {
+        forelder = søknad.aktivitetslogg
+        kontekst(søknad as Aktivitetskontekst)
     }
 
     internal fun logg(kontekst: Aktivitetskontekst): Aktivitetslogg {
@@ -249,7 +249,7 @@ interface IAktivitetslogg {
     fun behov(): List<Behov>
     fun barn(): Aktivitetslogg
     fun kontekst(kontekst: Aktivitetskontekst)
-    fun kontekst(personkontekst: Personkontekst)
+    fun kontekst(søknad: Søknad)
     fun kontekster(): List<IAktivitetslogg>
 }
 

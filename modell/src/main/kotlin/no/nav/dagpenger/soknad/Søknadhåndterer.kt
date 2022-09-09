@@ -16,15 +16,13 @@ import no.nav.dagpenger.soknad.hendelse.ØnskeOmNyInnsendingHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 
 class Søknadhåndterer private constructor(
-    søknadsfunksjon: (søknadhåndterer: Søknadhåndterer) -> MutableList<Søknad>,
-    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
+    søknadsfunksjon: (søknadhåndterer: Søknadhåndterer) -> MutableList<Søknad>
 ) : SøknadObserver {
 
     companion object {
         internal fun rehydrer(
-            aktivitetslogg: Aktivitetslogg,
             søknadsfunksjon: (søknadhåndterer: Søknadhåndterer) -> MutableList<Søknad>,
-        ): Søknadhåndterer = Søknadhåndterer(søknadsfunksjon, aktivitetslogg)
+        ): Søknadhåndterer = Søknadhåndterer(søknadsfunksjon)
     }
 
     // Navneforslag: Dialog? --> Må kunne finne ut av type
@@ -37,9 +35,6 @@ class Søknadhåndterer private constructor(
     private val observers = mutableListOf<SøknadObserver>()
 
     constructor() : this({ mutableListOf() })
-    constructor(søknadsfunksjon: (søknadhåndterer: Søknadhåndterer) -> MutableList<Søknad>) : this(
-        søknadsfunksjon = søknadsfunksjon, aktivitetslogg = Aktivitetslogg()
-    )
 
     fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         // if (søknader.harAlleredeOpprettetSøknad()) {
@@ -50,7 +45,6 @@ class Søknadhåndterer private constructor(
             Søknad(
                 ønskeOmNySøknadHendelse.søknadID(),
                 ønskeOmNySøknadHendelse.språk(),
-                this,
                 ønskeOmNySøknadHendelse.ident()
             ).also {
                 it.håndter(ønskeOmNySøknadHendelse)
@@ -64,7 +58,6 @@ class Søknadhåndterer private constructor(
             Søknad(
                 ønskeOmNyInnsendingHendelse.søknadID(),
                 ønskeOmNyInnsendingHendelse.språk(),
-                this,
                 ønskeOmNyInnsendingHendelse.ident()
             ).also {
                 it.håndter(ønskeOmNyInnsendingHendelse)
@@ -137,7 +130,6 @@ class Søknadhåndterer private constructor(
     fun accept(visitor: SøknadhåndtererVisitor) {
         visitor.visitSøknader(søknader)
         søknader.forEach { it.accept(visitor) }
-        aktivitetslogg.accept(visitor)
     }
 
     fun addObserver(søknadObserver: SøknadObserver) {
@@ -164,12 +156,6 @@ class Søknadhåndterer private constructor(
     }
 
     private fun kontekst(hendelse: Hendelse, melding: String) {
-        hendelse.kontekst(Personkontekst(hendelse.ident(), aktivitetslogg))
         hendelse.info(melding)
     }
-}
-
-class Personkontekst(val ident: String, internal val aktivitetslogg: Aktivitetslogg) : Aktivitetskontekst {
-    override fun toSpesifikkKontekst(): SpesifikkKontekst =
-        SpesifikkKontekst(kontekstType = "person", mapOf("ident" to ident))
 }
