@@ -163,9 +163,12 @@ internal class SøknadMediator(
 
     private fun behandleSøknad(hendelse: SøknadHendelse, håndter: (Søknad) -> Unit) = try {
         val søknad = hent(hendelse.søknadID(), hendelse.ident())
-        // todo: Add obervers
+        søknadObservers.forEach { søknadObserver ->
+            søknad.addObserver(søknadObserver)
+        }
         håndter(søknad)
         lagre(søknad)
+        finalize(hendelse)
     } catch (err: Aktivitetslogg.AktivitetException) {
         withMDC(kontekst(hendelse)) {
             logger.error("alvorlig feil i aktivitetslogg (se sikkerlogg for detaljer)")
@@ -185,8 +188,9 @@ internal class SøknadMediator(
             søknadObservers.forEach { søknadObserver ->
                 søknadhåndterer.addObserver(søknadObserver)
             }
-            håndter(søknadhåndterer) // slettet tilstand
-            finalize(søknadhåndterer, hendelse)
+            håndter(søknadhåndterer)
+            lagre(søknadhåndterer, hendelse.ident())
+            finalize(hendelse)
         } catch (err: Aktivitetslogg.AktivitetException) {
             withMDC(kontekst(hendelse)) {
                 logger.error("alvorlig feil i aktivitetslogg (se sikkerlogg for detaljer)")
@@ -213,8 +217,7 @@ internal class SøknadMediator(
         withMDC(context) { sikkerLogger.error("alvorlig feil: ${err.message}\n\t$message", err) }
     }
 
-    private fun finalize(søknadhåndterer: Søknadhåndterer, hendelse: Hendelse) {
-        lagre(søknadhåndterer, hendelse.ident())
+    private fun finalize(hendelse: Hendelse) {
         if (!hendelse.hasMessages()) return
         if (hendelse.hasErrors()) return sikkerLogger.info("aktivitetslogg inneholder errors: ${hendelse.toLogString()}")
         sikkerLogger.info("aktivitetslogg inneholder meldinger: ${hendelse.toLogString()}")
