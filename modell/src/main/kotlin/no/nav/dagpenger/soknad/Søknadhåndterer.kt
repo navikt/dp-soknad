@@ -136,9 +136,7 @@ class Søknadhåndterer private constructor(
 
     fun accept(visitor: SøknadhåndtererVisitor) {
         visitor.visitSøknader(søknader)
-        visitor.preVisitSøknader()
         søknader.forEach { it.accept(visitor) }
-        visitor.postVisitSøknader()
         aktivitetslogg.accept(visitor)
     }
 

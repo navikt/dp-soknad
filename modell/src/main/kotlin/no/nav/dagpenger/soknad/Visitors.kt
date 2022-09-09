@@ -25,6 +25,4 @@ interface SøknadVisitor : TilstandVisitor, AktivitetsloggVisitor {
 
 interface SøknadhåndtererVisitor : SøknadVisitor, AktivitetsloggVisitor {
     fun visitSøknader(søknader: List<Søknad>) {}
-    fun preVisitSøknader() {}
-    fun postVisitSøknader() {}
 }
