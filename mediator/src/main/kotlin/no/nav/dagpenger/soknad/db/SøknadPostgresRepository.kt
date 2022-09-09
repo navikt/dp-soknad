@@ -14,6 +14,7 @@ import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
+import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.soknad.serder.PersonDTO
 import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO.Companion.toKravdata
 import no.nav.dagpenger.soknad.toMap
@@ -53,7 +54,10 @@ class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
                             session.hentDokumentKrav(søknadsId)
                         ),
                         sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")
-                    )
+                    ).also {
+                        if (!komplettAktivitetslogg) return@also
+                        it.aktivitetslogg = session.hentAktivitetslogg(søknadId)
+                    }
                 }.asSingle
             )?.rehydrer()!!
         }
@@ -70,8 +74,7 @@ class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
                 val personId =
                     hentInternPersonId(transactionalSession, visitor.søknadDTO.ident) ?: lagrePerson(transactionalSession, visitor.søknadDTO.ident)
 
-                // @todo: Lagre aktivitetslogg på søknad
-                lagreAktivitetslogg(transactionalSession, personId, visitor.aktivitetslogg)
+                lagreAktivitetslogg(transactionalSession, visitor.søknadDTO.søknadsId, visitor.aktivitetslogg)
 
                 // @todo: soknad_v1 må bruke intern person id fra person_v1 for normalisering! Ikke ident direkte
                 listOf(visitor.søknadDTO).insertQuery(visitor.søknadDTO.ident, transactionalSession)
@@ -103,15 +106,15 @@ class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
 
     private fun lagreAktivitetslogg(
         transactionalSession: TransactionalSession,
-        internId: Long,
+        søknadId: UUID,
         aktivitetslogg: Aktivitetslogg
     ) {
         transactionalSession.run(
             queryOf(
                 //language=PostgreSQL
-                statement = "INSERT INTO aktivitetslogg_v2 (person_id, data) VALUES (:person_id, :data)",
+                statement = "INSERT INTO aktivitetslogg_v3 (soknad_uuid, data) VALUES (:uuid, :data)",
                 paramMap = mapOf(
-                    "person_id" to internId,
+                    "uuid" to søknadId.toString(),
                     "data" to PGobject().apply {
                         type = "jsonb"
                         value = objectMapper.writeValueAsString(aktivitetslogg.toMap())
@@ -143,6 +146,24 @@ class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
     private fun sjekkTilgang(ident: String, søknadId: UUID) =
         if (!harTilgang(ident, søknadId)) throw IkkeTilgangExeption("Har ikke tilgang til søknadId $søknadId") else Unit
 }
+
+internal fun Session.hentAktivitetslogg(søknadId: UUID): PersonDTO.AktivitetsloggDTO? = run(
+    queryOf(
+            //language=PostgreSQL
+            statement = """
+                SELECT a.data AS aktivitetslogg
+                FROM aktivitetslogg_v3 AS a
+                WHERE a.soknad_uuid = :soknadId
+                ORDER BY id ASC
+            """.trimIndent(),
+            paramMap = mapOf(
+                    "soknadId" to søknadId.toString()
+            )
+    ).map { row ->
+        row.binaryStream("aktivitetslogg").aktivitetslogg()
+    }.asList
+    ).fold(PersonDTO.AktivitetsloggDTO(mutableListOf())) { acc, data ->
+        PersonDTO.AktivitetsloggDTO(acc.aktiviteter + data.aktiviteter)}
 
 internal class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
 

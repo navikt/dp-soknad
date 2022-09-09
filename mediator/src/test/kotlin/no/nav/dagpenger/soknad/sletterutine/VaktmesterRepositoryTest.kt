@@ -5,14 +5,9 @@ import io.mockk.mockk
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.dagpenger.soknad.Dokumentkrav
-import no.nav.dagpenger.soknad.Språk
-import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.*
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
-import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.Søknadhåndterer
-import no.nav.dagpenger.soknad.SøknadhåndtererVisitor
 import no.nav.dagpenger.soknad.TestSøkerOppgave
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
@@ -134,7 +129,9 @@ internal class VaktmesterRepositoryTest {
             språk = språk,
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
-            tilstandsType = Journalført
+            tilstandsType = Journalført,
+                aktivitetslogg = Aktivitetslogg()
+
         )
 
     private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, søknadhåndterer: Søknadhåndterer, ident: String) =
@@ -147,7 +144,9 @@ internal class VaktmesterRepositoryTest {
             språk = språk,
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
-            tilstandsType = Påbegynt
+            tilstandsType = Påbegynt,
+                aktivitetslogg = Aktivitetslogg()
+
         )
 
     private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, søknadhåndterer: Søknadhåndterer, ident: String) =
@@ -160,7 +159,9 @@ internal class VaktmesterRepositoryTest {
             språk = språk,
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
-            tilstandsType = Påbegynt
+            tilstandsType = Påbegynt,
+                aktivitetslogg = Aktivitetslogg()
+
         )
 }
 

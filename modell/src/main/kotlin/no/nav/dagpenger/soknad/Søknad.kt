@@ -66,7 +66,8 @@ class Søknad private constructor(
             språk: Språk,
             dokumentkrav: Dokumentkrav,
             sistEndretAvBruker: ZonedDateTime?,
-            tilstandsType: Tilstand.Type
+            tilstandsType: Tilstand.Type,
+            aktivitetslogg: Aktivitetslogg
         ): Søknad {
             val tilstand: Tilstand = when (tilstandsType) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
@@ -86,7 +87,7 @@ class Søknad private constructor(
                 innsendtTidspunkt = innsendtTidspunkt,
                 språk = språk,
                 dokumentkrav = dokumentkrav,
-                sistEndretAvBruker = sistEndretAvBruker
+                sistEndretAvBruker = sistEndretAvBruker, aktivitetslogg = aktivitetslogg
             )
         }
     }

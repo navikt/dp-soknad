@@ -22,7 +22,6 @@ import java.util.UUID
 class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotaggregat
     val ident: String,
     var søknader: List<SøknadDTO> = emptyList(),
-    var aktivitetsLogg: AktivitetsloggDTO? = null
 ) {
     fun createSøknadhåndterer(): Søknadhåndterer {
         return Søknadhåndterer.rehydrer { søknadhåndterer: Søknadhåndterer ->
@@ -36,7 +35,8 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
                     språk = it.språkDTO.rehydrer(),
                     dokumentkrav = it.dokumentkrav.rehydrer(),
                     sistEndretAvBruker = it.sistEndretAvBruker,
-                    tilstandsType = it.tilstandType.rehydrer()
+                    tilstandsType = it.tilstandType.rehydrer(),
+                        aktivitetslogg = it.aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg()
                 )
             }.toMutableList()
         }
@@ -51,7 +51,8 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
         val innsendtTidspunkt: ZonedDateTime?,
         val språkDTO: SpråkDTO,
         var dokumentkrav: DokumentkravDTO,
-        val sistEndretAvBruker: ZonedDateTime?
+        val sistEndretAvBruker: ZonedDateTime?,
+        var aktivitetslogg: AktivitetsloggDTO? = null
     ) {
 
         fun rehydrer(): Søknad = Søknad.rehydrer(
@@ -63,7 +64,8 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
             språk = this.språkDTO.rehydrer(),
             dokumentkrav = this.dokumentkrav.rehydrer(),
             sistEndretAvBruker = this.sistEndretAvBruker,
-            tilstandsType = this.tilstandType.rehydrer()
+            tilstandsType = this.tilstandType.rehydrer(),
+                aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg()
 
         )
         class DokumentDTO(

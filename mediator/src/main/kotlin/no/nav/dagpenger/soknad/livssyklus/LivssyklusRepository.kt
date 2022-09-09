@@ -13,6 +13,7 @@ import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.SøknadhåndtererVisitor
+import no.nav.dagpenger.soknad.db.*
 import no.nav.dagpenger.soknad.db.SøknadPersistenceVisitor
 import no.nav.dagpenger.soknad.db.hentDokumentData
 import no.nav.dagpenger.soknad.db.hentDokumentKrav
@@ -50,25 +51,22 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
     override fun hent(ident: String, komplettAktivitetslogg: Boolean): Søknadhåndterer? {
         return using(sessionOf(dataSource)) { session ->
             session.run(
-                queryOf(
-                    //language=PostgreSQL
-                    """
+                    queryOf(
+                            //language=PostgreSQL
+                            """
                         SELECT p.id AS person_id, p.ident AS person_ident
                         FROM person_v1 AS p
                         WHERE p.ident = :ident
                     """.trimIndent(),
-                    paramMap = mapOf("ident" to ident)
-                ).map { row ->
-                    row.stringOrNull("person_ident")?.let { ident ->
-                        PersonDTO(
-                            ident = row.string("person_ident"),
-                            søknader = session.hentSøknadsData(ident)
-                        ).also {
-                            if (!komplettAktivitetslogg) return@also
-                            it.aktivitetsLogg = session.hentAktivitetslogg(row.int("person_id"))
+                            paramMap = mapOf("ident" to ident)
+                    ).map { row ->
+                        row.stringOrNull("person_ident")?.let { ident ->
+                            PersonDTO(
+                                    ident = row.string("person_ident"),
+                                    søknader = session.hentSøknadsData(ident, komplettAktivitetslogg)
+                            )
                         }
-                    }
-                }.asSingle
+                    }.asSingle
             )?.createSøknadhåndterer()
         }
     }
@@ -78,9 +76,11 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
         using(sessionOf(dataSource)) { session ->
             session.transaction { transactionalSession ->
                 val internId =
-                    hentInternPersonId(transactionalSession, ident) ?: lagrePerson(transactionalSession, ident)!!
+                        hentInternPersonId(transactionalSession, ident) ?: lagrePerson(transactionalSession, ident)!!
 
-                lagreAktivitetslogg(transactionalSession, internId, visitor.aktivitetslogg)
+                visitor.søknader().forEach {
+                    lagreAktivitetslogg(transactionalSession, it.søknadsId, it.aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg())
+                }
 
                 logger.info { "Lagrer ${visitor.søknader().size} søknader" }
                 visitor.søknader().insertQuery(ident, transactionalSession)
@@ -93,110 +93,113 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
     }
 
     private fun lagreAktivitetslogg(
-        transactionalSession: TransactionalSession,
-        internId: Long,
-        aktivitetslogg: Aktivitetslogg
+            transactionalSession: TransactionalSession,
+            søknadId: UUID,
+            aktivitetslogg: Aktivitetslogg
     ) {
         transactionalSession.run(
-            queryOf(
-                //language=PostgreSQL
-                statement = "INSERT INTO aktivitetslogg_v2 (person_id, data) VALUES (:person_id, :data)",
-                paramMap = mapOf(
-                    "person_id" to internId,
-                    "data" to PGobject().apply {
-                        type = "jsonb"
-                        value = objectMapper.writeValueAsString(aktivitetslogg.toMap())
-                    }
-                )
-            ).asUpdate
+                queryOf(
+                        //language=PostgreSQL
+                        statement = "INSERT INTO aktivitetslogg_v3 (soknad_uuid, data) VALUES (:uuid, :data)",
+                        paramMap = mapOf(
+                                "uuid" to søknadId.toString(),
+                                "data" to PGobject().apply {
+                                    type = "jsonb"
+                                    value = objectMapper.writeValueAsString(aktivitetslogg.toMap())
+                                }
+                        )
+                ).asUpdate
         )
     }
 
     private fun lagrePerson(transactionalSession: TransactionalSession, ident: String) =
-        transactionalSession.run(
-            queryOf(
-                //language=PostgreSQL
-                "INSERT INTO person_v1(ident) VALUES(:ident) ON CONFLICT DO NOTHING RETURNING id",
-                paramMap = mapOf("ident" to ident)
-            ).map { row ->
-                row.long("id")
-            }.asSingle
-        )
+            transactionalSession.run(
+                    queryOf(
+                            //language=PostgreSQL
+                            "INSERT INTO person_v1(ident) VALUES(:ident) ON CONFLICT DO NOTHING RETURNING id",
+                            paramMap = mapOf("ident" to ident)
+                    ).map { row ->
+                        row.long("id")
+                    }.asSingle
+            )
 
     private fun hentInternPersonId(transactionalSession: TransactionalSession, ident: String) =
-        transactionalSession.run(
-            queryOf(
-                //language=PostgreSQL
-                "SELECT id FROM person_v1 WHERE ident=:ident",
-                mapOf("ident" to ident)
-            ).map { row -> row.longOrNull("id") }.asSingle
-        )
+            transactionalSession.run(
+                    queryOf(
+                            //language=PostgreSQL
+                            "SELECT id FROM person_v1 WHERE ident=:ident",
+                            mapOf("ident" to ident)
+                    ).map { row -> row.longOrNull("id") }.asSingle
+            )
 
     override fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad? {
         return using(sessionOf(dataSource)) { session ->
             session.run(
-                queryOf(
-                    //language=PostgreSQL
-                    "SELECT uuid, opprettet, spraak FROM soknad_v1 WHERE person_ident=:ident AND tilstand=:paabegyntTilstand",
-                    mapOf("ident" to personIdent, "paabegyntTilstand" to Søknad.Tilstand.Type.Påbegynt.name)
-                ).map { row ->
-                    PåbegyntSøknad(
-                        UUID.fromString(row.string("uuid")),
-                        row.localDate("opprettet"),
-                        row.string("spraak")
-                    )
-                }.asSingle
+                    queryOf(
+                            //language=PostgreSQL
+                            "SELECT uuid, opprettet, spraak FROM soknad_v1 WHERE person_ident=:ident AND tilstand=:paabegyntTilstand",
+                            mapOf("ident" to personIdent, "paabegyntTilstand" to Søknad.Tilstand.Type.Påbegynt.name)
+                    ).map { row ->
+                        PåbegyntSøknad(
+                                UUID.fromString(row.string("uuid")),
+                                row.localDate("opprettet"),
+                                row.string("spraak")
+                        )
+                    }.asSingle
             )
         }
     }
 
     private fun Session.hentAktivitetslogg(ident: Int): PersonDTO.AktivitetsloggDTO = run(
-        queryOf(
-            //language=PostgreSQL
-            statement = """
+            queryOf(
+                    //language=PostgreSQL
+                    statement = """
                 SELECT a.data AS aktivitetslogg
                 FROM aktivitetslogg_v2 AS a
                 WHERE a.person_id = :ident
                 ORDER BY id ASC
             """.trimIndent(),
-            paramMap = mapOf(
-                "ident" to ident
-            )
-        ).map { row ->
-            row.binaryStream("aktivitetslogg").aktivitetslogg()
-        }.asList
+                    paramMap = mapOf(
+                            "ident" to ident
+                    )
+            ).map { row ->
+                row.binaryStream("aktivitetslogg").aktivitetslogg()
+            }.asList
     ).fold(PersonDTO.AktivitetsloggDTO(mutableListOf())) { acc, data ->
         PersonDTO.AktivitetsloggDTO(acc.aktiviteter + data.aktiviteter)
     }
 
-    private fun Session.hentSøknadsData(ident: String): List<PersonDTO.SøknadDTO> {
+    private fun Session.hentSøknadsData(ident: String, komplettAktivitetslogg: Boolean): List<PersonDTO.SøknadDTO> {
         return this.run(
-            queryOf(
-                //language=PostgreSQL
-                statement = """
+                queryOf(
+                        //language=PostgreSQL
+                        statement = """
                     SELECT uuid, tilstand, journalpost_id, innsendt_tidspunkt, spraak, sist_endret_av_bruker
                     FROM  soknad_v1
                     WHERE person_ident = :ident
                 """.trimIndent(),
-                paramMap = mapOf(
-                    "ident" to ident
-                )
-            ).map { row ->
-                val søknadsId = UUID.fromString(row.string("uuid"))
-                PersonDTO.SøknadDTO(
-                    søknadsId = søknadsId,
-                    ident = ident,
-                    tilstandType = PersonDTO.SøknadDTO.TilstandDTO.rehydrer(row.string("tilstand")),
-                    dokumenter = hentDokumentData(søknadsId),
-                    journalpostId = row.stringOrNull("journalpost_id"),
-                    innsendtTidspunkt = row.zonedDateTimeOrNull("innsendt_tidspunkt"),
-                    språkDTO = SpråkDTO(row.string("spraak")),
-                    dokumentkrav = PersonDTO.SøknadDTO.DokumentkravDTO(
-                        this.hentDokumentKrav(søknadsId)
-                    ),
-                    sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")
-                )
-            }.asList
+                        paramMap = mapOf(
+                                "ident" to ident
+                        )
+                ).map { row ->
+                    val søknadsId = UUID.fromString(row.string("uuid"))
+                    PersonDTO.SøknadDTO(
+                            søknadsId = søknadsId,
+                            ident = ident,
+                            tilstandType = PersonDTO.SøknadDTO.TilstandDTO.rehydrer(row.string("tilstand")),
+                            dokumenter = hentDokumentData(søknadsId),
+                            journalpostId = row.stringOrNull("journalpost_id"),
+                            innsendtTidspunkt = row.zonedDateTimeOrNull("innsendt_tidspunkt"),
+                            språkDTO = SpråkDTO(row.string("spraak")),
+                            dokumentkrav = PersonDTO.SøknadDTO.DokumentkravDTO(
+                                    this.hentDokumentKrav(søknadsId)
+                            ),
+                            sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")
+                    ).also {
+                        if (!komplettAktivitetslogg) return@also
+                        it.aktivitetslogg = this.hentAktivitetslogg(it.søknadsId)
+                    }
+                }.asList
         )
     }
 
@@ -225,7 +228,7 @@ private class SøknadhåndtererPersistenceVisitor(søknadhåndterer: Søknadhån
     fun søknader() = søknader.filterNot(slettet())
     fun slettedeSøknader() = søknader.filter(slettet())
     private fun slettet(): (PersonDTO.SøknadDTO) -> Boolean =
-        { it.tilstandType == PersonDTO.SøknadDTO.TilstandDTO.Slettet }
+            { it.tilstandType == PersonDTO.SøknadDTO.TilstandDTO.Slettet }
 
     private val søknader: MutableList<PersonDTO.SøknadDTO> = mutableListOf()
     lateinit var aktivitetslogg: Aktivitetslogg
@@ -240,7 +243,7 @@ private class SøknadhåndtererPersistenceVisitor(søknadhåndterer: Søknadhån
 
     override fun visitSøknader(søknader: List<Søknad>) {
         this.søknader.addAll(
-            søknader.map { SøknadPersistenceVisitor(it).søknadDTO }
+                søknader.map { SøknadPersistenceVisitor(it).søknadDTO }
         )
     }
 }

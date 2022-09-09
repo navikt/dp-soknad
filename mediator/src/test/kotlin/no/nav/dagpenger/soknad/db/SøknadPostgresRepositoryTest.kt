@@ -5,15 +5,7 @@ import io.mockk.mockk
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.dagpenger.soknad.Dokumentkrav
-import no.nav.dagpenger.soknad.Faktum
-import no.nav.dagpenger.soknad.IkkeTilgangExeption
-import no.nav.dagpenger.soknad.Krav
-import no.nav.dagpenger.soknad.Sannsynliggjøring
-import no.nav.dagpenger.soknad.Språk
-import no.nav.dagpenger.soknad.Søknad
-import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.SøknadVisitor
+import no.nav.dagpenger.soknad.*
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
@@ -75,7 +67,8 @@ internal class SøknadPostgresRepositoryTest {
             krav = setOf(krav)
         ),
         sistEndretAvBruker = ZonedDateTime.now(),
-        tilstandsType = Søknad.Tilstand.Type.Påbegynt
+        tilstandsType = Søknad.Tilstand.Type.Påbegynt,
+            aktivitetslogg = Aktivitetslogg()
     )
 
     @Test
@@ -107,7 +100,8 @@ internal class SøknadPostgresRepositoryTest {
                 krav = setOf(krav)
             ),
             sistEndretAvBruker = ZonedDateTime.now().minusDays(1),
-            tilstandsType = Søknad.Tilstand.Type.Journalført
+            tilstandsType = Søknad.Tilstand.Type.Journalført,
+                aktivitetslogg = Aktivitetslogg()
         )
 
         withMigratedDb {

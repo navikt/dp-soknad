@@ -16,15 +16,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
-import no.nav.dagpenger.soknad.Configuration
-import no.nav.dagpenger.soknad.Dokumentkrav
-import no.nav.dagpenger.soknad.Faktum
-import no.nav.dagpenger.soknad.Krav
-import no.nav.dagpenger.soknad.Sannsynliggjøring
-import no.nav.dagpenger.soknad.Språk
-import no.nav.dagpenger.soknad.Søknad
-import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.TestApplication
+import no.nav.dagpenger.soknad.*
 import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.soknad.TestApplication.mockedSøknadApi
@@ -68,6 +60,7 @@ internal class DokumentasjonKravApiTest {
         dokumentkrav = dokumentKrav,
         sistEndretAvBruker = ZonedDateTime.now(),
         tilstandsType = Søknad.Tilstand.Type.Påbegynt,
+            aktivitetslogg = Aktivitetslogg()
     )
 
     private val søknadMediatorMock = mockk<SøknadMediator>().also {

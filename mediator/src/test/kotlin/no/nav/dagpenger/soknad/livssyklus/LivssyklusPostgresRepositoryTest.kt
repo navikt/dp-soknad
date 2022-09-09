@@ -107,7 +107,8 @@ internal class LivssyklusPostgresRepositoryTest {
                         krav = setOf(krav)
                     ),
                     sistEndretAvBruker = ZonedDateTime.now().minusDays(1),
-                    tilstandsType = Journalført
+                    tilstandsType = Journalført,
+                        aktivitetslogg = Aktivitetslogg()
                 )
             )
         }
@@ -162,7 +163,9 @@ internal class LivssyklusPostgresRepositoryTest {
                         krav = setOf(krav)
                     ),
                     sistEndretAvBruker = ZonedDateTime.now(),
-                    tilstandsType = Journalført
+                    tilstandsType = Journalført,
+                        aktivitetslogg = Aktivitetslogg()
+
                 )
             )
         }
@@ -189,7 +192,9 @@ internal class LivssyklusPostgresRepositoryTest {
                     språk = språk,
                     dokumentkrav = Dokumentkrav(),
                     sistEndretAvBruker = innsendtTidspunkt,
-                    tilstandsType = Påbegynt
+                    tilstandsType = Påbegynt,
+                        aktivitetslogg = Aktivitetslogg()
+
                 ),
                 Søknad.rehydrer(
                     søknadId = UUID.randomUUID(),
@@ -200,7 +205,9 @@ internal class LivssyklusPostgresRepositoryTest {
                     språk = språk,
                     dokumentkrav = Dokumentkrav(),
                     sistEndretAvBruker = innsendtTidspunkt,
-                    tilstandsType = Journalført
+                    tilstandsType = Journalført,
+                        aktivitetslogg = Aktivitetslogg()
+
                 )
             )
         }
@@ -232,7 +239,9 @@ internal class LivssyklusPostgresRepositoryTest {
                     språk = språk,
                     dokumentkrav = Dokumentkrav(),
                     sistEndretAvBruker = ZonedDateTime.now(),
-                    tilstandsType = Journalført
+                    tilstandsType = Journalført,
+                        aktivitetslogg = Aktivitetslogg()
+
                 )
             )
         }

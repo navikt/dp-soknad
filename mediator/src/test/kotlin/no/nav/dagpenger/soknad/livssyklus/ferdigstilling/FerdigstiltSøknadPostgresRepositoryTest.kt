@@ -1,11 +1,8 @@
 package no.nav.dagpenger.soknad.livssyklus.ferdigstilling
 
 import io.ktor.server.plugins.NotFoundException
-import no.nav.dagpenger.soknad.Dokumentkrav
-import no.nav.dagpenger.soknad.Språk
-import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.*
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
-import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.TestSøkerOppgave
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
@@ -111,7 +108,9 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
                     språk = Språk(språkVerdi),
                     dokumentkrav = Dokumentkrav(),
                     sistEndretAvBruker = ZonedDateTime.now(),
-                    tilstandsType = Journalført
+                    tilstandsType = Journalført,
+                        aktivitetslogg = Aktivitetslogg()
+
                 )
             )
         }
