@@ -19,7 +19,6 @@ import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.dagpenger.soknad.livssyklus.JournalførtMottak
-import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.NyJournalpostMottak
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak
@@ -52,7 +51,6 @@ internal class SøknadMediatorTest {
             mediator = SøknadMediator(
                 testRapid,
                 SøknadCachePostgresRepository(dataSource),
-                LivssyklusPostgresRepository(dataSource),
                 mockk(),
                 mockk(),
                 SøknadPostgresRepository(dataSource)
@@ -146,7 +144,7 @@ internal class SøknadMediatorTest {
         // Verifiserer at aktivitetsloggen blir lagret per behandling
         assertAntallRader("aktivitetslogg_v3", 9)
         // Verifiser at det er mulig å hente en komplett aktivitetslogg
-        mediator.hent(testIdent, true)?.let {
+        mediator.hentSøknader(testIdent, true).first().let {
             with(TestSøknadhåndtererInspektør(it).aktivitetslogg["aktiviteter"]!!) {
                 assertEquals(13, size)
                 assertEquals("Ønske om søknad registrert", first()["melding"])
@@ -181,7 +179,7 @@ internal class SøknadMediatorTest {
     private fun behov(indeks: Int) = testRapid.inspektør.message(indeks)["@behov"].map { it.asText() }
 
     private fun oppdatertInspektør(ident: String = testIdent) =
-        TestSøknadhåndtererInspektør(mediator.hent(ident)!!)
+        TestSøknadhåndtererInspektør(mediator.hentSøknader(ident)!!.first())
 
     // language=JSON
     private fun søkerOppgave(søknadUuid: UUID, ident: String) = """{

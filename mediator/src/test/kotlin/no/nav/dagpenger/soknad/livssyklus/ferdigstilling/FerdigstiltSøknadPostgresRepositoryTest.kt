@@ -6,11 +6,9 @@ import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
-import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.TestSøkerOppgave
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
-import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
-import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
+import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadCachePostgresRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import org.intellij.lang.annotations.Language
@@ -89,10 +87,9 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
     private fun lagreFakta(fakta: String): UUID {
         val søknadId = UUID.randomUUID()
         val ident = "01234567891"
-        val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
-        val søknadhåndterer = Søknadhåndterer()
-        søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadId, ident, språkVerdi))
-        livssyklusPostgresRepository.lagre(søknadhåndterer, ident)
+        SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).run {
+            lagre(Søknad(søknadId, Språk(språkVerdi), ident))
+        }
         val søknadCachePostgresRepository = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource)
         søknadCachePostgresRepository.lagre(TestSøkerOppgave(søknadId, ident, fakta))
         return søknadId
@@ -100,25 +97,21 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
 
     private fun lagRandomPersonOgSøknad(): UUID {
         val søknadId = UUID.randomUUID()
-        val originalSøknadhåndterer = Søknadhåndterer {
-            mutableListOf(
-                Søknad(søknadId, Språk(språkVerdi), "12345678910"),
-                Søknad.rehydrer(
-                    søknadId = søknadId,
-                    ident = "12345678910",
-                    dokument = Søknad.Dokument(varianter = emptyList()),
-                    journalpostId = "journalpostid",
-                    innsendtTidspunkt = ZonedDateTime.now(),
-                    språk = Språk(språkVerdi),
-                    dokumentkrav = Dokumentkrav(),
-                    sistEndretAvBruker = ZonedDateTime.now(),
-                    tilstandsType = Journalført,
-                    aktivitetslogg = Aktivitetslogg()
 
-                )
+        SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).lagre(
+            Søknad.rehydrer(
+                søknadId = søknadId,
+                ident = "12345678910",
+                dokument = Søknad.Dokument(varianter = emptyList()),
+                journalpostId = "journalpostid",
+                innsendtTidspunkt = ZonedDateTime.now(),
+                språk = Språk(språkVerdi),
+                dokumentkrav = Dokumentkrav(),
+                sistEndretAvBruker = ZonedDateTime.now(),
+                tilstandsType = Journalført,
+                aktivitetslogg = Aktivitetslogg()
             )
-        }
-        LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource).lagre(originalSøknadhåndterer, "12345678910")
+        )
         return søknadId
     }
 

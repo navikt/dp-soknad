@@ -1,5 +1,7 @@
 package no.nav.dagpenger.soknad.db
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ObjectNode
 import de.slub.urn.URN
 import kotliquery.Session
 import kotliquery.TransactionalSession
@@ -8,17 +10,21 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
-import no.nav.dagpenger.soknad.IkkeTilgangExeption
+import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadVisitor
+import no.nav.dagpenger.soknad.livssyklus.PåbegyntSøknad
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
+import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.soknad.serder.PersonDTO
 import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO.Companion.toKravdata
 import no.nav.dagpenger.soknad.toMap
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
+import no.nav.helse.rapids_rivers.asLocalDateTime
 import org.postgresql.util.PGobject
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -119,23 +125,9 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         }
     }
 
-    private fun harTilgang(ident: String, søknadId: UUID): Boolean =
-        using(sessionOf(dataSource)) { session ->
-            session.run(
-                // language=PostgreSQL
-                queryOf(
-                    """
-                       SELECT 1 FROM soknad_v1 WHERE person_ident = :ident AND uuid = :uuid
-                    """.trimIndent(),
-                    mapOf(
-                        "uuid" to søknadId.toString(),
-                        "ident" to ident
-                    )
-                ).map {
-                    it.int(1) == 1
-                }.asSingle
-            ) ?: false
-        }
+    override fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad? {
+        TODO("Not yet implemented")
+    }
 
     private fun lagreAktivitetslogg(
         transactionalSession: TransactionalSession,
@@ -177,8 +169,24 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             ).map { row -> row.longOrNull("id") }.asSingle
         )
 
-    private fun sjekkTilgang(ident: String, søknadId: UUID) =
-        if (!harTilgang(ident, søknadId)) throw IkkeTilgangExeption("Har ikke tilgang til søknadId $søknadId") else Unit
+    internal class PersistentSøkerOppgave(private val søknad: JsonNode) : SøkerOppgave {
+        override fun søknadUUID(): UUID = UUID.fromString(søknad[SøkerOppgave.Keys.SØKNAD_UUID].asText())
+        override fun eier(): String = søknad[SøkerOppgave.Keys.FØDSELSNUMMER].asText()
+        override fun opprettet(): LocalDateTime = søknad[SøkerOppgave.Keys.OPPRETTET].asLocalDateTime()
+        override fun ferdig(): Boolean = søknad[SøkerOppgave.Keys.FERDIG].asBoolean()
+
+        override fun asFrontendformat(): JsonNode {
+            søknad as ObjectNode
+            val kopiAvSøknad = søknad.deepCopy()
+            kopiAvSøknad.remove(SøkerOppgave.Keys.FØDSELSNUMMER)
+            return kopiAvSøknad
+        }
+
+        override fun asJson(): String = søknad.toString()
+        override fun sannsynliggjøringer(): Set<Sannsynliggjøring> {
+            TODO("not implemented")
+        }
+    }
 }
 
 internal fun Session.hentAktivitetslogg(søknadId: UUID): PersonDTO.AktivitetsloggDTO? = run(

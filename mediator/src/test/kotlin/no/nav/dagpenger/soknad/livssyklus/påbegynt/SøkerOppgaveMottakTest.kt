@@ -6,7 +6,6 @@ import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.db.Postgres
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
-import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.AfterEach
@@ -32,7 +31,6 @@ class SøkerOppgaveMottakTest {
             val søknadMediator = SøknadMediator(
                 testRapid,
                 SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource),
-                LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource),
                 mockk(),
                 mockk(),
                 SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)

@@ -4,7 +4,7 @@ import io.ktor.server.plugins.NotFoundException
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
+import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.postgresql.util.PGobject
 import java.time.LocalDateTime
@@ -73,7 +73,7 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
                         "sistLagret" to sistLagretEtter
                     )
                 ).map { row ->
-                    LivssyklusPostgresRepository.PersistentSøkerOppgave(objectMapper.readTree(row.binaryStream("soknad_data")))
+                    SøknadPostgresRepository.PersistentSøkerOppgave(objectMapper.readTree(row.binaryStream("soknad_data")))
                 }.asSingle
             ) ?: throw NotFoundException("Søknad med id '$søknadUUID' ikke funnet")
         }
@@ -84,7 +84,8 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
             session.run(
                 queryOf(
                     //language=PostgreSQL
-                    "DELETE FROM soknad_cache WHERE uuid = ?", søknadUUID.toString()
+                    "DELETE FROM soknad_cache WHERE uuid = ?",
+                    søknadUUID.toString()
                 ).asExecute
             )
         }

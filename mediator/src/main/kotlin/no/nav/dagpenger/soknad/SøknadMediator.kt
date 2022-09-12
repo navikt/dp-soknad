@@ -17,7 +17,6 @@ import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNyInnsendingHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
-import no.nav.dagpenger.soknad.livssyklus.LivssyklusRepository
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.FerdigstiltSøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
@@ -31,14 +30,12 @@ import java.util.UUID
 internal class SøknadMediator(
     private val rapidsConnection: RapidsConnection,
     private val søknadCacheRepository: SøknadCacheRepository,
-    private val livssyklusRepository: LivssyklusRepository,
     private val søknadMalRepository: SøknadMalRepository,
     private val ferdigstiltSøknadRepository: FerdigstiltSøknadRepository,
     private val søknadRepository: SøknadRepository,
     private val søknadObservers: List<SøknadObserver> = emptyList()
 ) : SøknadCacheRepository by søknadCacheRepository,
     SøknadMalRepository by søknadMalRepository,
-    LivssyklusRepository by livssyklusRepository,
     FerdigstiltSøknadRepository by ferdigstiltSøknadRepository,
     SøknadRepository by søknadRepository {
     private companion object {

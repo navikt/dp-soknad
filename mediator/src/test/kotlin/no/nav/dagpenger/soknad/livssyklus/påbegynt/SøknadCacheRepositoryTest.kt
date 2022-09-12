@@ -4,11 +4,11 @@ import io.ktor.server.plugins.NotFoundException
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.dagpenger.soknad.Søknadhåndterer
+import no.nav.dagpenger.soknad.Språk
+import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
-import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
-import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
-import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository.PersistentSøkerOppgave
+import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
+import no.nav.dagpenger.soknad.db.SøknadPostgresRepository.PersistentSøkerOppgave
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
@@ -18,9 +18,6 @@ import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 class SøknadCacheRepositoryTest {
-
-    private val språkVerdi = "NO"
-
     @Test
     fun `Lagre søknad og hente`() {
         withMigratedDb {
@@ -131,9 +128,7 @@ class SøknadCacheRepositoryTest {
         )
 
     private fun lagrePersonMedSøknad(søknadUuid: UUID, ident: String = "01234567891") {
-        val søknadhåndterer = Søknadhåndterer()
-        søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadUuid, ident, språkVerdi))
-        val livssyklusPostgresRepository = LivssyklusPostgresRepository(dataSource)
-        livssyklusPostgresRepository.lagre(søknadhåndterer, ident)
+        val søknadRepository = SøknadPostgresRepository(dataSource)
+        søknadRepository.lagre(Søknad(søknadUuid, Språk("NO"), ident))
     }
 }

@@ -108,7 +108,6 @@ internal class VaktmesterRepositoryTest {
     ) = SøknadMediator(
         rapidsConnection = testRapid,
         søknadCacheRepository = søknadCacheRepository,
-        livssyklusRepository = mockk(),
         søknadMalRepository = mockk(),
         ferdigstiltSøknadRepository = mockk(),
         søknadRepository = søknadRepository,

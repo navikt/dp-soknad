@@ -4,7 +4,6 @@ import no.nav.dagpenger.pdl.createPersonOppslag
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.dagpenger.soknad.livssyklus.JournalførtMottak
-import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.NyJournalpostMottak
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.FerdigstiltSøknadPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.ferdigStiltSøknadRouteBuilder
@@ -54,14 +53,13 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     private val søknadMediator = SøknadMediator(
         rapidsConnection = rapidsConnection,
         søknadCacheRepository = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource),
-        livssyklusRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource),
         søknadMalRepository = søknadMalRepository,
         ferdigstiltSøknadRepository = ferdigstiltRepository,
+        søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource),
         søknadObservers = listOf(
             SøknadLoggerObserver,
             SøknadSlettetObserver(rapidsConnection)
-        ),
-        søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
+        )
     ).also {
         SøknadOpprettetHendelseMottak(rapidsConnection, it)
         ArkiverbarSøknadMottattHendelseMottak(rapidsConnection, it)

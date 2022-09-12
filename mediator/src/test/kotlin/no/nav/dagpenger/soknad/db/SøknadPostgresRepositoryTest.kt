@@ -20,7 +20,6 @@ import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
-import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -121,7 +120,6 @@ internal class SøknadPostgresRepositoryTest {
                 val rehydrertSøknad = søknadPostgresRepository.hent(søknadId, ident)
 
                 assertDeepEquals(rehydrertSøknad!!, søknad)
-
                 // TODO: Flytt tilgangskontroll til API-lag
                 /*assertThrows<IkkeTilgangExeption> {
                     søknadPostgresRepository.hent(søknadId, "ikke-tilgang")
@@ -144,13 +142,11 @@ internal class SøknadPostgresRepositoryTest {
             tidspunkt = ZonedDateTime.now()
         )
         withMigratedDb {
-            val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
             val søknadPostgresRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
             søknadPostgresRepository.lagre(søknad)
             val søknadMediator = SøknadMediator(
                 rapidsConnection = mockk(),
                 søknadCacheRepository = mockk(),
-                livssyklusRepository = livssyklusPostgresRepository,
                 søknadMalRepository = mockk(),
                 ferdigstiltSøknadRepository = mockk(),
                 søknadRepository = søknadPostgresRepository,
@@ -197,13 +193,11 @@ internal class SøknadPostgresRepositoryTest {
             tidspunkt = tidspunkt
         )
         withMigratedDb {
-            val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
             val søknadPostgresRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
             søknadPostgresRepository.lagre(søknad)
             val søknadMediator = SøknadMediator(
                 rapidsConnection = mockk(),
                 søknadCacheRepository = mockk(),
-                livssyklusRepository = livssyklusPostgresRepository,
                 søknadMalRepository = mockk(),
                 ferdigstiltSøknadRepository = mockk(),
                 søknadRepository = søknadPostgresRepository,
