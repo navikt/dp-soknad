@@ -94,11 +94,13 @@ class Søknad private constructor(
 
     fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         kontekst(ønskeOmNySøknadHendelse)
+        ønskeOmNySøknadHendelse.info("Ønske om søknad registrert")
         tilstand.håndter(ønskeOmNySøknadHendelse, this)
     }
 
     fun håndter(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse) {
         kontekst(ønskeOmNyInnsendingHendelse)
+        ønskeOmNyInnsendingHendelse.info("Ønske om innsending registrert")
         tilstand.håndter(ønskeOmNyInnsendingHendelse, this)
     }
 
@@ -109,36 +111,42 @@ class Søknad private constructor(
 
     fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse) {
         kontekst(søknadOpprettetHendelse)
+        søknadOpprettetHendelse.info("Oppretter søknad")
         tilstand.håndter(søknadOpprettetHendelse, this)
     }
 
     fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
         kontekst(søknadInnsendtHendelse)
+        søknadInnsendtHendelse.info("Sender inn søknaden")
         sistEndretAvBruker = ZonedDateTime.now()
         tilstand.håndter(søknadInnsendtHendelse, this)
     }
 
     fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse) {
+        kontekst(arkiverbarSøknadMotattHendelse)
+        arkiverbarSøknadMotattHendelse.info("Arkiverbar søknad mottatt")
         if (!arkiverbarSøknadMotattHendelse.valider()) {
             arkiverbarSøknadMotattHendelse.warn("Ikke gyldig dokumentlokasjon")
             return
         }
-        kontekst(arkiverbarSøknadMotattHendelse)
         tilstand.håndter(arkiverbarSøknadMotattHendelse, this)
     }
 
     fun håndter(søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse) {
         kontekst(søknadMidlertidigJournalførtHendelse)
+        søknadMidlertidigJournalførtHendelse.info("Søknad midlertidig journalført")
         tilstand.håndter(søknadMidlertidigJournalførtHendelse, this)
     }
 
     fun håndter(journalførtHendelse: JournalførtHendelse) {
         kontekst(journalførtHendelse)
+        journalførtHendelse.info("Søknad journalført")
         tilstand.håndter(journalførtHendelse, this)
     }
 
     fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse) {
         kontekst(faktumOppdatertHendelse)
+        // @todo : Delegere til tilstand - tilstand burde si om det er ok å lagre
         if (tilstand == Påbegynt) {
             sistEndretAvBruker = ZonedDateTime.now()
             tilstand.håndter(faktumOppdatertHendelse, this)
@@ -149,11 +157,13 @@ class Søknad private constructor(
 
     fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse) {
         kontekst(søkeroppgaveHendelse)
+        søkeroppgaveHendelse.info("Søkeroppgave mottatt")
         tilstand.håndter(søkeroppgaveHendelse, this)
     }
 
     fun håndter(slettSøknadHendelse: SlettSøknadHendelse) {
         kontekst(slettSøknadHendelse)
+        slettSøknadHendelse.info("Forsøker å slette søknad")
         tilstand.håndter(slettSøknadHendelse, this)
     }
 

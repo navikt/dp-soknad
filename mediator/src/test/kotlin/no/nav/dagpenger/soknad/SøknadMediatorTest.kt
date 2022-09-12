@@ -147,7 +147,7 @@ internal class SøknadMediatorTest {
         // Verifiser at det er mulig å hente en komplett aktivitetslogg
         livssyklusRepository.hent(testIdent, true)?.let {
             with(TestSøknadhåndtererInspektør(it).aktivitetslogg["aktiviteter"]!!) {
-                assertEquals(14, size)
+                assertEquals(13, size)
                 assertEquals("Ønske om søknad registrert", first()["melding"])
                 assertEquals("Søknad journalført", last()["melding"])
             }

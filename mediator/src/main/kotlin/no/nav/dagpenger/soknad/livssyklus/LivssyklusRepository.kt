@@ -79,7 +79,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     hentInternPersonId(transactionalSession, ident) ?: lagrePerson(transactionalSession, ident)!!
 
                 logger.info { "Lagrer ${visitor.søknader().size} søknader" }
-                visitor.søknader().map { it.first } .insertQuery(ident, transactionalSession)
+                visitor.søknader().map { it.first }.insertQuery(ident, transactionalSession)
                 visitor.søknader().forEach {
                     it.first.insertDokumentQuery(transactionalSession)
                     lagreAktivitetslogg(transactionalSession, it.first.søknadsId, it.second)

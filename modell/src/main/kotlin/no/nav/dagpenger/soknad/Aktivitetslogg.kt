@@ -77,7 +77,6 @@ class Aktivitetslogg private constructor(
 
     override fun kontekst(søknad: Søknad) {
         forelder = søknad.aktivitetslogg
-        forelder?.aktiviteter?.addAll(this.aktiviteter)
         kontekst(søknad as Aktivitetskontekst)
     }
 
@@ -89,7 +88,7 @@ class Aktivitetslogg private constructor(
 
     override fun kontekster() =
         aktiviteter
-            .groupBy { it.kontekst(listOf("Innsending")) }
+            .groupBy { it.kontekst(listOf("søknad")) }
             .map { Aktivitetslogg(this).apply { aktiviteter.addAll(it.value) } }
 
     private fun info() = Aktivitet.Info.filter(aktiviteter)

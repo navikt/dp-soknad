@@ -4,7 +4,6 @@ import no.nav.dagpenger.soknad.Søknad.Companion.finnSøknad
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
-import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
@@ -40,7 +39,7 @@ class Søknadhåndterer constructor(
         // if (søknader.harAlleredeOpprettetSøknad()) {
         //    ønskeOmNySøknadHendelse.severe("Kan ikke ha flere enn én opprettet søknad.")
         // }
-        kontekst(ønskeOmNySøknadHendelse, "Ønske om søknad registrert")
+
         søknader.add(
             Søknad(
                 ønskeOmNySøknadHendelse.søknadID(),
@@ -54,7 +53,6 @@ class Søknadhåndterer constructor(
     }
 
     fun håndter(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse) {
-        kontekst(ønskeOmNyInnsendingHendelse, "Ønske om innsending registrert")
         søknader.add(
             Søknad(
                 ønskeOmNyInnsendingHendelse.søknadID(),
@@ -68,53 +66,44 @@ class Søknadhåndterer constructor(
     }
 
     fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse) {
-        kontekst(harPåbegyntSøknadHendelse, "Fortsetter på påbegynt søknad")
+        harPåbegyntSøknadHendelse.info("Fortsetter på påbegynt søknad")
     }
 
     fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse) {
-        kontekst(søknadOpprettetHendelse, "Oppretter søknad")
-
         val søknaden = finnSøknad(søknadOpprettetHendelse)
-
         søknaden.håndter(søknadOpprettetHendelse)
     }
 
     fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse) {
-        kontekst(faktumOppdatertHendelse, "Faktum oppdatert")
         finnSøknad(faktumOppdatertHendelse).also { søknaden ->
             søknaden.håndter(faktumOppdatertHendelse)
         }
     }
 
     fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse) {
-        kontekst(søkeroppgaveHendelse, "Søkeroppgave mottatt")
         finnSøknad(søkeroppgaveHendelse).also { søknaden ->
             søknaden.håndter(søkeroppgaveHendelse)
         }
     }
 
     fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
-        kontekst(søknadInnsendtHendelse, "Sender inn søknaden")
         val søknaden = finnSøknad(søknadInnsendtHendelse)
         søknaden.håndter(søknadInnsendtHendelse)
     }
 
     fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse) {
-        kontekst(arkiverbarSøknadMotattHendelse, "Arkiverbar søknad motatt")
         finnSøknad(arkiverbarSøknadMotattHendelse).also { søknaden ->
             søknaden.håndter(arkiverbarSøknadMotattHendelse)
         }
     }
 
     fun håndter(søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse) {
-        kontekst(søknadMidlertidigJournalførtHendelse, "Søknad midlertidig journalført")
         finnSøknad(søknadMidlertidigJournalførtHendelse).also { søknaden ->
             søknaden.håndter(søknadMidlertidigJournalførtHendelse)
         }
     }
 
     fun håndter(journalførtHendelse: JournalførtHendelse) {
-        kontekst(journalførtHendelse, "Søknad journalført")
         val søknaden = finnSøknad(journalførtHendelse)
         when {
             søknaden != null -> søknaden.håndter(journalførtHendelse)
@@ -123,7 +112,6 @@ class Søknadhåndterer constructor(
     }
 
     fun håndter(slettSøknadHendelse: SlettSøknadHendelse) {
-        kontekst(slettSøknadHendelse, "Forsøker å slette søknad med ${slettSøknadHendelse.søknadID}")
         finnSøknad(slettSøknadHendelse).also { søknaden ->
             søknaden.håndter(slettSøknadHendelse)
         }
@@ -156,9 +144,5 @@ class Søknadhåndterer constructor(
 
     private fun finnSøknad(journalførtHendelse: JournalførtHendelse): Søknad? {
         return søknader.finnSøknad(journalførtHendelse.journalpostId())
-    }
-
-    private fun kontekst(hendelse: Hendelse, melding: String) {
-        hendelse.info(melding)
     }
 }
