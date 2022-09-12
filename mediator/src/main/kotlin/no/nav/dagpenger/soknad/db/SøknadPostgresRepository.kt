@@ -149,21 +149,22 @@ class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
 
 internal fun Session.hentAktivitetslogg(søknadId: UUID): PersonDTO.AktivitetsloggDTO? = run(
     queryOf(
-            //language=PostgreSQL
-            statement = """
+        //language=PostgreSQL
+        statement = """
                 SELECT a.data AS aktivitetslogg
                 FROM aktivitetslogg_v3 AS a
                 WHERE a.soknad_uuid = :soknadId
                 ORDER BY id ASC
-            """.trimIndent(),
-            paramMap = mapOf(
-                    "soknadId" to søknadId.toString()
-            )
+        """.trimIndent(),
+        paramMap = mapOf(
+            "soknadId" to søknadId.toString()
+        )
     ).map { row ->
         row.binaryStream("aktivitetslogg").aktivitetslogg()
     }.asList
-    ).fold(PersonDTO.AktivitetsloggDTO(mutableListOf())) { acc, data ->
-        PersonDTO.AktivitetsloggDTO(acc.aktiviteter + data.aktiviteter)}
+).fold(PersonDTO.AktivitetsloggDTO(mutableListOf())) { acc, data ->
+    PersonDTO.AktivitetsloggDTO(acc.aktiviteter + data.aktiviteter)
+}
 
 internal class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
 

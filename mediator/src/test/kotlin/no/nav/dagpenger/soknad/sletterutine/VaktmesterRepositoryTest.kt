@@ -5,9 +5,15 @@ import io.mockk.mockk
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.dagpenger.soknad.*
+import no.nav.dagpenger.soknad.Aktivitetslogg
+import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.Språk
+import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
+import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.Søknadhåndterer
+import no.nav.dagpenger.soknad.SøknadhåndtererVisitor
 import no.nav.dagpenger.soknad.TestSøkerOppgave
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
@@ -130,7 +136,7 @@ internal class VaktmesterRepositoryTest {
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
             tilstandsType = Journalført,
-                aktivitetslogg = Aktivitetslogg()
+            aktivitetslogg = Aktivitetslogg()
 
         )
 
@@ -145,7 +151,7 @@ internal class VaktmesterRepositoryTest {
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
             tilstandsType = Påbegynt,
-                aktivitetslogg = Aktivitetslogg()
+            aktivitetslogg = Aktivitetslogg()
 
         )
 
@@ -160,7 +166,7 @@ internal class VaktmesterRepositoryTest {
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
             tilstandsType = Påbegynt,
-                aktivitetslogg = Aktivitetslogg()
+            aktivitetslogg = Aktivitetslogg()
 
         )
 }

@@ -36,7 +36,7 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
                     dokumentkrav = it.dokumentkrav.rehydrer(),
                     sistEndretAvBruker = it.sistEndretAvBruker,
                     tilstandsType = it.tilstandType.rehydrer(),
-                        aktivitetslogg = it.aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg()
+                    aktivitetslogg = it.aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg()
                 )
             }.toMutableList()
         }
@@ -65,7 +65,7 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
             dokumentkrav = this.dokumentkrav.rehydrer(),
             sistEndretAvBruker = this.sistEndretAvBruker,
             tilstandsType = this.tilstandType.rehydrer(),
-                aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg()
+            aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg()
 
         )
         class DokumentDTO(

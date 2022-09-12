@@ -5,7 +5,6 @@ import io.mockk.mockk
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.dagpenger.soknad.*
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
@@ -68,7 +67,7 @@ internal class SøknadPostgresRepositoryTest {
         ),
         sistEndretAvBruker = ZonedDateTime.now(),
         tilstandsType = Søknad.Tilstand.Type.Påbegynt,
-            aktivitetslogg = Aktivitetslogg()
+        aktivitetslogg = Aktivitetslogg()
     )
 
     @Test
@@ -101,7 +100,7 @@ internal class SøknadPostgresRepositoryTest {
             ),
             sistEndretAvBruker = ZonedDateTime.now().minusDays(1),
             tilstandsType = Søknad.Tilstand.Type.Journalført,
-                aktivitetslogg = Aktivitetslogg()
+            aktivitetslogg = Aktivitetslogg()
         )
 
         withMigratedDb {

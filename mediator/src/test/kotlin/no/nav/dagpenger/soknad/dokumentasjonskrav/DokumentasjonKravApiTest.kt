@@ -11,12 +11,21 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.serialization.Configuration
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
-import no.nav.dagpenger.soknad.*
+import no.nav.dagpenger.soknad.Aktivitetslogg
+import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.Faktum
+import no.nav.dagpenger.soknad.Krav
+import no.nav.dagpenger.soknad.Sannsynliggjøring
+import no.nav.dagpenger.soknad.Språk
+import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.soknad.TestApplication.mockedSøknadApi
@@ -60,7 +69,7 @@ internal class DokumentasjonKravApiTest {
         dokumentkrav = dokumentKrav,
         sistEndretAvBruker = ZonedDateTime.now(),
         tilstandsType = Søknad.Tilstand.Type.Påbegynt,
-            aktivitetslogg = Aktivitetslogg()
+        aktivitetslogg = Aktivitetslogg()
     )
 
     private val søknadMediatorMock = mockk<SøknadMediator>().also {
@@ -69,7 +78,7 @@ internal class DokumentasjonKravApiTest {
 
     @Test
     fun `Skal avvise uautentiserte kall`() {
-        TestApplication.withMockAuthServerAndTestApplication() {
+        TestApplication.withMockAuthServerAndTestApplication {
             assertEquals(
                 HttpStatusCode.Unauthorized,
                 client.get("${Configuration.basePath}/soknad/id/dokumentasjonskrav").status
