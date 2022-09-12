@@ -161,7 +161,7 @@ internal class SøknadTest {
     }
 
     private fun håndterJournalførtSøknad() {
-        søknadhåndterer.håndter(JournalførtHendelse(testJournalpostId, testIdent))
+        søknadhåndterer.håndter(JournalførtHendelse(inspektør.søknadId, testJournalpostId, testIdent))
     }
 
     private fun håndterFaktumOppdatering() {

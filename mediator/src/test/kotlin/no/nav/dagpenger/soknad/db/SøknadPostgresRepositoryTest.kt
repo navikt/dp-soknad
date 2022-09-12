@@ -25,6 +25,7 @@ import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -34,7 +35,6 @@ import java.util.UUID
 internal class SøknadPostgresRepositoryTest {
     private val søknadId = UUID.randomUUID()
     private val språk = Språk("NO")
-
     private val dokumentFaktum =
         Faktum(faktumJson("1", "f1"))
     private val faktaSomSannsynliggjøres =
@@ -49,9 +49,7 @@ internal class SøknadPostgresRepositoryTest {
     private val krav = Krav(
         sannsynliggjøring
     )
-
     val ident = "12345678910"
-
     val søknad = Søknad.rehydrer(
         søknadId = søknadId,
         ident = ident,
@@ -82,7 +80,6 @@ internal class SøknadPostgresRepositoryTest {
 
     @Test
     fun `Lagre og hente søknad med dokument, dokumentkrav og aktivitetslogg`() {
-
         val søknadId = UUID.randomUUID()
         val ident = "12345678910"
         val søknad = Søknad.rehydrer(
@@ -121,14 +118,14 @@ internal class SøknadPostgresRepositoryTest {
                 assertAntallRader("dokumentkrav_v1", 1)
                 assertAntallRader("aktivitetslogg_v3", 1)
                 assertAntallRader("dokumentkrav_v1", 1)
-
                 val rehydrertSøknad = søknadPostgresRepository.hent(søknadId, ident)
 
-                assertDeepEquals(rehydrertSøknad, søknad)
+                assertDeepEquals(rehydrertSøknad!!, søknad)
 
-                assertThrows<IkkeTilgangExeption> {
+                // TODO: Flytt tilgangskontroll til API-lag
+                /*assertThrows<IkkeTilgangExeption> {
                     søknadPostgresRepository.hent(søknadId, "ikke-tilgang")
-                }
+                }*/
             }
         }
     }
@@ -138,12 +135,13 @@ internal class SøknadPostgresRepositoryTest {
     }
 
     @Test
+    @Disabled("Må flyttes opp til API-laget")
     fun `Tilgangs kontroll til dokumentasjonskrav filer`() {
         val fil1 = Krav.Fil(
             filnavn = "ja.jpg",
             urn = URN.rfc8141().parse("urn:vedlegg:1111/12345"),
             storrelse = 50000,
-            tidspunkt = ZonedDateTime.now(),
+            tidspunkt = ZonedDateTime.now()
         )
         withMigratedDb {
             val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
@@ -156,8 +154,7 @@ internal class SøknadPostgresRepositoryTest {
                 søknadMalRepository = mockk(),
                 ferdigstiltSøknadRepository = mockk(),
                 søknadRepository = søknadPostgresRepository,
-                søknadObservers = listOf(),
-
+                søknadObservers = listOf()
             )
 
             assertThrows<IkkeTilgangExeption> {
@@ -191,13 +188,13 @@ internal class SøknadPostgresRepositoryTest {
             filnavn = "ja.jpg",
             urn = URN.rfc8141().parse("urn:vedlegg:1111/12345"),
             storrelse = 50000,
-            tidspunkt = tidspunkt,
+            tidspunkt = tidspunkt
         )
         val fil2 = Krav.Fil(
             filnavn = "nei.jpg",
             urn = URN.rfc8141().parse("urn:vedlegg:1111/45678"),
             storrelse = 50000,
-            tidspunkt = tidspunkt,
+            tidspunkt = tidspunkt
         )
         withMigratedDb {
             val livssyklusPostgresRepository = LivssyklusPostgresRepository(PostgresDataSourceBuilder.dataSource)
@@ -210,11 +207,10 @@ internal class SøknadPostgresRepositoryTest {
                 søknadMalRepository = mockk(),
                 ferdigstiltSøknadRepository = mockk(),
                 søknadRepository = søknadPostgresRepository,
-                søknadObservers = listOf(),
-
+                søknadObservers = listOf()
             )
 
-            hentDokumentKrav(søknadMediator.hent(søknadId, ident)).let {
+            hentDokumentKrav(søknadMediator.hent(søknadId, ident)!!).let {
                 it.aktiveDokumentKrav().forEach { krav ->
                     assertTrue(krav.svar.filer.isEmpty())
                     assertEquals(Krav.Svar.SvarValg.IKKE_BESVART, krav.svar.valg)
@@ -247,7 +243,7 @@ internal class SøknadPostgresRepositoryTest {
                     fil2
                 )
             )
-            hentDokumentKrav(søknadMediator.hent(søknadId, ident)).let {
+            hentDokumentKrav(søknadMediator.hent(søknadId, ident)!!).let {
                 assertEquals(2, it.aktiveDokumentKrav().first().svar.filer.size)
                 it.aktiveDokumentKrav().forEach { krav ->
                     assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
@@ -265,7 +261,7 @@ internal class SøknadPostgresRepositoryTest {
                 )
             )
 
-            hentDokumentKrav(søknadMediator.hent(søknadId, ident)).let {
+            hentDokumentKrav(søknadMediator.hent(søknadId, ident)!!).let {
                 assertEquals(2, it.aktiveDokumentKrav().first().svar.filer.size)
                 it.aktiveDokumentKrav().forEach { krav ->
                     assertEquals(Krav.Svar.SvarValg.SEND_SENERE, krav.svar.valg)
@@ -281,7 +277,7 @@ internal class SøknadPostgresRepositoryTest {
                     urn = fil1.urn
                 )
             )
-            hentDokumentKrav(søknadMediator.hent(søknadId, ident)).let {
+            hentDokumentKrav(søknadMediator.hent(søknadId, ident)!!).let {
                 assertEquals(1, it.aktiveDokumentKrav().first().svar.filer.size)
             }
 
@@ -294,7 +290,7 @@ internal class SøknadPostgresRepositoryTest {
                 )
             )
 
-            hentDokumentKrav(søknadMediator.hent(søknadId, ident)).let {
+            hentDokumentKrav(søknadMediator.hent(søknadId, ident)!!).let {
                 assertEquals(0, it.aktiveDokumentKrav().first().svar.filer.size)
             }
 

@@ -13,19 +13,18 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.Søknadsprosess.NySøknadsProsess
 import no.nav.dagpenger.soknad.Søknadsprosess.PåbegyntSøknadsProsess
-import no.nav.dagpenger.soknad.db.Postgres
+import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
+import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.dagpenger.soknad.livssyklus.JournalførtMottak
 import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.NyJournalpostMottak
-import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.FerdigstiltSøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadCachePostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak
-import no.nav.dagpenger.soknad.mal.SøknadMalRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.rapids_rivers.toUUID
@@ -45,28 +44,26 @@ internal class SøknadMediatorTest {
     }
 
     private lateinit var mediator: SøknadMediator
-    private val søknadCacheRepository = SøknadCachePostgresRepository(Postgres.withMigratedDb())
-    private val livssyklusRepository = LivssyklusPostgresRepository(Postgres.withMigratedDb())
-    private val søknadMalRepositoryMock = mockk<SøknadMalRepository>()
-    private val ferdigstiltSøknadRepository = mockk<FerdigstiltSøknadRepository>()
     private val testRapid = TestRapid()
 
     @BeforeEach
     fun setup() {
-        mediator = SøknadMediator(
-            testRapid,
-            søknadCacheRepository,
-            livssyklusRepository,
-            søknadMalRepositoryMock,
-            ferdigstiltSøknadRepository,
-            mockk()
-        )
+        withMigratedDb {
+            mediator = SøknadMediator(
+                testRapid,
+                SøknadCachePostgresRepository(dataSource),
+                LivssyklusPostgresRepository(dataSource),
+                mockk(),
+                mockk(),
+                SøknadPostgresRepository(dataSource)
+            )
 
-        SøkerOppgaveMottak(testRapid, mediator)
-        SøknadOpprettetHendelseMottak(testRapid, mediator)
-        ArkiverbarSøknadMottattHendelseMottak(testRapid, mediator)
-        NyJournalpostMottak(testRapid, mediator)
-        JournalførtMottak(testRapid, mediator)
+            SøkerOppgaveMottak(testRapid, mediator)
+            SøknadOpprettetHendelseMottak(testRapid, mediator)
+            ArkiverbarSøknadMottattHendelseMottak(testRapid, mediator)
+            NyJournalpostMottak(testRapid, mediator)
+            JournalførtMottak(testRapid, mediator)
+        }
     }
 
     @Test
@@ -138,14 +135,18 @@ internal class SøknadMediatorTest {
         )
         assertEquals(AvventerJournalføring, oppdatertInspektør().gjeldendetilstand)
 
-        testRapid.sendTestMessage(søknadJournalførtHendelse(ident = testIdent, journalpostId = testJournalpostId))
+        testRapid.sendTestMessage(
+            søknadJournalførtHendelse(
+                søknadUuid,
+                ident = testIdent,
+                journalpostId = testJournalpostId
+            )
+        )
         assertEquals(Journalført, oppdatertInspektør().gjeldendetilstand)
-
         // Verifiserer at aktivitetsloggen blir lagret per behandling
         assertAntallRader("aktivitetslogg_v3", 9)
-
         // Verifiser at det er mulig å hente en komplett aktivitetslogg
-        livssyklusRepository.hent(testIdent, true)?.let {
+        mediator.hent(testIdent, true)?.let {
             with(TestSøknadhåndtererInspektør(it).aktivitetslogg["aktiviteter"]!!) {
                 assertEquals(13, size)
                 assertEquals("Ønske om søknad registrert", first()["melding"])
@@ -156,7 +157,12 @@ internal class SøknadMediatorTest {
 
     @Test
     fun `Hva skjer om en får JournalførtHendelse som ikke er tilknyttet en søknad`() {
-        testRapid.sendTestMessage(søknadJournalførtHendelse(ident = testIdent, journalpostId = "UKJENT"))
+        testRapid.sendTestMessage(
+            journalførtHendelse(
+                ident = testIdent,
+                journalpostId = "UKJENT"
+            )
+        )
     }
 
     private fun assertAntallRader(tabell: String, antallRader: Int) {
@@ -174,44 +180,45 @@ internal class SøknadMediatorTest {
 
     private fun behov(indeks: Int) = testRapid.inspektør.message(indeks)["@behov"].map { it.asText() }
 
-    private fun oppdatertInspektør(ident: String = testIdent) = TestSøknadhåndtererInspektør(livssyklusRepository.hent(ident)!!)
+    private fun oppdatertInspektør(ident: String = testIdent) =
+        TestSøknadhåndtererInspektør(mediator.hent(ident)!!)
 
     // language=JSON
     private fun søkerOppgave(søknadUuid: UUID, ident: String) = """{
-  "@event_name": "søker_oppgave",
-  "fødselsnummer": $ident,
-  "versjon_id": 0,
-  "versjon_navn": "test",
-  "@opprettet": "2022-05-13T14:48:09.059643",
-  "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
-  "søknad_uuid": "$søknadUuid",
-  "ferdig": false,
-  "seksjoner": [
-    {
-      "beskrivendeId": "seksjon1",
-      "fakta": []
+      "@event_name": "søker_oppgave",
+      "fødselsnummer": $ident,
+      "versjon_id": 0,
+      "versjon_navn": "test",
+      "@opprettet": "2022-05-13T14:48:09.059643",
+      "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
+      "søknad_uuid": "$søknadUuid",
+      "ferdig": false,
+      "seksjoner": [
+        {
+          "beskrivendeId": "seksjon1",
+          "fakta": []
+        }
+      ]
     }
-  ]
-}
     """.trimIndent()
 
     // language=JSON
     private fun ferdigSøkerOppgave(søknadUuid: UUID, ident: String) = """{
-  "@event_name": "søker_oppgave",
-  "fødselsnummer": $ident,
-  "versjon_id": 0,
-  "versjon_navn": "test",
-  "@opprettet": "2022-05-13T14:48:09.059643",
-  "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
-  "søknad_uuid": "$søknadUuid",
-  "ferdig": true,
-  "seksjoner": [
-    {
-      "beskrivendeId": "seksjon1",
-      "fakta": []
+      "@event_name": "søker_oppgave",
+      "fødselsnummer": $ident,
+      "versjon_id": 0,
+      "versjon_navn": "test",
+      "@opprettet": "2022-05-13T14:48:09.059643",
+      "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
+      "søknad_uuid": "$søknadUuid",
+      "ferdig": true,
+      "seksjoner": [
+        {
+          "beskrivendeId": "seksjon1",
+          "fakta": []
+        }
+      ]
     }
-  ]
-}
     """.trimIndent()
 
     // language=JSON
@@ -291,7 +298,7 @@ internal class SøknadMediatorTest {
     """.trimMargin()
 
     // language=JSON
-    private fun søknadJournalførtHendelse(ident: String, journalpostId: String) = """
+    private fun søknadJournalførtHendelse(søknadUuid: UUID, ident: String, journalpostId: String) = """
     {
       "@id": "7d1938c6-f1ae-435d-8d83-c7f200b9cc2b",
       "@opprettet": "2022-04-04T10:39:58.621716",
@@ -304,7 +311,26 @@ internal class SøknadMediatorTest {
       "aktørId": "1234455",
       "fagsakId": "1234",
       "@event_name": "innsending_ferdigstilt",
-      "system_read_count": 0
+      "system_read_count": 0,
+      "søknadsData": {
+        "søknad_uuid": "$søknadUuid"
+      }
     }
+    """.trimMargin()
+
+    private fun journalførtHendelse(ident: String, journalpostId: String) = """
+    {
+      "@id": "7d1938c6-f1ae-435d-8d83-c7f200b9cc2b",
+      "@opprettet": "2022-04-04T10:39:58.621716",
+      "journalpostId": "$journalpostId",
+      "datoRegistrert": "2022-04-04T10:39:58.586548",
+      "skjemaKode": "test",
+      "tittel": "Tittel",
+      "type": "NySøknad",
+      "fødselsnummer": "$ident",
+      "aktørId": "1234455",
+      "fagsakId": "1234",
+      "@event_name": "innsending_ferdigstilt",
+      "system_read_count": 0,
     """.trimMargin()
 }

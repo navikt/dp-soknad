@@ -1,6 +1,5 @@
 package no.nav.dagpenger.soknad.db
 
-import com.zaxxer.hikari.HikariDataSource
 import de.slub.urn.URN
 import kotliquery.Session
 import kotliquery.TransactionalSession
@@ -23,11 +22,11 @@ import org.postgresql.util.PGobject
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID
+import javax.sql.DataSource
 
-class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
+class SøknadPostgresRepository(private val dataSource: DataSource) :
     SøknadRepository {
-    override fun hent(søknadId: UUID, ident: String, komplettAktivitetslogg: Boolean): Søknad {
-        sjekkTilgang(ident, søknadId)
+    override fun hent(søknadId: UUID, ident: String, komplettAktivitetslogg: Boolean): Søknad? {
         return using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf(
@@ -56,15 +55,48 @@ class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
                         sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")
                     ).also {
                         if (!komplettAktivitetslogg) return@also
-                        it.aktivitetslogg = session.hentAktivitetslogg(søknadId)
+                        it.aktivitetslogg = session.hentAktivitetslogg(søknadsId)
                     }
                 }.asSingle
-            )?.rehydrer()!!
+            )?.rehydrer()
         }
     }
 
     override fun hentSøknader(ident: String, komplettAktivitetslogg: Boolean): Set<Søknad> {
-        TODO("balab")
+        return using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf(
+                    //language=PostgreSQL
+                    statement = """
+                            SELECT uuid, tilstand, journalpost_id, innsendt_tidspunkt, spraak, sist_endret_av_bruker
+                            FROM  soknad_v1
+                            WHERE person_ident = :ident
+                    """.trimIndent(),
+                    paramMap = mapOf(
+                        "ident" to ident
+                    )
+                ).map { row ->
+                    // TODO: Fjern duplisering fra hent()
+                    val søknadsId = UUID.fromString(row.string("uuid"))
+                    PersonDTO.SøknadDTO(
+                        søknadsId = søknadsId,
+                        ident = ident,
+                        tilstandType = PersonDTO.SøknadDTO.TilstandDTO.rehydrer(row.string("tilstand")),
+                        dokumenter = session.hentDokumentData(søknadsId),
+                        journalpostId = row.stringOrNull("journalpost_id"),
+                        innsendtTidspunkt = row.zonedDateTimeOrNull("innsendt_tidspunkt"),
+                        språkDTO = PersonDTO.SøknadDTO.SpråkDTO(row.string("spraak")),
+                        dokumentkrav = PersonDTO.SøknadDTO.DokumentkravDTO(
+                            session.hentDokumentKrav(søknadsId)
+                        ),
+                        sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")
+                    ).also {
+                        if (!komplettAktivitetslogg) return@also
+                        it.aktivitetslogg = session.hentAktivitetslogg(søknadsId)
+                    }
+                }.asList
+            ).map { it.rehydrer() }.toSet()
+        }
     }
 
     override fun lagre(søknad: Søknad) {
@@ -72,8 +104,10 @@ class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
         using(sessionOf(dataSource)) { session ->
             session.transaction { transactionalSession ->
                 val personId =
-                    hentInternPersonId(transactionalSession, visitor.søknadDTO.ident) ?: lagrePerson(transactionalSession, visitor.søknadDTO.ident)
-
+                    hentInternPersonId(transactionalSession, visitor.søknadDTO.ident) ?: lagrePerson(
+                        transactionalSession,
+                        visitor.søknadDTO.ident
+                    )
                 // @todo: soknad_v1 må bruke intern person id fra person_v1 for normalisering! Ikke ident direkte
                 listOf(visitor.søknadDTO).insertQuery(visitor.søknadDTO.ident, transactionalSession)
                 listOf(visitor.søknadDTO).forEach {
@@ -91,7 +125,7 @@ class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
                 // language=PostgreSQL
                 queryOf(
                     """
-                       SELECT 1 from soknad_v1 WHERE person_ident = :ident AND uuid = :uuid
+                       SELECT 1 FROM soknad_v1 WHERE person_ident = :ident AND uuid = :uuid
                     """.trimIndent(),
                     mapOf(
                         "uuid" to søknadId.toString(),
@@ -122,6 +156,7 @@ class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
             ).asUpdate
         )
     }
+
     private fun lagrePerson(transactionalSession: TransactionalSession, ident: String) =
         transactionalSession.run(
             queryOf(
@@ -166,7 +201,6 @@ internal fun Session.hentAktivitetslogg(søknadId: UUID): PersonDTO.Aktivitetslo
 }
 
 internal class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
-
     lateinit var søknadDTO: PersonDTO.SøknadDTO
     lateinit var aktivitetslogg: Aktivitetslogg
 
@@ -328,7 +362,7 @@ internal fun Set<PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO>.insertKravData(
                     "filnavn" to fil.filnavn,
                     "storrelse" to fil.storrelse,
                     "urn" to fil.urn.toString(),
-                    "tidspunkt" to fil.tidspunkt,
+                    "tidspunkt" to fil.tidspunkt
                 )
             }
         }
@@ -362,8 +396,7 @@ internal fun Session.hentDokumentKrav(søknadsId: UUID): Set<PersonDTO.SøknadDT
                 sannsynliggjøring = PersonDTO.SøknadDTO.DokumentkravDTO.SannsynliggjøringDTO(
                     id = faktumId,
                     faktum = objectMapper.readTree(row.binaryStream("faktum")),
-                    sannsynliggjør = objectMapper.readTree(row.binaryStream("sannsynliggjoer")).toSet(),
-
+                    sannsynliggjør = objectMapper.readTree(row.binaryStream("sannsynliggjoer")).toSet()
                 ),
                 svar = PersonDTO.SøknadDTO.DokumentkravDTO.SvarDTO(
                     begrunnelse = row.stringOrNull("begrunnelse"),
@@ -392,7 +425,11 @@ internal fun Session.hentDokumentData(søknadId: UUID): List<PersonDTO.SøknadDT
         }.asList
     )
 }
-private fun Session.hentFiler(søknadsId: UUID, faktumId: String): Set<PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO.FilDTO> {
+
+private fun Session.hentFiler(
+    søknadsId: UUID,
+    faktumId: String
+): Set<PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO.FilDTO> {
     return this.run(
         queryOf(
             statement = """

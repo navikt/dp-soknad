@@ -49,56 +49,56 @@ internal class SøknadMediator(
     private val behovMediator = BehovMediator(rapidsConnection, sikkerLogger)
 
     fun behandle(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
-        behandle(ønskeOmNySøknadHendelse) { person ->
-            person.håndter(ønskeOmNySøknadHendelse)
+        behandle(ønskeOmNySøknadHendelse) { søknad ->
+            søknad.håndter(ønskeOmNySøknadHendelse)
         }
     }
 
     private fun behandle(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse) {
-        behandle(ønskeOmNyInnsendingHendelse) { person ->
-            person.håndter(ønskeOmNyInnsendingHendelse)
+        behandle(ønskeOmNyInnsendingHendelse) { søknad ->
+            søknad.håndter(ønskeOmNyInnsendingHendelse)
         }
     }
 
     fun behandle(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse) {
-        behandle(harPåbegyntSøknadHendelse) { person ->
-            person.håndter(harPåbegyntSøknadHendelse)
+        behandle(harPåbegyntSøknadHendelse) { søknad ->
+            søknad.håndter(harPåbegyntSøknadHendelse)
         }
     }
 
     fun behandle(søknadOpprettetHendelse: SøknadOpprettetHendelse) {
-        behandle(søknadOpprettetHendelse) { person ->
-            person.håndter(søknadOpprettetHendelse)
+        behandle(søknadOpprettetHendelse) { søknad ->
+            søknad.håndter(søknadOpprettetHendelse)
         }
     }
 
     fun behandle(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
-        behandle(søknadInnsendtHendelse) { person ->
-            person.håndter(søknadInnsendtHendelse)
+        behandle(søknadInnsendtHendelse) { søknad ->
+            søknad.håndter(søknadInnsendtHendelse)
         }
     }
 
     fun behandle(arkiverbarSøknadMottattHendelse: ArkiverbarSøknadMottattHendelse) {
-        behandle(arkiverbarSøknadMottattHendelse) { person ->
-            person.håndter(arkiverbarSøknadMottattHendelse)
+        behandle(arkiverbarSøknadMottattHendelse) { søknad ->
+            søknad.håndter(arkiverbarSøknadMottattHendelse)
         }
     }
 
     fun behandle(søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse) {
-        behandle(søknadMidlertidigJournalførtHendelse) { person ->
-            person.håndter(søknadMidlertidigJournalførtHendelse)
+        behandle(søknadMidlertidigJournalførtHendelse) { søknad ->
+            søknad.håndter(søknadMidlertidigJournalførtHendelse)
         }
     }
 
     fun behandle(journalførtHendelse: JournalførtHendelse) {
-        behandle(journalførtHendelse) { person ->
-            person.håndter(journalførtHendelse)
+        behandle(journalførtHendelse) { søknad ->
+            søknad.håndter(journalførtHendelse)
         }
     }
 
     fun behandle(slettSøknadHendelse: SlettSøknadHendelse) {
-        behandle(slettSøknadHendelse) { person ->
-            person.håndter(slettSøknadHendelse)
+        behandle(slettSøknadHendelse) { søknad ->
+            søknad.håndter(slettSøknadHendelse)
         }
     }
 
@@ -122,19 +122,19 @@ internal class SøknadMediator(
     }
 
     fun behandle(hendelse: DokumentasjonIkkeTilgjengelig) {
-        behandleSøknad(hendelse) { søknad ->
+        behandle(hendelse) { søknad ->
             søknad.håndter(hendelse)
         }
     }
 
     fun behandle(hendelse: LeggTilFil) {
-        behandleSøknad(hendelse) { søknad ->
+        behandle(hendelse) { søknad ->
             søknad.håndter(hendelse)
         }
     }
 
     fun behandle(hendelse: SlettFil) {
-        behandleSøknad(hendelse) { søknad ->
+        behandle(hendelse) { søknad ->
             søknad.håndter(hendelse)
         }
     }
@@ -161,8 +161,8 @@ internal class SøknadMediator(
         // }
     }
 
-    private fun behandleSøknad(hendelse: SøknadHendelse, håndter: (Søknad) -> Unit) = try {
-        val søknad = hent(hendelse.søknadID(), hendelse.ident())
+    private fun behandle(hendelse: SøknadHendelse, håndter: (Søknad) -> Unit) = try {
+        val søknad = hentEllerOpprettSøknad(hendelse)
         søknadObservers.forEach { søknadObserver ->
             søknad.addObserver(søknadObserver)
         }
@@ -182,7 +182,15 @@ internal class SøknadMediator(
         throw e
     }
 
-    private fun behandle(hendelse: Hendelse, håndter: (Søknadhåndterer) -> Unit) =
+    private fun hentEllerOpprettSøknad(hendelse: SøknadHendelse): Søknad {
+        val søknad = hent(hendelse.søknadID(), hendelse.ident())
+        return when (hendelse) {
+            is ØnskeOmNySøknadHendelse -> søknad ?: Søknad(hendelse.søknadID(), hendelse.språk(), hendelse.ident())
+            else -> søknad ?: hendelse.severe("Søknaden finnes ikke")
+        }
+    }
+
+    /*private fun behandle(hendelse: Hendelse, håndter: (Søknadhåndterer) -> Unit) =
         try {
             val søknadhåndterer = hentEllerOpprettSøknadhåndterer(hendelse)
             søknadObservers.forEach { søknadObserver ->
@@ -201,7 +209,7 @@ internal class SøknadMediator(
             throw err
         } catch (e: Exception) {
             errorHandler(e, e.message ?: "Ukjent feil")
-        }
+        }*/
 
     private fun kontekst(hendelse: Hendelse): Map<String, String> =
         when (hendelse) {
@@ -223,9 +231,6 @@ internal class SøknadMediator(
         sikkerLogger.info("aktivitetslogg inneholder meldinger: ${hendelse.toLogString()}")
         behovMediator.håndter(hendelse)
     }
-
-    private fun hentEllerOpprettSøknadhåndterer(hendelse: Hendelse) =
-        livssyklusRepository.hent(hendelse.ident()) ?: Søknadhåndterer()
 }
 
 enum class Prosesstype {
