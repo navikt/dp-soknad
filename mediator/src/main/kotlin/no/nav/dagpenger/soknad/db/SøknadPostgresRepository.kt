@@ -23,11 +23,11 @@ import org.postgresql.util.PGobject
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID
+import javax.sql.DataSource
 
-class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
+class SøknadPostgresRepository(private val dataSource: DataSource) :
     SøknadRepository {
-    override fun hent(søknadId: UUID, ident: String, komplettAktivitetslogg: Boolean): Søknad {
-        sjekkTilgang(ident, søknadId)
+    override fun hent(søknadId: UUID, ident: String, komplettAktivitetslogg: Boolean): Søknad? {
         return using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf(
@@ -59,7 +59,7 @@ class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
                         it.aktivitetslogg = session.hentAktivitetslogg(søknadId)
                     }
                 }.asSingle
-            )?.rehydrer()!!
+            )?.rehydrer()
         }
     }
 

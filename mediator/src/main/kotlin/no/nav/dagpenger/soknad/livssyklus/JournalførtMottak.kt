@@ -30,6 +30,7 @@ internal class JournalførtMottak(
         val journalpostId = packet["journalpostId"].asText()
         val ident = packet["fødselsnummer"].asText()
         val journalførtHendelse = JournalførtHendelse(journalpostId, ident)
+        val søknadsId = packet[""].asUUID()
         logger.info { "Fått løsning for innsending_ferdigstilt for $journalpostId" }
         mediator.behandle(journalførtHendelse)
     }

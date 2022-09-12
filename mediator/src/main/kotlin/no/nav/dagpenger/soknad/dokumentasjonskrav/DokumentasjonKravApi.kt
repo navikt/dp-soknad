@@ -6,6 +6,7 @@ import de.slub.urn.URN
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
+import io.ktor.server.plugins.*
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -39,7 +40,8 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
             val søknadUuid = søknadUuid()
             val ident = call.ident()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
-                call.respond(ApiDokumentkravResponse(søknadMediator.hent(søknadUuid, ident)))
+                val søknad = søknadMediator.hent(søknadUuid, ident) ?: throw NotFoundException("Dokumentasjon ikke funnet")
+                call.respond(ApiDokumentkravResponse(søknad))
             }
         }
         put("/{kravId}/fil") {
