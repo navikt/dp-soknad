@@ -6,7 +6,7 @@ import de.slub.urn.URN
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
-import io.ktor.server.plugins.*
+import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -34,13 +34,13 @@ import java.util.UUID
 private val logger = KotlinLogging.logger { }
 
 internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
-
     route("/{søknad_uuid}/dokumentasjonskrav") {
         get {
             val søknadUuid = søknadUuid()
             val ident = call.ident()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
-                val søknad = søknadMediator.hent(søknadUuid, ident) ?: throw NotFoundException("Dokumentasjon ikke funnet")
+                val søknad =
+                    søknadMediator.hent(søknadUuid, ident) ?: throw NotFoundException("Dokumentasjon ikke funnet")
                 call.respond(ApiDokumentkravResponse(søknad))
             }
         }
@@ -108,7 +108,7 @@ internal data class ApiFil(
         filnavn = this.filnavn,
         urn = this._urn,
         storrelse = this.storrelse,
-        tidspunkt = this.tidspunkt,
+        tidspunkt = this.tidspunkt
     )
 }
 
@@ -148,7 +148,7 @@ private class ApiDokumentkravResponse(
                 id = it.id,
                 beskrivendeId = it.beskrivendeId,
                 fakta = it.fakta.fold(objectMapper.createArrayNode()) { acc, faktum -> acc.add(faktum.json) },
-                filer = emptyList(),
+                filer = emptyList()
             )
         }
     }

@@ -12,11 +12,10 @@ import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.Søknadhåndterer
-import no.nav.dagpenger.soknad.SøknadhåndtererVisitor
 import no.nav.dagpenger.soknad.TestSøkerOppgave
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
-import no.nav.dagpenger.soknad.livssyklus.LivssyklusPostgresRepository
+import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
+import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadCachePostgresRepository
 import no.nav.dagpenger.soknad.observers.SøknadSlettetObserver
 import no.nav.dagpenger.soknad.sletterutine.VaktmesterPostgresRepository.Companion.låseNøkkel
@@ -40,10 +39,13 @@ internal class VaktmesterRepositoryTest {
     private val syvDager = 7
 
     @Test
-    fun `Ssøknadsdata for påbegynte søknader uendret de siste 7 dagene`() = withMigratedDb {
-        val livssyklusRepository = LivssyklusPostgresRepository(dataSource)
+    fun `Søknadsdata for påbegynte søknader uendret de siste 7 dagene`() = withMigratedDb {
+        val søknadRepository = SøknadPostgresRepository(dataSource)
         val søknadCacheRepository = SøknadCachePostgresRepository(dataSource)
-        val søknadMediator = søknadMediator(søknadCacheRepository, livssyklusRepository)
+        val søknadMediator = søknadMediator(
+            søknadCacheRepository = søknadCacheRepository,
+            søknadRepository = søknadRepository
+        )
         val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
 
         using(sessionOf(dataSource)) { session ->
@@ -56,19 +58,23 @@ internal class VaktmesterRepositoryTest {
 
     @Test
     fun `Sletter all søknadsdata for påbegynte søknader uendret de siste 7 dagene`() = withMigratedDb {
-        val livssyklusRepository = LivssyklusPostgresRepository(dataSource)
+        val søknadRepository = SøknadPostgresRepository(dataSource)
         val søknadCacheRepository = SøknadCachePostgresRepository(dataSource)
-        val søknadMediator = søknadMediator(søknadCacheRepository, livssyklusRepository)
+        val søknadMediator = søknadMediator(
+            søknadCacheRepository = søknadCacheRepository,
+            søknadRepository = søknadRepository
+        )
         val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
-        val søknadhåndterer = Søknadhåndterer {
+        val søknadhåndterer =
             mutableListOf(
-                gammelPåbegyntSøknad(gammelPåbegyntSøknadUuid, it, testPersonIdent),
-                nyPåbegyntSøknad(nyPåbegyntSøknadUuid, it, testPersonIdent),
-                innsendtSøknad(innsendtSøknadUuid, it, testPersonIdent)
+                gammelPåbegyntSøknad(gammelPåbegyntSøknadUuid, testPersonIdent),
+                nyPåbegyntSøknad(nyPåbegyntSøknadUuid, testPersonIdent),
+                innsendtSøknad(innsendtSøknadUuid, testPersonIdent)
             )
-        }
 
-        livssyklusRepository.lagre(søknadhåndterer, testPersonIdent)
+        søknadhåndterer.forEach {
+            søknadRepository.lagre(it)
+        }
         settSistEndretAvBruker(antallDagerSiden = 8, gammelPåbegyntSøknadUuid)
         settSistEndretAvBruker(antallDagerSiden = 2, nyPåbegyntSøknadUuid)
         settSistEndretAvBruker(antallDagerSiden = 30, innsendtSøknadUuid)
@@ -78,7 +84,7 @@ internal class VaktmesterRepositoryTest {
 
         vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
         assertAntallSøknadSlettetEvent(1)
-        assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, livssyklusRepository, testPersonIdent)
+        assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, søknadRepository, testPersonIdent)
         assertCacheSlettet(gammelPåbegyntSøknadUuid, søknadCacheRepository)
         vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
         vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
@@ -98,14 +104,14 @@ internal class VaktmesterRepositoryTest {
 
     private fun søknadMediator(
         søknadCacheRepository: SøknadCachePostgresRepository,
-        livssyklusRepository: LivssyklusPostgresRepository
+        søknadRepository: SøknadRepository
     ) = SøknadMediator(
         rapidsConnection = testRapid,
         søknadCacheRepository = søknadCacheRepository,
-        livssyklusRepository = livssyklusRepository,
+        livssyklusRepository = mockk(),
         søknadMalRepository = mockk(),
         ferdigstiltSøknadRepository = mockk(),
-        søknadRepository = mockk(),
+        søknadRepository = søknadRepository,
         søknadObservers = listOf(SøknadSlettetObserver(testRapid))
     )
 
@@ -113,11 +119,11 @@ internal class VaktmesterRepositoryTest {
 
     private fun assertAtViIkkeSletterForMye(
         antallGjenværendeSøknader: Int,
-        livssyklusRepository: LivssyklusPostgresRepository,
+        søknadRepository: SøknadRepository,
         ident: String
     ) {
-        livssyklusRepository.hent(ident).also { oppdatertPerson ->
-            assertEquals(antallGjenværendeSøknader, TestSøknadhåndtererVisitor(oppdatertPerson).søknader.size)
+        søknadRepository.hentSøknader(ident).also { søknader ->
+            assertEquals(antallGjenværendeSøknader, søknader.size)
         }
     }
 
@@ -125,7 +131,7 @@ internal class VaktmesterRepositoryTest {
         assertThrows<NotFoundException> { søknadCacheRepository.hent(søknadUuid) }
     }
 
-    private fun innsendtSøknad(journalførtSøknadId: UUID, søknadhåndterer: Søknadhåndterer, ident: String) =
+    private fun innsendtSøknad(journalførtSøknadId: UUID, ident: String) =
         Søknad.rehydrer(
             søknadId = journalførtSøknadId,
             ident = ident,
@@ -137,10 +143,9 @@ internal class VaktmesterRepositoryTest {
             sistEndretAvBruker = null,
             tilstandsType = Journalført,
             aktivitetslogg = Aktivitetslogg()
-
         )
 
-    private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, søknadhåndterer: Søknadhåndterer, ident: String) =
+    private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, ident: String) =
         Søknad.rehydrer(
             søknadId = gammelPåbegyntSøknadId,
             ident = ident,
@@ -152,10 +157,9 @@ internal class VaktmesterRepositoryTest {
             sistEndretAvBruker = null,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg()
-
         )
 
-    private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, søknadhåndterer: Søknadhåndterer, ident: String) =
+    private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, ident: String) =
         Søknad.rehydrer(
             søknadId = nyPåbegyntSøknadId,
             ident = ident,
@@ -167,17 +171,5 @@ internal class VaktmesterRepositoryTest {
             sistEndretAvBruker = null,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg()
-
         )
-}
-
-private class TestSøknadhåndtererVisitor(søknadhåndterer: Søknadhåndterer?) : SøknadhåndtererVisitor {
-    init {
-        søknadhåndterer?.accept(this)
-    }
-
-    lateinit var søknader: List<Søknad>
-    override fun visitSøknader(søknader: List<Søknad>) {
-        this.søknader = søknader
-    }
 }

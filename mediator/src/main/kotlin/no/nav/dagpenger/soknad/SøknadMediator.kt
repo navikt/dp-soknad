@@ -91,9 +91,9 @@ internal class SøknadMediator(
     }
 
     fun behandle(journalførtHendelse: JournalførtHendelse) {
-        /*behandle(journalførtHendelse) { søknad ->
+        behandle(journalførtHendelse) { søknad ->
             søknad.håndter(journalførtHendelse)
-        }*/
+        }
     }
 
     fun behandle(slettSøknadHendelse: SlettSøknadHendelse) {
@@ -184,7 +184,7 @@ internal class SøknadMediator(
 
     private fun hentEllerOpprettSøknad(hendelse: SøknadHendelse): Søknad {
         val søknad = hent(hendelse.søknadID(), hendelse.ident())
-        return when (hendelse){
+        return when (hendelse) {
             is ØnskeOmNySøknadHendelse -> søknad ?: Søknad(hendelse.søknadID(), hendelse.språk(), hendelse.ident())
             else -> søknad ?: hendelse.severe("Søknaden finnes ikke")
         }

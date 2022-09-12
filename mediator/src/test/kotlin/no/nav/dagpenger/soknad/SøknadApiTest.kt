@@ -38,8 +38,18 @@ internal class SøknadApiTest {
         val egenvalgtSpråk = slot<String>()
         val defaultSpråk = slot<String>()
         val søknadMediatorMock = mockk<SøknadMediator>().also {
-            every { it.hentEllerOpprettSøknadsprosess(defaultDummyFodselsnummer, capture(egenvalgtSpråk)) } returns NySøknadsProsess()
-            every { it.hentEllerOpprettSøknadsprosess("12345678910", capture(defaultSpråk)) } returns PåbegyntSøknadsProsess(
+            every {
+                it.hentEllerOpprettSøknadsprosess(
+                    defaultDummyFodselsnummer,
+                    capture(egenvalgtSpråk)
+                )
+            } returns NySøknadsProsess()
+            every {
+                it.hentEllerOpprettSøknadsprosess(
+                    "12345678910",
+                    capture(defaultSpråk)
+                )
+            } returns PåbegyntSøknadsProsess(
                 UUID.randomUUID()
             )
         }
@@ -51,7 +61,7 @@ internal class SøknadApiTest {
         ) {
             autentisert(
                 "${Configuration.basePath}/soknad?spraak=NY",
-                httpMethod = HttpMethod.Post,
+                httpMethod = HttpMethod.Post
             ).apply {
                 assertEquals(HttpStatusCode.Created, this.status)
                 assertNotNull(this.headers[HttpHeaders.Location])
@@ -137,7 +147,7 @@ internal class SøknadApiTest {
             )
         ) {
             autentisert(
-                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/neste",
+                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/neste"
             ).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
                 assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])
@@ -162,7 +172,7 @@ internal class SøknadApiTest {
             )
         ) {
             autentisert(
-                "${Configuration.basePath}/soknad/$id/neste",
+                "${Configuration.basePath}/soknad/$id/neste"
             ).apply {
                 assertEquals(HttpStatusCode.Forbidden, this.status)
                 assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])
@@ -172,7 +182,6 @@ internal class SøknadApiTest {
 
     @Test
     fun `404 på ting som ikke finnes`() {
-
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi()
         ) {
@@ -231,7 +240,7 @@ internal class SøknadApiTest {
         ) {
             autentisert(
                 "${Configuration.basePath}/soknad/$søknadUuid",
-                httpMethod = HttpMethod.Delete,
+                httpMethod = HttpMethod.Delete
             ).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
             }
@@ -266,7 +275,6 @@ internal class SøknadApiTest {
         val mockSøknadMediator = mockk<SøknadMediator>().also {
             justRun { it.behandle(capture(faktumSvar)) }
         }
-
         val jsonSvar = """{"type": "$type", "svar": $svar}"""
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -281,7 +289,6 @@ internal class SøknadApiTest {
                 assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])
             }
         }
-
         val svarSomJson = objectMapper.readTree(faktumSvar.captured.toJson())
         val fakta = svarSomJson["fakta"]
         val førsteFaktasvar = fakta[0]
@@ -332,7 +339,6 @@ internal class SøknadApiTest {
 
     @Test
     fun `Skal kunne hente søknadmal`() {
-
         val meditatorMock = mockk<SøknadMediator>().also {
             every { it.hentNyesteMal("Dagpenger") } returns
                 SøknadMal(
