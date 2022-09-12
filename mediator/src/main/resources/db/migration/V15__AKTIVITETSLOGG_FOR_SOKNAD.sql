@@ -6,6 +6,6 @@
 CREATE TABLE IF NOT EXISTS aktivitetslogg_v3
 (
     id BIGSERIAL PRIMARY KEY,
-    soknad_uuid VARCHAR(36) REFERENCES soknad_v1(uuid),
+    soknad_uuid VARCHAR(36) REFERENCES soknad_v1(uuid) ON DELETE CASCADE,
     data jsonb NOT NULL
 );

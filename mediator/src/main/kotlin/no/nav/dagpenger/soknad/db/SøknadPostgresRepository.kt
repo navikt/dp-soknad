@@ -74,13 +74,12 @@ class SøknadPostgresRepository(private val dataSource: HikariDataSource) :
                 val personId =
                     hentInternPersonId(transactionalSession, visitor.søknadDTO.ident) ?: lagrePerson(transactionalSession, visitor.søknadDTO.ident)
 
-                lagreAktivitetslogg(transactionalSession, visitor.søknadDTO.søknadsId, visitor.aktivitetslogg)
-
                 // @todo: soknad_v1 må bruke intern person id fra person_v1 for normalisering! Ikke ident direkte
                 listOf(visitor.søknadDTO).insertQuery(visitor.søknadDTO.ident, transactionalSession)
                 listOf(visitor.søknadDTO).forEach {
                     it.insertDokumentQuery(transactionalSession)
                 }
+                lagreAktivitetslogg(transactionalSession, visitor.søknadDTO.søknadsId, visitor.aktivitetslogg)
                 listOf(visitor.søknadDTO).insertDokumentkrav(transactionalSession)
             }
         }

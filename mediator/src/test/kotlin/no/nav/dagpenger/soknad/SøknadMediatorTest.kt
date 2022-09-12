@@ -142,7 +142,7 @@ internal class SøknadMediatorTest {
         assertEquals(Journalført, oppdatertInspektør().gjeldendetilstand)
 
         // Verifiserer at aktivitetsloggen blir lagret per behandling
-        assertAntallRader("aktivitetslogg_v2", 9)
+        assertAntallRader("aktivitetslogg_v3", 9)
 
         // Verifiser at det er mulig å hente en komplett aktivitetslogg
         livssyklusRepository.hent(testIdent, true)?.let {

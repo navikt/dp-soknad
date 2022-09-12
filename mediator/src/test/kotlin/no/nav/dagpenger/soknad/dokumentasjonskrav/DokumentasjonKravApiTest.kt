@@ -11,13 +11,13 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.serialization.Configuration
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import no.nav.dagpenger.soknad.Aktivitetslogg
+import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.Krav

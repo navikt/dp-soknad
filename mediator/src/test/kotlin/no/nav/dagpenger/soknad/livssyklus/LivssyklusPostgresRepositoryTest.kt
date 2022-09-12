@@ -127,7 +127,7 @@ internal class LivssyklusPostgresRepositoryTest {
                 assertDeepEquals(originalSøknader.first(), søknaderFraDatabase.first())
                 assertDeepEquals(originalSøknader.last(), søknaderFraDatabase.last())
 
-                assertAntallRader("aktivitetslogg_v2", 1)
+                assertAntallRader("aktivitetslogg_v3", 2)
                 assertAntallRader("dokumentkrav_v1", 1)
                 assertEquals(originalVisitor.aktivitetslogg.toString(), fraDatabaseVisitor.aktivitetslogg.toString())
             }

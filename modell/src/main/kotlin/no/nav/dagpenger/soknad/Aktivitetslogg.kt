@@ -77,6 +77,7 @@ class Aktivitetslogg private constructor(
 
     override fun kontekst(søknad: Søknad) {
         forelder = søknad.aktivitetslogg
+        forelder?.aktiviteter?.addAll(this.aktiviteter)
         kontekst(søknad as Aktivitetskontekst)
     }
 

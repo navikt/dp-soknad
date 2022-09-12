@@ -5,6 +5,16 @@ import io.mockk.mockk
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import no.nav.dagpenger.soknad.Aktivitetslogg
+import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.Faktum
+import no.nav.dagpenger.soknad.IkkeTilgangExeption
+import no.nav.dagpenger.soknad.Krav
+import no.nav.dagpenger.soknad.Sannsynliggjøring
+import no.nav.dagpenger.soknad.Språk
+import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
@@ -109,7 +119,7 @@ internal class SøknadPostgresRepositoryTest {
 
                 assertAntallRader("soknad_v1", 1)
                 assertAntallRader("dokumentkrav_v1", 1)
-                assertAntallRader("aktivitetslogg_v2", 1)
+                assertAntallRader("aktivitetslogg_v3", 1)
                 assertAntallRader("dokumentkrav_v1", 1)
 
                 val rehydrertSøknad = søknadPostgresRepository.hent(søknadId, ident)

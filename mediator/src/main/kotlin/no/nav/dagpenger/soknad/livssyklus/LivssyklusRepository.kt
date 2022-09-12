@@ -14,6 +14,7 @@ import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.SøknadhåndtererVisitor
 import no.nav.dagpenger.soknad.db.SøknadPersistenceVisitor
+import no.nav.dagpenger.soknad.db.hentAktivitetslogg
 import no.nav.dagpenger.soknad.db.hentDokumentData
 import no.nav.dagpenger.soknad.db.hentDokumentKrav
 import no.nav.dagpenger.soknad.db.insertDokumentQuery
@@ -77,16 +78,13 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                 val internId =
                     hentInternPersonId(transactionalSession, ident) ?: lagrePerson(transactionalSession, ident)!!
 
-                visitor.søknader().forEach {
-                    lagreAktivitetslogg(transactionalSession, it.søknadsId, it.aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg())
-                }
-
                 logger.info { "Lagrer ${visitor.søknader().size} søknader" }
-                visitor.søknader().insertQuery(ident, transactionalSession)
+                visitor.søknader().map { it.first } .insertQuery(ident, transactionalSession)
                 visitor.søknader().forEach {
-                    it.insertDokumentQuery(transactionalSession)
+                    it.first.insertDokumentQuery(transactionalSession)
+                    lagreAktivitetslogg(transactionalSession, it.first.søknadsId, it.second)
                 }
-                visitor.søknader().insertDokumentkrav(transactionalSession)
+                visitor.søknader().map { it.first }.insertDokumentkrav(transactionalSession)
             }
         }
     }
@@ -149,25 +147,6 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
         }
     }
 
-    private fun Session.hentAktivitetslogg(ident: Int): PersonDTO.AktivitetsloggDTO = run(
-        queryOf(
-            //language=PostgreSQL
-            statement = """
-                SELECT a.data AS aktivitetslogg
-                FROM aktivitetslogg_v2 AS a
-                WHERE a.person_id = :ident
-                ORDER BY id ASC
-            """.trimIndent(),
-            paramMap = mapOf(
-                "ident" to ident
-            )
-        ).map { row ->
-            row.binaryStream("aktivitetslogg").aktivitetslogg()
-        }.asList
-    ).fold(PersonDTO.AktivitetsloggDTO(mutableListOf())) { acc, data ->
-        PersonDTO.AktivitetsloggDTO(acc.aktiviteter + data.aktiviteter)
-    }
-
     private fun Session.hentSøknadsData(ident: String, komplettAktivitetslogg: Boolean): List<PersonDTO.SøknadDTO> {
         return this.run(
             queryOf(
@@ -196,7 +175,7 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
                     sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")
                 ).also {
                     if (!komplettAktivitetslogg) return@also
-                    it.aktivitetslogg = this.hentAktivitetslogg(it.søknadsId)
+                    it.aktivitetslogg = this.hentAktivitetslogg(søknadsId)
                 }
             }.asList
         )
@@ -224,25 +203,17 @@ class LivssyklusPostgresRepository(private val dataSource: DataSource) : Livssyk
 
 private class SøknadhåndtererPersistenceVisitor(søknadhåndterer: Søknadhåndterer) : SøknadhåndtererVisitor {
 
-    fun søknader() = søknader.filterNot(slettet())
-    fun slettedeSøknader() = søknader.filter(slettet())
-    private fun slettet(): (PersonDTO.SøknadDTO) -> Boolean =
-        { it.tilstandType == PersonDTO.SøknadDTO.TilstandDTO.Slettet }
+    fun søknader() = søknader
 
-    private val søknader: MutableList<PersonDTO.SøknadDTO> = mutableListOf()
-    lateinit var aktivitetslogg: Aktivitetslogg
+    private val søknader: MutableList<Pair<PersonDTO.SøknadDTO, Aktivitetslogg>> = mutableListOf()
 
     init {
         søknadhåndterer.accept(this)
     }
 
-    override fun preVisitAktivitetslogg(aktivitetslogg: Aktivitetslogg) {
-        this.aktivitetslogg = aktivitetslogg
-    }
-
     override fun visitSøknader(søknader: List<Søknad>) {
         this.søknader.addAll(
-            søknader.map { SøknadPersistenceVisitor(it).søknadDTO }
+            søknader.map { søknader -> SøknadPersistenceVisitor(søknader).let { Pair(it.søknadDTO, it.aktivitetslogg) } }
         )
     }
 }
