@@ -10,7 +10,6 @@ import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.SpesifikkKontekst
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
-import no.nav.dagpenger.soknad.Søknadhåndterer
 import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentDTO.Companion.rehydrer
 import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO.FilDTO.Companion.toFilData
 import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.SannsynliggjøringDTO.Companion.toSannsynliggjøringData
@@ -23,25 +22,6 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
     val ident: String,
     var søknader: List<SøknadDTO> = emptyList(),
 ) {
-    fun createSøknadhåndterer(): Søknadhåndterer {
-        return Søknadhåndterer.rehydrer { søknadhåndterer: Søknadhåndterer ->
-            søknader.map { it: SøknadDTO ->
-                Søknad.rehydrer(
-                    søknadId = it.søknadsId,
-                    ident = ident,
-                    dokument = it.dokumenter.rehydrer(),
-                    journalpostId = it.journalpostId,
-                    innsendtTidspunkt = it.innsendtTidspunkt,
-                    språk = it.språkDTO.rehydrer(),
-                    dokumentkrav = it.dokumentkrav.rehydrer(),
-                    sistEndretAvBruker = it.sistEndretAvBruker,
-                    tilstandsType = it.tilstandType.rehydrer(),
-                    aktivitetslogg = it.aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg()
-                )
-            }.toMutableList()
-        }
-    }
-
     class SøknadDTO(
         val søknadsId: UUID,
         val ident: String,

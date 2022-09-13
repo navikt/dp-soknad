@@ -22,7 +22,6 @@ import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID
@@ -117,23 +116,6 @@ internal class SøknadTest {
             Påbegynt,
             Slettet
         )
-    }
-
-    @Test
-    @Disabled("Midlertidig løsning for en enklere feedbackloop for testing av frontend")
-    fun `en person kan kun ha én opprettet eller påbegynt søknad av gangen`() {
-        val søknadhåndterer = Søknadhåndterer()
-        val søknadID = UUID.randomUUID()
-        søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadID = søknadID, ident = testIdent, språk = språk))
-        assertThrows<AktivitetException> {
-            søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadID = søknadID, ident = testIdent, språk = språk))
-        }
-
-        søknadhåndterer.håndter(SøknadOpprettetHendelse(søknadID = søknadID, ident = testIdent))
-
-        assertThrows<AktivitetException> {
-            søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadID = søknadID, ident = testIdent, språk = språk))
-        }
     }
 
     private fun håndterNySøknadOpprettet() {

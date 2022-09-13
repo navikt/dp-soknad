@@ -1,131 +1,10 @@
 package no.nav.dagpenger.soknad
 
-import no.nav.dagpenger.soknad.Søknad.Companion.finnSøknad
-import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
-import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
-import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
-import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
-import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
-import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
-import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
-import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
-import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
-import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
-import no.nav.dagpenger.soknad.hendelse.ØnskeOmNyInnsendingHendelse
-import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
-
 class Søknadhåndterer constructor(
     søknadsfunksjon: (søknadhåndterer: Søknadhåndterer) -> MutableList<Søknad>
 ) : SøknadObserver {
 
-    companion object {
-        internal fun rehydrer(
-            søknadsfunksjon: (søknadhåndterer: Søknadhåndterer) -> MutableList<Søknad>,
-        ): Søknadhåndterer = Søknadhåndterer(søknadsfunksjon)
-    }
-
-    // Navneforslag: Dialog? --> Må kunne finne ut av type
-    private val søknader: MutableList<Søknad>
-
-    init {
-        this.søknader = søknadsfunksjon(this)
-    }
-
     private val observers = mutableListOf<SøknadObserver>()
-
-    constructor() : this({ mutableListOf() })
-
-    fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
-        // if (søknader.harAlleredeOpprettetSøknad()) {
-        //    ønskeOmNySøknadHendelse.severe("Kan ikke ha flere enn én opprettet søknad.")
-        // }
-
-        søknader.add(
-            Søknad(
-                ønskeOmNySøknadHendelse.søknadID(),
-                ønskeOmNySøknadHendelse.språk(),
-                ønskeOmNySøknadHendelse.ident()
-            ).also {
-                it.addObserver(this)
-                it.håndter(ønskeOmNySøknadHendelse)
-            }
-        )
-    }
-
-    fun håndter(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse) {
-        søknader.add(
-            Søknad(
-                ønskeOmNyInnsendingHendelse.søknadID(),
-                ønskeOmNyInnsendingHendelse.språk(),
-                ønskeOmNyInnsendingHendelse.ident()
-            ).also {
-                it.addObserver(this)
-                it.håndter(ønskeOmNyInnsendingHendelse)
-            }
-        )
-    }
-
-    fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse) {
-        harPåbegyntSøknadHendelse.info("Fortsetter på påbegynt søknad")
-    }
-
-    fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse) {
-        val søknaden = finnSøknad(søknadOpprettetHendelse)
-        søknaden.håndter(søknadOpprettetHendelse)
-    }
-
-    fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse) {
-        finnSøknad(faktumOppdatertHendelse).also { søknaden ->
-            søknaden.håndter(faktumOppdatertHendelse)
-        }
-    }
-
-    fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse) {
-        finnSøknad(søkeroppgaveHendelse).also { søknaden ->
-            søknaden.håndter(søkeroppgaveHendelse)
-        }
-    }
-
-    fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
-        val søknaden = finnSøknad(søknadInnsendtHendelse)
-        søknaden.håndter(søknadInnsendtHendelse)
-    }
-
-    fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse) {
-        finnSøknad(arkiverbarSøknadMotattHendelse).also { søknaden ->
-            søknaden.håndter(arkiverbarSøknadMotattHendelse)
-        }
-    }
-
-    fun håndter(søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse) {
-        finnSøknad(søknadMidlertidigJournalførtHendelse).also { søknaden ->
-            søknaden.håndter(søknadMidlertidigJournalførtHendelse)
-        }
-    }
-
-    fun håndter(journalførtHendelse: JournalførtHendelse) {
-        val søknaden = finnSøknad(journalførtHendelse)
-        when {
-            søknaden != null -> søknaden.håndter(journalførtHendelse)
-            else -> journalførtHendelse.info("Fant ikke søknaden for ${journalførtHendelse.journalpostId()}")
-        }
-    }
-
-    fun håndter(slettSøknadHendelse: SlettSøknadHendelse) {
-        finnSøknad(slettSøknadHendelse).also { søknaden ->
-            søknaden.håndter(slettSøknadHendelse)
-        }
-    }
-
-    fun accept(visitor: SøknadhåndtererVisitor) {
-        visitor.visitSøknader(søknader)
-        søknader.forEach { it.accept(visitor) }
-    }
-
-    fun addObserver(søknadObserver: SøknadObserver) {
-        observers.add(søknadObserver)
-        søknader.forEach { it.addObserver(søknadObserver) }
-    }
 
     override fun søknadTilstandEndret(event: SøknadObserver.SøknadEndretTilstandEvent) {
         observers.forEach {
@@ -137,12 +16,5 @@ class Søknadhåndterer constructor(
         observers.forEach {
             it.søknadSlettet(event)
         }
-    }
-
-    private fun finnSøknad(søknadHendelse: SøknadHendelse) =
-        søknader.finnSøknad(søknadHendelse.søknadID()) ?: søknadHendelse.severe("Fant ikke søknaden")
-
-    private fun finnSøknad(journalførtHendelse: JournalførtHendelse): Søknad? {
-        return søknader.finnSøknad(journalførtHendelse.journalpostId())
     }
 }
