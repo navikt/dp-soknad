@@ -31,19 +31,17 @@ private const val testIdent = "12345678912"
 private const val testJournalpostId = "J123"
 
 internal class SøknadTest {
-    private lateinit var søknadhåndterer: Søknadhåndterer
+    private lateinit var søknad: Søknad
     private lateinit var testSøknadObserver: TestSøknadObserver
     private lateinit var plantUmlObservatør: PlantUmlObservatør
-    private val inspektør get() = TestSøknadhåndtererInspektør(søknadhåndterer)
+    private val inspektør get() = TestSøknadInspektør(søknad)
     private val språk = "NO"
 
     @BeforeEach
     internal fun setUp() {
-        søknadhåndterer = Søknadhåndterer()
-        testSøknadObserver = TestSøknadObserver().also { søknadhåndterer.addObserver(it) }
-        plantUmlObservatør = PlantUmlObservatør().also {
-            søknadhåndterer.addObserver(it)
-        }
+        søknad = Søknad(UUID.randomUUID(), Språk(språk), testIdent)
+        testSøknadObserver = TestSøknadObserver().also { søknad.addObserver(it) }
+        plantUmlObservatør = PlantUmlObservatør().also { søknad.addObserver(it) }
     }
 
     @Test
@@ -139,15 +137,15 @@ internal class SøknadTest {
     }
 
     private fun håndterNySøknadOpprettet() {
-        søknadhåndterer.håndter(SøknadOpprettetHendelse(inspektør.søknadId, testIdent))
+        søknad.håndter(SøknadOpprettetHendelse(inspektør.søknadId, testIdent))
     }
 
     private fun håndterSlettet() {
-        søknadhåndterer.håndter(SlettSøknadHendelse(inspektør.søknadId, testIdent))
+        søknad.håndter(SlettSøknadHendelse(inspektør.søknadId, testIdent))
     }
 
     private fun håndterArkiverbarSøknad() {
-        søknadhåndterer.håndter(
+        søknad.håndter(
             ArkiverbarSøknadMottattHendelse(
                 inspektør.søknadId,
                 testIdent,
@@ -157,19 +155,19 @@ internal class SøknadTest {
     }
 
     private fun håndterMidlertidigJournalførtSøknad() {
-        søknadhåndterer.håndter(SøknadMidlertidigJournalførtHendelse(inspektør.søknadId, testIdent, testJournalpostId))
+        søknad.håndter(SøknadMidlertidigJournalførtHendelse(inspektør.søknadId, testIdent, testJournalpostId))
     }
 
     private fun håndterJournalførtSøknad() {
-        søknadhåndterer.håndter(JournalførtHendelse(inspektør.søknadId, testJournalpostId, testIdent))
+        søknad.håndter(JournalførtHendelse(inspektør.søknadId, testJournalpostId, testIdent))
     }
 
     private fun håndterFaktumOppdatering() {
-        søknadhåndterer.håndter(FaktumOppdatertHendelse(inspektør.søknadId, testIdent))
+        søknad.håndter(FaktumOppdatertHendelse(inspektør.søknadId, testIdent))
     }
 
     private fun håndterSøkerOppgaveHendelse(sannsynliggjøringer: Set<Sannsynliggjøring> = emptySet()) {
-        søknadhåndterer.håndter(
+        søknad.håndter(
             SøkeroppgaveHendelse(
                 inspektør.søknadId,
                 testIdent,
@@ -180,12 +178,12 @@ internal class SøknadTest {
 
     private fun håndterSendInnSøknad(): SøknadInnsendtHendelse {
         return SøknadInnsendtHendelse(inspektør.søknadId, testIdent).also {
-            søknadhåndterer.håndter(it)
+            søknad.håndter(it)
         }
     }
 
     private fun håndterØnskeOmNySøknadHendelse() {
-        søknadhåndterer.håndter(ØnskeOmNySøknadHendelse(søknadID = UUID.randomUUID(), ident = testIdent, språk = språk))
+        søknad.håndter(ØnskeOmNySøknadHendelse(søknadID = UUID.randomUUID(), ident = testIdent, språk = språk))
     }
 
     private fun assertTilstander(vararg tilstander: Søknad.Tilstand.Type) {
@@ -197,7 +195,7 @@ internal class SøknadTest {
     }
 
     private fun assertBehov(behovtype: Behovtype, forventetDetaljer: Map<String, Any> = emptyMap()) {
-        val behov = inspektør.personLogg.behov().find {
+        val behov = inspektør.aktivitetslogg.behov().find {
             it.type == behovtype
         } ?: throw AssertionError("Fant ikke behov $behovtype")
 
