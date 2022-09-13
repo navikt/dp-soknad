@@ -6,7 +6,7 @@ import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 
-class BehovMediator (
+class BehovMediator(
     private val rapidsConnection: RapidsConnection,
     private val sikkerLogg: KLogger
 ) {
