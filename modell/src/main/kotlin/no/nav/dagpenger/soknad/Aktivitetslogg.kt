@@ -121,9 +121,8 @@ class Aktivitetslogg private constructor(
 
         internal fun kontekst(typer: List<String>): Map<String, String> =
             kontekster
-                .let { if (typer.isEmpty()) it else it.filter { it.kontekstType in typer } }
-                .fold(mutableMapOf()) { result, kontekst -> result.apply { putAll(kontekst.kontekstMap) } }
-
+                .let { kontekst -> if (typer.isEmpty()) kontekst else kontekst.filter { it.kontekstType in typer } }
+                .fold(mapOf()) { result, kontekst -> result + kontekst.kontekstMap }
         override fun compareTo(other: Aktivitet) = this.tidsstempel.compareTo(other.tidsstempel)
             .let { if (it == 0) other.alvorlighetsgrad.compareTo(this.alvorlighetsgrad) else it }
 
