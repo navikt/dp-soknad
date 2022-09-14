@@ -22,8 +22,10 @@ import no.nav.dagpenger.soknad.sletterutine.VaktmesterPostgresRepository.Compani
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.ZonedDateTime
@@ -69,6 +71,7 @@ internal class VaktmesterRepositoryTest {
         søknadRepository.lagre(gammelPåbegyntSøknad(gammelPåbegyntSøknadUuid, testPersonIdent))
         søknadRepository.lagre(nyPåbegyntSøknad(nyPåbegyntSøknadUuid, testPersonIdent))
         søknadRepository.lagre(innsendtSøknad(innsendtSøknadUuid, testPersonIdent))
+        assertTrue(aktivitetsloggFinnes(gammelPåbegyntSøknadUuid))
 
         settSistEndretAvBruker(antallDagerSiden = 8, gammelPåbegyntSøknadUuid)
         settSistEndretAvBruker(antallDagerSiden = 2, nyPåbegyntSøknadUuid)
@@ -81,8 +84,7 @@ internal class VaktmesterRepositoryTest {
         assertAntallSøknadSlettetEvent(1)
         assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, søknadRepository, testPersonIdent)
         assertCacheSlettet(gammelPåbegyntSøknadUuid, søknadCacheRepository)
-        vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
-        vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
+        assertFalse(aktivitetsloggFinnes(gammelPåbegyntSøknadUuid))
     }
 
     private fun settSistEndretAvBruker(antallDagerSiden: Int, uuid: UUID) {
@@ -123,6 +125,21 @@ internal class VaktmesterRepositoryTest {
 
     private fun assertCacheSlettet(søknadUuid: UUID, søknadCacheRepository: SøknadCachePostgresRepository) {
         assertThrows<NotFoundException> { søknadCacheRepository.hent(søknadUuid) }
+    }
+
+    private fun aktivitetsloggFinnes(søknadUuid: UUID): Boolean {
+        val antallRader = using(sessionOf(dataSource)) { session ->
+            session.run(
+                //language=PostgreSQL
+                queryOf(
+                    "SELECT COUNT(*) FROM aktivitetslogg_v3 WHERE soknad_uuid = ?", søknadUuid.toString()
+                ).map { row ->
+                    row.int(1)
+                }.asSingle
+            )
+        }
+
+        return antallRader == 1
     }
 
     private fun innsendtSøknad(journalførtSøknadId: UUID, ident: String) =
