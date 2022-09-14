@@ -65,16 +65,11 @@ internal class VaktmesterRepositoryTest {
             søknadRepository = søknadRepository
         )
         val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
-        val søknadhåndterer =
-            mutableListOf(
-                gammelPåbegyntSøknad(gammelPåbegyntSøknadUuid, testPersonIdent),
-                nyPåbegyntSøknad(nyPåbegyntSøknadUuid, testPersonIdent),
-                innsendtSøknad(innsendtSøknadUuid, testPersonIdent)
-            )
 
-        søknadhåndterer.forEach {
-            søknadRepository.lagre(it)
-        }
+        søknadRepository.lagre(gammelPåbegyntSøknad(gammelPåbegyntSøknadUuid, testPersonIdent))
+        søknadRepository.lagre(nyPåbegyntSøknad(nyPåbegyntSøknadUuid, testPersonIdent))
+        søknadRepository.lagre(innsendtSøknad(innsendtSøknadUuid, testPersonIdent))
+
         settSistEndretAvBruker(antallDagerSiden = 8, gammelPåbegyntSøknadUuid)
         settSistEndretAvBruker(antallDagerSiden = 2, nyPåbegyntSøknadUuid)
         settSistEndretAvBruker(antallDagerSiden = 30, innsendtSøknadUuid)
