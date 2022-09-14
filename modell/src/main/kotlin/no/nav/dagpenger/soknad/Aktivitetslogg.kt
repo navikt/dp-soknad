@@ -17,6 +17,8 @@ class Aktivitetslogg private constructor(
     constructor(forelder: Aktivitetslogg? = null) : this(forelder, mutableListOf())
 
     companion object {
+
+        private val MODELL_KONTEKSTER = listOf("søknad")
         fun rehyder(
             aktiviteter: MutableList<Aktivitet>,
         ) = Aktivitetslogg(null, aktiviteter)
@@ -86,10 +88,11 @@ class Aktivitetslogg private constructor(
         }
     }
 
-    override fun kontekster() =
-        aktiviteter
-            .groupBy { it.kontekst(listOf("søknad")) }
+    override fun kontekster(): List<Aktivitetslogg> {
+        return aktiviteter
+            .groupBy { it.kontekst(MODELL_KONTEKSTER) }
             .map { Aktivitetslogg(this).apply { aktiviteter.addAll(it.value) } }
+    }
 
     private fun info() = Aktivitet.Info.filter(aktiviteter)
     private fun warn() = Aktivitet.Warn.filter(aktiviteter)
