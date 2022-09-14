@@ -149,13 +149,6 @@ internal class SøknadMediator(
                 behandle(ØnskeOmNyInnsendingHendelse(it.getSøknadsId(), ident, språk))
             }
         }
-        // return hentPåbegynte(ident).singleOrNull()?.let {
-        //     PåbegyntSøknadsProsess(it.uuid).also {
-        //         behandle(HarPåbegyntSøknadHendelse(ident, it.getSøknadsId()))
-        //     }
-        // } ?: Søknadsprosess.NySøknadsProsess().also {
-        //     behandle(ØnskeOmNySøknadHendelse(ident, it.getSøknadsId()))
-        // }
     }
 
     private fun behandle(hendelse: SøknadHendelse, håndter: (Søknad) -> Unit) = try {
@@ -186,27 +179,6 @@ internal class SøknadMediator(
             else -> søknad ?: hendelse.severe("Søknaden finnes ikke")
         }
     }
-
-    /*private fun behandle(hendelse: Hendelse, håndter: (Søknadhåndterer) -> Unit) =
-        try {
-            val søknadhåndterer = hentEllerOpprettSøknadhåndterer(hendelse)
-            søknadObservers.forEach { søknadObserver ->
-                søknadhåndterer.addObserver(søknadObserver)
-            }
-            håndter(søknadhåndterer)
-            lagre(søknadhåndterer, hendelse.ident())
-            finalize(hendelse)
-        } catch (err: Aktivitetslogg.AktivitetException) {
-            withMDC(kontekst(hendelse)) {
-                logger.error("alvorlig feil i aktivitetslogg (se sikkerlogg for detaljer)")
-            }
-            withMDC(err.kontekst()) {
-                sikkerLogger.error("alvorlig feil i aktivitetslogg: ${err.message}", err)
-            }
-            throw err
-        } catch (e: Exception) {
-            errorHandler(e, e.message ?: "Ukjent feil")
-        }*/
 
     private fun kontekst(hendelse: Hendelse): Map<String, String> =
         when (hendelse) {

@@ -27,6 +27,7 @@ internal class SøknadSlettetObserverTest {
             assertNotNull(field(0, "@id").also { UUID.fromString(it.asText()) })
             assertNotNull(field(0, "@opprettet").also { LocalDateTime.parse(it.asText()) })
             assertNotNull(field(0, "søknad_uuid").also { UUID.fromString(it.asText()) })
+            assertEquals(personIdent, field(0, "ident").asText())
         }
     }
 }
