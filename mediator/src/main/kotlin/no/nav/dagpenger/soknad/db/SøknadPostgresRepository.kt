@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import de.slub.urn.URN
 import kotliquery.Query
 import kotliquery.Session
-import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
@@ -39,7 +38,7 @@ import javax.sql.DataSource
 
 class SøknadPostgresRepository(private val dataSource: DataSource) :
     SøknadRepository {
-    override fun hent(søknadId: UUID, ident: String, komplettAktivitetslogg: Boolean): Søknad? {
+    override fun hent(søknadId: UUID, ident: String): Søknad? {
         return using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf(
@@ -67,7 +66,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                         ),
                         sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")
                     ).also {
-                        if (!komplettAktivitetslogg) return@also
                         it.aktivitetslogg = session.hentAktivitetslogg(søknadsId)
                     }
                 }.asSingle
@@ -75,7 +73,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         }
     }
 
-    override fun hentSøknader(ident: String, komplettAktivitetslogg: Boolean): Set<Søknad> {
+    override fun hentSøknader(ident: String): Set<Søknad> {
         return using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf(
@@ -104,7 +102,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                         ),
                         sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")
                     ).also {
-                        if (!komplettAktivitetslogg) return@also
                         it.aktivitetslogg = session.hentAktivitetslogg(søknadsId)
                     }
                 }.asList
@@ -150,21 +147,18 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
 internal fun Session.hentAktivitetslogg(søknadId: UUID): PersonDTO.AktivitetsloggDTO? = run(
     queryOf(
         //language=PostgreSQL
-        statement = """
-                SELECT a.data AS aktivitetslogg
-                FROM aktivitetslogg_v3 AS a
-                WHERE a.soknad_uuid = :soknadId
-                ORDER BY id ASC
+        """
+        SELECT a.data AS aktivitetslogg
+        FROM aktivitetslogg_v3 AS a
+        WHERE a.soknad_uuid = :soknadId
         """.trimIndent(),
-        paramMap = mapOf(
+        mapOf(
             "soknadId" to søknadId.toString()
         )
     ).map { row ->
         row.binaryStream("aktivitetslogg").aktivitetslogg()
-    }.asList
-).fold(PersonDTO.AktivitetsloggDTO(mutableListOf())) { acc, data ->
-    PersonDTO.AktivitetsloggDTO(acc.aktiviteter + data.aktiviteter)
-}
+    }.asSingle
+)
 
 private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
     private lateinit var søknadId: UUID
@@ -191,9 +185,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         queries.add(
             queryOf(
                 // language=PostgreSQL
-                """
-                INSERT INTO person_v1 (ident) VALUES (:ident) ON CONFLICT DO NOTHING 
-                """.trimIndent(),
+                "INSERT INTO person_v1 (ident) VALUES (:ident) ON CONFLICT DO NOTHING",
                 mapOf("ident" to ident)
             )
         )
@@ -243,14 +235,16 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         queries.add(
             queryOf(
                 // language=PostgreSQL
-                """INSERT INTO dokumentkrav_v1(faktum_id, beskrivende_id, soknad_uuid, faktum, sannsynliggjoer, tilstand, valg, begrunnelse)
+                """
+                INSERT INTO dokumentkrav_v1(faktum_id, beskrivende_id, soknad_uuid, faktum, sannsynliggjoer, tilstand, valg,
+                                            begrunnelse)
                 VALUES (:faktum_id, :beskrivende_id, :soknad_uuid, :faktum, :sannsynliggjoer, :tilstand, :valg, :begrunnelse)
-                ON CONFLICT (faktum_id, soknad_uuid) DO UPDATE SET beskrivende_id = :beskrivende_id,
-                faktum = :faktum,
-                sannsynliggjoer = :sannsynliggjoer,
-                tilstand = :tilstand,
-                valg = :valg,
-                begrunnelse = :begrunnelse
+                ON CONFLICT (faktum_id, soknad_uuid) DO UPDATE SET beskrivende_id  = :beskrivende_id,
+                                                                   faktum          = :faktum,
+                                                                   sannsynliggjoer = :sannsynliggjoer,
+                                                                   tilstand        = :tilstand,
+                                                                   valg            = :valg,
+                                                                   begrunnelse     = :begrunnelse
                 """.trimIndent(),
                 mapOf<String, Any?>(
                     "faktum_id" to krav.id,
@@ -307,7 +301,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         queries.add(
             queryOf(
                 //language=PostgreSQL
-                statement = "INSERT INTO aktivitetslogg_v3 (soknad_uuid, data) VALUES (:uuid, :data)",
+                statement = "INSERT INTO aktivitetslogg_v3 (soknad_uuid, data) VALUES (:uuid, :data) ON CONFLICT (soknad_uuid) DO UPDATE SET data = :data",
                 paramMap = mapOf(
                     "uuid" to søknadId,
                     "data" to PGobject().apply {
