@@ -8,7 +8,8 @@ class ArkiverbarSøknadMottattHendelse(
     søknadID: UUID,
     ident: String,
     private val journalpost: Søknad.Journalpost,
-    aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+    aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
+    val arkiverbartDokument: List<Søknad.Journalpost.Variant>
 ) : SøknadHendelse(søknadID, ident, aktivitetslogg) {
 
     fun dokument() = journalpost

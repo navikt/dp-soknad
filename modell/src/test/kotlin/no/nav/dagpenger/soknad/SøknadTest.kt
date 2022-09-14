@@ -175,7 +175,8 @@ internal class SøknadTest {
             ArkiverbarSøknadMottattHendelse(
                 inspektør.søknadId,
                 testIdent,
-                "urn:dokument:1".lagTestDokument()
+                "urn:dokument:1".lagTestDokument(),
+                arkiverbartDokument = packet["@løsning"][behov].dokumentVarianter()
             )
         )
     }

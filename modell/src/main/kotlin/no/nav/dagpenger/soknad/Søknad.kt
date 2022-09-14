@@ -1,6 +1,8 @@
 package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
+import no.nav.dagpenger.soknad.Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG
+import no.nav.dagpenger.soknad.Innsending.InnsendingType.NY_DIALOG
 import no.nav.dagpenger.soknad.SøknadObserver.SøknadSlettetEvent
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
@@ -25,17 +27,18 @@ class Søknad private constructor(
     private val søknadId: UUID,
     private val ident: String,
     private var tilstand: Tilstand,
-    // @todo: Endre navn fra journalpost til innsendinger? (og liste)?
+    private var innsending: Innsending?,
+    private val ettersendinger: MutableList<Innsending>,
     private var journalpost: Journalpost?,
     private var journalpostId: String?,
     private var innsendtTidspunkt: ZonedDateTime?,
     private val språk: Språk,
     private val dokumentkrav: Dokumentkrav,
     private var sistEndretAvBruker: ZonedDateTime?,
-    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
+    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 ) : Aktivitetskontekst {
-
     private val observers = mutableListOf<SøknadObserver>()
+
     constructor(søknadId: UUID, språk: Språk, ident: String) : this(
         søknadId = søknadId,
         ident = ident,
@@ -45,7 +48,9 @@ class Søknad private constructor(
         innsendtTidspunkt = null,
         språk = språk,
         dokumentkrav = Dokumentkrav(),
-        sistEndretAvBruker = null
+        sistEndretAvBruker = null,
+        innsending = null,
+        ettersendinger = mutableListOf()
     )
 
     companion object {
@@ -73,6 +78,7 @@ class Søknad private constructor(
             val tilstand: Tilstand = when (tilstandsType) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
                 Tilstand.Type.Påbegynt -> Påbegynt
+                Tilstand.Type.Innsendt -> Innsendt
                 Tilstand.Type.AvventerArkiverbarSøknad -> AvventerArkiverbarSøknad
                 Tilstand.Type.AvventerMidlertidligJournalføring -> AvventerMidlertidligJournalføring
                 Tilstand.Type.AvventerJournalføring -> AvventerJournalføring
@@ -88,7 +94,10 @@ class Søknad private constructor(
                 innsendtTidspunkt = innsendtTidspunkt,
                 språk = språk,
                 dokumentkrav = dokumentkrav,
-                sistEndretAvBruker = sistEndretAvBruker, aktivitetslogg = aktivitetslogg
+                sistEndretAvBruker = sistEndretAvBruker,
+                aktivitetslogg = aktivitetslogg,
+                innsending = null,
+                ettersendinger = mutableListOf()
             )
         }
     }
@@ -193,7 +202,6 @@ class Søknad private constructor(
     }
 
     interface Tilstand : Aktivitetskontekst {
-
         val tilstandType: Type
 
         fun entering(søknadHendelse: Hendelse, søknad: Søknad) {}
@@ -236,6 +244,7 @@ class Søknad private constructor(
         fun håndter(dokumentasjonIkkeTilgjengelig: DokumentasjonIkkeTilgjengelig, søknad: Søknad) {
             dokumentasjonIkkeTilgjengelig.`kan ikke håndteres i denne tilstanden`()
         }
+
         fun håndter(leggTilFil: LeggTilFil, søknad: Søknad) {
             leggTilFil.`kan ikke håndteres i denne tilstanden`()
         }
@@ -264,6 +273,7 @@ class Søknad private constructor(
         enum class Type {
             UnderOpprettelse,
             Påbegynt,
+            Innsendt,
             AvventerArkiverbarSøknad,
             AvventerMidlertidligJournalføring,
             AvventerJournalføring,
@@ -273,7 +283,6 @@ class Søknad private constructor(
     }
 
     private object UnderOpprettelse : Tilstand {
-
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.UnderOpprettelse
 
@@ -291,18 +300,29 @@ class Søknad private constructor(
     }
 
     private object Påbegynt : Tilstand {
-
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.Påbegynt
 
         override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
-            søknad.innsendtTidspunkt = søknadInnsendtHendelse.innsendtidspunkt()
-            if (søknad.dokumentkrav.ingen()) return søknad.endreTilstand(AvventerArkiverbarSøknad, søknadInnsendtHendelse)
-            if (søknad.dokumentkrav.ferdigBesvart()) {
-                søknad.endreTilstand(AvventerArkiverbarSøknad, søknadInnsendtHendelse)
-            } else {
+            if (!søknad.dokumentkrav.ferdigBesvart()) {
                 // @todo: Oversette validringsfeil til frontend. Mulig lage et eller annet som frontend kan tolke
                 søknadInnsendtHendelse.severe("Alle dokumentkrav må være besvart")
+            }
+            søknad.innsendtTidspunkt = søknadInnsendtHendelse.innsendtidspunkt()
+            if (søknad.dokumentkrav.ingen()) return søknad.endreTilstand(
+                AvventerArkiverbarSøknad,
+                søknadInnsendtHendelse
+            )
+
+            søknad.endreTilstand(AvventerArkiverbarSøknad, søknadInnsendtHendelse)
+
+            val innsending = Innsending(
+                NY_DIALOG,
+                søknadInnsendtHendelse.innsendtidspunkt(),
+                dokumentkrav = søknad.dokumentkrav.map {}
+            )
+            søknad.innsending = innsending.also {
+                it.håndter(søknadInnsendtHendelse)
             }
         }
 
@@ -338,8 +358,19 @@ class Søknad private constructor(
         }
     }
 
-    private fun håndter(nyeSannsynliggjøringer: Set<Sannsynliggjøring>) {
-        this.dokumentkrav.håndter(nyeSannsynliggjøringer)
+    private object Innsendt : Tilstand {
+        override val tilstandType: Tilstand.Type
+            get() = Tilstand.Type.Innsendt
+
+        override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
+            søknad.ettersendinger.add(
+                Innsending(
+                    ETTERSENDING_TIL_DIALOG,
+                    søknadInnsendtHendelse.innsendtidspunkt(),
+                    dokumentkrav = søknad.dokumentkrav
+                )
+            )
+        }
     }
 
     private object Slettet : Tilstand {
@@ -351,14 +382,7 @@ class Søknad private constructor(
         }
     }
 
-    private fun slettet(ident: String) {
-        observers.forEach {
-            it.søknadSlettet(SøknadSlettetEvent(søknadId, ident))
-        }
-    }
-
     private object AvventerArkiverbarSøknad : Tilstand {
-
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.AvventerArkiverbarSøknad
 
@@ -366,7 +390,8 @@ class Søknad private constructor(
             val innsendtTidspunkt =
                 requireNotNull(søknad.innsendtTidspunkt) { "Forventer at innsendttidspunkt er satt i tilstand $tilstandType" }
             søknadHendelse.behov(
-                Behovtype.ArkiverbarSøknad, "Trenger søknad på et arkiverbart format",
+                Behovtype.ArkiverbarSøknad,
+                "Trenger søknad på et arkiverbart format",
                 mapOf(
                     "innsendtTidspunkt" to innsendtTidspunkt.toString()
                 )
@@ -381,7 +406,6 @@ class Søknad private constructor(
     }
 
     private object AvventerMidlertidligJournalføring : Tilstand {
-
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.AvventerMidlertidligJournalføring
 
@@ -413,6 +437,16 @@ class Søknad private constructor(
             get() = Tilstand.Type.Journalført
     }
 
+    private fun håndter(nyeSannsynliggjøringer: Set<Sannsynliggjøring>) {
+        this.dokumentkrav.håndter(nyeSannsynliggjøringer)
+    }
+
+    private fun slettet(ident: String) {
+        observers.forEach {
+            it.søknadSlettet(SøknadSlettetEvent(søknadId, ident))
+        }
+    }
+
     fun accept(visitor: SøknadVisitor) {
         visitor.visitSøknad(
             søknadId = søknadId,
@@ -440,7 +474,7 @@ class Søknad private constructor(
 
     data class Journalpost(
         val brevkode: String = "NAV 04-01.04",
-        val varianter: List<Variant>,
+        val varianter: List<Variant>
     ) {
         data class Variant(
             val urn: String,
