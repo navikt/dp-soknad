@@ -21,7 +21,12 @@ import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.soknad.serder.PersonDTO
-import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO.Companion.toKravdata
+import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentDTO
+import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO
+import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO.KravTilstandDTO
+import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.SannsynliggjøringDTO
+import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.SvarDTO
+import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.SvarDTO.SvarValgDTO
 import no.nav.dagpenger.soknad.toMap
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import no.nav.helse.rapids_rivers.asLocalDateTime
@@ -111,18 +116,9 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         val visitor = SøknadPersistenceVisitor(søknad)
         using(sessionOf(dataSource)) { session ->
             session.transaction { transactionalSession ->
-                val personId =
-                    hentInternPersonId(transactionalSession, visitor.søknadDTO.ident) ?: lagrePerson(
-                        transactionalSession,
-                        visitor.søknadDTO.ident
-                    )
-                // @todo: soknad_v1 må bruke intern person id fra person_v1 for normalisering! Ikke ident direkte
-                listOf(visitor.søknadDTO).insertQuery(visitor.søknadDTO.ident, transactionalSession)
-                listOf(visitor.søknadDTO).forEach {
-                    it.insertDokumentQuery(transactionalSession)
+                visitor.queries().forEach {
+                    transactionalSession.run(it.asUpdate)
                 }
-                lagreAktivitetslogg(transactionalSession, visitor.søknadDTO.søknadsId, visitor.aktivitetslogg)
-                listOf(visitor.søknadDTO).insertDokumentkrav(transactionalSession)
             }
         }
     }
@@ -130,46 +126,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
     override fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad? {
         TODO("Not yet implemented")
     }
-
-    private fun lagreAktivitetslogg(
-        transactionalSession: TransactionalSession,
-        søknadId: UUID,
-        aktivitetslogg: Aktivitetslogg
-    ) {
-        transactionalSession.run(
-            queryOf(
-                //language=PostgreSQL
-                statement = "INSERT INTO aktivitetslogg_v3 (soknad_uuid, data) VALUES (:uuid, :data)",
-                paramMap = mapOf(
-                    "uuid" to søknadId.toString(),
-                    "data" to PGobject().apply {
-                        type = "jsonb"
-                        value = objectMapper.writeValueAsString(aktivitetslogg.toMap())
-                    }
-                )
-            ).asUpdate
-        )
-    }
-
-    private fun lagrePerson(transactionalSession: TransactionalSession, ident: String) =
-        transactionalSession.run(
-            queryOf(
-                //language=PostgreSQL
-                "INSERT INTO person_v1(ident) VALUES(:ident) ON CONFLICT DO NOTHING RETURNING id",
-                paramMap = mapOf("ident" to ident)
-            ).map { row ->
-                row.long("id")
-            }.asSingle
-        ) ?: throw RuntimeException("Kunne ikke lagre ny person i DB")
-
-    private fun hentInternPersonId(transactionalSession: TransactionalSession, ident: String) =
-        transactionalSession.run(
-            queryOf(
-                //language=PostgreSQL
-                "SELECT id FROM person_v1 WHERE ident=:ident",
-                mapOf("ident" to ident)
-            ).map { row -> row.longOrNull("id") }.asSingle
-        )
 
     internal class PersistentSøkerOppgave(private val søknad: JsonNode) : SøkerOppgave {
         override fun søknadUUID(): UUID = UUID.fromString(søknad[SøkerOppgave.Keys.SØKNAD_UUID].asText())
@@ -210,44 +166,81 @@ internal fun Session.hentAktivitetslogg(søknadId: UUID): PersonDTO.Aktivitetslo
     PersonDTO.AktivitetsloggDTO(acc.aktiviteter + data.aktiviteter)
 }
 
-private class VisitSøknad(søknad: Søknad) : SøknadVisitor {
+private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
+    private lateinit var søknadId: UUID
+    private val queries = mutableListOf<Query>()
+
     init {
         søknad.accept(this)
     }
 
-    private lateinit var søknadId: UUID
-    private val query = mutableListOf<Query>()
+    fun queries() = queries
 
-    override fun visitSøknad(søknadId: UUID, ident: String, tilstand: Søknad.Tilstand, journalpost: Søknad.Journalpost?, journalpostId: String?, innsendtTidspunkt: ZonedDateTime?, språk: Språk, dokumentkrav: Dokumentkrav, sistEndretAvBruker: ZonedDateTime?) {
+    override fun visitSøknad(
+        søknadId: UUID,
+        ident: String,
+        tilstand: Søknad.Tilstand,
+        journalpost: Søknad.Journalpost?,
+        journalpostId: String?,
+        innsendtTidspunkt: ZonedDateTime?,
+        språk: Språk,
+        dokumentkrav: Dokumentkrav,
+        sistEndretAvBruker: ZonedDateTime?
+    ) {
         this.søknadId = søknadId
-        query.add(
+        queries.add(
             queryOf(
                 // language=PostgreSQL
                 """
-                    INSERT INTO soknad_v1(uuid, person_ident, tilstand, journalpost_id, spraak)
-                    VALUES (:uuid, :person_ident, :tilstand, :journalpostID, :spraak)
-                    ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
-                                            journalpost_id=:journalpostID,
-                                            innsendt_tidspunkt = :innsendtTidspunkt,
-                                            sist_endret_av_bruker = :sistEndretAvBruker
+                INSERT INTO person_v1 (ident) VALUES (:ident) ON CONFLICT DO NOTHING 
                 """.trimIndent(),
-                mapOf<String, Any?>(
+                mapOf("ident" to ident)
+            )
+        )
+        queries.add(
+            queryOf(
+                // language=PostgreSQL
+                """
+                INSERT INTO soknad_v1(uuid, person_ident, tilstand, journalpost_id, spraak)
+                VALUES (:uuid, :person_ident, :tilstand, :journalpostID, :spraak)
+                ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
+                                                journalpost_id=:journalpostID,
+                                                innsendt_tidspunkt = :innsendtTidspunkt,
+                                                sist_endret_av_bruker = :sistEndretAvBruker
+                """.trimIndent(),
+                mapOf(
                     "uuid" to søknadId,
                     "person_ident" to ident,
-                    "tilstand" to tilstand,
+                    "tilstand" to tilstand.tilstandType.name,
                     "journalpostID" to journalpostId,
                     "innsendtTidspunkt" to innsendtTidspunkt,
-                    "spraak" to språk.verdi,
+                    "spraak" to språk.verdi.toLanguageTag(),
                     "sistEndretAvBruker" to sistEndretAvBruker
                 )
             )
         )
-
         // todo: fiks journalpost og innsending
+        journalpost?.let { journalpost ->
+            journalpost.varianter.map { variant ->
+                queryOf(
+                    //language=PostgreSQL
+                    """
+                    INSERT INTO dokument_v1(soknad_uuid, dokument_lokasjon)
+                        VALUES(:uuid, :urn) ON CONFLICT (dokument_lokasjon) DO NOTHING 
+                    """.trimIndent(),
+                    mapOf(
+                        "uuid" to søknadId.toString(),
+                        "urn" to variant.urn
+                    )
+                )
+            }.also {
+                queries.addAll(it)
+            }
+        }
     }
 
     override fun visitKrav(krav: Krav) {
-        query.add(
+        queries.add(
             queryOf(
                 // language=PostgreSQL
                 """INSERT INTO dokumentkrav_v1(faktum_id, beskrivende_id, soknad_uuid, faktum, sannsynliggjoer, tilstand, valg, begrunnelse)
@@ -277,10 +270,41 @@ private class VisitSøknad(søknad: Søknad) : SøknadVisitor {
                 )
             )
         )
+        // fjerne alle filer for søknaden. Modellen har fasit på hvor mange som legges til i neste block
+        queries.add(
+            queryOf(
+                // language=PostgreSQL
+                "DELETE FROM dokumentkrav_filer_v1 WHERE soknad_uuid = :uuid",
+                mapOf("uuid" to søknadId.toString())
+            )
+        )
+
+        queries.addAll(
+            krav.svar.filer.map { fil ->
+                queryOf(
+                    // language=PostgreSQL
+                    statement = """
+                    INSERT INTO dokumentkrav_filer_v1(faktum_id, soknad_uuid, filnavn, storrelse, urn, tidspunkt)
+                    VALUES (:faktum_id, :soknad_uuid, :filnavn, :storrelse, :urn, :tidspunkt)
+                    ON CONFLICT (faktum_id, soknad_uuid, urn) DO UPDATE SET filnavn = :filnavn, 
+                                                                            storrelse = :storrelse, 
+                                                                            tidspunkt = :tidspunkt
+                    """.trimIndent(),
+                    mapOf(
+                        "faktum_id" to krav.id,
+                        "soknad_uuid" to søknadId,
+                        "filnavn" to fil.filnavn,
+                        "storrelse" to fil.storrelse,
+                        "urn" to fil.urn.toString(),
+                        "tidspunkt" to fil.tidspunkt
+                    )
+                )
+            }
+        )
     }
 
     override fun preVisitAktivitetslogg(aktivitetslogg: Aktivitetslogg) {
-        query.add(
+        queries.add(
             queryOf(
                 //language=PostgreSQL
                 statement = "INSERT INTO aktivitetslogg_v3 (soknad_uuid, data) VALUES (:uuid, :data)",
@@ -296,183 +320,7 @@ private class VisitSøknad(søknad: Søknad) : SøknadVisitor {
     }
 }
 
-internal class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
-    lateinit var søknadDTO: PersonDTO.SøknadDTO
-    lateinit var aktivitetslogg: Aktivitetslogg
-
-    init {
-        søknad.accept(this)
-    }
-
-    override fun preVisitAktivitetslogg(aktivitetslogg: Aktivitetslogg) {
-        this.aktivitetslogg = aktivitetslogg
-    }
-
-    override fun visitSøknad(
-        søknadId: UUID,
-        ident: String,
-        tilstand: Søknad.Tilstand,
-        journalpost: Søknad.Journalpost?,
-        journalpostId: String?,
-        innsendtTidspunkt: ZonedDateTime?,
-        språk: Språk,
-        dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime?
-    ) {
-        søknadDTO = PersonDTO.SøknadDTO(
-            søknadsId = søknadId,
-            ident = ident,
-            tilstandType = when (tilstand.tilstandType) {
-                Søknad.Tilstand.Type.UnderOpprettelse -> PersonDTO.SøknadDTO.TilstandDTO.UnderOpprettelse
-                Søknad.Tilstand.Type.Påbegynt -> PersonDTO.SøknadDTO.TilstandDTO.Påbegynt
-                Søknad.Tilstand.Type.AvventerArkiverbarSøknad -> PersonDTO.SøknadDTO.TilstandDTO.AvventerArkiverbarSøknad
-                Søknad.Tilstand.Type.AvventerMidlertidligJournalføring -> PersonDTO.SøknadDTO.TilstandDTO.AvventerMidlertidligJournalføring
-                Søknad.Tilstand.Type.AvventerJournalføring -> PersonDTO.SøknadDTO.TilstandDTO.AvventerJournalføring
-                Søknad.Tilstand.Type.Journalført -> PersonDTO.SøknadDTO.TilstandDTO.Journalført
-                Søknad.Tilstand.Type.Slettet -> PersonDTO.SøknadDTO.TilstandDTO.Slettet
-            },
-            dokumenter = journalpost.toDokumentData(),
-            journalpostId = journalpostId,
-            innsendtTidspunkt = innsendtTidspunkt,
-            språkDTO = PersonDTO.SøknadDTO.SpråkDTO(språk.verdi),
-            dokumentkrav = dokumentkrav.toDokumentKravData(),
-            sistEndretAvBruker = sistEndretAvBruker
-        )
-    }
-
-    private fun Søknad.Journalpost?.toDokumentData(): List<PersonDTO.SøknadDTO.DokumentDTO> {
-        return this?.let { it.varianter.map { v -> PersonDTO.SøknadDTO.DokumentDTO(urn = v.urn) } }
-            ?: emptyList()
-    }
-}
-
-internal fun List<PersonDTO.SøknadDTO>.insertQuery(personIdent: String, session: Session) =
-    session.batchPreparedNamedStatement(
-        // language=PostgreSQL
-        statement = """
-            INSERT INTO soknad_v1(uuid, person_ident, tilstand, journalpost_id, spraak)
-            VALUES (:uuid, :person_ident, :tilstand, :journalpostID, :spraak)
-            ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
-                                            journalpost_id=:journalpostID,
-                                            innsendt_tidspunkt = :innsendtTidspunkt,
-                                            sist_endret_av_bruker = :sistEndretAvBruker
-        """.trimIndent(),
-        params = map {
-            mapOf<String, Any?>(
-                "uuid" to it.søknadsId,
-                "person_ident" to personIdent,
-                "tilstand" to it.tilstandType.name,
-                "journalpostID" to it.journalpostId,
-                "innsendtTidspunkt" to it.innsendtTidspunkt,
-                "spraak" to it.språkDTO.verdi,
-                "sistEndretAvBruker" to it.sistEndretAvBruker
-            )
-        }
-    )
-
-internal fun PersonDTO.SøknadDTO.insertDokumentQuery(session: TransactionalSession) =
-    session.batchPreparedNamedStatement(
-        //language=PostgreSQL
-        statement = """
-             INSERT INTO dokument_v1(soknad_uuid, dokument_lokasjon)
-                 VALUES(:uuid, :urn) ON CONFLICT (dokument_lokasjon) DO NOTHING 
-        """.trimIndent(),
-        params = dokumenter.map {
-            mapOf(
-                "uuid" to this.søknadsId.toString(),
-                "urn" to it.urn
-            )
-        }
-    )
-
-internal fun List<PersonDTO.SøknadDTO>.insertDokumentkrav(transactionalSession: TransactionalSession) =
-    this.map {
-        it.dokumentkrav.kravData.insertKravData(it.søknadsId, transactionalSession)
-    }
-
-internal fun Set<PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO>.insertKravData(
-    søknadsId: UUID,
-    transactionalSession: TransactionalSession
-) {
-    transactionalSession.batchPreparedNamedStatement(
-        // language=PostgreSQL
-        statement = """
-            INSERT INTO dokumentkrav_v1(faktum_id, beskrivende_id, soknad_uuid, faktum, sannsynliggjoer, tilstand, valg, begrunnelse)
-            VALUES (:faktum_id, :beskrivende_id, :soknad_uuid, :faktum, :sannsynliggjoer, :tilstand, :valg, :begrunnelse)
-            ON CONFLICT (faktum_id, soknad_uuid) DO UPDATE SET beskrivende_id = :beskrivende_id,
-                                                               faktum = :faktum,
-                                                               sannsynliggjoer = :sannsynliggjoer,
-                                                               tilstand = :tilstand, 
-                                                               valg = :valg,
-                                                               begrunnelse = :begrunnelse
-                                                               
-                                                               
-        """.trimIndent(),
-        params = map { krav ->
-            mapOf<String, Any?>(
-                "faktum_id" to krav.id,
-                "soknad_uuid" to søknadsId,
-                "beskrivende_id" to krav.beskrivendeId,
-                "faktum" to PGobject().apply {
-                    type = "jsonb"
-                    value = objectMapper.writeValueAsString(krav.sannsynliggjøring.faktum)
-                },
-                "sannsynliggjoer" to PGobject().apply {
-                    type = "jsonb"
-                    value = objectMapper.writeValueAsString(krav.sannsynliggjøring.sannsynliggjør)
-                },
-                "tilstand" to krav.tilstand.name,
-                "valg" to krav.svar.valg.name,
-                "begrunnelse" to krav.svar.begrunnelse
-            )
-        }
-    )
-    // fjerne alle filer for søknaden. Modellen har fasit på hvor mange som legges til i neste block
-    transactionalSession.run(
-        // language=PostgreSQL
-        queryOf(
-            """
-                 DELETE FROM dokumentkrav_filer_v1 WHERE soknad_uuid = :uuid
-            """.trimIndent(),
-            mapOf(
-                "uuid" to søknadsId.toString()
-            )
-        ).asExecute
-    )
-
-    transactionalSession.batchPreparedNamedStatement(
-        // language=PostgreSQL
-        statement = """
-            INSERT INTO dokumentkrav_filer_v1(faktum_id, soknad_uuid, filnavn, storrelse, urn, tidspunkt)
-            VALUES (:faktum_id, :soknad_uuid, :filnavn, :storrelse, :urn, :tidspunkt)
-            ON CONFLICT (faktum_id, soknad_uuid, urn) DO UPDATE SET filnavn = :filnavn, 
-                                                                    storrelse = :storrelse, 
-                                                                    tidspunkt = :tidspunkt
-
-        """.trimIndent(),
-        params = flatMap { krav ->
-            krav.svar.filer.map { fil ->
-                mapOf<String, Any>(
-                    "faktum_id" to krav.id,
-                    "soknad_uuid" to søknadsId,
-                    "filnavn" to fil.filnavn,
-                    "storrelse" to fil.storrelse,
-                    "urn" to fil.urn.toString(),
-                    "tidspunkt" to fil.tidspunkt
-                )
-            }
-        }
-    )
-}
-
-internal fun Dokumentkrav.toDokumentKravData(): PersonDTO.SøknadDTO.DokumentkravDTO {
-    return PersonDTO.SøknadDTO.DokumentkravDTO(
-        kravData = (this.aktiveDokumentKrav() + this.inAktiveDokumentKrav()).map { krav -> krav.toKravdata() }
-            .toSet()
-    )
-}
-
-internal fun Session.hentDokumentKrav(søknadsId: UUID): Set<PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO> =
+private fun Session.hentDokumentKrav(søknadsId: UUID): Set<KravDTO> =
     this.run(
         queryOf(
             // language=PostgreSQL
@@ -486,38 +334,35 @@ internal fun Session.hentDokumentKrav(søknadsId: UUID): Set<PersonDTO.SøknadDT
             )
         ).map { row ->
             val faktumId = row.string("faktum_id")
-            PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO(
+            KravDTO(
                 id = faktumId,
                 beskrivendeId = row.string("beskrivende_id"),
-                sannsynliggjøring = PersonDTO.SøknadDTO.DokumentkravDTO.SannsynliggjøringDTO(
+                sannsynliggjøring = SannsynliggjøringDTO(
                     id = faktumId,
                     faktum = objectMapper.readTree(row.binaryStream("faktum")),
                     sannsynliggjør = objectMapper.readTree(row.binaryStream("sannsynliggjoer")).toSet()
                 ),
-                svar = PersonDTO.SøknadDTO.DokumentkravDTO.SvarDTO(
+                svar = SvarDTO(
                     begrunnelse = row.stringOrNull("begrunnelse"),
                     filer = hentFiler(søknadsId, faktumId),
-                    valg = PersonDTO.SøknadDTO.DokumentkravDTO.SvarDTO.SvarValgDTO.valueOf(row.string("valg"))
+                    valg = SvarValgDTO.valueOf(row.string("valg"))
                 ),
                 tilstand = row.string("tilstand")
-                    .let { PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO.KravTilstandDTO.valueOf(it) }
+                    .let { KravTilstandDTO.valueOf(it) }
             )
         }.asList
     ).toSet()
 
-internal fun Session.hentDokumentData(søknadId: UUID): List<PersonDTO.SøknadDTO.DokumentDTO> {
+private fun Session.hentDokumentData(søknadId: UUID): List<DokumentDTO> {
     return this.run(
         queryOf(
             //language=PostgreSQL
-            statement = """
-                SELECT dokument_lokasjon FROM dokument_v1 
-                WHERE soknad_uuid = :soknadId
-            """.trimIndent(),
+            statement = "SELECT dokument_lokasjon FROM dokument_v1 WHERE soknad_uuid = :soknadId",
             paramMap = mapOf(
                 "soknadId" to søknadId.toString()
             )
         ).map { row ->
-            PersonDTO.SøknadDTO.DokumentDTO(urn = row.string("dokument_lokasjon"))
+            DokumentDTO(urn = row.string("dokument_lokasjon"))
         }.asList
     )
 }
@@ -525,9 +370,10 @@ internal fun Session.hentDokumentData(søknadId: UUID): List<PersonDTO.SøknadDT
 private fun Session.hentFiler(
     søknadsId: UUID,
     faktumId: String
-): Set<PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO.FilDTO> {
+): Set<KravDTO.FilDTO> {
     return this.run(
         queryOf(
+            //language=PostgreSQL
             statement = """
                   SELECT faktum_id, soknad_uuid, filnavn, storrelse, urn, tidspunkt 
                   FROM dokumentkrav_filer_v1 
@@ -539,7 +385,7 @@ private fun Session.hentFiler(
                 "faktum_id" to faktumId
             )
         ).map { row ->
-            PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO.FilDTO(
+            KravDTO.FilDTO(
                 filnavn = row.string("filnavn"),
                 urn = URN.rfc8141().parse(row.string("urn")),
                 storrelse = row.long("storrelse"),
