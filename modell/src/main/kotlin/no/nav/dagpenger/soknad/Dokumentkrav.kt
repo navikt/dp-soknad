@@ -3,13 +3,14 @@ package no.nav.dagpenger.soknad
 import de.slub.urn.RFC
 import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Krav.Companion.aktive
-import no.nav.dagpenger.soknad.Krav.Svar.Companion.TOMT_SVAR
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.IKKE_BESVART
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SEND_NÅ
 import no.nav.dagpenger.soknad.hendelse.DokumentKravHendelse
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
+import no.nav.dagpenger.soknad.hendelse.DokumentasjonkravFerdigstilt
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
+import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import java.time.ZonedDateTime
 
 class Dokumentkrav private constructor(
@@ -33,14 +34,34 @@ class Dokumentkrav private constructor(
             }
         )
     }
-    fun håndter(hendelse: LeggTilFil) {
-        val krav = hentKrav(hendelse)
-        krav.svar.håndter(hendelse.fil)
+
+    fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
+
+        val filer = uKomplette().associate { krav -> krav.id to krav.svar.filer.map { it.urn.toString() } }
+        søknadInnsendtHendelse.behov(
+            type = Aktivitetslogg.Aktivitet.Behov.Behovtype.Ferdigstill,
+            melding = "Trenger å bundle dokumentkrav filer",
+            mapOf(
+                "krav" to filer
+            )
+        )
     }
 
-    fun håndter(slettFil: SlettFil) {
-        val krav = hentKrav(slettFil)
-        krav.svar.slettfil(slettFil.urn)
+    private fun uKomplette() = aktiveDokumentKrav().filterNot { it.ferdigStilt() }.toSet()
+
+    fun håndter(hendelse: LeggTilFil) {
+        val krav = hentKrav(hendelse)
+        krav.svar.håndter(hendelse)
+    }
+
+    fun håndter(hendelse: SlettFil) {
+        val krav = hentKrav(hendelse)
+        krav.svar.håndter(hendelse)
+    }
+
+    fun håndter(hendelse: DokumentasjonIkkeTilgjengelig) {
+        val krav = hentKrav(hendelse)
+        krav.svar.håndter(hendelse)
     }
 
     fun aktiveDokumentKrav() = krav.filter(aktive()).toSet()
@@ -51,22 +72,27 @@ class Dokumentkrav private constructor(
         other is Dokumentkrav && this.krav == other.krav
 
     override fun hashCode(): Int = 31 * krav.hashCode()
-    fun håndter(dokumentasjonIkkeTilgjengelig: DokumentasjonIkkeTilgjengelig) {
-        val krav = hentKrav(dokumentasjonIkkeTilgjengelig)
-        krav.håndter(dokumentasjonIkkeTilgjengelig)
-    }
 
     private fun hentKrav(hendelse: DokumentKravHendelse) =
         (
-            this.aktiveDokumentKrav().find { it.id == hendelse.kravId }
+            this.aktiveDokumentKrav().find { krav -> krav.id == hendelse.kravId }
                 ?: hendelse.severe("Fant ikke Dokumentasjonskrav id")
             )
+
+    fun håndter(hendelse: DokumentasjonkravFerdigstilt) {
+        val krav = hentKrav(hendelse)
+        krav.håndter(hendelse)
+    }
 
     fun accept(dokumentkravVisitor: DokumentkravVisitor) {
         dokumentkravVisitor.preVisitDokumentkrav()
         krav.forEach { it.accept(dokumentkravVisitor) }
         dokumentkravVisitor.postVisitDokumentkrav()
     }
+
+    fun ferdigstilt(): Boolean = aktiveDokumentKrav().all { it.ferdigStilt() }
+    fun ferdigBesvart() = aktiveDokumentKrav().all { it.besvart() }
+    fun ingen() = krav.isEmpty()
 }
 
 data class Krav(
@@ -78,6 +104,13 @@ data class Krav(
     companion object {
         fun aktive(): (Krav) -> Boolean = { it.tilstand == KravTilstand.AKTIV }
     }
+
+    constructor(sannsynliggjøring: Sannsynliggjøring) : this(
+        sannsynliggjøring.id,
+        Svar(),
+        sannsynliggjøring,
+        KravTilstand.AKTIV
+    )
 
     val beskrivendeId: String get() = sannsynliggjøring.faktum().beskrivendeId
     val fakta: Set<Faktum> get() = sannsynliggjøring.sannsynliggjør()
@@ -94,16 +127,23 @@ data class Krav(
         this.svar.begrunnelse = dokumentasjonIkkeTilgjengelig.begrunnelse
     }
 
+    fun håndter(hendelse: DokumentasjonkravFerdigstilt) {
+        this.svar.bundle = Fil(
+            "ferdigstilt.pdf",
+            hendelse.ferdigstiltURN,
+            0,
+            ZonedDateTime.now()
+
+        )
+        // @todo: Ta var på ferdigstilt urn og besvare quiz med urn'en
+    }
+
     fun accept(dokumentkravVisitor: DokumentkravVisitor) {
         dokumentkravVisitor.visitKrav(this)
     }
 
-    constructor(sannsynliggjøring: Sannsynliggjøring) : this(
-        sannsynliggjøring.id,
-        TOMT_SVAR,
-        sannsynliggjøring,
-        KravTilstand.AKTIV
-    )
+    fun besvart() = this.svar.besvart()
+    fun ferdigStilt() = this.svar.ferdigStilt()
 
     enum class KravTilstand {
         AKTIV,
@@ -113,18 +153,61 @@ data class Krav(
     data class Svar(
         val filer: MutableSet<Fil> = mutableSetOf(),
         var valg: SvarValg,
-        var begrunnelse: String?
+        var begrunnelse: String?,
+        var bundle: Fil?
     ) {
 
-        fun håndter(fil: Fil) {
-            filer.add(fil)
+        internal constructor() : this(filer = mutableSetOf(), valg = IKKE_BESVART, begrunnelse = null, bundle = null)
+
+        fun håndter(hendelse: LeggTilFil) {
+            filer.add(hendelse.fil)
             valg = SEND_NÅ
             begrunnelse = null
         }
-        fun slettfil(urn: URN) = filer.removeIf { it.urn == urn }
 
-        companion object {
-            val TOMT_SVAR = Svar(filer = mutableSetOf(), valg = IKKE_BESVART, begrunnelse = null)
+        fun håndter(hendelse: SlettFil) {
+            filer.removeIf { it.urn == hendelse.urn }
+        }
+
+        fun håndter(hendelse: DokumentasjonIkkeTilgjengelig) {
+            valg = hendelse.valg
+            begrunnelse = hendelse.begrunnelse
+        }
+
+        fun besvart() = TilstandStrategy.strategy(this).besvart(this)
+        fun ferdigStilt() = TilstandStrategy.strategy(this).ferdigStilt(this)
+
+        private sealed interface TilstandStrategy {
+            companion object {
+                fun strategy(svar: Svar): TilstandStrategy {
+                    return when (svar.valg) {
+                        IKKE_BESVART -> IngenSvar
+                        SEND_NÅ -> FilSvar
+                        SvarValg.SEND_SENERE -> AnnetSvar
+                        SvarValg.ANDRE_SENDER -> AnnetSvar
+                        SvarValg.SEND_TIDLIGERE -> AnnetSvar
+                        SvarValg.SENDER_IKKE -> AnnetSvar
+                    }
+                }
+            }
+
+            fun besvart(svar: Svar): Boolean
+            fun ferdigStilt(svar: Svar): Boolean
+
+            object FilSvar : TilstandStrategy {
+                override fun besvart(svar: Svar): Boolean = svar.filer.size > 0
+                override fun ferdigStilt(svar: Svar): Boolean = besvart(svar) && svar.bundle != null
+            }
+
+            object IngenSvar : TilstandStrategy {
+                override fun besvart(svar: Svar): Boolean = false
+                override fun ferdigStilt(svar: Svar): Boolean = false
+            }
+
+            object AnnetSvar : TilstandStrategy {
+                override fun besvart(svar: Svar): Boolean = svar.begrunnelse != null
+                override fun ferdigStilt(svar: Svar): Boolean = besvart(svar)
+            }
         }
 
         enum class SvarValg {

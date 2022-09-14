@@ -1,18 +1,23 @@
 package no.nav.dagpenger.soknad
 
+import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Aktivitetslogg.AktivitetException
 import no.nav.dagpenger.soknad.Søknad.Journalpost.Variant
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerArkiverbarSøknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerJournalføring
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerMidlertidligJournalføring
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Ferdigstill
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
+import no.nav.dagpenger.soknad.hendelse.DokumentasjonkravFerdigstilt
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
+import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
@@ -24,6 +29,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.time.ZonedDateTime
 import java.util.UUID
 
 private const val testIdent = "12345678912"
@@ -35,6 +41,27 @@ internal class SøknadTest {
     private lateinit var plantUmlObservatør: PlantUmlObservatør
     private val inspektør get() = TestSøknadInspektør(søknad)
     private val språk = "NO"
+    private val dokumentFaktum =
+        Faktum(faktumJson("1", "f1"))
+    private val faktaSomSannsynliggjøres =
+        mutableSetOf(
+            Faktum(faktumJson("2", "f2"))
+        )
+    private val sannsynliggjøring1 = Sannsynliggjøring(
+        id = dokumentFaktum.id,
+        faktum = dokumentFaktum,
+        sannsynliggjør = faktaSomSannsynliggjøres
+    )
+    private val sannsynliggjøring2 = Sannsynliggjøring(
+        id = "2",
+        faktum = dokumentFaktum,
+        sannsynliggjør = faktaSomSannsynliggjøres
+    )
+    private val sannsynliggjøring3 = Sannsynliggjøring(
+        id = "3",
+        faktum = dokumentFaktum,
+        sannsynliggjør = faktaSomSannsynliggjøres
+    )
 
     @BeforeEach
     internal fun setUp() {
@@ -61,14 +88,51 @@ internal class SøknadTest {
         assertBehov(Behovtype.NySøknad, mapOf("ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
         håndterNySøknadOpprettet()
         håndterFaktumOppdatering()
-        håndterSøkerOppgaveHendelse()
-        val innsendtHendelse = håndterSendInnSøknad()
+        håndterSøkerOppgaveHendelse(setOf(sannsynliggjøring1, sannsynliggjøring2, sannsynliggjøring3))
+        håndterLeggtilFil("1", "urn:sid:1")
+        håndterLeggtilFil("1", "urn:sid:2")
+        håndterDokumentasjonIkkeTilgjengelig("2", "Har ikke")
+
+        assertThrows<AktivitetException>("Alle dokumentkrav må være besvart") { håndterSendInnSøknad() }
+
+        håndterLeggtilFil("3", "urn:sid:3")
+        val hendelse = håndterSendInnSøknad()
+
+        assertBehov(
+            Behovtype.Ferdigstill,
+            mapOf(
+                "krav" to mapOf(
+                    "1" to listOf("urn:sid:1", "urn:sid:2"),
+                    "3" to listOf("urn:sid:3")
+                ),
+                "søknad_uuid" to inspektør.søknadId.toString(),
+                "ident" to testIdent
+            )
+        )
+
+        håndterFerdigstill(kravId = "1", urn = "urn:sid:3")
+
+        assertTilstander(
+            UnderOpprettelse,
+            Påbegynt,
+            Ferdigstill
+        )
+
+        håndterFerdigstill("3", "urn:sid:4")
+
+        assertTilstander(
+            UnderOpprettelse,
+            Påbegynt,
+            Ferdigstill,
+            AvventerArkiverbarSøknad
+        )
+
         assertBehov(
             Behovtype.ArkiverbarSøknad,
             mapOf(
                 "ident" to testIdent,
                 "søknad_uuid" to inspektør.søknadId.toString(),
-                "innsendtTidspunkt" to innsendtHendelse.innsendtidspunkt().toString()
+                "innsendtTidspunkt" to hendelse.innsendtidspunkt().toString()
             )
         )
         håndterArkiverbarSøknad()
@@ -94,10 +158,11 @@ internal class SøknadTest {
         assertTilstander(
             UnderOpprettelse,
             Påbegynt,
+            Ferdigstill,
             AvventerArkiverbarSøknad,
             AvventerMidlertidligJournalføring,
             AvventerJournalføring,
-            Journalført
+            Journalført,
         )
 
         assertPuml("Søker oppretter søknad og ferdigstiller den")
@@ -166,6 +231,38 @@ internal class SøknadTest {
 
     private fun håndterØnskeOmNySøknadHendelse() {
         søknad.håndter(ØnskeOmNySøknadHendelse(søknadID = UUID.randomUUID(), ident = testIdent, språk = språk))
+    }
+
+    private fun håndterLeggtilFil(kravId: String, urn: String) {
+        val hendelse = LeggTilFil(
+            inspektør.søknadId,
+            testIdent,
+            kravId,
+            fil = Krav.Fil("test.jpg", URN.rfc8141().parse(urn), 0, ZonedDateTime.now())
+        )
+        søknad.håndter(hendelse)
+    }
+
+    private fun håndterDokumentasjonIkkeTilgjengelig(kravId: String, begrunnelse: String) {
+        val hendelse = DokumentasjonIkkeTilgjengelig(
+            inspektør.søknadId,
+            testIdent,
+            kravId = kravId,
+            valg = Krav.Svar.SvarValg.SENDER_IKKE,
+            begrunnelse = begrunnelse
+        )
+        søknad.håndter(hendelse)
+    }
+
+    private fun håndterFerdigstill(kravId: String, urn: String) {
+        val hendelse = DokumentasjonkravFerdigstilt(
+            inspektør.søknadId,
+            testIdent,
+            kravId = kravId,
+            ferdigstiltURN = URN.rfc8141().parse(urn)
+        )
+
+        søknad.håndter(hendelse)
     }
 
     private fun assertTilstander(vararg tilstander: Søknad.Tilstand.Type) {

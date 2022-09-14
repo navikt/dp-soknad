@@ -6,6 +6,7 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.Krav
+import no.nav.dagpenger.soknad.Krav.Svar
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
@@ -102,7 +103,7 @@ class SøknadDTO(
             val valg: SvarValgDTO
         ) {
             companion object {
-                fun Krav.Svar.tilSvarData(): SvarDTO {
+                fun Svar.tilSvarData(): SvarDTO {
                     return SvarDTO(
                         begrunnelse = this.begrunnelse,
                         filer = this.filer.map { it.toFilData() }.toSet(),
@@ -111,20 +112,19 @@ class SøknadDTO(
                 }
             }
 
-            fun rehydrer(): Krav.Svar {
-                return Krav.Svar(
-                    filer = this.filer.map { it.rehydrer() }.toMutableSet(),
-                    valg = when (this.valg) {
-                        SvarValgDTO.IKKE_BESVART -> Krav.Svar.SvarValg.IKKE_BESVART
-                        SvarValgDTO.SEND_NÅ -> Krav.Svar.SvarValg.SEND_NÅ
-                        SvarValgDTO.SEND_SENERE -> Krav.Svar.SvarValg.SEND_SENERE
-                        SvarValgDTO.ANDRE_SENDER -> Krav.Svar.SvarValg.ANDRE_SENDER
-                        SvarValgDTO.SEND_TIDLIGERE -> Krav.Svar.SvarValg.SEND_TIDLIGERE
-                        SvarValgDTO.SENDER_IKKE -> Krav.Svar.SvarValg.SENDER_IKKE
-                    },
-                    begrunnelse = this.begrunnelse
-                )
-            }
+            fun rehydrer() = Svar(
+                filer = this.filer.map { it.rehydrer() }.toMutableSet(),
+                valg = when (this.valg) {
+                    SvarValgDTO.IKKE_BESVART -> Svar.SvarValg.IKKE_BESVART
+                    SvarValgDTO.SEND_NÅ -> Svar.SvarValg.SEND_NÅ
+                    SvarValgDTO.SEND_SENERE -> Svar.SvarValg.SEND_SENERE
+                    SvarValgDTO.ANDRE_SENDER -> Svar.SvarValg.ANDRE_SENDER
+                    SvarValgDTO.SEND_TIDLIGERE -> Svar.SvarValg.SEND_TIDLIGERE
+                    SvarValgDTO.SENDER_IKKE -> Svar.SvarValg.SENDER_IKKE
+                },
+                begrunnelse = this.begrunnelse,
+                bundle = null
+            )
 
             enum class SvarValgDTO {
                 IKKE_BESVART,
@@ -135,13 +135,13 @@ class SøknadDTO(
                 SENDER_IKKE;
 
                 companion object {
-                    fun Krav.Svar.SvarValg.tilSvarValgDTO() = when (this) {
-                        Krav.Svar.SvarValg.IKKE_BESVART -> IKKE_BESVART
-                        Krav.Svar.SvarValg.SEND_NÅ -> SEND_NÅ
-                        Krav.Svar.SvarValg.SEND_SENERE -> SEND_SENERE
-                        Krav.Svar.SvarValg.ANDRE_SENDER -> ANDRE_SENDER
-                        Krav.Svar.SvarValg.SEND_TIDLIGERE -> SEND_TIDLIGERE
-                        Krav.Svar.SvarValg.SENDER_IKKE -> SENDER_IKKE
+                    fun Svar.SvarValg.tilSvarValgDTO() = when (this) {
+                        Svar.SvarValg.IKKE_BESVART -> IKKE_BESVART
+                        Svar.SvarValg.SEND_NÅ -> SEND_NÅ
+                        Svar.SvarValg.SEND_SENERE -> SEND_SENERE
+                        Svar.SvarValg.ANDRE_SENDER -> ANDRE_SENDER
+                        Svar.SvarValg.SEND_TIDLIGERE -> SEND_TIDLIGERE
+                        Svar.SvarValg.SENDER_IKKE -> SENDER_IKKE
                     }
                 }
             }
@@ -210,6 +210,7 @@ class SøknadDTO(
     enum class TilstandDTO {
         UnderOpprettelse,
         Påbegynt,
+        Ferdigstill,
         AvventerArkiverbarSøknad,
         AvventerMidlertidligJournalføring,
         AvventerJournalføring,
@@ -219,6 +220,7 @@ class SøknadDTO(
         fun rehydrer(): Søknad.Tilstand.Type = when (this) {
             UnderOpprettelse -> Søknad.Tilstand.Type.UnderOpprettelse
             Påbegynt -> Søknad.Tilstand.Type.Påbegynt
+            Ferdigstill -> Søknad.Tilstand.Type.Ferdigstill
             AvventerArkiverbarSøknad -> Søknad.Tilstand.Type.AvventerArkiverbarSøknad
             AvventerMidlertidligJournalføring -> Søknad.Tilstand.Type.AvventerMidlertidligJournalføring
             AvventerJournalføring -> Søknad.Tilstand.Type.AvventerJournalføring

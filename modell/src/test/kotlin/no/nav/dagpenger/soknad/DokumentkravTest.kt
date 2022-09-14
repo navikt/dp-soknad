@@ -50,7 +50,7 @@ internal class DokumentkravTest {
             assertEquals("1", førsteKrav.id)
             assertEquals("f1", førsteKrav.beskrivendeId)
             assertTrue(førsteKrav.fakta.contains(faktaSomSannsynliggjøres.first()))
-            assertEquals(førsteKrav.svar, Krav.Svar.TOMT_SVAR)
+            assertEquals(førsteKrav.svar, Krav.Svar())
         }
 
         assertTrue(dokumentkrav.inAktiveDokumentKrav().isEmpty())
@@ -66,12 +66,12 @@ internal class DokumentkravTest {
             assertEquals("1", krav[0].id)
             assertEquals("f1", krav[0].beskrivendeId)
             assertTrue(krav[0].fakta.contains(faktaSomSannsynliggjøres.first()))
-            assertEquals(krav[0].svar, Krav.Svar.TOMT_SVAR)
+            assertEquals(krav[0].svar, Krav.Svar())
 
             assertEquals("3", krav[1].id)
             assertEquals("f3", krav[1].beskrivendeId)
             assertTrue(krav[1].fakta.contains(faktaSomSannsynliggjøres.first()))
-            assertEquals(krav[1].svar, Krav.Svar.TOMT_SVAR)
+            assertEquals(krav[1].svar, Krav.Svar())
         }
 
         dokumentkrav.håndter(setOf(nySannsynliggjøring))
@@ -83,7 +83,7 @@ internal class DokumentkravTest {
             assertEquals("3", krav[0].id)
             assertEquals("f3", krav[0].beskrivendeId)
             assertTrue(krav[0].fakta.contains(faktaSomSannsynliggjøres.first()))
-            assertEquals(krav[0].svar, Krav.Svar.TOMT_SVAR)
+            assertEquals(krav[0].svar, Krav.Svar())
         }
 
         with(dokumentkrav.inAktiveDokumentKrav()) {
@@ -93,7 +93,7 @@ internal class DokumentkravTest {
             assertEquals("1", krav[0].id)
             assertEquals("f1", krav[0].beskrivendeId)
             assertTrue(krav[0].fakta.contains(faktaSomSannsynliggjøres.first()))
-            assertEquals(krav[0].svar, Krav.Svar.TOMT_SVAR)
+            assertEquals(krav[0].svar, Krav.Svar())
         }
     }
 

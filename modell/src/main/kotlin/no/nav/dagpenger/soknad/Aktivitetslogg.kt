@@ -195,7 +195,8 @@ class Aktivitetslogg private constructor(
                 NySøknad,
                 ArkiverbarSøknad,
                 NyJournalpost,
-                NyInnsending
+                NyInnsending,
+                Ferdigstill
             }
         }
 
