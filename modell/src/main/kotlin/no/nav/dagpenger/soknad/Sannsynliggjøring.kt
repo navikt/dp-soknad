@@ -8,7 +8,7 @@ class Sannsynliggjøring(
     constructor(id: String, faktum: Faktum) : this(id, faktum, mutableSetOf())
     fun sannsynliggjør(faktum: Faktum) = sannsynliggjør.add(faktum)
     fun sannsynliggjør() = sannsynliggjør.toSet()
-    internal fun faktum() = faktum
+    fun faktum() = faktum
     override fun equals(other: Any?): Boolean = other is Sannsynliggjøring && equals(other)
     private fun equals(other: Sannsynliggjøring) =
         this.id == other.id && this.faktum == other.faktum && this.sannsynliggjør == other.sannsynliggjør

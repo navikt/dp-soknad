@@ -2,7 +2,7 @@ package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Aktivitetslogg.AktivitetException
-import no.nav.dagpenger.soknad.Søknad.Dokument.Variant
+import no.nav.dagpenger.soknad.Søknad.Journalpost.Variant
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerArkiverbarSøknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerJournalføring
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerMidlertidligJournalføring
@@ -73,7 +73,7 @@ internal class SøknadTest {
         )
         håndterArkiverbarSøknad()
         val dokumenter = listOf(
-            Søknad.Dokument(
+            Søknad.Journalpost(
                 varianter = listOf(
                     Variant(
                         urn = "urn:dokument:1",
@@ -185,7 +185,7 @@ internal class SøknadTest {
     }
 }
 
-private fun String.lagTestDokument(): Søknad.Dokument = Søknad.Dokument(
+private fun String.lagTestDokument(): Søknad.Journalpost = Søknad.Journalpost(
     varianter = listOf(
         Variant(this, "ARKIV", "PDF")
     )

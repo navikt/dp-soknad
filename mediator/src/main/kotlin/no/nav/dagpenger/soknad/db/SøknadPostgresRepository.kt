@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad.db
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import de.slub.urn.URN
+import kotliquery.Query
 import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
@@ -10,6 +11,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
@@ -208,6 +210,92 @@ internal fun Session.hentAktivitetslogg(søknadId: UUID): PersonDTO.Aktivitetslo
     PersonDTO.AktivitetsloggDTO(acc.aktiviteter + data.aktiviteter)
 }
 
+private class VisitSøknad(søknad: Søknad) : SøknadVisitor {
+    init {
+        søknad.accept(this)
+    }
+
+    private lateinit var søknadId: UUID
+    private val query = mutableListOf<Query>()
+
+    override fun visitSøknad(søknadId: UUID, ident: String, tilstand: Søknad.Tilstand, journalpost: Søknad.Journalpost?, journalpostId: String?, innsendtTidspunkt: ZonedDateTime?, språk: Språk, dokumentkrav: Dokumentkrav, sistEndretAvBruker: ZonedDateTime?) {
+        this.søknadId = søknadId
+        query.add(
+            queryOf(
+                // language=PostgreSQL
+                """
+                    INSERT INTO soknad_v1(uuid, person_ident, tilstand, journalpost_id, spraak)
+                    VALUES (:uuid, :person_ident, :tilstand, :journalpostID, :spraak)
+                    ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
+                                            journalpost_id=:journalpostID,
+                                            innsendt_tidspunkt = :innsendtTidspunkt,
+                                            sist_endret_av_bruker = :sistEndretAvBruker
+                """.trimIndent(),
+                mapOf<String, Any?>(
+                    "uuid" to søknadId,
+                    "person_ident" to ident,
+                    "tilstand" to tilstand,
+                    "journalpostID" to journalpostId,
+                    "innsendtTidspunkt" to innsendtTidspunkt,
+                    "spraak" to språk.verdi,
+                    "sistEndretAvBruker" to sistEndretAvBruker
+                )
+            )
+        )
+
+        // todo: fiks journalpost og innsending
+    }
+
+    override fun visitKrav(krav: Krav) {
+        query.add(
+            queryOf(
+                // language=PostgreSQL
+                """INSERT INTO dokumentkrav_v1(faktum_id, beskrivende_id, soknad_uuid, faktum, sannsynliggjoer, tilstand, valg, begrunnelse)
+                VALUES (:faktum_id, :beskrivende_id, :soknad_uuid, :faktum, :sannsynliggjoer, :tilstand, :valg, :begrunnelse)
+                ON CONFLICT (faktum_id, soknad_uuid) DO UPDATE SET beskrivende_id = :beskrivende_id,
+                faktum = :faktum,
+                sannsynliggjoer = :sannsynliggjoer,
+                tilstand = :tilstand,
+                valg = :valg,
+                begrunnelse = :begrunnelse
+                """.trimIndent(),
+                mapOf<String, Any?>(
+                    "faktum_id" to krav.id,
+                    "soknad_uuid" to søknadId,
+                    "beskrivende_id" to krav.beskrivendeId,
+                    "faktum" to PGobject().apply {
+                        type = "jsonb"
+                        value = objectMapper.writeValueAsString(krav.sannsynliggjøring.faktum())
+                    },
+                    "sannsynliggjoer" to PGobject().apply {
+                        type = "jsonb"
+                        value = objectMapper.writeValueAsString(krav.sannsynliggjøring.sannsynliggjør())
+                    },
+                    "tilstand" to krav.tilstand.name,
+                    "valg" to krav.svar.valg.name,
+                    "begrunnelse" to krav.svar.begrunnelse
+                )
+            )
+        )
+    }
+
+    override fun preVisitAktivitetslogg(aktivitetslogg: Aktivitetslogg) {
+        query.add(
+            queryOf(
+                //language=PostgreSQL
+                statement = "INSERT INTO aktivitetslogg_v3 (soknad_uuid, data) VALUES (:uuid, :data)",
+                paramMap = mapOf(
+                    "uuid" to søknadId,
+                    "data" to PGobject().apply {
+                        type = "jsonb"
+                        value = objectMapper.writeValueAsString(aktivitetslogg.toMap())
+                    }
+                )
+            )
+        )
+    }
+}
+
 internal class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
     lateinit var søknadDTO: PersonDTO.SøknadDTO
     lateinit var aktivitetslogg: Aktivitetslogg
@@ -224,7 +312,7 @@ internal class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         søknadId: UUID,
         ident: String,
         tilstand: Søknad.Tilstand,
-        dokument: Søknad.Dokument?,
+        journalpost: Søknad.Journalpost?,
         journalpostId: String?,
         innsendtTidspunkt: ZonedDateTime?,
         språk: Språk,
@@ -243,7 +331,7 @@ internal class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                 Søknad.Tilstand.Type.Journalført -> PersonDTO.SøknadDTO.TilstandDTO.Journalført
                 Søknad.Tilstand.Type.Slettet -> PersonDTO.SøknadDTO.TilstandDTO.Slettet
             },
-            dokumenter = dokument.toDokumentData(),
+            dokumenter = journalpost.toDokumentData(),
             journalpostId = journalpostId,
             innsendtTidspunkt = innsendtTidspunkt,
             språkDTO = PersonDTO.SøknadDTO.SpråkDTO(språk.verdi),
@@ -252,7 +340,7 @@ internal class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         )
     }
 
-    private fun Søknad.Dokument?.toDokumentData(): List<PersonDTO.SøknadDTO.DokumentDTO> {
+    private fun Søknad.Journalpost?.toDokumentData(): List<PersonDTO.SøknadDTO.DokumentDTO> {
         return this?.let { it.varianter.map { v -> PersonDTO.SøknadDTO.DokumentDTO(urn = v.urn) } }
             ?: emptyList()
     }

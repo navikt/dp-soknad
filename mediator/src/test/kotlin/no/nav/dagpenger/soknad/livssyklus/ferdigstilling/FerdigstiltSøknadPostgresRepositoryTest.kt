@@ -102,7 +102,7 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
             Søknad.rehydrer(
                 søknadId = søknadId,
                 ident = "12345678910",
-                dokument = Søknad.Dokument(varianter = emptyList()),
+                journalpost = Søknad.Journalpost(varianter = emptyList()),
                 journalpostId = "journalpostid",
                 innsendtTidspunkt = ZonedDateTime.now(),
                 språk = Språk(språkVerdi),

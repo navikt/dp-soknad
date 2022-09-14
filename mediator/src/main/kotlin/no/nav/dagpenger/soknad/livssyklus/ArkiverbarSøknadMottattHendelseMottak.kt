@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.ArkiverbarSøknad
 import no.nav.dagpenger.soknad.Søknad
-import no.nav.dagpenger.soknad.Søknad.Dokument.Variant
+import no.nav.dagpenger.soknad.Søknad.Journalpost.Variant
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -43,7 +43,7 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
             ArkiverbarSøknadMottattHendelse(
                 søknadID,
                 packet["ident"].asText(),
-                Søknad.Dokument(varianter = packet["@løsning"][behov].dokumentVarianter())
+                Søknad.Journalpost(varianter = packet["@løsning"][behov].dokumentVarianter())
             )
         logger.info { "Fått løsning for $behov for $søknadID" }
         mediator.behandle(arkiverbarSøknadMottattHendelse)

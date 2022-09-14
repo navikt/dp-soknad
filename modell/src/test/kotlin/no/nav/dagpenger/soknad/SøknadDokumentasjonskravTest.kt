@@ -153,7 +153,7 @@ internal class TestSøknadInspektør2(søknad: Søknad) : SøknadVisitor {
         søknadId: UUID,
         ident: String,
         tilstand: Søknad.Tilstand,
-        dokument: Søknad.Dokument?,
+        journalpost: Søknad.Journalpost?,
         journalpostId: String?,
         innsendtTidspunkt: ZonedDateTime?,
         språk: Språk,

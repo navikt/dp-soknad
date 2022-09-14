@@ -62,7 +62,7 @@ internal class DokumentasjonKravApiTest {
     private val søknad = Søknad.rehydrer(
         søknadId = testSoknadId,
         ident = defaultDummyFodselsnummer,
-        dokument = null,
+        journalpost = null,
         journalpostId = "journalpostid",
         innsendtTidspunkt = ZonedDateTime.now(),
         språk = Språk("NO"),

@@ -134,7 +134,7 @@ internal class VaktmesterRepositoryTest {
         Søknad.rehydrer(
             søknadId = journalførtSøknadId,
             ident = ident,
-            dokument = null,
+            journalpost = null,
             journalpostId = "journalpostid",
             innsendtTidspunkt = ZonedDateTime.now(),
             språk = språk,
@@ -148,7 +148,7 @@ internal class VaktmesterRepositoryTest {
         Søknad.rehydrer(
             søknadId = gammelPåbegyntSøknadId,
             ident = ident,
-            dokument = null,
+            journalpost = null,
             journalpostId = "1456",
             innsendtTidspunkt = ZonedDateTime.now(),
             språk = språk,
@@ -162,7 +162,7 @@ internal class VaktmesterRepositoryTest {
         Søknad.rehydrer(
             søknadId = nyPåbegyntSøknadId,
             ident = ident,
-            dokument = null,
+            journalpost = null,
             journalpostId = "1457",
             innsendtTidspunkt = null,
             språk = språk,

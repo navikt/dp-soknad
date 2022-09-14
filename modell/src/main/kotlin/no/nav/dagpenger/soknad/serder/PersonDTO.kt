@@ -38,7 +38,7 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
         fun rehydrer(): Søknad = Søknad.rehydrer(
             søknadId = this.søknadsId,
             ident = this.ident,
-            dokument = this.dokumenter.rehydrer(),
+            journalpost = this.dokumenter.rehydrer(),
             journalpostId = this.journalpostId,
             innsendtTidspunkt = this.innsendtTidspunkt,
             språk = this.språkDTO.rehydrer(),
@@ -52,11 +52,11 @@ class PersonDTO( // TODO: Verken Person eller Søknadhåndterer skal være rotag
             val urn: String
         ) {
             companion object {
-                fun List<DokumentDTO>.rehydrer(): Søknad.Dokument? {
+                fun List<DokumentDTO>.rehydrer(): Søknad.Journalpost? {
                     return if (this.isEmpty()) null else {
-                        Søknad.Dokument(
+                        Søknad.Journalpost(
                             varianter = this.map {
-                                Søknad.Dokument.Variant(
+                                Søknad.Journalpost.Variant(
                                     urn = it.urn,
                                     format = "ARKIV",
                                     type = "PDF"

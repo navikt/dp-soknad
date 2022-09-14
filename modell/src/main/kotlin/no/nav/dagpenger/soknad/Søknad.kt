@@ -24,8 +24,8 @@ class Søknad private constructor(
     private val søknadId: UUID,
     private val ident: String,
     private var tilstand: Tilstand,
-    // @todo: Endre navn fra dokument til journalføringer? (og liste)?
-    private var dokument: Dokument?,
+    // @todo: Endre navn fra journalpost til innsendinger? (og liste)?
+    private var journalpost: Journalpost?,
     private var journalpostId: String?,
     private var innsendtTidspunkt: ZonedDateTime?,
     private val språk: Språk,
@@ -39,7 +39,7 @@ class Søknad private constructor(
         søknadId = søknadId,
         ident = ident,
         tilstand = UnderOpprettelse,
-        dokument = null,
+        journalpost = null,
         journalpostId = null,
         innsendtTidspunkt = null,
         språk = språk,
@@ -60,7 +60,7 @@ class Søknad private constructor(
         fun rehydrer(
             søknadId: UUID,
             ident: String,
-            dokument: Dokument?,
+            journalpost: Journalpost?,
             journalpostId: String?,
             innsendtTidspunkt: ZonedDateTime?,
             språk: Språk,
@@ -82,7 +82,7 @@ class Søknad private constructor(
                 søknadId = søknadId,
                 ident = ident,
                 tilstand = tilstand,
-                dokument = dokument,
+                journalpost = journalpost,
                 journalpostId = journalpostId,
                 innsendtTidspunkt = innsendtTidspunkt,
                 språk = språk,
@@ -355,7 +355,7 @@ class Søknad private constructor(
         }
 
         override fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse, søknad: Søknad) {
-            søknad.dokument = arkiverbarSøknadMotattHendelse.dokument()
+            søknad.journalpost = arkiverbarSøknadMotattHendelse.dokument()
             søknad.endreTilstand(AvventerMidlertidligJournalføring, arkiverbarSøknadMotattHendelse)
         }
     }
@@ -398,7 +398,7 @@ class Søknad private constructor(
             søknadId = søknadId,
             ident = ident,
             tilstand = tilstand,
-            dokument = dokument,
+            journalpost = journalpost,
             journalpostId = journalpostId,
             innsendtTidspunkt = innsendtTidspunkt,
             språk = språk,
@@ -407,6 +407,7 @@ class Søknad private constructor(
         )
         tilstand.accept(visitor)
         aktivitetslogg.accept(visitor)
+        dokumentkrav.accept(visitor)
     }
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst =
@@ -417,7 +418,7 @@ class Søknad private constructor(
         hendelse.kontekst(tilstand)
     }
 
-    data class Dokument(
+    data class Journalpost(
         val brevkode: String = "NAV 04-01.04",
         val varianter: List<Variant>,
     ) {
@@ -429,7 +430,7 @@ class Søknad private constructor(
     }
 
     private fun trengerNyJournalpost(søknadHendelse: Hendelse) {
-        val dokument = requireNotNull(dokument) {
+        val dokument = requireNotNull(journalpost) {
             "Forventet at variabel dokumenter var satt. Er i tilstand: $tilstand"
         }
 
@@ -442,7 +443,7 @@ class Søknad private constructor(
 
     fun deepEquals(other: Any?): Boolean =
         other is Søknad && other.søknadId == this.søknadId &&
-            other.tilstand == this.tilstand && other.dokument == this.dokument &&
+            other.tilstand == this.tilstand && other.journalpost == this.journalpost &&
             other.journalpostId == this.journalpostId && this.dokumentkrav == other.dokumentkrav
 
     private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: Hendelse) {

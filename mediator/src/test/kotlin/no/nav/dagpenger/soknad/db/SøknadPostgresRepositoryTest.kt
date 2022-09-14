@@ -52,14 +52,14 @@ internal class SøknadPostgresRepositoryTest {
     val søknad = Søknad.rehydrer(
         søknadId = søknadId,
         ident = ident,
-        dokument = Søknad.Dokument(
+        journalpost = Søknad.Journalpost(
             varianter = listOf(
-                Søknad.Dokument.Variant(
+                Søknad.Journalpost.Variant(
                     urn = "urn:soknad:fil1",
                     format = "ARKIV",
                     type = "PDF"
                 ),
-                Søknad.Dokument.Variant(
+                Søknad.Journalpost.Variant(
                     urn = "urn:soknad:fil2",
                     format = "ARKIV",
                     type = "PDF"
@@ -84,14 +84,14 @@ internal class SøknadPostgresRepositoryTest {
         val søknad = Søknad.rehydrer(
             søknadId = søknadId,
             ident = ident,
-            dokument = Søknad.Dokument(
+            journalpost = Søknad.Journalpost(
                 varianter = listOf(
-                    Søknad.Dokument.Variant(
+                    Søknad.Journalpost.Variant(
                         urn = "urn:soknad:fil1",
                         format = "ARKIV",
                         type = "PDF"
                     ),
-                    Søknad.Dokument.Variant(
+                    Søknad.Journalpost.Variant(
                         urn = "urn:soknad:fil2",
                         format = "ARKIV",
                         type = "PDF"
@@ -313,7 +313,7 @@ internal class SøknadPostgresRepositoryTest {
                 søknadId: UUID,
                 ident: String,
                 tilstand: Søknad.Tilstand,
-                dokument: Søknad.Dokument?,
+                journalpost: Søknad.Journalpost?,
                 journalpostId: String?,
                 innsendtTidspunkt: ZonedDateTime?,
                 språk: Språk,

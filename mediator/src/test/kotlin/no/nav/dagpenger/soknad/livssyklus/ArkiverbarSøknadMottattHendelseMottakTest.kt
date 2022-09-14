@@ -30,12 +30,12 @@ internal class ArkiverbarSøknadMottattHendelseMottakTest {
         verify(exactly = 1) { mediatorMock.behandle(any() as ArkiverbarSøknadMottattHendelse) }
         assertEquals(
             listOf(
-                Søknad.Dokument.Variant(
+                Søknad.Journalpost.Variant(
                     urn = "urn:vedlegg:soknadId/netto.pdf",
                     format = "ARKIV",
                     type = "PDF"
                 ),
-                Søknad.Dokument.Variant(
+                Søknad.Journalpost.Variant(
                     urn = "urn:vedlegg:soknadId/brutto.pdf",
                     format = "FULLVERSJON",
                     type = "PDF"

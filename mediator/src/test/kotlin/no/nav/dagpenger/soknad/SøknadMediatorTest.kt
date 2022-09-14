@@ -118,7 +118,7 @@ internal class SøknadMediatorTest {
             arkiverbarsøknadLøsning(
                 testIdent,
                 søknadId(),
-                Søknad.Dokument(varianter = emptyList())
+                Søknad.Journalpost(varianter = emptyList())
             )
         )
         assertEquals(AvventerMidlertidligJournalføring, oppdatertInspektør().gjeldendetilstand)
@@ -244,7 +244,7 @@ internal class SøknadMediatorTest {
     """.trimMargin()
 
     // language=JSON
-    private fun arkiverbarsøknadLøsning(ident: String, søknadUuid: String, dokument: Søknad.Dokument) = """
+    private fun arkiverbarsøknadLøsning(ident: String, søknadUuid: String, journalpost: Søknad.Journalpost) = """
     {
       "@event_name": "behov",
       "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
@@ -264,7 +264,7 @@ internal class SøknadMediatorTest {
         }
       ],
       "@løsning": {
-        "ArkiverbarSøknad": "$dokument"
+        "ArkiverbarSøknad": "$journalpost"
       }
 }
     """.trimMargin()

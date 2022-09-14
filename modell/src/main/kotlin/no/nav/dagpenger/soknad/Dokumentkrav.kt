@@ -61,13 +61,19 @@ class Dokumentkrav private constructor(
             this.aktiveDokumentKrav().find { it.id == hendelse.kravId }
                 ?: hendelse.severe("Fant ikke Dokumentasjonskrav id")
             )
+
+    fun accept(dokumentkravVisitor: DokumentkravVisitor) {
+        dokumentkravVisitor.preVisitDokumentkrav()
+        krav.forEach { it.accept(dokumentkravVisitor) }
+        dokumentkravVisitor.postVisitDokumentkrav()
+    }
 }
 
 data class Krav(
     val id: String,
     val svar: Svar,
     val sannsynliggjøring: Sannsynliggjøring,
-    internal var tilstand: KravTilstand
+    var tilstand: KravTilstand
 ) {
     companion object {
         fun aktive(): (Krav) -> Boolean = { it.tilstand == KravTilstand.AKTIV }
@@ -86,6 +92,10 @@ data class Krav(
     fun håndter(dokumentasjonIkkeTilgjengelig: DokumentasjonIkkeTilgjengelig) {
         this.svar.valg = dokumentasjonIkkeTilgjengelig.valg
         this.svar.begrunnelse = dokumentasjonIkkeTilgjengelig.begrunnelse
+    }
+
+    fun accept(dokumentkravVisitor: DokumentkravVisitor) {
+        dokumentkravVisitor.visitKrav(this)
     }
 
     constructor(sannsynliggjøring: Sannsynliggjøring) : this(

@@ -8,12 +8,18 @@ interface TilstandVisitor {
     fun visitTilstand(tilstand: Tilstand.Type) {}
 }
 
-interface SøknadVisitor : TilstandVisitor, AktivitetsloggVisitor {
+interface DokumentkravVisitor {
+    fun preVisitDokumentkrav() {}
+    fun visitKrav(krav: Krav) {}
+    fun postVisitDokumentkrav() {}
+}
+
+interface SøknadVisitor : TilstandVisitor, AktivitetsloggVisitor, DokumentkravVisitor {
     fun visitSøknad(
         søknadId: UUID,
         ident: String,
         tilstand: Tilstand,
-        dokument: Søknad.Dokument?,
+        journalpost: Søknad.Journalpost?,
         journalpostId: String?,
         innsendtTidspunkt: ZonedDateTime?,
         språk: Språk,
