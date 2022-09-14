@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import de.slub.urn.URN
 import kotliquery.Query
+import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
@@ -18,14 +19,15 @@ import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.livssyklus.PåbegyntSøknad
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
+import no.nav.dagpenger.soknad.serder.AktivitetsloggDTO
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
-import no.nav.dagpenger.soknad.serder.PersonDTO
-import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentDTO
-import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO
-import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.KravDTO.KravTilstandDTO
-import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.SannsynliggjøringDTO
-import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.SvarDTO
-import no.nav.dagpenger.soknad.serder.PersonDTO.SøknadDTO.DokumentkravDTO.SvarDTO.SvarValgDTO
+import no.nav.dagpenger.soknad.serder.SøknadDTO
+import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentDTO
+import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.KravDTO
+import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.KravDTO.KravTilstandDTO
+import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SannsynliggjøringDTO
+import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SvarDTO
+import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SvarDTO.SvarValgDTO
 import no.nav.dagpenger.soknad.toMap
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import no.nav.helse.rapids_rivers.asLocalDateTime
@@ -51,24 +53,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                     paramMap = mapOf(
                         "uuid" to søknadId.toString()
                     )
-                ).map { row ->
-                    val søknadsId = UUID.fromString(row.string("uuid"))
-                    PersonDTO.SøknadDTO(
-                        søknadsId = søknadsId,
-                        ident = ident,
-                        tilstandType = PersonDTO.SøknadDTO.TilstandDTO.rehydrer(row.string("tilstand")),
-                        dokumenter = session.hentDokumentData(søknadsId),
-                        journalpostId = row.stringOrNull("journalpost_id"),
-                        innsendtTidspunkt = row.zonedDateTimeOrNull("innsendt_tidspunkt"),
-                        språkDTO = PersonDTO.SøknadDTO.SpråkDTO(row.string("spraak")),
-                        dokumentkrav = PersonDTO.SøknadDTO.DokumentkravDTO(
-                            session.hentDokumentKrav(søknadsId)
-                        ),
-                        sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")
-                    ).also {
-                        it.aktivitetslogg = session.hentAktivitetslogg(søknadsId)
-                    }
-                }.asSingle
+                ).map(rowToSøknadDTO(ident, session)).asSingle
             )?.rehydrer()
         }
     }
@@ -86,27 +71,31 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                     paramMap = mapOf(
                         "ident" to ident
                     )
-                ).map { row ->
-                    // TODO: Fjern duplisering fra hent()
-                    val søknadsId = UUID.fromString(row.string("uuid"))
-                    PersonDTO.SøknadDTO(
-                        søknadsId = søknadsId,
-                        ident = ident,
-                        tilstandType = PersonDTO.SøknadDTO.TilstandDTO.rehydrer(row.string("tilstand")),
-                        dokumenter = session.hentDokumentData(søknadsId),
-                        journalpostId = row.stringOrNull("journalpost_id"),
-                        innsendtTidspunkt = row.zonedDateTimeOrNull("innsendt_tidspunkt"),
-                        språkDTO = PersonDTO.SøknadDTO.SpråkDTO(row.string("spraak")),
-                        dokumentkrav = PersonDTO.SøknadDTO.DokumentkravDTO(
-                            session.hentDokumentKrav(søknadsId)
-                        ),
-                        sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")
-                    ).also {
-                        it.aktivitetslogg = session.hentAktivitetslogg(søknadsId)
-                    }
-                }.asList
+                ).map(rowToSøknadDTO(ident, session)).asList
             ).map { it.rehydrer() }.toSet()
         }
+    }
+
+    private fun rowToSøknadDTO(
+        ident: String,
+        session: Session
+    ) = { row: Row ->
+        // TODO: Fjern duplisering fra hent()
+        val søknadsId = UUID.fromString(row.string("uuid"))
+        SøknadDTO(
+            søknadsId = søknadsId,
+            ident = ident,
+            tilstandType = SøknadDTO.TilstandDTO.rehydrer(row.string("tilstand")),
+            dokumenter = session.hentDokumentData(søknadsId),
+            journalpostId = row.stringOrNull("journalpost_id"),
+            innsendtTidspunkt = row.zonedDateTimeOrNull("innsendt_tidspunkt"),
+            språkDTO = SøknadDTO.SpråkDTO(row.string("spraak")),
+            dokumentkrav = SøknadDTO.DokumentkravDTO(
+                session.hentDokumentKrav(søknadsId)
+            ),
+            sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker"),
+            aktivitetslogg = session.hentAktivitetslogg(søknadsId)
+        )
     }
 
     override fun lagre(søknad: Søknad) {
@@ -144,7 +133,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
     }
 }
 
-internal fun Session.hentAktivitetslogg(søknadId: UUID): PersonDTO.AktivitetsloggDTO? = run(
+internal fun Session.hentAktivitetslogg(søknadId: UUID): AktivitetsloggDTO? = run(
     queryOf(
         //language=PostgreSQL
         """

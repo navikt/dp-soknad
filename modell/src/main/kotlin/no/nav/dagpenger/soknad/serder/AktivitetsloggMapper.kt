@@ -27,7 +27,7 @@ class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .build()
 
-        fun InputStream.aktivitetslogg(): PersonDTO.AktivitetsloggDTO = jacksonJsonAdapter.readValue(this, PersonDTO.AktivitetsloggDTO::class.java)
+        fun InputStream.aktivitetslogg(): AktivitetsloggDTO = jacksonJsonAdapter.readValue(this, AktivitetsloggDTO::class.java)
     }
 
     private val aktiviteter = Aktivitetslogginspektør(aktivitetslogg).aktiviteter
