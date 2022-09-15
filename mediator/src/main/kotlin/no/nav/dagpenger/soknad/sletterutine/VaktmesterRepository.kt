@@ -29,7 +29,6 @@ internal class VaktmesterPostgresRepository(
                 logger.info { "Starter slettejobb" }
                 session.transaction { transactionalSession ->
                     val søknaderSomSkalSlettes = hentPåbegynteSøknaderUendretSiden(antallDager, transactionalSession)
-                    logger.info("Antall søknader som skal slettes: ${søknaderSomSkalSlettes.size}")
 
                     søknaderSomSkalSlettes.forEach { søknad ->
                         emitSlettSøknadEvent(søknad)
@@ -47,7 +46,7 @@ internal class VaktmesterPostgresRepository(
         søknadMediator.behandle(SlettSøknadHendelse(søknad.søknadUuid, søknad.eier))
 
     private fun hentPåbegynteSøknaderUendretSiden(antallDager: Int, transactionalSession: TransactionalSession) =
-        transactionalSession.run(
+        transactionalSession.run( // TODO: Spørringen fører til en full sequential scan, få på noe indeks
             //language=PostgreSQL
             queryOf(
                 """
@@ -70,6 +69,7 @@ internal class VaktmesterPostgresRepository(
 
     private fun slettSøknader(søknadUuider: List<SøknadTilSletting>, transactionalSession: TransactionalSession): List<Int> {
         val iderTilSletting = søknadUuider.map { listOf(it.søknadUuid.toString()) }
+        logger.info { "Forsøker å slette ${iderTilSletting.size} søknader. SøknadUUIDer: $iderTilSletting" }
         val raderSlettet = transactionalSession.batchPreparedStatement(
             //language=PostgreSQL
             "DELETE FROM soknad_v1 WHERE uuid =?", iderTilSletting
