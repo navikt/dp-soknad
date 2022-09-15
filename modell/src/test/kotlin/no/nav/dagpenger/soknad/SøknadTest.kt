@@ -7,14 +7,13 @@ import no.nav.dagpenger.soknad.Søknad.Journalpost.Variant
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerArkiverbarSøknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerJournalføring
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerMidlertidligJournalføring
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Ferdigstill
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
-import no.nav.dagpenger.soknad.hendelse.DokumentasjonkravFerdigstilt
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
@@ -96,34 +95,15 @@ internal class SøknadTest {
         assertThrows<AktivitetException>("Alle dokumentkrav må være besvart") { håndterSendInnSøknad() }
 
         håndterLeggtilFil("3", "urn:sid:3")
+
+        håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:3")
+        håndterDokumentkravSammenstilling(kravId = "3", urn = "urn:sid:3")
+
         val hendelse = håndterSendInnSøknad()
 
-        assertBehov(
-            Behovtype.Ferdigstill,
-            mapOf(
-                "krav" to mapOf(
-                    "1" to listOf("urn:sid:1", "urn:sid:2"),
-                    "3" to listOf("urn:sid:3")
-                ),
-                "søknad_uuid" to inspektør.søknadId.toString(),
-                "ident" to testIdent
-            )
-        )
-
-        håndterFerdigstill(kravId = "1", urn = "urn:sid:3")
-
         assertTilstander(
             UnderOpprettelse,
             Påbegynt,
-            Ferdigstill
-        )
-
-        håndterFerdigstill("3", "urn:sid:4")
-
-        assertTilstander(
-            UnderOpprettelse,
-            Påbegynt,
-            Ferdigstill,
             AvventerArkiverbarSøknad
         )
 
@@ -158,7 +138,6 @@ internal class SøknadTest {
         assertTilstander(
             UnderOpprettelse,
             Påbegynt,
-            Ferdigstill,
             AvventerArkiverbarSøknad,
             AvventerMidlertidligJournalføring,
             AvventerJournalføring,
@@ -254,12 +233,12 @@ internal class SøknadTest {
         søknad.håndter(hendelse)
     }
 
-    private fun håndterFerdigstill(kravId: String, urn: String) {
-        val hendelse = DokumentasjonkravFerdigstilt(
+    private fun håndterDokumentkravSammenstilling(kravId: String, urn: String) {
+        val hendelse = DokumentKravSammenstilling(
             inspektør.søknadId,
             testIdent,
             kravId = kravId,
-            ferdigstiltURN = URN.rfc8141().parse(urn)
+            urn = URN.rfc8141().parse(urn)
         )
 
         søknad.håndter(hendelse)

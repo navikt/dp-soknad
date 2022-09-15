@@ -6,11 +6,10 @@ import no.nav.dagpenger.soknad.Krav.Companion.aktive
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.IKKE_BESVART
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SEND_NÅ
 import no.nav.dagpenger.soknad.hendelse.DokumentKravHendelse
+import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
-import no.nav.dagpenger.soknad.hendelse.DokumentasjonkravFerdigstilt
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
-import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import java.time.ZonedDateTime
 
 class Dokumentkrav private constructor(
@@ -34,20 +33,6 @@ class Dokumentkrav private constructor(
             }
         )
     }
-
-    fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
-
-        val filer = uKomplette().associate { krav -> krav.id to krav.svar.filer.map { it.urn.toString() } }
-        søknadInnsendtHendelse.behov(
-            type = Aktivitetslogg.Aktivitet.Behov.Behovtype.Ferdigstill,
-            melding = "Trenger å bundle dokumentkrav filer",
-            mapOf(
-                "krav" to filer
-            )
-        )
-    }
-
-    private fun uKomplette() = aktiveDokumentKrav().filterNot { it.ferdigStilt() }.toSet()
 
     fun håndter(hendelse: LeggTilFil) {
         val krav = hentKrav(hendelse)
@@ -79,7 +64,7 @@ class Dokumentkrav private constructor(
                 ?: hendelse.severe("Fant ikke Dokumentasjonskrav id")
             )
 
-    fun håndter(hendelse: DokumentasjonkravFerdigstilt) {
+    fun håndter(hendelse: DokumentKravSammenstilling) {
         val krav = hentKrav(hendelse)
         krav.håndter(hendelse)
     }
@@ -122,20 +107,8 @@ data class Krav(
             }
         }
 
-    fun håndter(dokumentasjonIkkeTilgjengelig: DokumentasjonIkkeTilgjengelig) {
-        this.svar.valg = dokumentasjonIkkeTilgjengelig.valg
-        this.svar.begrunnelse = dokumentasjonIkkeTilgjengelig.begrunnelse
-    }
-
-    fun håndter(hendelse: DokumentasjonkravFerdigstilt) {
-        this.svar.bundle = Fil(
-            "ferdigstilt.pdf",
-            hendelse.ferdigstiltURN,
-            0,
-            ZonedDateTime.now()
-
-        )
-        // @todo: Ta var på ferdigstilt urn og besvare quiz med urn'en
+    fun håndter(hendelse: DokumentKravSammenstilling) {
+        this.svar.bundle = hendelse.urn()
     }
 
     fun accept(dokumentkravVisitor: DokumentkravVisitor) {
@@ -154,7 +127,7 @@ data class Krav(
         val filer: MutableSet<Fil> = mutableSetOf(),
         var valg: SvarValg,
         var begrunnelse: String?,
-        var bundle: Fil?
+        var bundle: URN?
     ) {
 
         internal constructor() : this(filer = mutableSetOf(), valg = IKKE_BESVART, begrunnelse = null, bundle = null)
@@ -195,7 +168,7 @@ data class Krav(
             fun ferdigStilt(svar: Svar): Boolean
 
             object FilSvar : TilstandStrategy {
-                override fun besvart(svar: Svar): Boolean = svar.filer.size > 0
+                override fun besvart(svar: Svar): Boolean = svar.filer.size > 0 && svar.bundle != null
                 override fun ferdigStilt(svar: Svar): Boolean = besvart(svar) && svar.bundle != null
             }
 

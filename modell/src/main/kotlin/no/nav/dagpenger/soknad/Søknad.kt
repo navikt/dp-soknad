@@ -3,8 +3,8 @@ package no.nav.dagpenger.soknad
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.SøknadObserver.SøknadSlettetEvent
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
-import no.nav.dagpenger.soknad.hendelse.DokumentasjonkravFerdigstilt
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
@@ -77,7 +77,6 @@ class Søknad private constructor(
                 Tilstand.Type.AvventerMidlertidligJournalføring -> AvventerMidlertidligJournalføring
                 Tilstand.Type.AvventerJournalføring -> AvventerJournalføring
                 Tilstand.Type.Journalført -> Journalført
-                Tilstand.Type.Ferdigstill -> Ferdigstill
                 Tilstand.Type.Slettet -> throw IllegalArgumentException("Kan ikke rehydrere slettet søknad med id $søknadId")
             }
             return Søknad(
@@ -184,7 +183,7 @@ class Søknad private constructor(
         tilstand.håndter(slettFil, this)
     }
 
-    fun håndter(hendelse: DokumentasjonkravFerdigstilt) {
+    fun håndter(hendelse: DokumentKravSammenstilling) {
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
     }
@@ -245,7 +244,7 @@ class Søknad private constructor(
             slettFil.`kan ikke håndteres i denne tilstanden`()
         }
 
-        fun håndter(hendelse: DokumentasjonkravFerdigstilt, søknad: Søknad) {
+        fun håndter(hendelse: DokumentKravSammenstilling, søknad: Søknad) {
             hendelse.`kan ikke håndteres i denne tilstanden`()
         }
 
@@ -261,6 +260,7 @@ class Søknad private constructor(
         fun accept(visitor: TilstandVisitor) {
             visitor.visitTilstand(tilstandType)
         }
+
         enum class Type {
             UnderOpprettelse,
             Påbegynt,
@@ -268,8 +268,7 @@ class Søknad private constructor(
             AvventerMidlertidligJournalføring,
             AvventerJournalføring,
             Journalført,
-            Slettet,
-            Ferdigstill
+            Slettet
         }
     }
 
@@ -300,8 +299,7 @@ class Søknad private constructor(
             søknad.innsendtTidspunkt = søknadInnsendtHendelse.innsendtidspunkt()
             if (søknad.dokumentkrav.ingen()) return søknad.endreTilstand(AvventerArkiverbarSøknad, søknadInnsendtHendelse)
             if (søknad.dokumentkrav.ferdigBesvart()) {
-                søknad.dokumentkrav.håndter(søknadInnsendtHendelse)
-                søknad.endreTilstand(Ferdigstill, søknadInnsendtHendelse)
+                søknad.endreTilstand(AvventerArkiverbarSøknad, søknadInnsendtHendelse)
             } else {
                 // @todo: Oversette validringsfeil til frontend. Mulig lage et eller annet som frontend kan tolke
                 søknadInnsendtHendelse.severe("Alle dokumentkrav må være besvart")
@@ -334,17 +332,9 @@ class Søknad private constructor(
         override fun håndter(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
             søknad.endreTilstand(Slettet, slettSøknadHendelse)
         }
-    }
 
-    private object Ferdigstill : Tilstand {
-        override val tilstandType: Tilstand.Type
-            get() = Tilstand.Type.Ferdigstill
-
-        override fun håndter(hendelse: DokumentasjonkravFerdigstilt, søknad: Søknad) {
-            søknad.dokumentkrav.håndter(hendelse)
-            if (søknad.dokumentkrav.ferdigstilt()) {
-                søknad.endreTilstand(AvventerArkiverbarSøknad, hendelse)
-            }
+        override fun håndter(dokumentKravSammenstilling: DokumentKravSammenstilling, søknad: Søknad) {
+            søknad.dokumentkrav.håndter(dokumentKravSammenstilling)
         }
     }
 
