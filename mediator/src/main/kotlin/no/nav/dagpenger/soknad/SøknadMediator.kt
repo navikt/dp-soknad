@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad
 
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
@@ -136,6 +137,12 @@ internal class SøknadMediator(
         }
     }
 
+    fun behandle(hendelse: DokumentKravSammenstilling) {
+        behandle(hendelse) { søknad ->
+            søknad.håndter(hendelse)
+        }
+    }
+
     internal fun hentEllerOpprettSøknadsprosess(
         ident: String,
         språk: String,
@@ -145,6 +152,7 @@ internal class SøknadMediator(
             Prosesstype.Søknad -> Søknadsprosess.NySøknadsProsess().also {
                 behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident, språk))
             }
+
             Prosesstype.Innsending -> Søknadsprosess.NySøknadsProsess().also {
                 behandle(ØnskeOmNyInnsendingHendelse(it.getSøknadsId(), ident, språk))
             }

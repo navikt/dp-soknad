@@ -30,6 +30,7 @@ import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.soknad.TestApplication.mockedSøknadApi
 import no.nav.dagpenger.soknad.faktumJson
+import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
@@ -192,7 +193,7 @@ internal class DokumentasjonKravApiTest {
     }
 
     @Test
-    fun `Skal kunne besvare`() {
+    fun `Skal kunne besvare med fil`() {
 
         val slot = slot<LeggTilFil>()
         val tidspunkt = ZonedDateTime.now()
@@ -235,6 +236,41 @@ internal class DokumentasjonKravApiTest {
                         ),
                         this.fil
                     )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `skal kunne besvare dokumentkrav med bundle URN`() {
+        val slot = slot<DokumentKravSammenstilling>()
+        val mediatorMock = mockk<SøknadMediator>().also {
+            every { it.behandle(capture(slot)) } just Runs
+        }
+
+        TestApplication.withMockAuthServerAndTestApplication(
+            mockedSøknadApi(
+                søknadMediator = mediatorMock
+            )
+        ) {
+            client.put("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451/bundle") {
+                autentisert()
+                header(HttpHeaders.ContentType, "application/json")
+                // language=JSON
+                setBody(
+                    """{
+                        "urn": "urn:bundle:1"
+                        }"""
+                )
+            }.let { response ->
+                assertEquals(HttpStatusCode.Created, response.status)
+                assertTrue(slot.isCaptured)
+
+                with(slot.captured) {
+                    assertEquals("451", this.kravId)
+                    assertEquals(testSoknadId, this.søknadID())
+                    assertEquals(defaultDummyFodselsnummer, this.ident())
+                    assertEquals("urn:bundle:1", this.urn().toString())
                 }
             }
         }

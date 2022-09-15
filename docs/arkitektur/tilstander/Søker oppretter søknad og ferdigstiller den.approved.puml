@@ -4,8 +4,7 @@ Søknadsflyt – flyt for Søker oppretter søknad og ferdigstiller den
 end title           
 [*]-->UnderOpprettelse 
 UnderOpprettelse --> Påbegynt
-Påbegynt --> Ferdigstill
-Ferdigstill --> AvventerArkiverbarSøknad
+Påbegynt --> AvventerArkiverbarSøknad
 AvventerArkiverbarSøknad --> AvventerMidlertidligJournalføring
 AvventerMidlertidligJournalføring --> AvventerJournalføring
 AvventerJournalføring --> Journalført
