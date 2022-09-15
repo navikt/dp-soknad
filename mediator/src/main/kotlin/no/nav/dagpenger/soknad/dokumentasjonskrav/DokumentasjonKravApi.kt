@@ -22,6 +22,7 @@ import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.SøknadVisitor
+import no.nav.dagpenger.soknad.dokumentasjonskrav.ApiDokumentkravResponse.Companion.toApiKrav
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
@@ -184,7 +185,9 @@ private class ApiDokumentkravResponse(
                         storrelse = fil.storrelse,
                         tidspunkt = fil.tidspunkt
                     )
-                }
+                },
+                svar = it.svar.valg.fraSvarValg(),
+                begrunnelse = it.svar.begrunnelse
             )
         }
     }
@@ -197,7 +200,7 @@ data class ApiDokumentKrav(
     val filer: List<ApiDokumentkravFiler>,
     val gyldigeValg: Set<GyldigValg> = GyldigValg.values().toSet(),
     val begrunnelse: String? = null,
-    val svar: String? = null
+    val svar: GyldigValg? = null
 ) {
     data class ApiDokumentkravFiler(
         val filnavn: String,
@@ -230,4 +233,12 @@ enum class GyldigValg {
         SENDER_IKKE -> Krav.Svar.SvarValg.SENDER_IKKE
         ANDRE_SENDER -> Krav.Svar.SvarValg.ANDRE_SENDER
     }
+}
+private fun Krav.Svar.SvarValg.fraSvarValg(): GyldigValg? = when (this) {
+    Krav.Svar.SvarValg.IKKE_BESVART -> null
+    Krav.Svar.SvarValg.SEND_NÅ -> GyldigValg.SEND_NAA
+    Krav.Svar.SvarValg.SEND_SENERE -> GyldigValg.SEND_SENERE
+    Krav.Svar.SvarValg.ANDRE_SENDER -> GyldigValg.ANDRE_SENDER
+    Krav.Svar.SvarValg.SEND_TIDLIGERE -> GyldigValg.SENDT_TIDLIGERE
+    Krav.Svar.SvarValg.SENDER_IKKE -> GyldigValg.SENDER_IKKE
 }
