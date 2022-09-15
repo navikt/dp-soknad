@@ -9,7 +9,7 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestSøkerOppgave
@@ -152,7 +152,7 @@ internal class VaktmesterRepositoryTest {
             språk = språk,
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
-            tilstandsType = Journalført,
+            tilstandsType = Innsendt,
             aktivitetslogg = Aktivitetslogg()
         )
 

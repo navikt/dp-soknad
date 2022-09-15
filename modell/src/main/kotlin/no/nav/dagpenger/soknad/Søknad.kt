@@ -306,7 +306,6 @@ class Søknad private constructor(
                 it.håndter(søknadInnsendtHendelse)
             }
             søknad.endreTilstand(Innsendt, søknadInnsendtHendelse)
-
         }
 
         override fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse, søknad: Søknad) {
@@ -349,7 +348,6 @@ class Søknad private constructor(
             innsending(søknad).håndter(hendelse)
         }
 
-
         override fun håndter(
             hendelse: SøknadMidlertidigJournalførtHendelse,
             søknad: Søknad
@@ -372,7 +370,6 @@ class Søknad private constructor(
 
         private fun innsending(søknad: Søknad) =
             requireNotNull(søknad.innsending) { "Forventet at innsending er laget i tilstand $tilstandType" }
-
     }
 
     private object Slettet : Tilstand {
@@ -383,7 +380,6 @@ class Søknad private constructor(
             søknad.slettet(søknad.ident)
         }
     }
-
 
     private fun håndter(nyeSannsynliggjøringer: Set<Sannsynliggjøring>) {
         this.dokumentkrav.håndter(nyeSannsynliggjøringer)

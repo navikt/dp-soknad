@@ -25,7 +25,8 @@ internal class Innsending private constructor(
 
         fun ettersending(innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) =
             Innsending(
-                InnsendingType.ETTERSENDING_TIL_DIALOG, innsendt, dokumentkrav)
+                InnsendingType.ETTERSENDING_TIL_DIALOG, innsendt, dokumentkrav
+            )
     }
 
     private constructor(type: InnsendingType, innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) : this(
@@ -57,12 +58,10 @@ internal class Innsending private constructor(
         tilstand.håndter(hendelse, this)
     }
 
-
     fun håndter(hendelse: SøknadMidlertidigJournalførtHendelse) {
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
     }
-
 
     fun håndter(hendelse: JournalførtHendelse) {
         kontekst(hendelse)
@@ -191,5 +190,4 @@ internal class Innsending private constructor(
         søknadHendelse.kontekst(tilstand)
         tilstand.entering(søknadHendelse, this)
     }
-
 }

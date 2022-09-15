@@ -5,14 +5,9 @@ import io.mockk.mockk
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerArkiverbarSøknad
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerJournalføring
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerMidlertidligJournalføring
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
-import no.nav.dagpenger.soknad.Søknadsprosess.NySøknadsProsess
-import no.nav.dagpenger.soknad.Søknadsprosess.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
@@ -28,10 +23,8 @@ import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.rapids_rivers.toUUID
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -65,32 +58,6 @@ internal class SøknadMediatorTest {
     }
 
     @Test
-    @Disabled("Skrudde av uthenting av påbegynte søknad og fortsette med det. Vi må løse opp i migrering til nye versjoner i quiz.")
-    fun `Skal håndtere ønske om ny søknad når det finnes en påbegynt søknad`() {
-        val testident2 = "12346578910"
-        val expectedSøknadsId = mediator.hentEllerOpprettSøknadsprosess(testident2, språkVerdi).also {
-            assertTrue(it is NySøknadsProsess)
-        }.getSøknadsId()
-
-        assertEquals(1, testRapid.inspektør.size)
-        assertEquals(listOf("NySøknad"), behov(0))
-        assertEquals(UnderOpprettelse, oppdatertInspektør(testident2).gjeldendetilstand)
-
-        testRapid.sendTestMessage(nySøknadBehovsløsning(søknadId(testident2), testident2))
-        assertEquals(Påbegynt, oppdatertInspektør(testident2).gjeldendetilstand)
-
-        mediator.hentEllerOpprettSøknadsprosess(testident2, språkVerdi).also {
-            assertTrue(it is PåbegyntSøknadsProsess)
-            assertEquals(expectedSøknadsId.toString(), it.getSøknadsId().toString())
-        }
-        assertEquals(1, testRapid.inspektør.size)
-
-        mediator.behandle(SøknadInnsendtHendelse(UUID.fromString(søknadId(testident2)), testident2))
-        assertEquals(AvventerArkiverbarSøknad, oppdatertInspektør(testident2).gjeldendetilstand)
-        assertEquals(listOf("ArkiverbarSøknad"), behov(1))
-    }
-
-    @Test
     fun `Søknaden går gjennom livssyklusen med alle tilstander`() {
         val søknadUuid = UUID.randomUUID()
         mediator.behandle(ØnskeOmNySøknadHendelse(søknadUuid, testIdent, språkVerdi))
@@ -110,8 +77,8 @@ internal class SøknadMediatorTest {
         testRapid.sendTestMessage(ferdigSøkerOppgave(søknadUuid.toString().toUUID(), testIdent))
         mediator.behandle(SøknadInnsendtHendelse(søknadUuid, testIdent))
 
-        assertEquals(AvventerArkiverbarSøknad, oppdatertInspektør().gjeldendetilstand)
-        assertNotNull(oppdatertInspektør().innsendtTidspunkt)
+        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
+        // assertNotNull(oppdatertInspektør().innsendtTidspunkt)
         assertEquals(listOf("ArkiverbarSøknad"), behov(2))
 
         testRapid.sendTestMessage(
@@ -121,7 +88,7 @@ internal class SøknadMediatorTest {
                 Søknad.Journalpost(varianter = emptyList())
             )
         )
-        assertEquals(AvventerMidlertidligJournalføring, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
         assertEquals(listOf("NyJournalpost"), behov(3))
 
         testRapid.sendTestMessage(
@@ -131,7 +98,7 @@ internal class SøknadMediatorTest {
                 journalpostId = testJournalpostId
             )
         )
-        assertEquals(AvventerJournalføring, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
 
         testRapid.sendTestMessage(
             søknadJournalførtHendelse(
@@ -140,7 +107,7 @@ internal class SøknadMediatorTest {
                 journalpostId = testJournalpostId
             )
         )
-        assertEquals(Journalført, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
         // Verifiserer at aktivitetsloggen blir lagret per søknad
         assertAntallRader("aktivitetslogg_v3", 1)
         // Verifiser at det er mulig å hente en komplett aktivitetslogg
@@ -179,7 +146,7 @@ internal class SøknadMediatorTest {
     private fun behov(indeks: Int) = testRapid.inspektør.message(indeks)["@behov"].map { it.asText() }
 
     private fun oppdatertInspektør(ident: String = testIdent) =
-        TestSøknadhåndtererInspektør(mediator.hentSøknader(ident)!!.first())
+        TestSøknadhåndtererInspektør(mediator.hentSøknader(ident).first())
 
     // language=JSON
     private fun søkerOppgave(søknadUuid: UUID, ident: String) = """{

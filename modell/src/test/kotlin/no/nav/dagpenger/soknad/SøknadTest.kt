@@ -125,7 +125,6 @@ internal class SøknadTest {
                 )
             )
 
-
         assertBehov(
             Behovtype.NyJournalpost,
             mapOf(

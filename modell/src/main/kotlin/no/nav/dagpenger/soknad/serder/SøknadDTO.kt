@@ -210,11 +210,13 @@ class SøknadDTO(
     enum class TilstandDTO {
         UnderOpprettelse,
         Påbegynt,
+        Innsendt,
         Slettet;
 
         fun rehydrer(): Søknad.Tilstand.Type = when (this) {
             UnderOpprettelse -> Søknad.Tilstand.Type.UnderOpprettelse
             Påbegynt -> Søknad.Tilstand.Type.Påbegynt
+            Innsendt -> Søknad.Tilstand.Type.Innsendt
             Slettet -> Søknad.Tilstand.Type.Slettet
         }
 

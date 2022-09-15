@@ -105,7 +105,7 @@ internal class SøknadPostgresRepositoryTest {
                 krav = setOf(krav)
             ),
             sistEndretAvBruker = ZonedDateTime.now().minusDays(1),
-            tilstandsType = Søknad.Tilstand.Type.Journalført,
+            tilstandsType = Søknad.Tilstand.Type.Påbegynt,
             aktivitetslogg = Aktivitetslogg()
         )
 
