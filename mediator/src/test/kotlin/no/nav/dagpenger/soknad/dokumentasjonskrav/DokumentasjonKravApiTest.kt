@@ -55,8 +55,15 @@ internal class DokumentasjonKravApiTest {
         faktum = dokumentFaktum,
         sannsynliggjør = faktaSomSannsynliggjøres
     )
+    private val fil = Krav.Fil(
+        "test.jpg",
+        URN.rfc8141().parse("urn:nav:1"),
+        89900,
+        ZonedDateTime.now()
+    )
     private val dokumentKrav = Dokumentkrav().also {
         it.håndter(setOf(sannsynliggjøring))
+        it.håndter(LeggTilFil(testSoknadId, defaultDummyFodselsnummer, "1", fil))
     }
 
     private val søknad = Søknad.rehydrer(
@@ -107,6 +114,12 @@ internal class DokumentasjonKravApiTest {
                     assertNotNull(this["id"])
                     assertNotNull(this["beskrivendeId"])
                     assertNotNull(this["filer"])
+                    with(this["filer"].first()) {
+                        assertEquals(fil.filnavn, this["filnavn"].asText())
+                        assertEquals(fil.urn.toString(), this["urn"].asText())
+                        assertEquals(fil.storrelse, this["storrelse"].asLong())
+                        assertEquals(fil.tidspunkt.toOffsetDateTime(), ZonedDateTime.parse(this["tidspunkt"].asText()).toOffsetDateTime())
+                    }
                     assertNotNull(this["gyldigeValg"])
                     assertNotNull(this["begrunnelse"])
                     assertNotNull(this["svar"])

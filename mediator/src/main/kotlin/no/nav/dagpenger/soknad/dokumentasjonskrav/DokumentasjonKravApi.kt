@@ -148,7 +148,14 @@ private class ApiDokumentkravResponse(
                 id = it.id,
                 beskrivendeId = it.beskrivendeId,
                 fakta = it.fakta.fold(objectMapper.createArrayNode()) { acc, faktum -> acc.add(faktum.json) },
-                filer = emptyList()
+                filer = it.svar.filer.map { fil ->
+                    ApiDokumentKrav.ApiDokumentkravFiler(
+                        filnavn = fil.filnavn,
+                        urn = fil.urn.toString(),
+                        storrelse = fil.storrelse,
+                        tidspunkt = fil.tidspunkt
+                    )
+                }
             )
         }
     }
@@ -158,11 +165,18 @@ data class ApiDokumentKrav(
     val id: String,
     val beskrivendeId: String,
     val fakta: JsonNode,
-    val filer: List<String>,
+    val filer: List<ApiDokumentkravFiler>,
     val gyldigeValg: Set<GyldigValg> = GyldigValg.values().toSet(),
     val begrunnelse: String? = null,
     val svar: String? = null
-)
+) {
+    data class ApiDokumentkravFiler(
+        val filnavn: String,
+        val urn: String,
+        val storrelse: Long,
+        val tidspunkt: ZonedDateTime
+    )
+}
 
 enum class GyldigValg {
     @JsonProperty("dokumentkrav.svar.send.naa")
