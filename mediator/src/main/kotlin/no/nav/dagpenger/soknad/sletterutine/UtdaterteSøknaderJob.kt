@@ -18,7 +18,7 @@ internal object UtdaterteSøknaderJob {
             name = "Sletterutine for påbegynte søknader uendret siste $SYV_DAGER",
             daemon = true,
             initialDelay = 3000L,
-            period = Random.nextLong(3000000L, 3600000L),
+            period = Random.nextLong(120000L, 300000L),
             action = {
                 try {
                     vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(SYV_DAGER)
