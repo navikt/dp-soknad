@@ -127,8 +127,51 @@ internal class SøknadPostgresRepositoryTest {
         }
     }
 
-    private fun assertDeepEquals(expected: Søknad, result: Søknad) {
-        assertTrue(expected.deepEquals(result), "Søknadene var ikke like")
+    @Test
+    fun `dokumentkrav som sannsynliggjøres skal lagres med samme struktur`() {
+
+        val originalFaktumJson = faktumJson("1", "f1")
+        val dokumentFaktum =
+            Faktum(originalFaktumJson)
+        val originalFaktumSomsannsynliggjøresFakta = faktumJson("2", "f2")
+        val faktaSomSannsynliggjøres =
+            mutableSetOf(
+                Faktum(originalFaktumSomsannsynliggjøresFakta)
+            )
+        val sannsynliggjøring = Sannsynliggjøring(
+            id = dokumentFaktum.id,
+            faktum = dokumentFaktum,
+            sannsynliggjør = faktaSomSannsynliggjøres
+        )
+        val krav = Krav(
+            sannsynliggjøring
+        )
+
+        val søknad = Søknad.rehydrer(
+            søknadId = søknadId,
+            ident = ident,
+            journalpost = null,
+            journalpostId = null,
+            innsendtTidspunkt = null,
+            språk = språk,
+            dokumentkrav = Dokumentkrav.rehydrer(
+                krav = setOf(krav)
+            ),
+            sistEndretAvBruker = ZonedDateTime.now().minusDays(1),
+            tilstandsType = Søknad.Tilstand.Type.Påbegynt,
+            aktivitetslogg = Aktivitetslogg()
+        )
+
+        withMigratedDb {
+            SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).let { søknadPostgresRepository ->
+                søknadPostgresRepository.lagre(søknad)
+                val dokumentkrav = hentDokumentKrav(søknadPostgresRepository.hent(søknadId, ident)!!)
+
+                val rehydrertSannsynliggjøring = dokumentkrav.aktiveDokumentKrav().first().sannsynliggjøring
+                assertEquals(originalFaktumJson, rehydrertSannsynliggjøring.faktum().originalJson())
+                assertEquals(originalFaktumSomsannsynliggjøresFakta, rehydrertSannsynliggjøring.sannsynliggjør().first().originalJson())
+            }
+        }
     }
 
     @Test
@@ -334,5 +377,9 @@ internal class SøknadPostgresRepositoryTest {
             )
         }
         assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: $tabell")
+    }
+
+    private fun assertDeepEquals(expected: Søknad, result: Søknad) {
+        assertTrue(expected.deepEquals(result), "Søknadene var ikke like")
     }
 }

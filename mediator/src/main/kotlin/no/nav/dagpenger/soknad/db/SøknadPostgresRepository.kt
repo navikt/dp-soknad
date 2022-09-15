@@ -241,11 +241,11 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                     "beskrivende_id" to krav.beskrivendeId,
                     "faktum" to PGobject().apply {
                         type = "jsonb"
-                        value = objectMapper.writeValueAsString(krav.sannsynliggjøring.faktum())
+                        value = objectMapper.writeValueAsString(krav.sannsynliggjøring.faktum().originalJson())
                     },
                     "sannsynliggjoer" to PGobject().apply {
                         type = "jsonb"
-                        value = objectMapper.writeValueAsString(krav.sannsynliggjøring.sannsynliggjør())
+                        value = objectMapper.writeValueAsString(krav.sannsynliggjøring.sannsynliggjør().map { it.originalJson() })
                     },
                     "tilstand" to krav.tilstand.name,
                     "valg" to krav.svar.valg.name,

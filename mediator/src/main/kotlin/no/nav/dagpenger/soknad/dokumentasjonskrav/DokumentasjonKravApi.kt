@@ -22,7 +22,6 @@ import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.SøknadVisitor
-import no.nav.dagpenger.soknad.dokumentasjonskrav.ApiDokumentkravResponse.Companion.toApiKrav
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
@@ -177,7 +176,7 @@ private class ApiDokumentkravResponse(
             ApiDokumentKrav(
                 id = it.id,
                 beskrivendeId = it.beskrivendeId,
-                fakta = it.fakta.fold(objectMapper.createArrayNode()) { acc, faktum -> acc.add(faktum.json) },
+                fakta = it.fakta.fold(objectMapper.createArrayNode()) { acc, faktum -> acc.add(faktum.originalJson()) },
                 filer = it.svar.filer.map { fil ->
                     ApiDokumentKrav.ApiDokumentkravFiler(
                         filnavn = fil.filnavn,

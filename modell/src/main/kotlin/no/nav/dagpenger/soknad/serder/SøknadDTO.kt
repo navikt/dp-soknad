@@ -11,10 +11,6 @@ import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentDTO.Companion.rehydrer
-import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.KravDTO.FilDTO.Companion.toFilData
-import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SannsynliggjøringDTO.Companion.toSannsynliggjøringData
-import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SvarDTO.Companion.tilSvarData
-import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SvarDTO.SvarValgDTO.Companion.tilSvarValgDTO
 import java.time.ZonedDateTime
 import java.util.Locale
 import java.util.UUID
@@ -87,14 +83,6 @@ class SøknadDTO(
                 faktum = Faktum(this.faktum),
                 sannsynliggjør = this.sannsynliggjør.map { Faktum(it) }.toMutableSet()
             )
-
-            companion object {
-                fun Sannsynliggjøring.toSannsynliggjøringData() = SannsynliggjøringDTO(
-                    id = this.id,
-                    faktum = this.faktum().json,
-                    sannsynliggjør = this.sannsynliggjør().map { it.json }.toSet()
-                )
-            }
         }
 
         data class SvarDTO(
@@ -102,16 +90,6 @@ class SøknadDTO(
             val filer: Set<KravDTO.FilDTO>,
             val valg: SvarValgDTO
         ) {
-            companion object {
-                fun Svar.tilSvarData(): SvarDTO {
-                    return SvarDTO(
-                        begrunnelse = this.begrunnelse,
-                        filer = this.filer.map { it.toFilData() }.toSet(),
-                        valg = this.valg.tilSvarValgDTO()
-                    )
-                }
-            }
-
             fun rehydrer() = Svar(
                 filer = this.filer.map { it.rehydrer() }.toMutableSet(),
                 valg = when (this.valg) {
@@ -133,17 +111,6 @@ class SøknadDTO(
                 ANDRE_SENDER,
                 SEND_TIDLIGERE,
                 SENDER_IKKE;
-
-                companion object {
-                    fun Svar.SvarValg.tilSvarValgDTO() = when (this) {
-                        Svar.SvarValg.IKKE_BESVART -> IKKE_BESVART
-                        Svar.SvarValg.SEND_NÅ -> SEND_NÅ
-                        Svar.SvarValg.SEND_SENERE -> SEND_SENERE
-                        Svar.SvarValg.ANDRE_SENDER -> ANDRE_SENDER
-                        Svar.SvarValg.SEND_TIDLIGERE -> SEND_TIDLIGERE
-                        Svar.SvarValg.SENDER_IKKE -> SENDER_IKKE
-                    }
-                }
             }
         }
 
@@ -164,19 +131,6 @@ class SøknadDTO(
                 }
             )
 
-            companion object {
-                fun Krav.toKravdata() = KravDTO(
-                    id = this.id,
-                    beskrivendeId = this.beskrivendeId,
-                    svar = this.svar.tilSvarData(),
-                    sannsynliggjøring = this.sannsynliggjøring.toSannsynliggjøringData(),
-                    tilstand = when (this.tilstand) {
-                        Krav.KravTilstand.AKTIV -> KravTilstandDTO.AKTIV
-                        Krav.KravTilstand.INAKTIV -> KravTilstandDTO.INAKTIV
-                    }
-                )
-            }
-
             enum class KravTilstandDTO {
                 AKTIV,
                 INAKTIV
@@ -188,15 +142,6 @@ class SøknadDTO(
                 val storrelse: Long,
                 val tidspunkt: ZonedDateTime
             ) {
-                companion object {
-                    fun Krav.Fil.toFilData() = FilDTO(
-                        filnavn = this.filnavn,
-                        urn = this.urn,
-                        storrelse = this.storrelse,
-                        tidspunkt = this.tidspunkt
-                    )
-                }
-
                 fun rehydrer() = Krav.Fil(
                     filnavn = this.filnavn,
                     urn = this.urn,
