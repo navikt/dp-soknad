@@ -18,12 +18,7 @@ class DokumentasjonIkkeTilgjengelig(
     kravId: String,
     val valg: Krav.Svar.SvarValg,
     val begrunnelse: String?
-) :
-    DokumentKravHendelse(søknadID, ident, kravId)
-
-class DokumentasjonkravFerdigstilt(søknadID: UUID, ident: String, kravId: String, val ferdigstiltURN: URN) :
-    DokumentKravHendelse(søknadID, ident, kravId)
-
+) : DokumentKravHendelse(søknadID, ident, kravId)
 class DokumentKravSammenstilling(
     søknadID: UUID,
     ident: String,
