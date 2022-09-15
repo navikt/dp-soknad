@@ -23,3 +23,8 @@ class DokumentasjonIkkeTilgjengelig(
 
 class DokumentasjonkravFerdigstilt(søknadID: UUID, ident: String, kravId: String, val ferdigstiltURN: URN) :
     DokumentKravHendelse(søknadID, ident, kravId)
+
+class DokumentKravBundleSvar(søknadID: UUID, ident: String, kravId: String, private val urn: URN,
+) : DokumentKravHendelse(søknadID, ident, kravId) {
+    fun urn() = urn
+}
