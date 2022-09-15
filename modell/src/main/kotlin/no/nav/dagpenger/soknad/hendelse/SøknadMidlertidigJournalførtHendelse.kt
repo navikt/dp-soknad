@@ -10,5 +10,4 @@ class SøknadMidlertidigJournalførtHendelse(søknadID: UUID, ident: String, pri
     aktivitetslogg
 ) {
     fun journalpostId() = journalpostId
-    fun journalpost(): Journalpost = TODO()
 }

@@ -4,10 +4,7 @@ import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Aktivitetslogg.AktivitetException
 import no.nav.dagpenger.soknad.Søknad.Journalpost.Variant
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerArkiverbarSøknad
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerJournalføring
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerMidlertidligJournalføring
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
@@ -104,19 +101,20 @@ internal class SøknadTest {
         assertTilstander(
             UnderOpprettelse,
             Påbegynt,
-            AvventerArkiverbarSøknad
+            Innsendt
         )
 
         assertBehov(
             Behovtype.ArkiverbarSøknad,
             mapOf(
-                "ident" to testIdent,
+                "innsendtTidspunkt" to hendelse.innsendtidspunkt().toString(),
+                "type" to "NY_DIALOG",
                 "søknad_uuid" to inspektør.søknadId.toString(),
-                "innsendtTidspunkt" to hendelse.innsendtidspunkt().toString()
+                "ident" to testIdent,
             )
         )
         håndterArkiverbarSøknad()
-        val dokumenter = listOf(
+        val hoveddokument =
             Søknad.Journalpost(
                 varianter = listOf(
                     Variant(
@@ -126,11 +124,17 @@ internal class SøknadTest {
                     )
                 )
             )
-        )
+
 
         assertBehov(
             Behovtype.NyJournalpost,
-            mapOf("dokumenter" to dokumenter, "ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString())
+            mapOf(
+                "hovedDokument" to hoveddokument.varianter,
+                "vedlegg" to emptyList<Any>(),
+                "type" to "NY_DIALOG",
+                "søknad_uuid" to inspektør.søknadId.toString(),
+                "ident" to testIdent
+            )
         )
         håndterMidlertidigJournalførtSøknad()
         håndterJournalførtSøknad()
@@ -138,10 +142,7 @@ internal class SøknadTest {
         assertTilstander(
             UnderOpprettelse,
             Påbegynt,
-            AvventerArkiverbarSøknad,
-            AvventerMidlertidligJournalføring,
-            AvventerJournalføring,
-            Journalført,
+            Innsendt
         )
 
         assertPuml("Søker oppretter søknad og ferdigstiller den")

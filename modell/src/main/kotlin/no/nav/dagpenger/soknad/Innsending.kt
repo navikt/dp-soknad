@@ -13,12 +13,22 @@ import java.time.ZonedDateTime
 internal class Innsending private constructor(
     private val type: InnsendingType,
     private val innsendt: ZonedDateTime,
-    private var journalpost: Søknad.Journalpost?,
+    private var journalpost: String?,
     private var tilstand: Tilstand,
     private var hovedDokument: List<Søknad.Journalpost.Variant>? = null,
     private val vedlegg: List<Vedlegg>
 ) : Aktivitetskontekst {
-    constructor(type: InnsendingType, innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) : this(
+
+    companion object {
+        fun ny(innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) =
+            Innsending(InnsendingType.NY_DIALOG, innsendt, dokumentkrav)
+
+        fun ettersending(innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) =
+            Innsending(
+                InnsendingType.ETTERSENDING_TIL_DIALOG, innsendt, dokumentkrav)
+    }
+
+    private constructor(type: InnsendingType, innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) : this(
         type,
         innsendt,
         null,
@@ -37,9 +47,26 @@ internal class Innsending private constructor(
         ETTERSENDING_TIL_DIALOG
     }
 
-    fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
-        kontekst(søknadInnsendtHendelse)
-        tilstand.håndter(søknadInnsendtHendelse, this)
+    fun håndter(hendelse: SøknadInnsendtHendelse) {
+        kontekst(hendelse)
+        tilstand.håndter(hendelse, this)
+    }
+
+    fun håndter(hendelse: ArkiverbarSøknadMottattHendelse) {
+        kontekst(hendelse)
+        tilstand.håndter(hendelse, this)
+    }
+
+
+    fun håndter(hendelse: SøknadMidlertidigJournalførtHendelse) {
+        kontekst(hendelse)
+        tilstand.håndter(hendelse, this)
+    }
+
+
+    fun håndter(hendelse: JournalførtHendelse) {
+        kontekst(hendelse)
+        tilstand.håndter(hendelse, this)
     }
 
     interface Tilstand : Aktivitetskontekst {
@@ -103,7 +130,7 @@ internal class Innsending private constructor(
         }
 
         override fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse, innsending: Innsending) {
-            // innsending.hovedDokument = arkiverbarSøknadMotattHendelse.arkiverbartDokument
+            innsending.hovedDokument = arkiverbarSøknadMotattHendelse.dokument().varianter
             innsending.endreTilstand(
                 AvventerMidlertidligJournalføring,
                 arkiverbarSøknadMotattHendelse
@@ -129,7 +156,7 @@ internal class Innsending private constructor(
         }
 
         override fun håndter(hendelse: SøknadMidlertidigJournalførtHendelse, innsending: Innsending) {
-            innsending.journalpost = hendelse.journalpost()
+            innsending.journalpost = hendelse.journalpostId()
             innsending.endreTilstand(AvventerJournalføring, hendelse)
         }
     }
@@ -164,4 +191,5 @@ internal class Innsending private constructor(
         søknadHendelse.kontekst(tilstand)
         tilstand.entering(søknadHendelse, this)
     }
+
 }
