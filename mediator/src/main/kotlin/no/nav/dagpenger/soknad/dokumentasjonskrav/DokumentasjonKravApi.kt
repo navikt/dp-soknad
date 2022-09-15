@@ -185,6 +185,7 @@ private class ApiDokumentkravResponse(
                         tidspunkt = fil.tidspunkt
                     )
                 },
+                bundle = it.svar.bundle.toString(),
                 svar = it.svar.valg.fraSvarValg(),
                 begrunnelse = it.svar.begrunnelse
             )
@@ -199,7 +200,8 @@ data class ApiDokumentKrav(
     val filer: List<ApiDokumentkravFiler>,
     val gyldigeValg: Set<GyldigValg> = GyldigValg.values().toSet(),
     val begrunnelse: String? = null,
-    val svar: GyldigValg? = null
+    val svar: GyldigValg? = null,
+    val bundle: String? = null
 ) {
     data class ApiDokumentkravFiler(
         val filnavn: String,
