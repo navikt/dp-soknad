@@ -22,7 +22,7 @@ import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.SøknadVisitor
-import no.nav.dagpenger.soknad.hendelse.DokumentKravBundleSvar
+import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
@@ -92,16 +92,15 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
             val søknadUuid = søknadUuid()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
                 val bundleSvar = call.receive<BundleSvar>()
-                val dokumentkravBundleSvar = DokumentKravBundleSvar(
+                val dokumentkravSammenstilling = DokumentKravSammenstilling(
                     søknadUuid,
                     ident,
                     kravId,
                     bundleSvar.tilURN()
                 )
-                søknadMediator.behandle(dokumentkravBundleSvar)
+                søknadMediator.behandle(dokumentkravSammenstilling)
                 call.respond(HttpStatusCode.Created)
             }
-
         }
     }
 }
@@ -142,7 +141,7 @@ private data class BundleSvar(
 
     private val _urn: URN
     init {
-       _urn = URN.rfc8141().parse(urn)
+        _urn = URN.rfc8141().parse(urn)
     }
 
     fun tilURN(): URN = _urn

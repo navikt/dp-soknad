@@ -30,7 +30,7 @@ import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.soknad.TestApplication.mockedSøknadApi
 import no.nav.dagpenger.soknad.faktumJson
-import no.nav.dagpenger.soknad.hendelse.DokumentKravBundleSvar
+import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
@@ -243,7 +243,7 @@ internal class DokumentasjonKravApiTest {
 
     @Test
     fun `skal kunne besvare dokumentkrav med bundle URN`() {
-        val slot = slot<DokumentKravBundleSvar>()
+        val slot = slot<DokumentKravSammenstilling>()
         val mediatorMock = mockk<SøknadMediator>().also {
             every { it.behandle(capture(slot)) } just Runs
         }
@@ -262,7 +262,7 @@ internal class DokumentasjonKravApiTest {
                         "urn": "urn:bundle:1"
                         }"""
                 )
-            }.let {  response ->
+            }.let { response ->
                 assertEquals(HttpStatusCode.Created, response.status)
                 assertTrue(slot.isCaptured)
 
@@ -274,6 +274,5 @@ internal class DokumentasjonKravApiTest {
                 }
             }
         }
-
     }
 }
