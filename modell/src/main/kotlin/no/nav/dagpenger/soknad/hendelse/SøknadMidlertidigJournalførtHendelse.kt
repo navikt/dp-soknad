@@ -1,7 +1,6 @@
 package no.nav.dagpenger.soknad.hendelse
 
 import no.nav.dagpenger.soknad.Aktivitetslogg
-import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Journalpost
 import java.util.UUID
 

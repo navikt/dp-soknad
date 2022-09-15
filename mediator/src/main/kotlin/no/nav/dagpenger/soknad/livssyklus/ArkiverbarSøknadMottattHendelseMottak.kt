@@ -43,8 +43,7 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
             ArkiverbarSøknadMottattHendelse(
                 søknadID,
                 packet["ident"].asText(),
-                Søknad.Journalpost(varianter = packet["@løsning"][behov].dokumentVarianter()),
-                arkiverbartDokument = packet["@løsning"][behov].dokumentVarianter()
+                Søknad.Journalpost(varianter = packet["@løsning"][behov].dokumentVarianter())
             )
         logger.info { "Fått løsning for $behov for $søknadID" }
         mediator.behandle(arkiverbarSøknadMottattHendelse)

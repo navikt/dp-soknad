@@ -103,7 +103,7 @@ internal class Innsending private constructor(
         }
 
         override fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse, innsending: Innsending) {
-            innsending.hovedDokument = arkiverbarSøknadMotattHendelse.arkiverbartDokument
+            // innsending.hovedDokument = arkiverbarSøknadMotattHendelse.arkiverbartDokument
             innsending.endreTilstand(
                 AvventerMidlertidligJournalføring,
                 arkiverbarSøknadMotattHendelse

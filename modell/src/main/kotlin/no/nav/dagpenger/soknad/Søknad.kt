@@ -319,7 +319,7 @@ class Søknad private constructor(
             val innsending = Innsending(
                 NY_DIALOG,
                 søknadInnsendtHendelse.innsendtidspunkt(),
-                dokumentkrav = søknad.dokumentkrav.map {}
+                dokumentkrav = søknad.dokumentkrav
             )
             søknad.innsending = innsending.also {
                 it.håndter(søknadInnsendtHendelse)

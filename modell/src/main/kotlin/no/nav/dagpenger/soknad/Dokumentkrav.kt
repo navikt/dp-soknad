@@ -47,10 +47,10 @@ class Dokumentkrav private constructor(
         krav.svar.håndter(hendelse)
     }
 
-    internal fun tilVedlegg() = aktiveDokumentKrav().filter { it.besvart() }.map {
+    internal fun tilVedlegg() = aktiveDokumentKrav().filter { it.besvart() }.filter { it.svar.valg == SEND_NÅ }.map { krav ->
         Innsending.Vedlegg(
-            it.beskrivendeId,
-            it.svar.bundle!!.urn,
+            krav.beskrivendeId,
+            krav.svar.bundle!!,
             "PDF" // TODO: hent filtype fra bundle
         )
     }
@@ -112,7 +112,6 @@ data class Krav(
                 false -> KravTilstand.INAKTIV
             }
         }
-
 
     fun håndter(hendelse: DokumentKravSammenstilling) {
         this.svar.bundle = hendelse.urn()
