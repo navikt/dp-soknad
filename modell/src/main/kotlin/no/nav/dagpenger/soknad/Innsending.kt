@@ -10,7 +10,7 @@ import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import java.time.ZonedDateTime
 
-internal class Innsending private constructor(
+class Innsending private constructor(
     private val type: InnsendingType,
     private val innsendt: ZonedDateTime,
     private var journalpost: String?,
@@ -18,6 +18,14 @@ internal class Innsending private constructor(
     private var hovedDokument: List<Søknad.Journalpost.Variant>? = null,
     private val vedlegg: List<Vedlegg>
 ) : Aktivitetskontekst {
+    private constructor(type: InnsendingType, innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) : this(
+        type,
+        innsendt,
+        null,
+        Opprettet,
+        // @todo: Vi må ta med alle dokumenkravsvar for å kunne genere søknad PDF med status på vedlegg. Feks "sendes senere"
+        vedlegg = dokumentkrav.tilVedlegg()
+    )
 
     companion object {
         fun ny(innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) =
@@ -29,24 +37,11 @@ internal class Innsending private constructor(
             )
     }
 
-    private constructor(type: InnsendingType, innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) : this(
-        type,
-        innsendt,
-        null,
-        Opprettet,
-        vedlegg = dokumentkrav.tilVedlegg()
-    )
-
     data class Vedlegg(
         val beskrivendeId: String,
         val urn: URN,
         val type: String // pdf/png/jpg
     )
-
-    enum class InnsendingType {
-        NY_DIALOG,
-        ETTERSENDING_TIL_DIALOG
-    }
 
     fun håndter(hendelse: SøknadInnsendtHendelse) {
         kontekst(hendelse)
@@ -67,26 +62,32 @@ internal class Innsending private constructor(
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
     }
-
+    fun accept(innsendingVisitor: InnsendingVisitor) {
+        innsendingVisitor.visit(type, tilstand.tilstandType, innsendt, journalpost, hovedDokument, vedlegg)
+    }
+    enum class InnsendingType {
+        NY_DIALOG,
+        ETTERSENDING_TIL_DIALOG
+    }
     interface Tilstand : Aktivitetskontekst {
         val tilstandType: Type
 
         fun entering(hendelse: Hendelse, innsending: Innsending) {}
 
-        fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, innsending: Innsending) =
-            søknadInnsendtHendelse.`kan ikke håndteres i denne tilstanden`()
+        fun håndter(hendelse: SøknadInnsendtHendelse, innsending: Innsending) =
+            hendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse, innsending: Innsending) =
-            arkiverbarSøknadMotattHendelse.`kan ikke håndteres i denne tilstanden`()
+        fun håndter(hendelse: ArkiverbarSøknadMottattHendelse, innsending: Innsending) =
+            hendelse.`kan ikke håndteres i denne tilstanden`()
 
         fun håndter(
-            søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse,
+            hendelse: SøknadMidlertidigJournalførtHendelse,
             innsending: Innsending
         ) =
-            søknadMidlertidigJournalførtHendelse.`kan ikke håndteres i denne tilstanden`()
+            hendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(journalførtHendelse: JournalførtHendelse, innsending: Innsending) =
-            journalførtHendelse.`kan ikke håndteres i denne tilstanden`()
+        fun håndter(hendelse: JournalførtHendelse, innsending: Innsending) =
+            hendelse.`kan ikke håndteres i denne tilstanden`()
 
         private fun Hendelse.`kan ikke håndteres i denne tilstanden`() =
             this.warn("Kan ikke håndtere ${this.javaClass.simpleName} i tilstand $tilstandType")
@@ -107,8 +108,8 @@ internal class Innsending private constructor(
     private object Opprettet : Tilstand {
         override val tilstandType = Tilstand.Type.Opprettet
 
-        override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, innsending: Innsending) {
-            innsending.endreTilstand(AvventerArkiverbarSøknad, søknadInnsendtHendelse)
+        override fun håndter(hendelse: SøknadInnsendtHendelse, innsending: Innsending) {
+            innsending.endreTilstand(AvventerArkiverbarSøknad, hendelse)
             // TODO: DokumentKrav/Ferdigstill må bli med på et vis
             // TODO: Frontend må bundle hvert dokumentkrav
         }
@@ -128,11 +129,11 @@ internal class Innsending private constructor(
             )
         }
 
-        override fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse, innsending: Innsending) {
-            innsending.hovedDokument = arkiverbarSøknadMotattHendelse.dokument().varianter
+        override fun håndter(hendelse: ArkiverbarSøknadMottattHendelse, innsending: Innsending) {
+            innsending.hovedDokument = hendelse.dokument().varianter
             innsending.endreTilstand(
                 AvventerMidlertidligJournalføring,
-                arkiverbarSøknadMotattHendelse
+                hendelse
             )
         }
     }
@@ -163,10 +164,10 @@ internal class Innsending private constructor(
     private object AvventerJournalføring : Tilstand {
         override val tilstandType = Tilstand.Type.AvventerJournalføring
 
-        override fun håndter(journalførtHendelse: JournalførtHendelse, innsending: Innsending) {
+        override fun håndter(hendelse: JournalførtHendelse, innsending: Innsending) {
             // TODO: Legg til sjekk om at det er DENNE søknaden som er journalført.
             // journalførtHendelse.journalpostId() == innsending.journalpost.id
-            innsending.endreTilstand(Journalført, journalførtHendelse)
+            innsending.endreTilstand(Journalført, hendelse)
         }
     }
 

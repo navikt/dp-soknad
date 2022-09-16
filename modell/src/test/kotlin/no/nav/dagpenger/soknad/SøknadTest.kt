@@ -3,6 +3,10 @@ package no.nav.dagpenger.soknad
 import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Aktivitetslogg.AktivitetException
+import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.AvventerArkiverbarSøknad
+import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.AvventerJournalføring
+import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.AvventerMidlertidligJournalføring
+import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Journalpost.Variant
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
@@ -104,6 +108,10 @@ internal class SøknadTest {
             Innsendt
         )
 
+        assertInnsendingTilstand(
+            AvventerArkiverbarSøknad
+        )
+
         assertBehov(
             Behovtype.ArkiverbarSøknad,
             mapOf(
@@ -125,6 +133,10 @@ internal class SøknadTest {
                 )
             )
 
+        assertInnsendingTilstand(
+            AvventerMidlertidligJournalføring
+        )
+
         assertBehov(
             Behovtype.NyJournalpost,
             mapOf(
@@ -136,7 +148,15 @@ internal class SøknadTest {
             )
         )
         håndterMidlertidigJournalførtSøknad()
+
+        assertInnsendingTilstand(
+            AvventerJournalføring
+        )
         håndterJournalførtSøknad()
+
+        assertInnsendingTilstand(
+            Journalført
+        )
 
         assertTilstander(
             UnderOpprettelse,
@@ -145,6 +165,10 @@ internal class SøknadTest {
         )
 
         assertPuml("Søker oppretter søknad og ferdigstiller den")
+    }
+
+    private fun assertInnsendingTilstand(tilstand: Innsending.Tilstand.Type) {
+        assertEquals(tilstand, inspektør.innsending.tilstand)
     }
 
     @Test

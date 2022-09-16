@@ -9,6 +9,18 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
     lateinit var gjeldendetilstand: Søknad.Tilstand.Type
     lateinit var dokumentkrav: Dokumentkrav
     lateinit var aktivitetslogg: Aktivitetslogg
+    lateinit var innsending: InnsendingData
+    private var ettersending: Boolean = false
+    val ettersendinger = mutableListOf<InnsendingData>()
+
+    data class InnsendingData(
+        val innsending: Innsending.InnsendingType,
+        val tilstand: Innsending.Tilstand.Type,
+        val innsendt: ZonedDateTime,
+        val journalpost: String?,
+        val hovedDokument: List<Søknad.Journalpost.Variant>?,
+        val vedlegg: List<Innsending.Vedlegg>
+    )
 
     init {
         søknad.accept(this)
@@ -27,6 +39,30 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
     ) {
         this.søknadId = søknadId
         this.dokumentkrav = dokumentkrav
+    }
+
+    override fun preVisitEttersendinger() {
+        ettersending = true
+    }
+
+    override fun postVisitEttersendinger() {
+        ettersending = false
+    }
+
+    override fun visit(
+        innsending: Innsending.InnsendingType,
+        tilstand: Innsending.Tilstand.Type,
+        innsendt: ZonedDateTime,
+        journalpost: String?,
+        hovedDokument: List<Søknad.Journalpost.Variant>?,
+        vedlegg: List<Innsending.Vedlegg>
+    ) {
+        val innsendingData = InnsendingData(innsending, tilstand, innsendt, journalpost, hovedDokument, vedlegg)
+        if (ettersending) {
+            ettersendinger.add(innsendingData)
+        } else {
+            this.innsending = innsendingData
+        }
     }
 
     override fun visitTilstand(tilstand: Søknad.Tilstand.Type) {

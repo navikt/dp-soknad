@@ -201,8 +201,8 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             )
         )
         // todo: fiks journalpost og innsending
-        journalpost?.let { journalpost ->
-            journalpost.varianter.map { variant ->
+        journalpost?.let { jp ->
+            jp.varianter.map { variant ->
                 queryOf(
                     //language=PostgreSQL
                     """

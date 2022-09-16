@@ -27,8 +27,11 @@ class Søknad private constructor(
     private var tilstand: Tilstand,
     private var innsending: Innsending?,
     private val ettersendinger: MutableList<Innsending>,
+    @Deprecated("Tilhører innsending")
     private var journalpost: Journalpost?,
+    @Deprecated("Tilhører innsending")
     private var journalpostId: String?,
+    @Deprecated("Tilhører innsending")
     private var innsendtTidspunkt: ZonedDateTime?,
     private val språk: Språk,
     private val dokumentkrav: Dokumentkrav,
@@ -406,6 +409,10 @@ class Søknad private constructor(
         tilstand.accept(visitor)
         aktivitetslogg.accept(visitor)
         dokumentkrav.accept(visitor)
+        innsending?.accept(visitor)
+        visitor.preVisitEttersendinger()
+        ettersendinger.forEach { it.accept(visitor) }
+        visitor.postVisitEttersendinger()
     }
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst =
