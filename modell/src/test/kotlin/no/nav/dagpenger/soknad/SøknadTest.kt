@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad
 import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Aktivitetslogg.AktivitetException
+import no.nav.dagpenger.soknad.Innsending.InnsendingType
 import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.AvventerArkiverbarSøknad
 import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.AvventerBrevkode
 import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.AvventerJournalføring
@@ -28,7 +29,6 @@ import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.ZonedDateTime
@@ -70,7 +70,7 @@ internal class SøknadTest {
         håndterØnskeOmNySøknadHendelse()
         håndterNySøknadOpprettet()
         håndterSendInnSøknad()
-        håndterArkiverbarSøknad()
+        håndterArkiverbarSøknad(ettersendinger().innsendingId)
 
         assertThrows<AktivitetException> {
             håndterFaktumOppdatering()
@@ -138,7 +138,7 @@ internal class SøknadTest {
                 "innsendingId" to inspektør.innsendingId.toString()
             )
         )
-        håndterArkiverbarSøknad()
+        håndterArkiverbarSøknad(ettersendinger().innsendingId)
         assertInnsendingTilstand(
             AvventerMidlertidligJournalføring
         )
@@ -209,7 +209,6 @@ internal class SøknadTest {
     }
 
     @Test
-    @Disabled
     fun innsending() {
         håndterØnskeOmNySøknadHendelse()
         assertBehov(Behovtype.NySøknad, mapOf("ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
@@ -229,6 +228,8 @@ internal class SøknadTest {
         håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
         håndterDokumentkravSammenstilling(kravId = "3", urn = "urn:sid:bundle2")
         håndterSendInnSøknad()
+
+        // Første innsending
         håndterInnsendingBrevkode()
         håndterArkiverbarSøknad()
         val hoveddokument = Innsending.Dokument(
@@ -274,9 +275,11 @@ internal class SøknadTest {
                         )
                     )
                 ),
-                "type" to "NY_DIALOG",
+
                 "søknad_uuid" to inspektør.søknadId.toString(),
-                "ident" to testIdent
+                "ident" to testIdent,
+                "type" to InnsendingType.NY_DIALOG.name,
+                "innsendingId" to inspektør.innsendingId.toString()
             )
         )
         håndterMidlertidigJournalførtSøknad()
@@ -286,15 +289,18 @@ internal class SøknadTest {
             Journalført
         )
 
+        // Ettersending
         håndterLeggtilFil("2", "urn:sid:2")
         håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle3")
+
+
         håndterSendInnSøknad()
-        håndterArkiverbarSøknad()
+        håndterArkiverbarSøknad(ettersendinger().innsendingId)
 
         assertBehov(
             Behovtype.NyJournalpost,
             mapOf(
-                "hovedDokument" to hoveddokument,
+                "hovedDokument" to hoveddokument.copy(brevkode = "NAVe 04-01.02"),
                 "dokumenter" to listOf(
                     Innsending.Dokument(
                         navn = "f1-1",
@@ -303,6 +309,18 @@ internal class SøknadTest {
                             Innsending.Dokument.Dokumentvariant(
                                 filnavn = "f1-1",
                                 urn = URN.rfc8141().parse("urn:sid:bundle1"),
+                                variant = "Arkiv",
+                                type = "PDF"
+                            )
+                        )
+                    ),
+                    Innsending.Dokument(
+                        navn = "f2-1",
+                        brevkode = "O2",
+                        varianter = listOf(
+                            Innsending.Dokument.Dokumentvariant(
+                                filnavn = "f2-1",
+                                urn = URN.rfc8141().parse("urn:sid:bundle3"),
                                 variant = "Arkiv",
                                 type = "PDF"
                             )
@@ -321,16 +339,33 @@ internal class SøknadTest {
                         )
                     )
                 ),
-                "type" to "NY_DIALOG",
+
                 "søknad_uuid" to inspektør.søknadId.toString(),
-                "ident" to testIdent
+                "ident" to testIdent,
+                "type" to InnsendingType.ETTERSENDING_TIL_DIALOG.name,
+                "innsendingId" to ettersendinger().innsendingId.toString()
+
             )
         )
+
+        håndterMidlertidigJournalførtSøknad(ettersendinger().innsendingId)
+        assertEttersendingTilstand(AvventerJournalføring)
+
+        håndterJournalførtSøknad(ettersendinger().innsendingId)
+        assertEttersendingTilstand(Journalført)
+
+
     }
 
     private fun assertInnsendingTilstand(tilstand: Innsending.Tilstand.Type) {
         assertEquals(tilstand, inspektør.innsending.tilstand)
     }
+
+    private fun assertEttersendingTilstand(tilstand: Innsending.Tilstand.Type) {
+        assertEquals(tilstand, ettersendinger().tilstand)
+    }
+
+    private fun ettersendinger() = inspektør.ettersendinger.last()
 
     @Test
     fun `Slett søknad for person`() {
@@ -365,10 +400,10 @@ internal class SøknadTest {
         )
     }
 
-    private fun håndterArkiverbarSøknad() {
+    private fun håndterArkiverbarSøknad(innsendingId: UUID = inspektør.innsendingId) {
         søknad.håndter(
             ArkiverbarSøknadMottattHendelse(
-                inspektør.innsendingId,
+                innsendingId,
                 inspektør.søknadId,
                 testIdent,
                 "urn:dokument:1".lagTestDokument()
@@ -376,10 +411,10 @@ internal class SøknadTest {
         )
     }
 
-    private fun håndterMidlertidigJournalførtSøknad() {
+    private fun håndterMidlertidigJournalførtSøknad(innsendingId: UUID = inspektør.innsendingId) {
         søknad.håndter(
             SøknadMidlertidigJournalførtHendelse(
-                inspektør.innsendingId,
+                innsendingId,
                 inspektør.søknadId,
                 testIdent,
                 testJournalpostId
@@ -387,10 +422,10 @@ internal class SøknadTest {
         )
     }
 
-    private fun håndterJournalførtSøknad() {
+    private fun håndterJournalførtSøknad(innsendingId: UUID = inspektør.innsendingId) {
         søknad.håndter(
             JournalførtHendelse(
-                inspektør.innsendingId,
+                innsendingId,
                 inspektør.søknadId,
                 testJournalpostId,
                 testIdent
@@ -463,7 +498,7 @@ internal class SøknadTest {
     }
 
     private fun assertBehov(behovtype: Behovtype, forventetDetaljer: Map<String, Any> = emptyMap()) {
-        val behov = inspektør.aktivitetslogg.behov().find {
+        val behov = inspektør.aktivitetslogg.behov().findLast {
             it.type == behovtype
         } ?: throw AssertionError("Fant ikke behov $behovtype")
 

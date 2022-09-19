@@ -7,7 +7,9 @@ import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyJourna
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.BrevkodeMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
+import no.nav.dagpenger.soknad.hendelse.InnsendingHendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import java.time.ZonedDateTime
@@ -71,9 +73,9 @@ class Innsending private constructor(
             hendelse.innsendtidspunkt(),
             dokumentkrav,
             brevkode
-        ).also {
-            ettersendinger.add(it)
-            this.håndter(hendelse)
+        ).also { ettersending ->
+            ettersendinger.add(ettersending)
+            ettersending.håndter(hendelse)
         }
     }
 
@@ -82,29 +84,42 @@ class Innsending private constructor(
         tilstand.håndter(hendelse, this)
     }
 
-    /*fun håndter(hendelse: InnsendingHendelse) {
-        (listOf(this) + ettersendinger).forEach { it.håndter(hendelse) }
-    }*/
-
     fun håndter(hendelse: BrevkodeMottattHendelse) {
-        if (hendelse.innsendingId != this.innsendingId) return
-        kontekst(hendelse)
-        tilstand.håndter(hendelse, this)
+        innsendinger.forEach { it._håndter(hendelse) }
     }
-
     fun håndter(hendelse: ArkiverbarSøknadMottattHendelse) {
-        if (hendelse.innsendingId != this.innsendingId) return
-        kontekst(hendelse)
-        tilstand.håndter(hendelse, this)
+        innsendinger.forEach { it._håndter(hendelse) }
+
     }
 
     fun håndter(hendelse: SøknadMidlertidigJournalførtHendelse) {
+        innsendinger.forEach { it._håndter(hendelse) }
+    }
+
+    fun håndter(hendelse: JournalførtHendelse) {
+        innsendinger.forEach { it._håndter(hendelse) }
+    }
+
+    private val innsendinger get() = (listOf(this) + ettersendinger)
+    private fun _håndter(hendelse: BrevkodeMottattHendelse) {
         if (hendelse.innsendingId != this.innsendingId) return
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
     }
 
-    fun håndter(hendelse: JournalførtHendelse) {
+    private fun _håndter(hendelse: ArkiverbarSøknadMottattHendelse) {
+        if (hendelse.innsendingId != this.innsendingId) return
+        kontekst(hendelse)
+        tilstand.håndter(hendelse, this)
+    }
+
+    private fun _håndter(hendelse: SøknadMidlertidigJournalførtHendelse) {
+        if (hendelse.innsendingId != this.innsendingId) return
+        kontekst(hendelse)
+        tilstand.håndter(hendelse, this)
+    }
+
+    private fun _håndter(hendelse: JournalførtHendelse) {
         if (hendelse.innsendingId != this.innsendingId) return
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
