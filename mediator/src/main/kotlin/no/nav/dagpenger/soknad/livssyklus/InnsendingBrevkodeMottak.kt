@@ -8,7 +8,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 
-internal class InnsendingBrevkodeMottak(rapidsConnection: RapidsConnection, mediator: SøknadMediator) :  River.PacketListener {
+internal class InnsendingBrevkodeMottak(rapidsConnection: RapidsConnection, mediator: SøknadMediator) : River.PacketListener {
 
     companion object {
         private val logger = KotlinLogging.logger {}
@@ -32,5 +32,4 @@ internal class InnsendingBrevkodeMottak(rapidsConnection: RapidsConnection, medi
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         TODO("not implemented")
     }
-
 }

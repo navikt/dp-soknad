@@ -8,8 +8,6 @@ import kotliquery.using
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
-import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
-import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
@@ -20,7 +18,6 @@ import no.nav.dagpenger.soknad.livssyklus.PåbegyntSøknad
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak
-import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadCachePostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -103,7 +100,6 @@ internal class SøknadMediatorTest {
         // assertNotNull(oppdatertInspektør().innsendtTidspunkt)
         assertEquals(listOf("InnsendingBrevkode"), behov(2))
 
-
         testRapid.sendTestMessage(
             innsendingBrevkodeLøsning(
                 testIdent,
@@ -151,13 +147,11 @@ internal class SøknadMediatorTest {
         }
     }
 
-
-
     private fun innsendingBrevkodeLøsning(
         ident: String,
         søknadUuid: String,
         innsendingId: UUID
-    )= //language=JSON
+    ) = //language=JSON
         """
 {
   "@event_name": "behov",

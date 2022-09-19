@@ -70,7 +70,7 @@ internal class SøknadTest {
         håndterØnskeOmNySøknadHendelse()
         håndterNySøknadOpprettet()
         håndterSendInnSøknad()
-        håndterArkiverbarSøknad(ettersendinger().innsendingId)
+        håndterArkiverbarSøknad()
 
         assertThrows<AktivitetException> {
             håndterFaktumOppdatering()
@@ -138,7 +138,7 @@ internal class SøknadTest {
                 "innsendingId" to inspektør.innsendingId.toString()
             )
         )
-        håndterArkiverbarSøknad(ettersendinger().innsendingId)
+        håndterArkiverbarSøknad()
         assertInnsendingTilstand(
             AvventerMidlertidligJournalføring
         )

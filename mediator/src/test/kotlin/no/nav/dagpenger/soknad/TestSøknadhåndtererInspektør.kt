@@ -11,7 +11,6 @@ internal class TestSøknadhåndtererInspektør(søknadhåndterer: Søknad) : Sø
     var antallSøknader = 0
     lateinit var gjeldendeInnsendingId: UUID
 
-
     init {
         søknadhåndterer.accept(this)
     }
