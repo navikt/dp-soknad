@@ -39,6 +39,7 @@ class Innsending private constructor(
     }
 
     data class Dokument(
+        // TODO: Hvor kommer dette fra / når settes det?
         val navn: String, // Søknad om dagpenger / Ettersending til søknad om dagpenger
         val brevkode: String, // NAV 04-01.04 / NAVe 04-01.04
         val varianter: List<Dokumentvariant>
@@ -140,7 +141,11 @@ class Innsending private constructor(
         }
 
         override fun håndter(hendelse: ArkiverbarSøknadMottattHendelse, innsending: Innsending) {
-            innsending.hovedDokument = hendelse.dokument()
+            innsending.hovedDokument = Dokument(
+                navn = "Søknad",
+                brevkode = " 123",
+                varianter = hendelse.dokumentvarianter()
+            )
             innsending.endreTilstand(
                 AvventerMidlertidligJournalføring,
                 hendelse

@@ -40,13 +40,9 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
         val søknadID = packet["søknad_uuid"].asUUID()
         val arkiverbarSøknadMottattHendelse =
             ArkiverbarSøknadMottattHendelse(
-                søknadID,
-                packet["ident"].asText(),
-                Innsending.Dokument(
-                    navn = "",
-                    brevkode = "",
-                    varianter = packet["@løsning"][behov].dokumentVarianter()
-                )
+                søknadID = søknadID,
+                ident = packet["ident"].asText(),
+                dokumentvarianter = packet["@løsning"][behov].dokumentVarianter()
             )
         logger.info { "Fått løsning for $behov for $søknadID" }
         mediator.behandle(arkiverbarSøknadMottattHendelse)

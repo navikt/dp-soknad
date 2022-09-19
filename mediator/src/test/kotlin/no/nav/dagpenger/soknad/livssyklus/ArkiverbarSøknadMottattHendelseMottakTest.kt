@@ -41,7 +41,7 @@ internal class ArkiverbarSøknadMottattHendelseMottakTest {
                     type = "PDF"
                 )
             ).sortedBy { it.urn },
-            slot.captured.dokument().varianter.sortedBy { it.urn }
+            slot.captured.dokumentvarianter().varianter.sortedBy { it.urn }
         )
     }
 

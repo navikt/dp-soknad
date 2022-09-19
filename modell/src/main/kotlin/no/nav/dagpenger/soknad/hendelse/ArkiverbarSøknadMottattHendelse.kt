@@ -7,11 +7,11 @@ import java.util.UUID
 class ArkiverbarSøknadMottattHendelse(
     søknadID: UUID,
     ident: String,
-    private val dokument: Innsending.Dokument,
+    private val dokumentvarianter: List<Innsending.Dokument.Dokumentvariant>,
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 ) : SøknadHendelse(søknadID, ident, aktivitetslogg) {
 
-    fun dokument() = dokument
+    fun dokumentvarianter() = dokumentvarianter
     fun valider(): Boolean {
         return true
         // TODO: Husk å validere
