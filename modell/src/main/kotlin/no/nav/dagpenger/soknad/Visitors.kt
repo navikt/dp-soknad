@@ -31,9 +31,6 @@ interface SøknadVisitor : TilstandVisitor, AktivitetsloggVisitor, DokumentkravV
         søknadId: UUID,
         ident: String,
         tilstand: Tilstand,
-        journalpost: Søknad.Journalpost?,
-        journalpostId: String?,
-        innsendtTidspunkt: ZonedDateTime?,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime?

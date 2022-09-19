@@ -68,16 +68,13 @@ internal class DokumentasjonKravApiTest {
     }
 
     private val søknad = Søknad.rehydrer(
-        søknadId = testSoknadId,
-        ident = defaultDummyFodselsnummer,
-        journalpost = null,
-        journalpostId = "journalpostid",
-        innsendtTidspunkt = ZonedDateTime.now(),
-        språk = Språk("NO"),
-        dokumentkrav = dokumentKrav,
-        sistEndretAvBruker = ZonedDateTime.now(),
-        tilstandsType = Søknad.Tilstand.Type.Påbegynt,
-        aktivitetslogg = Aktivitetslogg()
+            søknadId = testSoknadId,
+            ident = defaultDummyFodselsnummer,
+            språk = Språk("NO"),
+            dokumentkrav = dokumentKrav,
+            sistEndretAvBruker = ZonedDateTime.now(),
+            tilstandsType = Søknad.Tilstand.Type.Påbegynt,
+            aktivitetslogg = Aktivitetslogg()
     )
 
     private val søknadMediatorMock = mockk<SøknadMediator>().also {

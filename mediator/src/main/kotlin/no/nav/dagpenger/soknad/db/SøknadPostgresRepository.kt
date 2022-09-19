@@ -160,15 +160,12 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
     fun queries() = queries
 
     override fun visitSøknad(
-        søknadId: UUID,
-        ident: String,
-        tilstand: Søknad.Tilstand,
-        journalpost: Søknad.Journalpost?,
-        journalpostId: String?,
-        innsendtTidspunkt: ZonedDateTime?,
-        språk: Språk,
-        dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime?
+            søknadId: UUID,
+            ident: String,
+            tilstand: Søknad.Tilstand,
+            språk: Språk,
+            dokumentkrav: Dokumentkrav,
+            sistEndretAvBruker: ZonedDateTime?
     ) {
         this.søknadId = søknadId
         queries.add(

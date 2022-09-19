@@ -11,12 +11,12 @@ import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import java.time.ZonedDateTime
 
 class Innsending private constructor(
-    private val type: InnsendingType,
-    private val innsendt: ZonedDateTime,
-    private var journalpost: String?,
-    private var tilstand: Tilstand,
-    private var hovedDokument: List<Søknad.Journalpost.Variant>? = null,
-    private val vedlegg: List<Vedlegg>
+        private val type: InnsendingType,
+        private val innsendt: ZonedDateTime,
+        private var journalpostId: String?,
+        private var tilstand: Tilstand,
+        private var hovedDokument: List<Søknad.Journalpost.Variant>? = null,
+        private val vedlegg: List<Vedlegg>
 ) : Aktivitetskontekst {
     private constructor(type: InnsendingType, innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) : this(
         type,
@@ -63,7 +63,7 @@ class Innsending private constructor(
         tilstand.håndter(hendelse, this)
     }
     fun accept(innsendingVisitor: InnsendingVisitor) {
-        innsendingVisitor.visit(type, tilstand.tilstandType, innsendt, journalpost, hovedDokument, vedlegg)
+        innsendingVisitor.visit(type, tilstand.tilstandType, innsendt, journalpostId, hovedDokument, vedlegg)
     }
     enum class InnsendingType {
         NY_DIALOG,
@@ -156,7 +156,7 @@ class Innsending private constructor(
         }
 
         override fun håndter(hendelse: SøknadMidlertidigJournalførtHendelse, innsending: Innsending) {
-            innsending.journalpost = hendelse.journalpostId()
+            innsending.journalpostId = hendelse.journalpostId()
             innsending.endreTilstand(AvventerJournalføring, hendelse)
         }
     }

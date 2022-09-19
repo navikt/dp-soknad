@@ -27,12 +27,6 @@ class Søknad private constructor(
     private var tilstand: Tilstand,
     private var innsending: Innsending?,
     private val ettersendinger: MutableList<Innsending>,
-    @Deprecated("Tilhører innsending")
-    private var journalpost: Journalpost?,
-    @Deprecated("Tilhører innsending")
-    private var journalpostId: String?,
-    @Deprecated("Tilhører innsending")
-    private var innsendtTidspunkt: ZonedDateTime?,
     private val språk: Språk,
     private val dokumentkrav: Dokumentkrav,
     private var sistEndretAvBruker: ZonedDateTime?,
@@ -41,35 +35,21 @@ class Søknad private constructor(
     private val observers = mutableListOf<SøknadObserver>()
 
     constructor(søknadId: UUID, språk: Språk, ident: String) : this(
-        søknadId = søknadId,
-        ident = ident,
-        tilstand = UnderOpprettelse,
-        journalpost = null,
-        journalpostId = null,
-        innsendtTidspunkt = null,
-        språk = språk,
-        dokumentkrav = Dokumentkrav(),
-        sistEndretAvBruker = null,
-        innsending = null,
-        ettersendinger = mutableListOf()
+            søknadId = søknadId,
+            ident = ident,
+            tilstand = UnderOpprettelse,
+            innsending = null,
+            ettersendinger = mutableListOf(),
+            språk = språk,
+            dokumentkrav = Dokumentkrav(),
+            sistEndretAvBruker = null
     )
 
     companion object {
-        internal fun List<Søknad>.harAlleredeOpprettetSøknad() =
-            this.any { it.tilstand == UnderOpprettelse || it.tilstand == Påbegynt }
-
-        internal fun List<Søknad>.harPåbegyntSøknad(): Boolean = this.filter { it.tilstand == Påbegynt }.size == 1
-        internal fun List<Søknad>.hentPåbegyntSøknad(): Søknad = this.single { it.tilstand == Påbegynt }
-        internal fun List<Søknad>.finnSøknad(søknadId: UUID): Søknad? = this.find { it.søknadId == søknadId }
-        internal fun List<Søknad>.finnSøknad(journalpostId: String): Søknad? =
-            this.find { it.journalpostId == journalpostId }
 
         fun rehydrer(
             søknadId: UUID,
             ident: String,
-            journalpost: Journalpost?,
-            journalpostId: String?,
-            innsendtTidspunkt: ZonedDateTime?,
             språk: Språk,
             dokumentkrav: Dokumentkrav,
             sistEndretAvBruker: ZonedDateTime?,
@@ -83,18 +63,15 @@ class Søknad private constructor(
                 Tilstand.Type.Slettet -> throw IllegalArgumentException("Kan ikke rehydrere slettet søknad med id $søknadId")
             }
             return Søknad(
-                søknadId = søknadId,
-                ident = ident,
-                tilstand = tilstand,
-                journalpost = journalpost,
-                journalpostId = journalpostId,
-                innsendtTidspunkt = innsendtTidspunkt,
-                språk = språk,
-                dokumentkrav = dokumentkrav,
-                sistEndretAvBruker = sistEndretAvBruker,
-                aktivitetslogg = aktivitetslogg,
-                innsending = null,
-                ettersendinger = mutableListOf()
+                    søknadId = søknadId,
+                    ident = ident,
+                    tilstand = tilstand,
+                    innsending = null,
+                    ettersendinger = mutableListOf(),
+                    språk = språk,
+                    dokumentkrav = dokumentkrav,
+                    sistEndretAvBruker = sistEndretAvBruker,
+                    aktivitetslogg = aktivitetslogg
             )
         }
     }
@@ -396,15 +373,12 @@ class Søknad private constructor(
 
     fun accept(visitor: SøknadVisitor) {
         visitor.visitSøknad(
-            søknadId = søknadId,
-            ident = ident,
-            tilstand = tilstand,
-            journalpost = journalpost,
-            journalpostId = journalpostId,
-            innsendtTidspunkt = innsendtTidspunkt,
-            språk = språk,
-            dokumentkrav = dokumentkrav,
-            sistEndretAvBruker = sistEndretAvBruker
+                søknadId = søknadId,
+                ident = ident,
+                tilstand = tilstand,
+                språk = språk,
+                dokumentkrav = dokumentkrav,
+                sistEndretAvBruker = sistEndretAvBruker
         )
         tilstand.accept(visitor)
         aktivitetslogg.accept(visitor)
@@ -434,22 +408,9 @@ class Søknad private constructor(
         )
     }
 
-    private fun trengerNyJournalpost(søknadHendelse: Hendelse) {
-        val dokument = requireNotNull(journalpost) {
-            "Forventet at variabel dokumenter var satt. Er i tilstand: $tilstand"
-        }
-
-        søknadHendelse.behov(
-            Behovtype.NyJournalpost,
-            "Trenger å journalføre søknad",
-            mapOf("dokumenter" to listOf(dokument))
-        )
-    }
-
     fun deepEquals(other: Any?): Boolean =
         other is Søknad && other.søknadId == this.søknadId &&
-            other.tilstand == this.tilstand && other.journalpost == this.journalpost &&
-            other.journalpostId == this.journalpostId && this.dokumentkrav == other.dokumentkrav
+            other.tilstand == this.tilstand && this.dokumentkrav == other.dokumentkrav && this.ettersendinger == other.ettersendinger && this.innsending == other.innsending
 
     private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: Hendelse) {
         if (nyTilstand == tilstand) {

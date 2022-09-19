@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.time.ZonedDateTime
 import java.util.UUID
 
 internal class VaktmesterRepositoryTest {
@@ -144,43 +143,34 @@ internal class VaktmesterRepositoryTest {
 
     private fun innsendtSøknad(journalførtSøknadId: UUID, ident: String) =
         Søknad.rehydrer(
-            søknadId = journalførtSøknadId,
-            ident = ident,
-            journalpost = null,
-            journalpostId = "journalpostid",
-            innsendtTidspunkt = ZonedDateTime.now(),
-            språk = språk,
-            dokumentkrav = Dokumentkrav(),
-            sistEndretAvBruker = null,
-            tilstandsType = Innsendt,
-            aktivitetslogg = Aktivitetslogg()
+                søknadId = journalførtSøknadId,
+                ident = ident,
+                språk = språk,
+                dokumentkrav = Dokumentkrav(),
+                sistEndretAvBruker = null,
+                tilstandsType = Innsendt,
+                aktivitetslogg = Aktivitetslogg()
         )
 
     private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, ident: String) =
         Søknad.rehydrer(
-            søknadId = gammelPåbegyntSøknadId,
-            ident = ident,
-            journalpost = null,
-            journalpostId = "1456",
-            innsendtTidspunkt = ZonedDateTime.now(),
-            språk = språk,
-            dokumentkrav = Dokumentkrav(),
-            sistEndretAvBruker = null,
-            tilstandsType = Påbegynt,
-            aktivitetslogg = Aktivitetslogg()
+                søknadId = gammelPåbegyntSøknadId,
+                ident = ident,
+                språk = språk,
+                dokumentkrav = Dokumentkrav(),
+                sistEndretAvBruker = null,
+                tilstandsType = Påbegynt,
+                aktivitetslogg = Aktivitetslogg()
         )
 
     private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, ident: String) =
         Søknad.rehydrer(
-            søknadId = nyPåbegyntSøknadId,
-            ident = ident,
-            journalpost = null,
-            journalpostId = "1457",
-            innsendtTidspunkt = null,
-            språk = språk,
-            dokumentkrav = Dokumentkrav(),
-            sistEndretAvBruker = null,
-            tilstandsType = Påbegynt,
-            aktivitetslogg = Aktivitetslogg()
+                søknadId = nyPåbegyntSøknadId,
+                ident = ident,
+                språk = språk,
+                dokumentkrav = Dokumentkrav(),
+                sistEndretAvBruker = null,
+                tilstandsType = Påbegynt,
+                aktivitetslogg = Aktivitetslogg()
         )
 }

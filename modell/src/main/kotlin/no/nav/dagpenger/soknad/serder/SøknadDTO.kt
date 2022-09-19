@@ -10,7 +10,6 @@ import no.nav.dagpenger.soknad.Krav.Svar
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
-import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentDTO.Companion.rehydrer
 import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.KravDTO.FilDTO.Companion.toFilData
 import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SannsynliggjøringDTO.Companion.toSannsynliggjøringData
 import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SvarDTO.Companion.tilSvarData
@@ -32,16 +31,13 @@ class SøknadDTO(
     var aktivitetslogg: AktivitetsloggDTO? = null
 ) {
     fun rehydrer(): Søknad = Søknad.rehydrer(
-        søknadId = this.søknadsId,
-        ident = this.ident,
-        journalpost = this.dokumenter.rehydrer(),
-        journalpostId = this.journalpostId,
-        innsendtTidspunkt = this.innsendtTidspunkt,
-        språk = this.språkDTO.rehydrer(),
-        dokumentkrav = this.dokumentkrav.rehydrer(),
-        sistEndretAvBruker = this.sistEndretAvBruker,
-        tilstandsType = this.tilstandType.rehydrer(),
-        aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg()
+            søknadId = this.søknadsId,
+            ident = this.ident,
+            språk = this.språkDTO.rehydrer(),
+            dokumentkrav = this.dokumentkrav.rehydrer(),
+            sistEndretAvBruker = this.sistEndretAvBruker,
+            tilstandsType = this.tilstandType.rehydrer(),
+            aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg()
     )
 
     class DokumentDTO(

@@ -50,31 +50,15 @@ internal class SøknadPostgresRepositoryTest {
     )
     val ident = "12345678910"
     val søknad = Søknad.rehydrer(
-        søknadId = søknadId,
-        ident = ident,
-        journalpost = Søknad.Journalpost(
-            varianter = listOf(
-                Søknad.Journalpost.Variant(
-                    urn = "urn:soknad:fil1",
-                    format = "ARKIV",
-                    type = "PDF"
-                ),
-                Søknad.Journalpost.Variant(
-                    urn = "urn:soknad:fil2",
-                    format = "ARKIV",
-                    type = "PDF"
-                )
-            )
-        ),
-        journalpostId = "journalpostid",
-        innsendtTidspunkt = ZonedDateTime.now(),
-        språk = Språk("NO"),
-        dokumentkrav = Dokumentkrav.rehydrer(
-            krav = setOf(krav)
-        ),
-        sistEndretAvBruker = ZonedDateTime.now(),
-        tilstandsType = Søknad.Tilstand.Type.Påbegynt,
-        aktivitetslogg = Aktivitetslogg()
+            søknadId = søknadId,
+            ident = ident,
+            språk = Språk("NO"),
+            dokumentkrav = Dokumentkrav.rehydrer(
+                krav = setOf(krav)
+            ),
+            sistEndretAvBruker = ZonedDateTime.now(),
+            tilstandsType = Søknad.Tilstand.Type.Påbegynt,
+            aktivitetslogg = Aktivitetslogg()
     )
 
     @Test
@@ -82,31 +66,15 @@ internal class SøknadPostgresRepositoryTest {
         val søknadId = UUID.randomUUID()
         val ident = "12345678910"
         val søknad = Søknad.rehydrer(
-            søknadId = søknadId,
-            ident = ident,
-            journalpost = Søknad.Journalpost(
-                varianter = listOf(
-                    Søknad.Journalpost.Variant(
-                        urn = "urn:soknad:fil1",
-                        format = "ARKIV",
-                        type = "PDF"
-                    ),
-                    Søknad.Journalpost.Variant(
-                        urn = "urn:soknad:fil2",
-                        format = "ARKIV",
-                        type = "PDF"
-                    )
-                )
-            ),
-            journalpostId = "journalpostid",
-            innsendtTidspunkt = ZonedDateTime.now(),
-            språk = språk,
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav)
-            ),
-            sistEndretAvBruker = ZonedDateTime.now().minusDays(1),
-            tilstandsType = Søknad.Tilstand.Type.Påbegynt,
-            aktivitetslogg = Aktivitetslogg()
+                søknadId = søknadId,
+                ident = ident,
+                språk = språk,
+                dokumentkrav = Dokumentkrav.rehydrer(
+                    krav = setOf(krav)
+                ),
+                sistEndretAvBruker = ZonedDateTime.now().minusDays(1),
+                tilstandsType = Søknad.Tilstand.Type.Påbegynt,
+                aktivitetslogg = Aktivitetslogg()
         )
 
         withMigratedDb {
@@ -309,15 +277,12 @@ internal class SøknadPostgresRepositoryTest {
             }
 
             override fun visitSøknad(
-                søknadId: UUID,
-                ident: String,
-                tilstand: Søknad.Tilstand,
-                journalpost: Søknad.Journalpost?,
-                journalpostId: String?,
-                innsendtTidspunkt: ZonedDateTime?,
-                språk: Språk,
-                dokumentkrav: Dokumentkrav,
-                sistEndretAvBruker: ZonedDateTime?
+                    søknadId: UUID,
+                    ident: String,
+                    tilstand: Søknad.Tilstand,
+                    språk: Språk,
+                    dokumentkrav: Dokumentkrav,
+                    sistEndretAvBruker: ZonedDateTime?
             ) {
                 this.dokumentKrav = dokumentkrav
             }
