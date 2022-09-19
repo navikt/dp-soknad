@@ -100,13 +100,13 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
 
         SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).lagre(
             Søknad.rehydrer(
-                    søknadId = søknadId,
-                    ident = "12345678910",
-                    språk = Språk(språkVerdi),
-                    dokumentkrav = Dokumentkrav(),
-                    sistEndretAvBruker = ZonedDateTime.now(),
-                    tilstandsType = Påbegynt,
-                    aktivitetslogg = Aktivitetslogg()
+                søknadId = søknadId,
+                ident = "12345678910",
+                språk = Språk(språkVerdi),
+                dokumentkrav = Dokumentkrav(),
+                sistEndretAvBruker = ZonedDateTime.now(),
+                tilstandsType = Påbegynt,
+                aktivitetslogg = Aktivitetslogg()
             )
         )
         return søknadId

@@ -4,11 +4,13 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import java.util.UUID
 
 class JournalførtHendelse(
+    innsendingId: UUID,
     søknadsId: UUID,
     private val journalpostId: String,
     ident: String,
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
-) : SøknadHendelse(
+) : InnsendingHendelse(
+    innsendingId,
     søknadsId,
     ident,
     aktivitetslogg

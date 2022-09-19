@@ -12,6 +12,7 @@ interface InnsendingVisitor {
     fun preVisitEttersendinger() {}
     fun postVisitEttersendinger() {}
     fun visit(
+        innsendingId: UUID,
         innsending: Innsending.InnsendingType,
         tilstand: Innsending.Tilstand.Type,
         innsendt: ZonedDateTime,

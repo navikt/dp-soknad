@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.SøknadObserver.SøknadSlettetEvent
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.BrevkodeMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
@@ -26,7 +27,6 @@ class Søknad private constructor(
     private val ident: String,
     private var tilstand: Tilstand,
     private var innsending: Innsending?,
-    private val ettersendinger: MutableList<Innsending>,
     private val språk: Språk,
     private val dokumentkrav: Dokumentkrav,
     private var sistEndretAvBruker: ZonedDateTime?,
@@ -39,14 +39,12 @@ class Søknad private constructor(
         ident = ident,
         tilstand = UnderOpprettelse,
         innsending = null,
-        ettersendinger = mutableListOf(),
         språk = språk,
         dokumentkrav = Dokumentkrav(),
         sistEndretAvBruker = null
     )
 
     companion object {
-
         fun rehydrer(
             søknadId: UUID,
             ident: String,
@@ -67,7 +65,6 @@ class Søknad private constructor(
                 ident = ident,
                 tilstand = tilstand,
                 innsending = null,
-                ettersendinger = mutableListOf(),
                 språk = språk,
                 dokumentkrav = dokumentkrav,
                 sistEndretAvBruker = sistEndretAvBruker,
@@ -104,6 +101,12 @@ class Søknad private constructor(
         søknadInnsendtHendelse.info("Sender inn søknaden")
         sistEndretAvBruker = ZonedDateTime.now()
         tilstand.håndter(søknadInnsendtHendelse, this)
+    }
+
+    fun håndter(brevkodeMottattHendelse: BrevkodeMottattHendelse) {
+        kontekst(brevkodeMottattHendelse)
+        brevkodeMottattHendelse.info("Brevkode mottatt")
+        tilstand.håndter(brevkodeMottattHendelse, this)
     }
 
     fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse) {
@@ -158,6 +161,7 @@ class Søknad private constructor(
 
     fun håndter(leggTilFil: LeggTilFil) {
         kontekst(leggTilFil)
+        leggTilFil.info("Legger til fil")
         tilstand.håndter(leggTilFil, this)
     }
 
@@ -194,6 +198,9 @@ class Søknad private constructor(
 
         fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) =
             søknadInnsendtHendelse.`kan ikke håndteres i denne tilstanden`()
+
+        fun håndter(brevkodeMottattHendelse: BrevkodeMottattHendelse, søknad: Søknad) =
+            brevkodeMottattHendelse.`kan ikke håndteres i denne tilstanden`()
 
         fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse, søknad: Søknad) =
             arkiverbarSøknadMotattHendelse.`kan ikke håndteres i denne tilstanden`()
@@ -325,8 +332,24 @@ class Søknad private constructor(
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.Innsendt
 
+        override fun håndter(hendelse: BrevkodeMottattHendelse, søknad: Søknad) {
+            innsending(søknad).håndter(hendelse)
+        }
+
         override fun håndter(hendelse: ArkiverbarSøknadMottattHendelse, søknad: Søknad) {
             innsending(søknad).håndter(hendelse)
+        }
+
+        override fun håndter(leggTilFil: LeggTilFil, søknad: Søknad) {
+            søknad.dokumentkrav.håndter(leggTilFil)
+        }
+
+        override fun håndter(slettFil: SlettFil, søknad: Søknad) {
+            søknad.dokumentkrav.håndter(slettFil)
+        }
+
+        override fun håndter(dokumentKravSammenstilling: DokumentKravSammenstilling, søknad: Søknad) {
+            søknad.dokumentkrav.håndter(dokumentKravSammenstilling)
         }
 
         override fun håndter(
@@ -341,12 +364,7 @@ class Søknad private constructor(
         }
 
         override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
-            søknad.ettersendinger.add(
-                Innsending.ettersending(
-                    søknadInnsendtHendelse.innsendtidspunkt(),
-                    dokumentkrav = søknad.dokumentkrav
-                )
-            )
+            innsending(søknad).ettersend(søknadInnsendtHendelse, søknad.dokumentkrav)
         }
 
         private fun innsending(søknad: Søknad) =
@@ -385,9 +403,6 @@ class Søknad private constructor(
         aktivitetslogg.accept(visitor)
         dokumentkrav.accept(visitor)
         innsending?.accept(visitor)
-        visitor.preVisitEttersendinger()
-        ettersendinger.forEach { it.accept(visitor) }
-        visitor.postVisitEttersendinger()
     }
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst =
@@ -411,7 +426,7 @@ class Søknad private constructor(
 
     fun deepEquals(other: Any?): Boolean =
         other is Søknad && other.søknadId == this.søknadId &&
-            other.tilstand == this.tilstand && this.dokumentkrav == other.dokumentkrav && this.ettersendinger == other.ettersendinger && this.innsending == other.innsending
+            other.tilstand == this.tilstand && this.dokumentkrav == other.dokumentkrav && this.innsending == other.innsending
 
     private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: Hendelse) {
         if (nyTilstand == tilstand) {

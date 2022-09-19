@@ -15,12 +15,12 @@ internal class TestSøknadhåndtererInspektør(søknadhåndterer: Søknad) : Sø
     }
 
     override fun visitSøknad(
-            søknadId: UUID,
-            ident: String,
-            tilstand: Søknad.Tilstand,
-            språk: Språk,
-            dokumentkrav: Dokumentkrav,
-            sistEndretAvBruker: ZonedDateTime?
+        søknadId: UUID,
+        ident: String,
+        tilstand: Søknad.Tilstand,
+        språk: Språk,
+        dokumentkrav: Dokumentkrav,
+        sistEndretAvBruker: ZonedDateTime?
     ) {
         this.gjeldendeSøknadId = søknadId.toString()
         this.innsendtTidspunkt = innsendtTidspunkt

@@ -31,13 +31,13 @@ class SøknadDTO(
     var aktivitetslogg: AktivitetsloggDTO? = null
 ) {
     fun rehydrer(): Søknad = Søknad.rehydrer(
-            søknadId = this.søknadsId,
-            ident = this.ident,
-            språk = this.språkDTO.rehydrer(),
-            dokumentkrav = this.dokumentkrav.rehydrer(),
-            sistEndretAvBruker = this.sistEndretAvBruker,
-            tilstandsType = this.tilstandType.rehydrer(),
-            aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg()
+        søknadId = this.søknadsId,
+        ident = this.ident,
+        språk = this.språkDTO.rehydrer(),
+        dokumentkrav = this.dokumentkrav.rehydrer(),
+        sistEndretAvBruker = this.sistEndretAvBruker,
+        tilstandsType = this.tilstandType.rehydrer(),
+        aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg()
     )
 
     class DokumentDTO(

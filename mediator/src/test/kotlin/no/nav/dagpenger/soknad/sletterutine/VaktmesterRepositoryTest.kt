@@ -143,34 +143,34 @@ internal class VaktmesterRepositoryTest {
 
     private fun innsendtSøknad(journalførtSøknadId: UUID, ident: String) =
         Søknad.rehydrer(
-                søknadId = journalførtSøknadId,
-                ident = ident,
-                språk = språk,
-                dokumentkrav = Dokumentkrav(),
-                sistEndretAvBruker = null,
-                tilstandsType = Innsendt,
-                aktivitetslogg = Aktivitetslogg()
+            søknadId = journalførtSøknadId,
+            ident = ident,
+            språk = språk,
+            dokumentkrav = Dokumentkrav(),
+            sistEndretAvBruker = null,
+            tilstandsType = Innsendt,
+            aktivitetslogg = Aktivitetslogg()
         )
 
     private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, ident: String) =
         Søknad.rehydrer(
-                søknadId = gammelPåbegyntSøknadId,
-                ident = ident,
-                språk = språk,
-                dokumentkrav = Dokumentkrav(),
-                sistEndretAvBruker = null,
-                tilstandsType = Påbegynt,
-                aktivitetslogg = Aktivitetslogg()
+            søknadId = gammelPåbegyntSøknadId,
+            ident = ident,
+            språk = språk,
+            dokumentkrav = Dokumentkrav(),
+            sistEndretAvBruker = null,
+            tilstandsType = Påbegynt,
+            aktivitetslogg = Aktivitetslogg()
         )
 
     private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, ident: String) =
         Søknad.rehydrer(
-                søknadId = nyPåbegyntSøknadId,
-                ident = ident,
-                språk = språk,
-                dokumentkrav = Dokumentkrav(),
-                sistEndretAvBruker = null,
-                tilstandsType = Påbegynt,
-                aktivitetslogg = Aktivitetslogg()
+            søknadId = nyPåbegyntSøknadId,
+            ident = ident,
+            språk = språk,
+            dokumentkrav = Dokumentkrav(),
+            sistEndretAvBruker = null,
+            tilstandsType = Påbegynt,
+            aktivitetslogg = Aktivitetslogg()
         )
 }

@@ -157,12 +157,12 @@ private class ApiDokumentkravResponse(
     lateinit var krav: List<ApiDokumentKrav>
 
     override fun visitSøknad(
-            søknadId: UUID,
-            ident: String,
-            tilstand: Søknad.Tilstand,
-            språk: Språk,
-            dokumentkrav: Dokumentkrav,
-            sistEndretAvBruker: ZonedDateTime?
+        søknadId: UUID,
+        ident: String,
+        tilstand: Søknad.Tilstand,
+        språk: Språk,
+        dokumentkrav: Dokumentkrav,
+        sistEndretAvBruker: ZonedDateTime?
     ) {
         soknad_uuid = søknadId
         krav = dokumentkrav.aktiveDokumentKrav().toApiKrav()

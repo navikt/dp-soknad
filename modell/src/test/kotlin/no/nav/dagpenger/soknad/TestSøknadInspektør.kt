@@ -13,6 +13,7 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
     val ettersendinger = mutableListOf<InnsendingData>()
 
     data class InnsendingData(
+        val innsendingId: UUID,
         val innsending: Innsending.InnsendingType,
         val tilstand: Innsending.Tilstand.Type,
         val innsendt: ZonedDateTime,
@@ -24,6 +25,8 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
     init {
         søknad.accept(this)
     }
+
+    val innsendingId get() = innsending!!.innsendingId
 
     override fun visitSøknad(
         søknadId: UUID,
@@ -46,6 +49,7 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
     }
 
     override fun visit(
+        innsendingId: UUID,
         innsending: Innsending.InnsendingType,
         tilstand: Innsending.Tilstand.Type,
         innsendt: ZonedDateTime,
@@ -53,7 +57,15 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
         hovedDokument: Innsending.Dokument?,
         vedlegg: List<Innsending.Dokument>
     ) {
-        val innsendingData = InnsendingData(innsending, tilstand, innsendt, journalpost, hovedDokument, vedlegg)
+        val innsendingData = InnsendingData(
+            innsendingId,
+            innsending,
+            tilstand,
+            innsendt,
+            journalpost,
+            hovedDokument,
+            vedlegg
+        )
         if (ettersending) {
             ettersendinger.add(innsendingData)
         } else {

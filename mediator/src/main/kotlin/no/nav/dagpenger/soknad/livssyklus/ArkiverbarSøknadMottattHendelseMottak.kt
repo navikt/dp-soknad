@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad.livssyklus
 import com.fasterxml.jackson.databind.JsonNode
 import de.slub.urn.URN
 import mu.KotlinLogging
+import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.ArkiverbarSøknad
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.SøknadMediator
@@ -27,7 +28,7 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "behov") }
             validate { it.demandAllOrAny("@behov", listOf(behov)) }
-            validate { it.requireKey("søknad_uuid", "ident", "@løsning") }
+            validate { it.requireKey("søknad_uuid", "ident", "innsendingId", "@løsning") }
             validate {
                 it.require("@løsning") { løsning ->
                     løsning.required(behov)
@@ -38,14 +39,20 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val søknadID = packet["søknad_uuid"].asUUID()
-        val arkiverbarSøknadMottattHendelse =
-            ArkiverbarSøknadMottattHendelse(
+        val innsendingId = packet["innsendingId"].asUUID()
+        withLoggingContext(
+            "søknadId" to søknadID.toString(),
+            "innsendingId" to innsendingId.toString()
+        ) {
+            val arkiverbarSøknadMottattHendelse = ArkiverbarSøknadMottattHendelse(
+                innsendingId = UUID.randomUUID(),
                 søknadID = søknadID,
                 ident = packet["ident"].asText(),
                 dokumentvarianter = packet["@løsning"][behov].dokumentVarianter()
             )
-        logger.info { "Fått løsning for $behov for $søknadID" }
-        mediator.behandle(arkiverbarSøknadMottattHendelse)
+            logger.info { "Fått løsning for $behov for $søknadID" }
+            mediator.behandle(arkiverbarSøknadMottattHendelse)
+        }
     }
 
     private fun JsonNode.dokumentVarianter(): List<Innsending.Dokument.Dokumentvariant> = this.toList().map { node ->
