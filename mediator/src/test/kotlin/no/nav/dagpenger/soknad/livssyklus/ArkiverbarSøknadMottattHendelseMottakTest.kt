@@ -1,11 +1,13 @@
 package no.nav.dagpenger.soknad.livssyklus
 
+import de.slub.urn.URN
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
@@ -30,18 +32,20 @@ internal class ArkiverbarSøknadMottattHendelseMottakTest {
         verify(exactly = 1) { mediatorMock.behandle(any() as ArkiverbarSøknadMottattHendelse) }
         assertEquals(
             listOf(
-                Søknad.Journalpost.Variant(
-                    urn = "urn:vedlegg:soknadId/netto.pdf",
-                    format = "ARKIV",
+                Innsending.Dokument.Dokumentvariant(
+                    filnavn = "brutto.pdf",
+                    urn = URN.rfc8141().parse("urn:vedlegg:soknadId/brutto.pdf"),
+                    variant = "FULLVERSJON",
                     type = "PDF"
                 ),
-                Søknad.Journalpost.Variant(
-                    urn = "urn:vedlegg:soknadId/brutto.pdf",
-                    format = "FULLVERSJON",
+                Innsending.Dokument.Dokumentvariant(
+                    urn = URN.rfc8141().parse("urn:vedlegg:soknadId/netto.pdf"),
+                    filnavn = "netto.pdf",
+                    variant = "ARKIV",
                     type = "PDF"
                 )
-            ).sortedBy { it.urn },
-            slot.captured.dokumentvarianter().varianter.sortedBy { it.urn }
+            ).sortedBy { it.urn.toString() },
+            slot.captured.dokumentvarianter().sortedBy { it.urn.toString() }
         )
     }
 
@@ -53,6 +57,7 @@ internal class ArkiverbarSøknadMottattHendelseMottakTest {
     "ArkiverbarSøknad"
   ],
   "søknad_uuid": "f83b0db7-9555-4d1d-b5db-7ab8e3e9d1c8",
+  "innsendingId": "f83b0db7-9555-4d1d-b5db-7ab8e3e9d1c8",
   "ident": "12345678910",
   "innsendtTidspunkt": "2022-05-20T12:04:20.000625+02:00[Europe/Oslo]",
   "@id": "0d23e605-0485-4335-aafc-27015e8fcc9e",

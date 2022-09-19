@@ -13,8 +13,11 @@ import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
+import no.nav.dagpenger.soknad.livssyklus.InnsendingBrevkodeMottak
 import no.nav.dagpenger.soknad.livssyklus.JournalførtMottak
 import no.nav.dagpenger.soknad.livssyklus.NyJournalpostMottak
+import no.nav.dagpenger.soknad.livssyklus.PåbegyntSøknad
+import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadCachePostgresRepository
@@ -38,23 +41,43 @@ internal class SøknadMediatorTest {
     private lateinit var mediator: SøknadMediator
     private val testRapid = TestRapid()
 
+    private object TestSøknadRepository : SøknadRepository {
+
+        private val søknader = mutableListOf<Søknad>()
+        override fun hent(søknadId: UUID, ident: String): Søknad? {
+            return søknader.find { it.søknadUUID() == søknadId }
+        }
+
+        override fun hentSøknader(ident: String): Set<Søknad> {
+            return søknader.toSet()
+        }
+
+        override fun lagre(søknad: Søknad) {
+            søknader.add(søknad)
+        }
+
+        override fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad? {
+            TODO("not implemented")
+        }
+    }
+
     @BeforeEach
     fun setup() {
-        withMigratedDb {
-            mediator = SøknadMediator(
-                testRapid,
-                SøknadCachePostgresRepository(dataSource),
-                mockk(),
-                mockk(),
-                SøknadPostgresRepository(dataSource)
-            )
 
-            SøkerOppgaveMottak(testRapid, mediator)
-            SøknadOpprettetHendelseMottak(testRapid, mediator)
-            ArkiverbarSøknadMottattHendelseMottak(testRapid, mediator)
-            NyJournalpostMottak(testRapid, mediator)
-            JournalførtMottak(testRapid, mediator)
-        }
+        mediator = SøknadMediator(
+            testRapid,
+            mockk(relaxed = true),
+            mockk(),
+            mockk(),
+            TestSøknadRepository
+        )
+
+        SøkerOppgaveMottak(testRapid, mediator)
+        SøknadOpprettetHendelseMottak(testRapid, mediator)
+        ArkiverbarSøknadMottattHendelseMottak(testRapid, mediator)
+        NyJournalpostMottak(testRapid, mediator)
+        JournalførtMottak(testRapid, mediator)
+        InnsendingBrevkodeMottak(testRapid, mediator)
     }
 
     @Test
@@ -69,7 +92,6 @@ internal class SøknadMediatorTest {
         assertEquals(Påbegynt, oppdatertInspektør().gjeldendetilstand)
 
         testRapid.sendTestMessage(søkerOppgave(søknadUuid.toString().toUUID(), testIdent))
-        assertAntallRader("soknad_cache", antallRader = 1)
 
         mediator.behandle(FaktumSvar(søknadUuid, "1234", "boolean", testIdent, BooleanNode.TRUE))
         assertTrue("faktum_svar" in testRapid.inspektør.message(1).toString())
@@ -79,7 +101,16 @@ internal class SøknadMediatorTest {
 
         assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
         // assertNotNull(oppdatertInspektør().innsendtTidspunkt)
-        assertEquals(listOf("ArkiverbarSøknad"), behov(2))
+        assertEquals(listOf("InnsendingBrevkode"), behov(2))
+
+
+        testRapid.sendTestMessage(
+            innsendingBrevkodeLøsning(
+                testIdent,
+                søknadId(),
+                oppdatertInspektør(testIdent).gjeldendeInnsendingId
+            )
+        )
 
         testRapid.sendTestMessage(
             arkiverbarsøknadLøsning(
@@ -119,6 +150,42 @@ internal class SøknadMediatorTest {
             }
         }
     }
+
+
+
+    private fun innsendingBrevkodeLøsning(
+        ident: String,
+        søknadUuid: String,
+        innsendingId: UUID
+    )= //language=JSON
+        """
+{
+  "@event_name": "behov",
+  "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
+  "@behov": [
+    "InnsendingBrevkode"
+  ],
+  "ident": "$ident",
+  "søknad_uuid": "$søknadUuid",
+  "innsendingId": "$innsendingId",
+  "ArkiverbarSøknad": {},
+  "@id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
+  "@opprettet": "2022-03-30T12:19:08.418821",
+  "system_read_count": 0,
+  "system_participating_services": [
+    {
+      "id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
+      "time": "2022-03-30T12:19:08.418821"
+    }
+  ],
+  "@løsning": {
+    "InnsendingBrevkode": {
+      "tittel": "Søknad om dagpenger",
+      "skjemakode": "04.04-01"
+    }
+  }
+}
+        """.trimIndent()
 
     @Test
     fun `Hva skjer om en får JournalførtHendelse som ikke er tilknyttet en søknad`() {
@@ -220,6 +287,7 @@ internal class SøknadMediatorTest {
       ],
       "ident": "$ident",
       "søknad_uuid": "$søknadUuid",
+      "innsendingId" to "", 
       "ArkiverbarSøknad": {},
       "@id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
       "@opprettet": "2022-03-30T12:19:08.418821",

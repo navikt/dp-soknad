@@ -179,42 +179,38 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queryOf(
                 // language=PostgreSQL
                 """
-                INSERT INTO soknad_v1(uuid, person_ident, tilstand, journalpost_id, spraak)
-                VALUES (:uuid, :person_ident, :tilstand, :journalpostID, :spraak)
+                INSERT INTO soknad_v1(uuid, person_ident, tilstand, spraak)
+                VALUES (:uuid, :person_ident, :tilstand, :spraak)
                 ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
-                                                journalpost_id=:journalpostID,
-                                                innsendt_tidspunkt = :innsendtTidspunkt,
                                                 sist_endret_av_bruker = :sistEndretAvBruker
                 """.trimIndent(),
                 mapOf(
                     "uuid" to søknadId,
                     "person_ident" to ident,
                     "tilstand" to tilstand.tilstandType.name,
-                    "journalpostID" to journalpostId,
-                    "innsendtTidspunkt" to innsendtTidspunkt,
                     "spraak" to språk.verdi.toLanguageTag(),
                     "sistEndretAvBruker" to sistEndretAvBruker
                 )
             )
         )
         // todo: fiks journalpost og innsending
-        journalpost?.let { jp ->
-            jp.varianter.map { variant ->
-                queryOf(
-                    //language=PostgreSQL
-                    """
-                    INSERT INTO dokument_v1(soknad_uuid, dokument_lokasjon)
-                        VALUES(:uuid, :urn) ON CONFLICT (dokument_lokasjon) DO NOTHING 
-                    """.trimIndent(),
-                    mapOf(
-                        "uuid" to søknadId.toString(),
-                        "urn" to variant.urn
-                    )
-                )
-            }.also {
-                queries.addAll(it)
-            }
-        }
+        // journalpost?.let { jp ->
+        //     jp.varianter.map { variant ->
+        //         queryOf(
+        //             //language=PostgreSQL
+        //             """
+        //             INSERT INTO dokument_v1(soknad_uuid, dokument_lokasjon)
+        //                 VALUES(:uuid, :urn) ON CONFLICT (dokument_lokasjon) DO NOTHING
+        //             """.trimIndent(),
+        //             mapOf(
+        //                 "uuid" to søknadId.toString(),
+        //                 "urn" to variant.urn
+        //             )
+        //         )
+        //     }.also {
+        //         queries.addAll(it)
+        //     }
+        // }
     }
 
     override fun visitKrav(krav: Krav) {

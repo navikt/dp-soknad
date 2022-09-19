@@ -34,6 +34,8 @@ class Søknad private constructor(
 ) : Aktivitetskontekst {
     private val observers = mutableListOf<SøknadObserver>()
 
+    fun søknadUUID() = søknadId
+
     constructor(søknadId: UUID, språk: Språk, ident: String) : this(
         søknadId = søknadId,
         ident = ident,
