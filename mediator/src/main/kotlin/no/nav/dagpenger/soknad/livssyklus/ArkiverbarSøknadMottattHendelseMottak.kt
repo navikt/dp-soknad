@@ -1,10 +1,10 @@
 package no.nav.dagpenger.soknad.livssyklus
 
 import com.fasterxml.jackson.databind.JsonNode
+import de.slub.urn.URN
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.ArkiverbarSøknad
-import no.nav.dagpenger.soknad.Søknad
-import no.nav.dagpenger.soknad.Søknad.Journalpost.Variant
+import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -17,7 +17,6 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
     rapidsConnection: RapidsConnection,
     private val mediator: SøknadMediator
 ) : River.PacketListener {
-
     companion object {
         private val logger = KotlinLogging.logger {}
     }
@@ -43,13 +42,17 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
             ArkiverbarSøknadMottattHendelse(
                 søknadID,
                 packet["ident"].asText(),
-                Søknad.Journalpost(varianter = packet["@løsning"][behov].dokumentVarianter())
+                Innsending.Dokument(
+                    navn = "",
+                    brevkode = "",
+                    varianter = packet["@løsning"][behov].dokumentVarianter()
+                )
             )
         logger.info { "Fått løsning for $behov for $søknadID" }
         mediator.behandle(arkiverbarSøknadMottattHendelse)
     }
 
-    private fun JsonNode.dokumentVarianter(): List<Variant> = this.toList().map { node ->
+    private fun JsonNode.dokumentVarianter(): List<Innsending.Dokument.Dokumentvariant> = this.toList().map { node ->
         val format = when (node["metainfo"]["variant"].asText()) {
             "NETTO" -> "ARKIV"
             "BRUTTO" -> "FULLVERSJON"
@@ -57,9 +60,10 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
                 throw IllegalArgumentException("Ukjent joarkvariant, se https://confluence.adeo.no/display/BOA/Variantformat")
             }
         }
-        Variant(
-            urn = node["urn"].asText(),
-            format = format,
+        Innsending.Dokument.Dokumentvariant(
+            filnavn = node["metainfo"]["innhold"].asText(),
+            urn = URN.rfc8141().parse(node["urn"].asText()),
+            variant = format,
             type = node["metainfo"]["filtype"].asText()
         )
     }

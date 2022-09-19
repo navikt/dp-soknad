@@ -11,20 +11,19 @@ import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import java.time.ZonedDateTime
 
 class Innsending private constructor(
-        private val type: InnsendingType,
-        private val innsendt: ZonedDateTime,
-        private var journalpostId: String?,
-        private var tilstand: Tilstand,
-        private var hovedDokument: List<Søknad.Journalpost.Variant>? = null,
-        private val vedlegg: List<Vedlegg>
+    private val type: InnsendingType,
+    private val innsendt: ZonedDateTime,
+    private var journalpostId: String?,
+    private var tilstand: Tilstand,
+    private var hovedDokument: Dokument? = null,
+    private val dokumenter: List<Dokument>
 ) : Aktivitetskontekst {
     private constructor(type: InnsendingType, innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) : this(
         type,
         innsendt,
         null,
         Opprettet,
-        // @todo: Vi må ta med alle dokumenkravsvar for å kunne genere søknad PDF med status på vedlegg. Feks "sendes senere"
-        vedlegg = dokumentkrav.tilVedlegg()
+        dokumenter = dokumentkrav.tilDokument()
     )
 
     companion object {
@@ -33,15 +32,24 @@ class Innsending private constructor(
 
         fun ettersending(innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) =
             Innsending(
-                InnsendingType.ETTERSENDING_TIL_DIALOG, innsendt, dokumentkrav
+                InnsendingType.ETTERSENDING_TIL_DIALOG,
+                innsendt,
+                dokumentkrav
             )
     }
 
-    data class Vedlegg(
-        val beskrivendeId: String,
-        val urn: URN,
-        val type: String // pdf/png/jpg
-    )
+    data class Dokument(
+        val navn: String, // Søknad om dagpenger / Ettersending til søknad om dagpenger
+        val brevkode: String, // NAV 04-01.04 / NAVe 04-01.04
+        val varianter: List<Dokumentvariant>
+    ) {
+        data class Dokumentvariant(
+            val filnavn: String,
+            val urn: URN,
+            val variant: String, // Arkiv / Original / Fullversjon
+            val type: String // PDF / JPG / JSON
+        )
+    }
 
     fun håndter(hendelse: SøknadInnsendtHendelse) {
         kontekst(hendelse)
@@ -62,13 +70,16 @@ class Innsending private constructor(
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
     }
+
     fun accept(innsendingVisitor: InnsendingVisitor) {
-        innsendingVisitor.visit(type, tilstand.tilstandType, innsendt, journalpostId, hovedDokument, vedlegg)
+        innsendingVisitor.visit(type, tilstand.tilstandType, innsendt, journalpostId, hovedDokument, dokumenter)
     }
+
     enum class InnsendingType {
         NY_DIALOG,
         ETTERSENDING_TIL_DIALOG
     }
+
     interface Tilstand : Aktivitetskontekst {
         val tilstandType: Type
 
@@ -111,7 +122,6 @@ class Innsending private constructor(
         override fun håndter(hendelse: SøknadInnsendtHendelse, innsending: Innsending) {
             innsending.endreTilstand(AvventerArkiverbarSøknad, hendelse)
             // TODO: DokumentKrav/Ferdigstill må bli med på et vis
-            // TODO: Frontend må bundle hvert dokumentkrav
         }
     }
 
@@ -130,7 +140,7 @@ class Innsending private constructor(
         }
 
         override fun håndter(hendelse: ArkiverbarSøknadMottattHendelse, innsending: Innsending) {
-            innsending.hovedDokument = hendelse.dokument().varianter
+            innsending.hovedDokument = hendelse.dokument()
             innsending.endreTilstand(
                 AvventerMidlertidligJournalføring,
                 hendelse
@@ -143,13 +153,13 @@ class Innsending private constructor(
 
         override fun entering(hendelse: Hendelse, innsending: Innsending) {
             val hovedDokument = requireNotNull(innsending.hovedDokument) { "Hoveddokumment må være satt" }
-            val vedlegg = listOf<Vedlegg>()
+            val dokumenter = listOf<Dokument>()
             hendelse.behov(
                 NyJournalpost,
                 "Trenger å journalføre søknad",
                 mapOf(
                     "hovedDokument" to hovedDokument, // urn til netto/brutto
-                    "vedlegg" to vedlegg,
+                    "dokumenter" to dokumenter,
                     "type" to innsending.type
                 )
             )

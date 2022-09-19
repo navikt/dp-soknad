@@ -16,8 +16,8 @@ interface InnsendingVisitor {
         tilstand: Innsending.Tilstand.Type,
         innsendt: ZonedDateTime,
         journalpost: String?,
-        hovedDokument: List<Søknad.Journalpost.Variant>?,
-        vedlegg: List<Innsending.Vedlegg>
+        hovedDokument: Innsending.Dokument?,
+        dokumenter: List<Innsending.Dokument>
     ) {}
 }
 interface DokumentkravVisitor {

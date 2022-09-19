@@ -4,7 +4,6 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
-
     lateinit var søknadId: UUID
     lateinit var gjeldendetilstand: Søknad.Tilstand.Type
     lateinit var dokumentkrav: Dokumentkrav
@@ -18,8 +17,8 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
         val tilstand: Innsending.Tilstand.Type,
         val innsendt: ZonedDateTime,
         val journalpost: String?,
-        val hovedDokument: List<Søknad.Journalpost.Variant>?,
-        val vedlegg: List<Innsending.Vedlegg>
+        val hovedDokument: Innsending.Dokument?,
+        val dokumenter: List<Innsending.Dokument>
     )
 
     init {
@@ -27,12 +26,12 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
     }
 
     override fun visitSøknad(
-            søknadId: UUID,
-            ident: String,
-            tilstand: Søknad.Tilstand,
-            språk: Språk,
-            dokumentkrav: Dokumentkrav,
-            sistEndretAvBruker: ZonedDateTime?
+        søknadId: UUID,
+        ident: String,
+        tilstand: Søknad.Tilstand,
+        språk: Språk,
+        dokumentkrav: Dokumentkrav,
+        sistEndretAvBruker: ZonedDateTime?
     ) {
         this.søknadId = søknadId
         this.dokumentkrav = dokumentkrav
@@ -51,8 +50,8 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
         tilstand: Innsending.Tilstand.Type,
         innsendt: ZonedDateTime,
         journalpost: String?,
-        hovedDokument: List<Søknad.Journalpost.Variant>?,
-        vedlegg: List<Innsending.Vedlegg>
+        hovedDokument: Innsending.Dokument?,
+        vedlegg: List<Innsending.Dokument>
     ) {
         val innsendingData = InnsendingData(innsending, tilstand, innsendt, journalpost, hovedDokument, vedlegg)
         if (ettersending) {

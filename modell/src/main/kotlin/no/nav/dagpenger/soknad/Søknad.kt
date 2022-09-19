@@ -35,14 +35,14 @@ class Søknad private constructor(
     private val observers = mutableListOf<SøknadObserver>()
 
     constructor(søknadId: UUID, språk: Språk, ident: String) : this(
-            søknadId = søknadId,
-            ident = ident,
-            tilstand = UnderOpprettelse,
-            innsending = null,
-            ettersendinger = mutableListOf(),
-            språk = språk,
-            dokumentkrav = Dokumentkrav(),
-            sistEndretAvBruker = null
+        søknadId = søknadId,
+        ident = ident,
+        tilstand = UnderOpprettelse,
+        innsending = null,
+        ettersendinger = mutableListOf(),
+        språk = språk,
+        dokumentkrav = Dokumentkrav(),
+        sistEndretAvBruker = null
     )
 
     companion object {
@@ -63,15 +63,15 @@ class Søknad private constructor(
                 Tilstand.Type.Slettet -> throw IllegalArgumentException("Kan ikke rehydrere slettet søknad med id $søknadId")
             }
             return Søknad(
-                    søknadId = søknadId,
-                    ident = ident,
-                    tilstand = tilstand,
-                    innsending = null,
-                    ettersendinger = mutableListOf(),
-                    språk = språk,
-                    dokumentkrav = dokumentkrav,
-                    sistEndretAvBruker = sistEndretAvBruker,
-                    aktivitetslogg = aktivitetslogg
+                søknadId = søknadId,
+                ident = ident,
+                tilstand = tilstand,
+                innsending = null,
+                ettersendinger = mutableListOf(),
+                språk = språk,
+                dokumentkrav = dokumentkrav,
+                sistEndretAvBruker = sistEndretAvBruker,
+                aktivitetslogg = aktivitetslogg
             )
         }
     }
@@ -280,6 +280,7 @@ class Søknad private constructor(
             }
             val innsending = Innsending.ny(
                 søknadInnsendtHendelse.innsendtidspunkt(),
+                // TODO: Klassifisering til NAV skjemakode
                 dokumentkrav = søknad.dokumentkrav
             )
             søknad.innsending = innsending.also {
@@ -373,12 +374,12 @@ class Søknad private constructor(
 
     fun accept(visitor: SøknadVisitor) {
         visitor.visitSøknad(
-                søknadId = søknadId,
-                ident = ident,
-                tilstand = tilstand,
-                språk = språk,
-                dokumentkrav = dokumentkrav,
-                sistEndretAvBruker = sistEndretAvBruker
+            søknadId = søknadId,
+            ident = ident,
+            tilstand = tilstand,
+            språk = språk,
+            dokumentkrav = dokumentkrav,
+            sistEndretAvBruker = sistEndretAvBruker
         )
         tilstand.accept(visitor)
         aktivitetslogg.accept(visitor)
