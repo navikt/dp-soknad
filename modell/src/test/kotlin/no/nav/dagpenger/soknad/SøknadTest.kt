@@ -293,7 +293,6 @@ internal class SøknadTest {
         håndterLeggtilFil("2", "urn:sid:2")
         håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle3")
 
-
         håndterSendInnSøknad()
         håndterArkiverbarSøknad(ettersendinger().innsendingId)
 
@@ -353,8 +352,6 @@ internal class SøknadTest {
 
         håndterJournalførtSøknad(ettersendinger().innsendingId)
         assertEttersendingTilstand(Journalført)
-
-
     }
 
     private fun assertInnsendingTilstand(tilstand: Innsending.Tilstand.Type) {

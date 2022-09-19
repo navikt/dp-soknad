@@ -7,9 +7,7 @@ import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyJourna
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.BrevkodeMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
-import no.nav.dagpenger.soknad.hendelse.InnsendingHendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
-import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import java.time.ZonedDateTime
@@ -89,7 +87,6 @@ class Innsending private constructor(
     }
     fun håndter(hendelse: ArkiverbarSøknadMottattHendelse) {
         innsendinger.forEach { it._håndter(hendelse) }
-
     }
 
     fun håndter(hendelse: SøknadMidlertidigJournalførtHendelse) {
