@@ -11,6 +11,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
@@ -288,6 +289,24 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                     }
                 )
             )
+        )
+    }
+
+    override fun visit(innsendingId: UUID, innsending: Innsending.InnsendingType, tilstand: Innsending.Tilstand.Type, innsendt: ZonedDateTime, journalpost: String?, hovedDokument: Innsending.Dokument?, dokumenter: List<Innsending.Dokument>) {
+        queries.add(
+                queryOf(
+                        //language=PostgreSQL
+                        statement = "INSERT INTO innsending_v1(innsending_uuid, innsendt, journalpost_id, innsendingtype, tilstand, brevkode) VALUES (:innsending_uuid, :innsendt, :journalpost_id, :innsendingtype, :tilstand, row(:tittel, :skjemakode)::brevkode)",
+                        paramMap = mapOf(
+                                "innsending_uuid" to innsendingId,
+                                "innsendt" to innsendt,
+                                "journalpost_id" to journalpost,
+                                "innsendingtype" to innsending.name,
+                                "tilstand" to tilstand.name,
+                                "tittel" to "tittel",
+                                "skjemakode" to "skjemakode"
+                        )
+                )
         )
     }
 }

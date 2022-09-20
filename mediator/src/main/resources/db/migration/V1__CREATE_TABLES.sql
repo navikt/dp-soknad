@@ -84,4 +84,21 @@ CREATE TABLE IF NOT EXISTS aktivitetslogg_v1
     data        jsonb NOT NULL
 );
 
+CREATE TYPE brevkode AS
+(
+    tittel varchar,
+    skjemakode varchar
+);
+
+CREATE TABLE IF NOT EXISTS innsending_v1
+(
+    id              bigserial PRIMARY KEY,
+    innsending_uuid uuid UNIQUE,
+    innsendt        timestamp WITH TIME ZONE NOT NULL,
+    journalpost_id  varchar UNIQUE           NULL,
+    innsendingtype  varchar                  NOT NULL,
+    tilstand        varchar                  NOT NULL,
+    brevkode        brevkode                NULL
+);
+
 

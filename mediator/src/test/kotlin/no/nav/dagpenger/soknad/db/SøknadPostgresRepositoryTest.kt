@@ -9,6 +9,7 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.IkkeTilgangExeption
+import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
@@ -264,6 +265,45 @@ internal class SøknadPostgresRepositoryTest {
                         urn = fil2.urn
                     )
                 )
+            }
+        }
+    }
+
+    @Test
+    fun `t`(){
+
+        val søknadId = UUID.randomUUID()
+        val ident = "12345678910"
+        val søknad = Søknad.rehydrer(
+                søknadId = søknadId,
+                ident = ident,
+                språk = språk,
+                dokumentkrav = Dokumentkrav.rehydrer(
+                        krav = setOf(krav)
+                ),
+                sistEndretAvBruker = ZonedDateTime.now().minusDays(1),
+                tilstandsType = Søknad.Tilstand.Type.Påbegynt,
+                aktivitetslogg = Aktivitetslogg(),
+                innsending = Innsending.ny(ZonedDateTime.now(), Dokumentkrav.rehydrer(
+                        krav = setOf(krav)
+                ))
+        )
+
+        withMigratedDb {
+            SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).let { søknadPostgresRepository ->
+                søknadPostgresRepository.lagre(søknad)
+
+                assertAntallRader("soknad_v1", 1)
+                assertAntallRader("dokumentkrav_v1", 1)
+                assertAntallRader("aktivitetslogg_v1", 1)
+                assertAntallRader("innsending_v1", 1)
+                val rehydrertSøknad = søknadPostgresRepository.hent(søknadId, ident)
+
+                //assertDeepEquals(rehydrertSøknad!!, søknad)
+                // TODO: Flytt tilgangskontroll til API-lag
+                /*assertThrows<IkkeTilgangExeption> {
+                    søknadPostgresRepository.hent(søknadId, "ikke-tilgang")
+                }*/
             }
         }
     }
