@@ -270,23 +270,95 @@ internal class SøknadPostgresRepositoryTest {
     }
 
     @Test
-    fun `t`(){
-
+    fun `t`() {
         val søknadId = UUID.randomUUID()
         val ident = "12345678910"
         val søknad = Søknad.rehydrer(
-                søknadId = søknadId,
-                ident = ident,
-                språk = språk,
-                dokumentkrav = Dokumentkrav.rehydrer(
-                        krav = setOf(krav)
+            søknadId = søknadId,
+            ident = ident,
+            språk = språk,
+            dokumentkrav = Dokumentkrav.rehydrer(
+                krav = setOf(krav)
+            ),
+            sistEndretAvBruker = ZonedDateTime.now().minusDays(1),
+            tilstandsType = Søknad.Tilstand.Type.Påbegynt,
+            aktivitetslogg = Aktivitetslogg(),
+            innsending = Innsending.rehydrer(
+                UUID.randomUUID(),
+                Innsending.InnsendingType.NY_DIALOG,
+                ZonedDateTime.now(),
+                "123123",
+                Innsending.Tilstand.Type.Journalført,
+                Innsending.Dokument(
+                    UUID.randomUUID(),
+                    "navn",
+                    "brevkode",
+                    varianter = listOf(
+                        Innsending.Dokument.Dokumentvariant(
+                            UUID.randomUUID(),
+                            "filnavn1",
+                            "urn:burn:turn1",
+                            "variant1",
+                            "type1"
+                        ),
+                        Innsending.Dokument.Dokumentvariant(
+                            UUID.randomUUID(),
+                            "filnavn2",
+                            "urn:burn:turn2",
+                            "variant2",
+                            "type2"
+                        )
+                    )
                 ),
-                sistEndretAvBruker = ZonedDateTime.now().minusDays(1),
-                tilstandsType = Søknad.Tilstand.Type.Påbegynt,
-                aktivitetslogg = Aktivitetslogg(),
-                innsending = Innsending.ny(ZonedDateTime.now(), Dokumentkrav.rehydrer(
-                        krav = setOf(krav)
-                ))
+                listOf(
+                    Innsending.Dokument(
+                        UUID.randomUUID(),
+                        "navn2",
+                        "brevkode2",
+                        varianter = listOf(
+                            Innsending.Dokument.Dokumentvariant(
+                                UUID.randomUUID(),
+                                "filnavn3",
+                                "urn:burn:turn3",
+                                "variant3",
+                                "type3"
+                            ),
+                            Innsending.Dokument.Dokumentvariant(
+                                UUID.randomUUID(),
+                                "filnavn4",
+                                "urn:burn:turn4",
+                                "variant4",
+                                "type4"
+                            )
+                        )
+                    )
+                ),
+                mutableListOf(
+                    Innsending.rehydrer(
+                        UUID.randomUUID(),
+                        Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG,
+                        ZonedDateTime.now(),
+                        null,
+                        Innsending.Tilstand.Type.Opprettet,
+                        null,
+                        listOf(),
+                        mutableListOf(),
+                        Innsending.Brevkode("Tittel ettersending1", "0324-23")
+                    ),
+                    Innsending.rehydrer(
+                        UUID.randomUUID(),
+                        Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG,
+                        ZonedDateTime.now(),
+                        null,
+                        Innsending.Tilstand.Type.AvventerJournalføring,
+                        null,
+                        listOf(),
+                        mutableListOf(),
+                        Innsending.Brevkode("Tittel ettersending2", "0324-23")
+                    )
+                ),
+                Innsending.Brevkode("Tittel", "04-02-03")
+            )
         )
 
         withMigratedDb {
@@ -296,10 +368,9 @@ internal class SøknadPostgresRepositoryTest {
                 assertAntallRader("soknad_v1", 1)
                 assertAntallRader("dokumentkrav_v1", 1)
                 assertAntallRader("aktivitetslogg_v1", 1)
-                assertAntallRader("innsending_v1", 1)
+                assertAntallRader("innsending_v1", 3)
                 val rehydrertSøknad = søknadPostgresRepository.hent(søknadId, ident)
-
-                //assertDeepEquals(rehydrertSøknad!!, søknad)
+                // assertDeepEquals(rehydrertSøknad!!, søknad)
                 // TODO: Flytt tilgangskontroll til API-lag
                 /*assertThrows<IkkeTilgangExeption> {
                     søknadPostgresRepository.hent(søknadId, "ikke-tilgang")

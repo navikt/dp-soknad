@@ -18,7 +18,8 @@ interface InnsendingVisitor {
         innsendt: ZonedDateTime,
         journalpost: String?,
         hovedDokument: Innsending.Dokument?,
-        dokumenter: List<Innsending.Dokument>
+        dokumenter: List<Innsending.Dokument>,
+        brevkode: Innsending.Brevkode? = null
     ) {}
 }
 interface DokumentkravVisitor {

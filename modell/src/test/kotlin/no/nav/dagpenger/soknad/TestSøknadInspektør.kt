@@ -55,7 +55,8 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
         innsendt: ZonedDateTime,
         journalpost: String?,
         hovedDokument: Innsending.Dokument?,
-        dokumenter: List<Innsending.Dokument>
+        dokumenter: List<Innsending.Dokument>,
+        brevkode: Innsending.Brevkode?
     ) {
         val innsendingData = InnsendingData(
             innsendingId,

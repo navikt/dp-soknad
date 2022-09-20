@@ -147,6 +147,9 @@ internal fun Session.hentAktivitetslogg(søknadId: UUID): AktivitetsloggDTO? = r
 )
 
 private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
+    private lateinit var aktivEttersending: UUID
+    private var ettersending: Boolean = false
+    private val ettersendinger: MutableMap<UUID, MutableSet<UUID>> = mutableMapOf()
     private lateinit var søknadId: UUID
     private val queries = mutableListOf<Query>()
 
@@ -292,22 +295,107 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         )
     }
 
-    override fun visit(innsendingId: UUID, innsending: Innsending.InnsendingType, tilstand: Innsending.Tilstand.Type, innsendt: ZonedDateTime, journalpost: String?, hovedDokument: Innsending.Dokument?, dokumenter: List<Innsending.Dokument>) {
+    override fun visit(
+        innsendingId: UUID,
+        innsending: Innsending.InnsendingType,
+        tilstand: Innsending.Tilstand.Type,
+        innsendt: ZonedDateTime,
+        journalpost: String?,
+        hovedDokument: Innsending.Dokument?,
+        dokumenter: List<Innsending.Dokument>,
+        brevkode: Innsending.Brevkode?
+    ) {
+        if (ettersending) {
+            ettersendinger.getOrPut(aktivEttersending) {
+                mutableSetOf()
+            }.add(innsendingId)
+        } else {
+            aktivEttersending = innsendingId
+        }
         queries.add(
-                queryOf(
-                        //language=PostgreSQL
-                        statement = "INSERT INTO innsending_v1(innsending_uuid, innsendt, journalpost_id, innsendingtype, tilstand, brevkode) VALUES (:innsending_uuid, :innsendt, :journalpost_id, :innsendingtype, :tilstand, row(:tittel, :skjemakode)::brevkode)",
-                        paramMap = mapOf(
-                                "innsending_uuid" to innsendingId,
-                                "innsendt" to innsendt,
-                                "journalpost_id" to journalpost,
-                                "innsendingtype" to innsending.name,
-                                "tilstand" to tilstand.name,
-                                "tittel" to "tittel",
-                                "skjemakode" to "skjemakode"
-                        )
+            queryOf(
+                //language=PostgreSQL
+                statement = "INSERT INTO innsending_v1(innsending_uuid, innsendt, journalpost_id, innsendingtype, tilstand, brevkode) VALUES (:innsending_uuid, :innsendt, :journalpost_id, :innsendingtype, :tilstand, ROW(:tittel, :skjemakode)::brevkode)",
+                paramMap = mapOf(
+                    "innsending_uuid" to innsendingId,
+                    "innsendt" to innsendt,
+                    "journalpost_id" to journalpost,
+                    "innsendingtype" to innsending.name,
+                    "tilstand" to tilstand.name,
+                    "tittel" to brevkode?.tittel,
+                    "skjemakode" to "skjema" // brevkode?.skjemakode
                 )
+            )
         )
+        dokumenter.toMutableList().apply {
+            hovedDokument?.let { add(it) }
+        }.forEach { dokument ->
+            queries.add(
+                queryOf(
+                    //language=PostgreSQL
+                    "INSERT INTO dokument_v1 (dokument_uuid, innsending_uuid, navn, brevkode) VALUES (:dokument_uuid, :innsending_uuid, :navn, :brevkode)",
+                    mapOf(
+                        "dokument_uuid" to dokument.uuid,
+                        "innsending_uuid" to innsendingId,
+                        "navn" to dokument.navn,
+                        "brevkode" to dokument.brevkode
+                    )
+                )
+            )
+            dokument.varianter.forEach { variant ->
+                queries.add(
+                    queryOf(
+                        //language=PostgreSQL
+                        """
+                            INSERT INTO dokumentvariant_v1 (dokumentvariant_uuid, dokument_uuid, filnavn, urn, variant, type)
+                            VALUES (:dokumentvariant_uuid, :dokument_uuid, :filnavn, :urn, :variant, :type)
+                        """.trimIndent(),
+                        mapOf(
+                            "dokumentvariant_uuid" to variant.uuid,
+                            "dokument_uuid" to dokument.uuid,
+                            "filnavn" to variant.filnavn,
+                            "urn" to variant.urn,
+                            "variant" to variant.variant,
+                            "type" to variant.type
+                        )
+                    )
+                )
+            }
+        }
+        if (hovedDokument != null) {
+            queries.add(
+                queryOf(
+                    //language=PostgreSQL
+                    "INSERT INTO hoveddokument_v1(innsending_uuid, dokument_uuid) VALUES (:innsending_uuid, :dokumentvariant_uuid)",
+                    mapOf(
+                        "innsending_uuid" to innsendingId,
+                        "dokumentvariant_uuid" to hovedDokument.uuid
+                    )
+                )
+            )
+        }
+    }
+
+    override fun preVisitEttersendinger() {
+        ettersending = true
+    }
+
+    override fun postVisitEttersendinger() {
+        ettersending = false
+        ettersendinger.forEach { (innsending, ettersendinger) ->
+            ettersendinger.forEach { ettersending ->
+                queries.add(
+                    queryOf(
+                        //language=PostgreSQL
+                        "INSERT INTO ettersending_v1 (innsending_uuid, ettersending_uuid) VALUES (:innsending_uuid, :ettersending_uuid) ON CONFLICT DO NOTHING",
+                        mapOf(
+                            "innsending_uuid" to innsending,
+                            "ettersending_uuid" to ettersending
+                        )
+                    )
+                )
+            }
+        }
     }
 }
 

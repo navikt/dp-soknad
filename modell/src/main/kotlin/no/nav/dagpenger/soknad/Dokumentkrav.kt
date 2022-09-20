@@ -56,8 +56,8 @@ class Dokumentkrav private constructor(
                     Innsending.Dokument.Dokumentvariant(
                         filnavn = krav.beskrivendeId,
                         urn = krav.svar.bundle.toString(),
-                        type = "PDF", // TODO: hent filtype fra bundle
-                        variant = "Arkiv" // TODO: Hva setter vi her?
+                        variant = "Arkiv", // TODO: hent filtype fra bundle
+                        type = "PDF" // TODO: Hva setter vi her?
                     )
                 )
             )

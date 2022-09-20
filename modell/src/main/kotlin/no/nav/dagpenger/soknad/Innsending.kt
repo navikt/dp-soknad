@@ -43,20 +43,56 @@ class Innsending private constructor(
     companion object {
         fun ny(innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) =
             Innsending(InnsendingType.NY_DIALOG, innsendt, dokumentkrav)
+
+        fun rehydrer(
+            innsendingId: UUID,
+            type: InnsendingType,
+            innsendt: ZonedDateTime,
+            journalpostId: String?,
+            tilstandsType: Tilstand.Type,
+            hovedDokument: Dokument? = null,
+            dokumenter: List<Dokument>,
+            ettersendinger: MutableList<Innsending>,
+            brevkode: Brevkode?
+        ): Innsending {
+            val tilstand: Tilstand = when (tilstandsType) {
+                Tilstand.Type.Opprettet -> Opprettet
+                Tilstand.Type.AvventerBrevkode -> AvventerMetadata
+                Tilstand.Type.AvventerArkiverbarSøknad -> AvventerArkiverbarSøknad
+                Tilstand.Type.AvventerMidlertidligJournalføring -> AvventerMidlertidligJournalføring
+                Tilstand.Type.AvventerJournalføring -> AvventerJournalføring
+                Tilstand.Type.Journalført -> Journalført
+            }
+            if (ettersendinger.isNotEmpty()) {
+                require(type == InnsendingType.NY_DIALOG) { "Kan bare lage ettersending til nye dialoger" }
+            }
+            return Innsending(
+                innsendingId,
+                type,
+                innsendt,
+                journalpostId,
+                tilstand,
+                hovedDokument,
+                dokumenter,
+                ettersendinger,
+                brevkode
+            )
+        }
     }
 
     data class Dokument(
-        val navn: String, // Søknad om dagpenger / Ettersending til søknad om dagpenger
-        val brevkode: String, // NAV 04-01.04 / NAVe 04-01.04
+        val uuid: UUID = UUID.randomUUID(),
+        val navn: String,
+        val brevkode: String,
         val varianter: List<Dokumentvariant>
     ) {
         data class Dokumentvariant(
+            val uuid: UUID = UUID.randomUUID(),
             val filnavn: String,
             val urn: String,
-            val variant: String, // Arkiv / Original / Fullversjon
-            val type: String // PDF / JPG / JSON
+            val variant: String,
+            val type: String
         ) {
-
             init {
                 kotlin.runCatching {
                     URN.rfc8141().parse(urn)
@@ -140,7 +176,8 @@ class Innsending private constructor(
             innsendt,
             journalpostId,
             hovedDokument,
-            dokumenter
+            dokumenter,
+            brevkode
         )
         visitor.preVisitEttersendinger()
         ettersendinger.forEach { it.accept(visitor) }

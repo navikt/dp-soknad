@@ -35,7 +35,8 @@ internal class TestSøknadhåndtererInspektør(søknadhåndterer: Søknad) : Sø
         innsendt: ZonedDateTime,
         journalpost: String?,
         hovedDokument: Innsending.Dokument?,
-        dokumenter: List<Innsending.Dokument>
+        dokumenter: List<Innsending.Dokument>,
+        brevkode: Innsending.Brevkode?
     ) {
         this.innsendtTidspunkt = innsendt
         this.gjeldendeInnsendingId = innsendingId

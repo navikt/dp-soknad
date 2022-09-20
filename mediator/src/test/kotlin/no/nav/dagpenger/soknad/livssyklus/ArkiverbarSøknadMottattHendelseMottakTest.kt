@@ -37,8 +37,8 @@ internal class ArkiverbarSøknadMottattHendelseMottakTest {
                     type = "PDF"
                 ),
                 Innsending.Dokument.Dokumentvariant(
-                    urn = "urn:vedlegg:soknadId/netto.pdf",
                     filnavn = "netto.pdf",
+                    urn = "urn:vedlegg:soknadId/netto.pdf",
                     variant = "ARKIV",
                     type = "PDF"
                 )

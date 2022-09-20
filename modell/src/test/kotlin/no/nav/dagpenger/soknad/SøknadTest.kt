@@ -505,5 +505,5 @@ internal class SøknadTest {
 }
 
 private fun String.lagTestDokument() = listOf(
-    Innsending.Dokument.Dokumentvariant("", this, "ARKIV", "PDF")
+    Innsending.Dokument.Dokumentvariant(filnavn = "", urn = this, variant = "ARKIV", type = "PDF")
 )
