@@ -148,7 +148,7 @@ internal class SøknadTest {
             varianter = listOf(
                 Innsending.Dokument.Dokumentvariant(
                     filnavn = "",
-                    urn = URN.rfc8141().parse("urn:dokument:1"),
+                    urn = "urn:dokument:1",
                     variant = "ARKIV",
                     type = "PDF"
                 )
@@ -167,7 +167,7 @@ internal class SøknadTest {
                         varianter = listOf(
                             Innsending.Dokument.Dokumentvariant(
                                 filnavn = "f1-1",
-                                urn = URN.rfc8141().parse("urn:sid:bundle1"),
+                                urn = "urn:sid:bundle1",
                                 variant = "Arkiv",
                                 type = "PDF"
                             )
@@ -179,7 +179,7 @@ internal class SøknadTest {
                         varianter = listOf(
                             Innsending.Dokument.Dokumentvariant(
                                 filnavn = "f3-1",
-                                urn = URN.rfc8141().parse("urn:sid:bundle2"),
+                                urn = "urn:sid:bundle2",
                                 variant = "Arkiv",
                                 type = "PDF"
                             )
@@ -238,7 +238,7 @@ internal class SøknadTest {
             varianter = listOf(
                 Innsending.Dokument.Dokumentvariant(
                     filnavn = "",
-                    urn = URN.rfc8141().parse("urn:dokument:1"),
+                    urn = "urn:dokument:1",
                     variant = "ARKIV",
                     type = "PDF"
                 )
@@ -256,7 +256,7 @@ internal class SøknadTest {
                         varianter = listOf(
                             Innsending.Dokument.Dokumentvariant(
                                 filnavn = "f1-1",
-                                urn = URN.rfc8141().parse("urn:sid:bundle1"),
+                                urn = "urn:sid:bundle1",
                                 variant = "Arkiv",
                                 type = "PDF"
                             )
@@ -268,7 +268,7 @@ internal class SøknadTest {
                         varianter = listOf(
                             Innsending.Dokument.Dokumentvariant(
                                 filnavn = "f3-1",
-                                urn = URN.rfc8141().parse("urn:sid:bundle2"),
+                                urn = "urn:sid:bundle2",
                                 variant = "Arkiv",
                                 type = "PDF"
                             )
@@ -307,7 +307,7 @@ internal class SøknadTest {
                         varianter = listOf(
                             Innsending.Dokument.Dokumentvariant(
                                 filnavn = "f1-1",
-                                urn = URN.rfc8141().parse("urn:sid:bundle1"),
+                                urn = "urn:sid:bundle1",
                                 variant = "Arkiv",
                                 type = "PDF"
                             )
@@ -319,7 +319,7 @@ internal class SøknadTest {
                         varianter = listOf(
                             Innsending.Dokument.Dokumentvariant(
                                 filnavn = "f2-1",
-                                urn = URN.rfc8141().parse("urn:sid:bundle3"),
+                                urn = "urn:sid:bundle3",
                                 variant = "Arkiv",
                                 type = "PDF"
                             )
@@ -331,7 +331,7 @@ internal class SøknadTest {
                         varianter = listOf(
                             Innsending.Dokument.Dokumentvariant(
                                 filnavn = "f3-1",
-                                urn = URN.rfc8141().parse("urn:sid:bundle2"),
+                                urn = "urn:sid:bundle2",
                                 variant = "Arkiv",
                                 type = "PDF"
                             )
@@ -392,7 +392,9 @@ internal class SøknadTest {
             BrevkodeMottattHendelse(
                 inspektør.innsendingId,
                 inspektør.søknadId,
-                testIdent
+                testIdent,
+                "04-01.02",
+                "Søknad om dagpenger"
             )
         )
     }
@@ -503,5 +505,5 @@ internal class SøknadTest {
 }
 
 private fun String.lagTestDokument() = listOf(
-    Innsending.Dokument.Dokumentvariant("", URN.rfc8141().parse(this), "ARKIV", "PDF")
+    Innsending.Dokument.Dokumentvariant("", this, "ARKIV", "PDF")
 )

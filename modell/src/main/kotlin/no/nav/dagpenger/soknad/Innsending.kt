@@ -52,10 +52,19 @@ class Innsending private constructor(
     ) {
         data class Dokumentvariant(
             val filnavn: String,
-            val urn: URN,
+            val urn: String,
             val variant: String, // Arkiv / Original / Fullversjon
             val type: String // PDF / JPG / JSON
-        )
+        ) {
+
+            init {
+                kotlin.runCatching {
+                    URN.rfc8141().parse(urn)
+                }.onFailure {
+                    throw IllegalArgumentException("Ikke gyldig URN: $urn")
+                }
+            }
+        }
     }
 
     data class Brevkode(val tittel: String, private val skjemakode: String) {
@@ -204,7 +213,7 @@ class Innsending private constructor(
         }
 
         override fun håndter(hendelse: BrevkodeMottattHendelse, innsending: Innsending) {
-            innsending.brevkode = hendelse.brevkode()
+            innsending.brevkode = hendelse.brevkode
             innsending.endreTilstand(AvventerArkiverbarSøknad, hendelse)
         }
     }

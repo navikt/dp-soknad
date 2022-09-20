@@ -1,6 +1,5 @@
 package no.nav.dagpenger.soknad.livssyklus
 
-import de.slub.urn.URN
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -33,12 +32,12 @@ internal class ArkiverbarSøknadMottattHendelseMottakTest {
             listOf(
                 Innsending.Dokument.Dokumentvariant(
                     filnavn = "brutto.pdf",
-                    urn = URN.rfc8141().parse("urn:vedlegg:soknadId/brutto.pdf"),
+                    urn = "urn:vedlegg:soknadId/brutto.pdf",
                     variant = "FULLVERSJON",
                     type = "PDF"
                 ),
                 Innsending.Dokument.Dokumentvariant(
-                    urn = URN.rfc8141().parse("urn:vedlegg:soknadId/netto.pdf"),
+                    urn = "urn:vedlegg:soknadId/netto.pdf",
                     filnavn = "netto.pdf",
                     variant = "ARKIV",
                     type = "PDF"

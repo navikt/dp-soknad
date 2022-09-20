@@ -1,7 +1,6 @@
 package no.nav.dagpenger.soknad.livssyklus
 
 import com.fasterxml.jackson.databind.JsonNode
-import de.slub.urn.URN
 import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.ArkiverbarSøknad
@@ -45,7 +44,7 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
             "innsendingId" to innsendingId.toString()
         ) {
             val arkiverbarSøknadMottattHendelse = ArkiverbarSøknadMottattHendelse(
-                innsendingId = UUID.randomUUID(),
+                innsendingId = innsendingId,
                 søknadID = søknadID,
                 ident = packet["ident"].asText(),
                 dokumentvarianter = packet["@løsning"][behov].dokumentVarianter()
@@ -65,7 +64,7 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
         }
         Innsending.Dokument.Dokumentvariant(
             filnavn = node["metainfo"]["innhold"].asText(),
-            urn = URN.rfc8141().parse(node["urn"].asText()),
+            urn = node["urn"].asText(),
             variant = format,
             type = node["metainfo"]["filtype"].asText()
         )

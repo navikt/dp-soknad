@@ -2,12 +2,11 @@ package no.nav.dagpenger.soknad
 
 import com.fasterxml.jackson.databind.node.BooleanNode
 import io.mockk.mockk
-import kotliquery.queryOf
-import kotliquery.sessionOf
-import kotliquery.using
 import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.AvventerArkiverbarSøknad
 import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.AvventerBrevkode
+import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.AvventerJournalføring
 import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.AvventerMidlertidligJournalføring
+import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
@@ -22,7 +21,6 @@ import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak
-import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.rapids_rivers.toUUID
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -133,6 +131,7 @@ internal class SøknadMediatorTest {
                 journalpostId = testJournalpostId
             )
         )
+        assertEquals(AvventerJournalføring, oppdatertInspektør().gjeldendeInnsendingTilstand)
         assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
 
         testRapid.sendTestMessage(
@@ -142,12 +141,12 @@ internal class SøknadMediatorTest {
                 journalpostId = testJournalpostId
             )
         )
+        assertEquals(Journalført, oppdatertInspektør().gjeldendeInnsendingTilstand)
         assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
 
         // Verifiser at det er mulig å hente en komplett aktivitetslogg
         mediator.hentSøknader(testIdent).first().let {
             with(TestSøknadhåndtererInspektør(it).aktivitetslogg["aktiviteter"]!!) {
-                assertEquals(13, size)
                 assertEquals("Ønske om søknad registrert", first()["melding"])
                 assertEquals("Søknad journalført", last()["melding"])
             }
@@ -198,17 +197,6 @@ internal class SøknadMediatorTest {
                 journalpostId = "UKJENT"
             )
         )
-    }
-
-    private fun assertAntallRader(tabell: String, antallRader: Int) {
-        val faktiskeRader = using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf("select count(1) from $tabell").map { row ->
-                    row.int(1)
-                }.asSingle
-            )
-        }
-        assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: $tabell")
     }
 
     private fun søknadId(ident: String = testIdent) = oppdatertInspektør(ident).gjeldendeSøknadId
