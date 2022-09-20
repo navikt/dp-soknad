@@ -92,7 +92,7 @@ internal class VaktmesterRepositoryTest {
                 //language=PostgreSQL
                 queryOf(
                     "UPDATE soknad_v1 SET sist_endret_av_bruker = (NOW() - INTERVAL '$antallDagerSiden DAYS') WHERE uuid = ?",
-                    uuid.toString()
+                    uuid
                 ).asUpdate
             )
         }
@@ -131,7 +131,7 @@ internal class VaktmesterRepositoryTest {
             session.run(
                 //language=PostgreSQL
                 queryOf(
-                    "SELECT COUNT(*) FROM aktivitetslogg_v1 WHERE soknad_uuid = ?", søknadUuid.toString()
+                    "SELECT COUNT(*) FROM aktivitetslogg_v1 WHERE soknad_uuid = ?", søknadUuid
                 ).map { row ->
                     row.int(1)
                 }.asSingle

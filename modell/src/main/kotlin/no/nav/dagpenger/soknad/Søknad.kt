@@ -415,17 +415,6 @@ class Søknad private constructor(
         hendelse.kontekst(tilstand)
     }
 
-    data class Journalpost(
-        val brevkode: String = "NAV 04-01.04",
-        val varianter: List<Variant>
-    ) {
-        data class Variant(
-            val urn: String,
-            val format: String,
-            val type: String
-        )
-    }
-
     fun deepEquals(other: Any?): Boolean =
         other is Søknad && other.søknadId == this.søknadId &&
             other.tilstand == this.tilstand && this.dokumentkrav == other.dokumentkrav && this.innsending == other.innsending

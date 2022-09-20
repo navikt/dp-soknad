@@ -26,7 +26,7 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
         søknad.accept(this)
     }
 
-    val innsendingId get() = innsending!!.innsendingId
+    val innsendingId get() = innsending.innsendingId
 
     override fun visitSøknad(
         søknadId: UUID,
@@ -55,7 +55,7 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
         innsendt: ZonedDateTime,
         journalpost: String?,
         hovedDokument: Innsending.Dokument?,
-        vedlegg: List<Innsending.Dokument>
+        dokumenter: List<Innsending.Dokument>
     ) {
         val innsendingData = InnsendingData(
             innsendingId,
@@ -64,7 +64,7 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
             innsendt,
             journalpost,
             hovedDokument,
-            vedlegg
+            dokumenter
         )
         if (ettersending) {
             ettersendinger.add(innsendingData)

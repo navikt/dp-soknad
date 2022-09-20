@@ -68,7 +68,7 @@ internal class VaktmesterPostgresRepository(
     }
 
     private fun slettSøknader(søknadUuider: List<SøknadTilSletting>, transactionalSession: TransactionalSession): List<Int> {
-        val iderTilSletting = søknadUuider.map { listOf(it.søknadUuid.toString()) }
+        val iderTilSletting = søknadUuider.map { listOf(it.søknadUuid) }
         logger.info { "Forsøker å slette ${iderTilSletting.size} søknader. SøknadUUIDer: $iderTilSletting" }
         val raderSlettet = transactionalSession.batchPreparedStatement(
             //language=PostgreSQL

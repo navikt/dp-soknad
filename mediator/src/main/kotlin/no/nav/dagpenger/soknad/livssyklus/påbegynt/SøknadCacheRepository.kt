@@ -54,7 +54,7 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
                     // language=PostgreSQL
                     "UPDATE soknad_cache SET sist_endret=:sistEndret WHERE uuid = :uuid",
                     mapOf(
-                        "uuid" to søknadUUID.toString(),
+                        "uuid" to søknadUUID,
                         "sistEndret" to besvart
                     )
                 ).asUpdate
@@ -69,7 +69,7 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
                     // language=PostgreSQL
                     "SELECT uuid, eier, soknad_data FROM soknad_cache WHERE uuid = :uuid AND (:sistLagret::timestamp IS NULL OR sist_endret > :sistLagret)",
                     mapOf(
-                        "uuid" to søknadUUID.toString(),
+                        "uuid" to søknadUUID,
                         "sistLagret" to sistLagretEtter
                     )
                 ).map { row ->
@@ -85,7 +85,7 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
                 queryOf(
                     //language=PostgreSQL
                     "DELETE FROM soknad_cache WHERE uuid = ?",
-                    søknadUUID.toString()
+                    søknadUUID
                 ).asExecute
             )
         }

@@ -22,9 +22,6 @@ class SøknadDTO(
     val søknadsId: UUID,
     val ident: String,
     val tilstandType: TilstandDTO,
-    var dokumenter: List<DokumentDTO>,
-    val journalpostId: String?,
-    val innsendtTidspunkt: ZonedDateTime?,
     val språkDTO: SpråkDTO,
     var dokumentkrav: DokumentkravDTO,
     val sistEndretAvBruker: ZonedDateTime?,
@@ -39,26 +36,6 @@ class SøknadDTO(
         tilstandsType = this.tilstandType.rehydrer(),
         aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg()
     )
-
-    class DokumentDTO(
-        val urn: String
-    ) {
-        companion object {
-            fun List<DokumentDTO>.rehydrer(): Søknad.Journalpost? {
-                return if (this.isEmpty()) null else {
-                    Søknad.Journalpost(
-                        varianter = this.map {
-                            Søknad.Journalpost.Variant(
-                                urn = it.urn,
-                                format = "ARKIV",
-                                type = "PDF"
-                            )
-                        }
-                    )
-                }
-            }
-        }
-    }
 
     class SpråkDTO(val verdi: String) {
         constructor(språk: Locale) : this(språk.toLanguageTag())

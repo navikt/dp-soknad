@@ -22,7 +22,6 @@ import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.serder.AktivitetsloggDTO
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.soknad.serder.SøknadDTO
-import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentDTO
 import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.KravDTO
 import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.KravDTO.KravTilstandDTO
 import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SannsynliggjøringDTO
@@ -46,12 +45,12 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 queryOf(
                     //language=PostgreSQL
                     statement = """
-                    SELECT uuid, tilstand, journalpost_id, innsendt_tidspunkt, spraak, sist_endret_av_bruker
+                    SELECT uuid, tilstand, spraak, sist_endret_av_bruker
                     FROM  soknad_v1
                     WHERE uuid = :uuid
                     """.trimIndent(),
                     paramMap = mapOf(
-                        "uuid" to søknadId.toString()
+                        "uuid" to søknadId
                     )
                 ).map(rowToSøknadDTO(ident, session)).asSingle
             )?.rehydrer()
@@ -64,7 +63,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 queryOf(
                     //language=PostgreSQL
                     statement = """
-                            SELECT uuid, tilstand, journalpost_id, innsendt_tidspunkt, spraak, sist_endret_av_bruker
+                            SELECT uuid, tilstand, spraak, sist_endret_av_bruker
                             FROM  soknad_v1
                             WHERE person_ident = :ident
                     """.trimIndent(),
@@ -86,9 +85,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             søknadsId = søknadsId,
             ident = ident,
             tilstandType = SøknadDTO.TilstandDTO.rehydrer(row.string("tilstand")),
-            dokumenter = session.hentDokumentData(søknadsId),
-            journalpostId = row.stringOrNull("journalpost_id"),
-            innsendtTidspunkt = row.zonedDateTimeOrNull("innsendt_tidspunkt"),
             språkDTO = SøknadDTO.SpråkDTO(row.string("spraak")),
             dokumentkrav = SøknadDTO.DokumentkravDTO(
                 session.hentDokumentKrav(søknadsId)
@@ -142,7 +138,7 @@ internal fun Session.hentAktivitetslogg(søknadId: UUID): AktivitetsloggDTO? = r
         WHERE a.soknad_uuid = :soknadId
         """.trimIndent(),
         mapOf(
-            "soknadId" to søknadId.toString()
+            "soknadId" to søknadId
         )
     ).map { row ->
         row.binaryStream("aktivitetslogg").aktivitetslogg()
@@ -251,7 +247,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queryOf(
                 // language=PostgreSQL
                 "DELETE FROM dokumentkrav_filer_v1 WHERE soknad_uuid = :uuid",
-                mapOf("uuid" to søknadId.toString())
+                mapOf("uuid" to søknadId)
             )
         )
 
@@ -306,7 +302,7 @@ private fun Session.hentDokumentKrav(søknadsId: UUID): Set<KravDTO> =
                   WHERE soknad_uuid = :soknad_uuid
             """.trimIndent(),
             mapOf(
-                "soknad_uuid" to søknadsId.toString()
+                "soknad_uuid" to søknadsId
             )
         ).map { row ->
             val faktumId = row.string("faktum_id")
@@ -329,20 +325,6 @@ private fun Session.hentDokumentKrav(søknadsId: UUID): Set<KravDTO> =
         }.asList
     ).toSet()
 
-private fun Session.hentDokumentData(søknadId: UUID): List<DokumentDTO> {
-    return this.run(
-        queryOf(
-            //language=PostgreSQL
-            statement = "SELECT dokument_lokasjon FROM dokument_v1 WHERE soknad_uuid = :soknadId",
-            paramMap = mapOf(
-                "soknadId" to søknadId.toString()
-            )
-        ).map { row ->
-            DokumentDTO(urn = row.string("dokument_lokasjon"))
-        }.asList
-    )
-}
-
 private fun Session.hentFiler(
     søknadsId: UUID,
     faktumId: String
@@ -357,7 +339,7 @@ private fun Session.hentFiler(
                   AND faktum_id = :faktum_id 
             """.trimIndent(),
             paramMap = mapOf(
-                "soknad_uuid" to søknadsId.toString(),
+                "soknad_uuid" to søknadsId,
                 "faktum_id" to faktumId
             )
         ).map { row ->

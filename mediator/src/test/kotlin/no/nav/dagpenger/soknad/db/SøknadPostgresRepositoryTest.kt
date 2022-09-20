@@ -62,7 +62,7 @@ internal class SøknadPostgresRepositoryTest {
     )
 
     @Test
-    fun `Lagre og hente søknad med dokument, dokumentkrav og aktivitetslogg`() {
+    fun `Lagre og hente søknad med dokument, dokumentkrav, innsending og aktivitetslogg`() {
         val søknadId = UUID.randomUUID()
         val ident = "12345678910"
         val søknad = Søknad.rehydrer(
