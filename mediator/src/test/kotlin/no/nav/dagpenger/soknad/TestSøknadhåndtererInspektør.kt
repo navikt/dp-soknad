@@ -10,6 +10,7 @@ internal class TestSøknadhåndtererInspektør(søknadhåndterer: Søknad) : Sø
     var aktivitetslogg: Map<String, List<Map<String, Any>>> = emptyMap()
     var antallSøknader = 0
     lateinit var gjeldendeInnsendingId: UUID
+    lateinit var gjeldendeInnsendingTilstand: Innsending.Tilstand.Type
 
     init {
         søknadhåndterer.accept(this)
@@ -38,6 +39,7 @@ internal class TestSøknadhåndtererInspektør(søknadhåndterer: Søknad) : Sø
     ) {
         this.innsendtTidspunkt = innsendt
         this.gjeldendeInnsendingId = innsendingId
+        this.gjeldendeInnsendingTilstand = tilstand
     }
 
     override fun visitTilstand(tilstand: Søknad.Tilstand.Type) {
