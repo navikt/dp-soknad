@@ -1,1 +1,0 @@
-CREATE INDEX dokument_v1_soknad_uuid_idx ON dokument_v1 (soknad_uuid)

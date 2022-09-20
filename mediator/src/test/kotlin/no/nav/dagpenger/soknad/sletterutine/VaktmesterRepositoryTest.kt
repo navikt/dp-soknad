@@ -131,7 +131,7 @@ internal class VaktmesterRepositoryTest {
             session.run(
                 //language=PostgreSQL
                 queryOf(
-                    "SELECT COUNT(*) FROM aktivitetslogg_v3 WHERE soknad_uuid = ?", søknadUuid.toString()
+                    "SELECT COUNT(*) FROM aktivitetslogg_v1 WHERE soknad_uuid = ?", søknadUuid.toString()
                 ).map { row ->
                     row.int(1)
                 }.asSingle

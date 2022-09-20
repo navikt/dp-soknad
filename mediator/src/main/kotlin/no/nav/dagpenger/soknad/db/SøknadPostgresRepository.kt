@@ -138,7 +138,7 @@ internal fun Session.hentAktivitetslogg(søknadId: UUID): AktivitetsloggDTO? = r
         //language=PostgreSQL
         """
         SELECT a.data AS aktivitetslogg
-        FROM aktivitetslogg_v3 AS a
+        FROM aktivitetslogg_v1 AS a
         WHERE a.soknad_uuid = :soknadId
         """.trimIndent(),
         mapOf(
@@ -283,7 +283,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         queries.add(
             queryOf(
                 //language=PostgreSQL
-                statement = "INSERT INTO aktivitetslogg_v3 (soknad_uuid, data) VALUES (:uuid, :data) ON CONFLICT (soknad_uuid) DO UPDATE SET data = :data",
+                statement = "INSERT INTO aktivitetslogg_v1 (soknad_uuid, data) VALUES (:uuid, :data) ON CONFLICT (soknad_uuid) DO UPDATE SET data = :data",
                 paramMap = mapOf(
                     "uuid" to søknadId,
                     "data" to PGobject().apply {

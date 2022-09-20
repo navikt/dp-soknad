@@ -83,7 +83,7 @@ internal class SøknadPostgresRepositoryTest {
 
                 assertAntallRader("soknad_v1", 1)
                 assertAntallRader("dokumentkrav_v1", 1)
-                assertAntallRader("aktivitetslogg_v3", 1)
+                assertAntallRader("aktivitetslogg_v1", 1)
                 val rehydrertSøknad = søknadPostgresRepository.hent(søknadId, ident)
 
                 assertDeepEquals(rehydrertSøknad!!, søknad)
