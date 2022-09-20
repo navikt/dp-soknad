@@ -350,7 +350,7 @@ internal class SøknadTest {
         håndterMidlertidigJournalførtSøknad(ettersendinger().innsendingId)
         assertEttersendingTilstand(AvventerJournalføring)
 
-        håndterJournalførtSøknad(ettersendinger().innsendingId)
+        håndterJournalførtSøknad()
         assertEttersendingTilstand(Journalført)
     }
 
@@ -419,10 +419,9 @@ internal class SøknadTest {
         )
     }
 
-    private fun håndterJournalførtSøknad(innsendingId: UUID = inspektør.innsendingId) {
+    private fun håndterJournalførtSøknad() {
         søknad.håndter(
             JournalførtHendelse(
-                innsendingId,
                 inspektør.søknadId,
                 testJournalpostId,
                 testIdent

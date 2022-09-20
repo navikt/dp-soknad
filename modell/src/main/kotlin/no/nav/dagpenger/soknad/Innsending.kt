@@ -85,6 +85,7 @@ class Innsending private constructor(
     fun håndter(hendelse: BrevkodeMottattHendelse) {
         innsendinger.forEach { it._håndter(hendelse) }
     }
+
     fun håndter(hendelse: ArkiverbarSøknadMottattHendelse) {
         innsendinger.forEach { it._håndter(hendelse) }
     }
@@ -117,7 +118,7 @@ class Innsending private constructor(
     }
 
     private fun _håndter(hendelse: JournalførtHendelse) {
-        if (hendelse.innsendingId != this.innsendingId) return
+        if (hendelse.journalpostId() != this.journalpostId) return
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
     }

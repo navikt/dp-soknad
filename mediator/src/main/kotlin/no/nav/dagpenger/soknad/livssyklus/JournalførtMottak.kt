@@ -21,7 +21,7 @@ internal class JournalførtMottak(
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "innsending_ferdigstilt") }
             validate { it.demandValue("type", "NySøknad") }
-            validate { it.requireKey("fødselsnummer", "journalpostId", "innsendingId") }
+            validate { it.requireKey("fødselsnummer", "journalpostId") }
             validate {
                 it.require("søknadsData") { data ->
                     data["søknad_uuid"].asUUID()
@@ -46,12 +46,10 @@ internal class JournalførtMottak(
          * Søknad. Da kan journalpost ha sin egen tilstand og søknad delegere/spørre den
          */
         val søknadID = packet["søknadsData"]["søknad_uuid"].asUUID()
-        val innsendingId = packet["innsendingId"].asUUID()
         withLoggingContext(
             "søknadId" to søknadID.toString(),
-            "innsendingId" to innsendingId.toString()
         ) {
-            val journalførtHendelse = JournalførtHendelse(innsendingId = innsendingId, søknadID, journalpostId, ident)
+            val journalførtHendelse = JournalførtHendelse(søknadID, journalpostId, ident)
             logger.info { "Fått løsning for innsending_ferdigstilt for $journalpostId" }
             mediator.behandle(journalførtHendelse)
         }
