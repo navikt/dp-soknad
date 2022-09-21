@@ -315,9 +315,10 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         queries.add(
             queryOf(
                 //language=PostgreSQL
-                statement = "INSERT INTO innsending_v1(innsending_uuid, innsendt, journalpost_id, innsendingtype, tilstand, brevkode) VALUES (:innsending_uuid, :innsendt, :journalpost_id, :innsendingtype, :tilstand, ROW(:tittel, :skjemakode)::brevkode)",
+                statement = "INSERT INTO innsending_v1(innsending_uuid, soknad_uuid, innsendt, journalpost_id, innsendingtype, tilstand, brevkode) VALUES (:innsending_uuid, :soknad_uuid, :innsendt, :journalpost_id, :innsendingtype, :tilstand, ROW(:tittel, :skjemakode)::brevkode)",
                 paramMap = mapOf(
                     "innsending_uuid" to innsendingId,
+                    "soknad_uuid" to søknadId,
                     "innsendt" to innsendt,
                     "journalpost_id" to journalpost,
                     "innsendingtype" to innsending.name,

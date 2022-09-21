@@ -166,7 +166,7 @@ internal class SøknadPostgresRepositoryTest {
                 assertAntallRader("ettersending_v1", 2)
                 assertAntallRader("dokumentvariant_v1", 4)
                 val rehydrertSøknad = søknadPostgresRepository.hent(søknadId, ident)
-                // assertDeepEquals(rehydrertSøknad!!, søknad)
+//                assertDeepEquals(rehydrertSøknad!!, søknad)
                 // TODO: Flytt tilgangskontroll til API-lag
                 /*assertThrows<IkkeTilgangExeption> {
                     søknadPostgresRepository.hent(søknadId, "ikke-tilgang")

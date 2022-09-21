@@ -94,6 +94,7 @@ CREATE TABLE IF NOT EXISTS innsending_v1
 (
     id              BIGSERIAL PRIMARY KEY,
     innsending_uuid uuid UNIQUE,
+    soknad_uuid     uuid REFERENCES soknad_v1 (uuid),
     innsendt        TIMESTAMP WITH TIME ZONE NOT NULL,
     journalpost_id  VARCHAR UNIQUE           NULL,
     innsendingtype  VARCHAR                  NOT NULL,
