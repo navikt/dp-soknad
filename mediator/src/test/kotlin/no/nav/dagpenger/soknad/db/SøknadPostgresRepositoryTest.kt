@@ -25,6 +25,7 @@ import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Disabled
@@ -165,7 +166,9 @@ internal class SøknadPostgresRepositoryTest {
                 assertAntallRader("hoveddokument_v1", 1)
                 assertAntallRader("ettersending_v1", 2)
                 assertAntallRader("dokumentvariant_v1", 4)
-                val rehydrertSøknad = søknadPostgresRepository.hent(søknadId, ident)
+                val rehydrertSøknad: Søknad? = søknadPostgresRepository.hent(søknadId, ident)
+                assertNotNull(rehydrertSøknad)
+
 //                assertDeepEquals(rehydrertSøknad!!, søknad)
                 // TODO: Flytt tilgangskontroll til API-lag
                 /*assertThrows<IkkeTilgangExeption> {

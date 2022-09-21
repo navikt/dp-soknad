@@ -22,6 +22,7 @@ import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.serder.AktivitetsloggDTO
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
+import no.nav.dagpenger.soknad.serder.InnsendingDTO
 import no.nav.dagpenger.soknad.serder.SøknadDTO
 import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.KravDTO
 import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.KravDTO.KravTilstandDTO
@@ -42,6 +43,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
     SøknadRepository {
     override fun hent(søknadId: UUID, ident: String): Søknad? {
         return using(sessionOf(dataSource)) { session ->
+            val innsending = session.hentInnsending(søknadId)
             session.run(
                 queryOf(
                     //language=PostgreSQL
@@ -53,9 +55,37 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                     paramMap = mapOf(
                         "uuid" to søknadId
                     )
-                ).map(rowToSøknadDTO(ident, session)).asSingle
+                ).map(rowToSøknadDTO(ident, innsending, session)).asSingle
             )?.rehydrer()
         }
+    }
+
+    private fun Session.hentInnsending(søknadId: UUID): InnsendingDTO? {
+        return this.run(
+            queryOf(
+                //language=PostgreSQL
+                statement = """   
+                       SELECT innsending_uuid, innsendt, journalpost_id, innsendingtype, tilstand, brevkode
+                       FROM innsending_v1
+                       WHERE soknad_uuid = :soknad_uuid """.trimMargin(),
+                paramMap = mapOf(
+                    "soknad_uuid" to søknadId
+                )
+            ).map(rowToInnsendingDTO()).asSingle
+        )
+    }
+
+    private fun rowToInnsendingDTO() = { row: Row ->
+        InnsendingDTO(
+            innsendingId = row.uuid("innsending_uuid"),
+            type = InnsendingDTO.InnsendingTypeDTO.rehydrer(row.string("innsendingtype")),
+            innsendt = row.zonedDateTime("innsendt"),
+            journalpostId = row.stringOrNull("journalpost_id"),
+            tilstand = InnsendingDTO.TilstandDTO.rehydrer(row.string("tilstand")),
+            hovedDokument = null, // todo
+            dokumenter = emptyList(), // todo
+            brevkode = null // todo
+        )
     }
 
     override fun hentSøknader(ident: String): Set<Søknad> {
@@ -71,13 +101,15 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                     paramMap = mapOf(
                         "ident" to ident
                     )
-                ).map(rowToSøknadDTO(ident, session)).asList
+                    // todo
+                ).map(rowToSøknadDTO(ident, null, session)).asList
             ).map { it.rehydrer() }.toSet()
         }
     }
 
     private fun rowToSøknadDTO(
         ident: String,
+        innsending: InnsendingDTO?,
         session: Session
     ) = { row: Row ->
         // TODO: Fjern duplisering fra hent()
@@ -91,6 +123,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 session.hentDokumentKrav(søknadsId)
             ),
             sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker"),
+            innsendingDTO = innsending,
             aktivitetslogg = session.hentAktivitetslogg(søknadsId)
         )
     }
