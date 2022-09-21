@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.serder
 
+import no.nav.dagpenger.soknad.Ettersending
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.NyInnsending
 import java.time.ZonedDateTime
@@ -11,9 +12,10 @@ data class InnsendingDTO(
     val innsendt: ZonedDateTime,
     var journalpostId: String?,
     var tilstand: TilstandDTO,
-    var hovedDokument: DokumentDTO? = null,
-    val dokumenter: List<DokumentDTO>,
-    val brevkode: BrevkodeDTO?
+    var hovedDokument: Innsending.Dokument? = null,
+    val dokumenter: List<Innsending.Dokument>,
+    val brevkode: Innsending.Brevkode?,
+    val ettersendinger: List<InnsendingDTO>
 
 ) {
     fun rehydrer(): NyInnsending {
@@ -23,9 +25,9 @@ data class InnsendingDTO(
             innsendt = this.innsendt,
             journalpostId = this.journalpostId,
             tilstandsType = this.tilstand.rehydrer(),
-            hovedDokument = null,
-            dokumenter = listOf(),
-            ettersendinger = mutableListOf(),
+            hovedDokument = hovedDokument,
+            dokumenter = dokumenter,
+            ettersendinger = ettersendinger.map { Ettersending.rehydrer(it.innsendingId, it.type.rehydrer(), it.innsendt, it.journalpostId, it.tilstand.rehydrer(), it.hovedDokument, it.dokumenter, it.brevkode) },
             brevkode = null
         )
     }
@@ -70,7 +72,8 @@ data class InnsendingDTO(
         }
     }
 
-    class DokumentDTO
-
-    class BrevkodeDTO
+    data class DokumenterDTO(
+        var hovedDokument: Innsending.Dokument? = null,
+        val dokumenter: MutableList<Innsending.Dokument> = mutableListOf()
+    )
 }

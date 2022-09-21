@@ -51,7 +51,7 @@ class NyInnsending internal constructor(
             tilstandsType: Tilstand.Type,
             hovedDokument: Dokument? = null,
             dokumenter: List<Dokument>,
-            ettersendinger: MutableList<Ettersending>,
+            ettersendinger: List<Ettersending>,
             brevkode: Brevkode?
         ): NyInnsending {
             val tilstand: Tilstand = when (tilstandsType) {
@@ -71,7 +71,7 @@ class NyInnsending internal constructor(
                 hovedDokument,
                 dokumenter,
                 brevkode,
-                ettersendinger
+                ettersendinger.toMutableList()
             )
         }
     }

@@ -169,7 +169,7 @@ internal class SøknadPostgresRepositoryTest {
                 val rehydrertSøknad: Søknad? = søknadPostgresRepository.hent(søknadId, ident)
                 assertNotNull(rehydrertSøknad)
 
-//                assertDeepEquals(rehydrertSøknad!!, søknad)
+                assertDeepEquals(rehydrertSøknad!!, søknad)
                 // TODO: Flytt tilgangskontroll til API-lag
                 /*assertThrows<IkkeTilgangExeption> {
                     søknadPostgresRepository.hent(søknadId, "ikke-tilgang")

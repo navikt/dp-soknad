@@ -70,20 +70,43 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 paramMap = mapOf(
                     "soknad_uuid" to søknadId
                 )
-            ).map(rowToInnsendingDTO()).asSingle
+            ).map(rowToInnsendingDTO(this)).asSingle
         )
     }
 
-    private fun rowToInnsendingDTO() = { row: Row ->
+    private fun Session.hentEttersendinger(innsendingId: UUID): List<InnsendingDTO> {
+        return this.run(
+            queryOf(
+                //language=PostgreSQL
+                statement = """   
+                       SELECT innsending_v1.*
+                       FROM innsending_v1, ettersending_v1
+                       WHERE ettersending_v1.innsending_uuid = :innsendingId AND innsending_v1.innsending_uuid = ettersending_v1.ettersending_uuid """.trimMargin(),
+                paramMap = mapOf(
+                    "innsending_uuid" to innsendingId
+                )
+            ).map(rowToInnsendingDTO(this)).asList
+        )
+    }
+
+    private fun rowToInnsendingDTO(session: Session) = { row: Row ->
+        val innsendingId = row.uuid("innsending_uuid")
+        val dokumenter: InnsendingDTO.DokumenterDTO = session.hentDokumenter(innsendingId)
+        val type = InnsendingDTO.InnsendingTypeDTO.rehydrer(row.string("innsendingtype"))
+        val ettersendinger = when(type){
+            InnsendingDTO.InnsendingTypeDTO.NY_DIALOG -> session.hentEttersendinger(innsendingId)
+            InnsendingDTO.InnsendingTypeDTO.ETTERSENDING_TIL_DIALOG -> emptyList()
+        }
         InnsendingDTO(
-            innsendingId = row.uuid("innsending_uuid"),
-            type = InnsendingDTO.InnsendingTypeDTO.rehydrer(row.string("innsendingtype")),
+            innsendingId = innsendingId,
+            type = type,
             innsendt = row.zonedDateTime("innsendt"),
             journalpostId = row.stringOrNull("journalpost_id"),
             tilstand = InnsendingDTO.TilstandDTO.rehydrer(row.string("tilstand")),
-            hovedDokument = null, // todo
-            dokumenter = emptyList(), // todo
-            brevkode = null // todo
+            hovedDokument = dokumenter.hovedDokument,
+            dokumenter = dokumenter.dokumenter,
+            ettersendinger = ettersendinger,
+            brevkode = null
         )
     }
 
@@ -159,6 +182,37 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             TODO("not implemented")
         }
     }
+}
+
+private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.DokumenterDTO {
+    val dokumenter = InnsendingDTO.DokumenterDTO()
+    this.run(
+        queryOf(
+            //language=PostgreSQL
+            """WITH hoveddokument AS (SELECT dokument_uuid
+            FROM hoveddokument_v1
+            WHERE hoveddokument_v1.innsending_uuid = :innsendingId )
+             SELECT dokument_v1.*, (dokument_v1.dokument_uuid = hoveddokument.dokument_uuid) AS er_hoveddokument
+            FROM dokument_v1, hoveddokument
+            WHERE dokument_v1.innsending_uuid = :innsendingId 
+        """.trimIndent(),
+            mapOf(
+                "innsendingId" to innsendingId
+            )
+        ).map { row ->
+            val dokument = Innsending.Dokument(
+                row.uuid("dokument_uuid"),
+                row.string("navn"),
+                row.string("brevkode"),
+                emptyList()
+            )
+            when (row.boolean("er_hoveddokument")) {
+                true -> dokumenter.hovedDokument = dokument
+                false -> dokumenter.dokumenter.add(dokument)
+            }
+        }.asSingle
+    )
+    return dokumenter
 }
 
 internal fun Session.hentAktivitetslogg(søknadId: UUID): AktivitetsloggDTO? = run(
