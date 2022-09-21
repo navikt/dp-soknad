@@ -43,7 +43,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
     SøknadRepository {
     override fun hent(søknadId: UUID, ident: String): Søknad? {
         return using(sessionOf(dataSource)) { session ->
-            val innsending = session.hentInnsending(søknadId)
             session.run(
                 queryOf(
                     //language=PostgreSQL
@@ -55,7 +54,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                     paramMap = mapOf(
                         "uuid" to søknadId
                     )
-                ).map(rowToSøknadDTO(ident, innsending, session)).asSingle
+                ).map(rowToSøknadDTO(ident, session)).asSingle
             )?.rehydrer()
         }
     }
@@ -102,14 +101,13 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                         "ident" to ident
                     )
                     // todo
-                ).map(rowToSøknadDTO(ident, null, session)).asList
+                ).map(rowToSøknadDTO(ident, session)).asList
             ).map { it.rehydrer() }.toSet()
         }
     }
 
     private fun rowToSøknadDTO(
         ident: String,
-        innsending: InnsendingDTO?,
         session: Session
     ) = { row: Row ->
         // TODO: Fjern duplisering fra hent()
@@ -123,7 +121,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 session.hentDokumentKrav(søknadsId)
             ),
             sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker"),
-            innsendingDTO = innsending,
+            innsendingDTO = session.hentInnsending(søknadsId),
             aktivitetslogg = session.hentAktivitetslogg(søknadsId)
         )
     }
