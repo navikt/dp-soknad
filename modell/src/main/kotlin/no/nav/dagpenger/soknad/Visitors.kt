@@ -16,14 +16,14 @@ interface InnsendingVisitor {
     fun preVisitEttersendinger() {}
     fun postVisitEttersendinger() {}
     fun visit(
-            innsendingId: UUID,
-            innsending: InnsendingType,
-            tilstand: Type,
-            innsendt: ZonedDateTime,
-            journalpost: String?,
-            hovedDokument: Dokument?,
-            dokumenter: List<Dokument>,
-            brevkode: Brevkode? = null
+        innsendingId: UUID,
+        innsending: InnsendingType,
+        tilstand: Type,
+        innsendt: ZonedDateTime,
+        journalpost: String?,
+        hovedDokument: Dokument?,
+        dokumenter: List<Dokument>,
+        brevkode: Brevkode? = null
     ) {}
 }
 interface DokumentkravVisitor {

@@ -6,8 +6,6 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import no.nav.dagpenger.soknad.Innsending
-import no.nav.dagpenger.soknad.NyInnsending
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -31,20 +29,21 @@ internal class ArkiverbarSøknadMottattHendelseMottakTest {
         verify(exactly = 1) { mediatorMock.behandle(any() as ArkiverbarSøknadMottattHendelse) }
         assertEquals(
             listOf(
-                Innsending.Dokument.Dokumentvariant(
-                    filnavn = "brutto.pdf",
-                    urn = "urn:vedlegg:soknadId/brutto.pdf",
-                    variant = "FULLVERSJON",
-                    type = "PDF"
+                mapOf<String, Any>(
+                    "filnavn" to "brutto.pdf",
+                    "urn" to "urn:vedlegg:soknadId/brutto.pdf",
+                    "variant" to "FULLVERSJON",
+                    "type" to "PDF"
+
                 ),
-                Innsending.Dokument.Dokumentvariant(
-                    filnavn = "netto.pdf",
-                    urn = "urn:vedlegg:soknadId/netto.pdf",
-                    variant = "ARKIV",
-                    type = "PDF"
+                mapOf<String, Any>(
+                    "filnavn" to "netto.pdf",
+                    "urn" to "urn:vedlegg:soknadId/netto.pdf",
+                    "variant" to "ARKIV",
+                    "type" to "PDF"
                 )
-            ).sortedBy { it.urn.toString() },
-            slot.captured.dokumentvarianter().sortedBy { it.urn.toString() }
+            ),
+            slot.captured.dokumentvarianter().sortedBy { it.urn }.map { it.toMap() }
         )
     }
 

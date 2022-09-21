@@ -288,6 +288,5 @@ abstract class Innsending(
     companion object {
         fun ny(innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) =
             NyInnsending(InnsendingType.NY_DIALOG, innsendt, dokumentkrav)
-
     }
 }

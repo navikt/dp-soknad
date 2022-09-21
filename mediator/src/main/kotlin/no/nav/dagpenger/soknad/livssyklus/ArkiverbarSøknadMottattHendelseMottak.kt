@@ -4,9 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.ArkiverbarSøknad
-import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Innsending.Dokument.Dokumentvariant
-import no.nav.dagpenger.soknad.NyInnsending
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.helse.rapids_rivers.JsonMessage
