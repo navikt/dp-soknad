@@ -23,14 +23,14 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 class Søknad private constructor(
-    private val søknadId: UUID,
-    private val ident: String,
-    private var tilstand: Tilstand,
-    private var innsending: Innsending?,
-    private val språk: Språk,
-    private val dokumentkrav: Dokumentkrav,
-    private var sistEndretAvBruker: ZonedDateTime?,
-    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+        private val søknadId: UUID,
+        private val ident: String,
+        private var tilstand: Tilstand,
+        private var innsending: NyInnsending?,
+        private val språk: Språk,
+        private val dokumentkrav: Dokumentkrav,
+        private var sistEndretAvBruker: ZonedDateTime?,
+        internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 ) : Aktivitetskontekst {
     private val observers = mutableListOf<SøknadObserver>()
 
@@ -81,7 +81,7 @@ class Søknad private constructor(
             sistEndretAvBruker: ZonedDateTime?,
             tilstandsType: Tilstand.Type,
             aktivitetslogg: Aktivitetslogg,
-            innsending: Innsending?
+            innsending: NyInnsending?
         ): Søknad {
             val tilstand: Tilstand = when (tilstandsType) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse

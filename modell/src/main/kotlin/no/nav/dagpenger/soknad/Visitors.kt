@@ -1,5 +1,9 @@
 package no.nav.dagpenger.soknad
 
+import no.nav.dagpenger.soknad.Innsending.Brevkode
+import no.nav.dagpenger.soknad.Innsending.Dokument
+import no.nav.dagpenger.soknad.Innsending.InnsendingType
+import no.nav.dagpenger.soknad.Innsending.Tilstand.Type
 import no.nav.dagpenger.soknad.Søknad.Tilstand
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -12,14 +16,14 @@ interface InnsendingVisitor {
     fun preVisitEttersendinger() {}
     fun postVisitEttersendinger() {}
     fun visit(
-        innsendingId: UUID,
-        innsending: Innsending.InnsendingType,
-        tilstand: Innsending.Tilstand.Type,
-        innsendt: ZonedDateTime,
-        journalpost: String?,
-        hovedDokument: Innsending.Dokument?,
-        dokumenter: List<Innsending.Dokument>,
-        brevkode: Innsending.Brevkode? = null
+            innsendingId: UUID,
+            innsending: InnsendingType,
+            tilstand: Type,
+            innsendt: ZonedDateTime,
+            journalpost: String?,
+            hovedDokument: Dokument?,
+            dokumenter: List<Dokument>,
+            brevkode: Brevkode? = null
     ) {}
 }
 interface DokumentkravVisitor {

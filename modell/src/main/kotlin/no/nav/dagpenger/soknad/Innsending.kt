@@ -1,9 +1,6 @@
 package no.nav.dagpenger.soknad
 
 import de.slub.urn.URN
-import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.ArkiverbarSøknad
-import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.InnsendingBrevkode
-import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyJournalpost
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.BrevkodeMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
@@ -13,7 +10,7 @@ import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import java.time.ZonedDateTime
 import java.util.UUID
 
-class Innsending private constructor(
+abstract class Innsending(
     private val innsendingId: UUID,
     private val type: InnsendingType,
     private val innsendt: ZonedDateTime,
@@ -21,64 +18,9 @@ class Innsending private constructor(
     private var tilstand: Tilstand,
     private var hovedDokument: Dokument? = null,
     private val dokumenter: List<Dokument>,
-    private val ettersendinger: MutableList<Innsending>,
-    private var brevkode: Brevkode?
+    internal var brevkode: Brevkode?
 ) : Aktivitetskontekst {
-    private constructor(
-        type: InnsendingType,
-        innsendt: ZonedDateTime,
-        dokumentkrav: Dokumentkrav,
-        brevkode: Brevkode? = null
-    ) : this(
-        innsendingId = UUID.randomUUID(),
-        type = type,
-        innsendt = innsendt,
-        journalpostId = null,
-        tilstand = Opprettet,
-        dokumenter = dokumentkrav.tilDokument(),
-        ettersendinger = mutableListOf(),
-        brevkode = brevkode
-    )
-
-    companion object {
-        fun ny(innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) =
-            Innsending(InnsendingType.NY_DIALOG, innsendt, dokumentkrav)
-
-        fun rehydrer(
-            innsendingId: UUID,
-            type: InnsendingType,
-            innsendt: ZonedDateTime,
-            journalpostId: String?,
-            tilstandsType: Tilstand.Type,
-            hovedDokument: Dokument? = null,
-            dokumenter: List<Dokument>,
-            ettersendinger: MutableList<Innsending>,
-            brevkode: Brevkode?
-        ): Innsending {
-            val tilstand: Tilstand = when (tilstandsType) {
-                Tilstand.Type.Opprettet -> Opprettet
-                Tilstand.Type.AvventerBrevkode -> AvventerMetadata
-                Tilstand.Type.AvventerArkiverbarSøknad -> AvventerArkiverbarSøknad
-                Tilstand.Type.AvventerMidlertidligJournalføring -> AvventerMidlertidligJournalføring
-                Tilstand.Type.AvventerJournalføring -> AvventerJournalføring
-                Tilstand.Type.Journalført -> Journalført
-            }
-            if (ettersendinger.isNotEmpty()) {
-                require(type == InnsendingType.NY_DIALOG) { "Kan bare lage ettersending til nye dialoger" }
-            }
-            return Innsending(
-                innsendingId,
-                type,
-                innsendt,
-                journalpostId,
-                tilstand,
-                hovedDokument,
-                dokumenter,
-                ettersendinger,
-                brevkode
-            )
-        }
-    }
+    protected open val innsendinger get() = (listOf(this))
 
     data class Dokument(
         val uuid: UUID = UUID.randomUUID(),
@@ -86,6 +28,15 @@ class Innsending private constructor(
         val brevkode: String,
         val varianter: List<Dokumentvariant>
     ) {
+
+        fun toMap(): Map<String, Any> {
+            return mapOf(
+                "navn" to navn,
+                "brevkode" to brevkode,
+                "varianter" to varianter.map { it.toMap() }
+            )
+        }
+
         data class Dokumentvariant(
             val uuid: UUID = UUID.randomUUID(),
             val filnavn: String,
@@ -100,6 +51,15 @@ class Innsending private constructor(
                     throw IllegalArgumentException("Ikke gyldig URN: $urn")
                 }
             }
+
+            fun toMap(): Map<String, Any> {
+                return mapOf(
+                    "filnavn" to filnavn,
+                    "urn" to urn,
+                    "variant" to variant,
+                    "type" to type
+                )
+            }
         }
     }
 
@@ -108,80 +68,6 @@ class Innsending private constructor(
             InnsendingType.NY_DIALOG -> "NAV $skjemakode"
             InnsendingType.ETTERSENDING_TIL_DIALOG -> "NAVe $skjemakode"
         }
-    }
-
-    fun ettersend(hendelse: SøknadInnsendtHendelse, dokumentkrav: Dokumentkrav) {
-        Innsending(
-            InnsendingType.ETTERSENDING_TIL_DIALOG,
-            hendelse.innsendtidspunkt(),
-            dokumentkrav,
-            brevkode
-        ).also { ettersending ->
-            ettersendinger.add(ettersending)
-            ettersending.håndter(hendelse)
-        }
-    }
-
-    fun håndter(hendelse: SøknadInnsendtHendelse) {
-        kontekst(hendelse)
-        tilstand.håndter(hendelse, this)
-    }
-
-    fun håndter(hendelse: BrevkodeMottattHendelse) {
-        innsendinger.forEach { it._håndter(hendelse) }
-    }
-
-    fun håndter(hendelse: ArkiverbarSøknadMottattHendelse) {
-        innsendinger.forEach { it._håndter(hendelse) }
-    }
-
-    fun håndter(hendelse: SøknadMidlertidigJournalførtHendelse) {
-        innsendinger.forEach { it._håndter(hendelse) }
-    }
-
-    fun håndter(hendelse: JournalførtHendelse) {
-        innsendinger.forEach { it._håndter(hendelse) }
-    }
-
-    private val innsendinger get() = (listOf(this) + ettersendinger)
-    private fun _håndter(hendelse: BrevkodeMottattHendelse) {
-        if (hendelse.innsendingId != this.innsendingId) return
-        kontekst(hendelse)
-        tilstand.håndter(hendelse, this)
-    }
-
-    private fun _håndter(hendelse: ArkiverbarSøknadMottattHendelse) {
-        if (hendelse.innsendingId != this.innsendingId) return
-        kontekst(hendelse)
-        tilstand.håndter(hendelse, this)
-    }
-
-    private fun _håndter(hendelse: SøknadMidlertidigJournalførtHendelse) {
-        if (hendelse.innsendingId != this.innsendingId) return
-        kontekst(hendelse)
-        tilstand.håndter(hendelse, this)
-    }
-
-    private fun _håndter(hendelse: JournalførtHendelse) {
-        if (hendelse.journalpostId() != this.journalpostId) return
-        kontekst(hendelse)
-        tilstand.håndter(hendelse, this)
-    }
-
-    fun accept(visitor: InnsendingVisitor) {
-        visitor.visit(
-            innsendingId,
-            type,
-            tilstand.tilstandType,
-            innsendt,
-            journalpostId,
-            hovedDokument,
-            dokumenter,
-            brevkode
-        )
-        visitor.preVisitEttersendinger()
-        ettersendinger.forEach { it.accept(visitor) }
-        visitor.postVisitEttersendinger()
     }
 
     enum class InnsendingType {
@@ -229,7 +115,88 @@ class Innsending private constructor(
         }
     }
 
-    private object Opprettet : Tilstand {
+    fun håndter(hendelse: SøknadInnsendtHendelse) {
+        kontekst(hendelse)
+        tilstand.håndter(hendelse, this)
+    }
+
+    fun håndter(hendelse: BrevkodeMottattHendelse) {
+        innsendinger.forEach { it._håndter(hendelse) }
+    }
+
+    fun håndter(hendelse: ArkiverbarSøknadMottattHendelse) {
+        innsendinger.forEach { it._håndter(hendelse) }
+    }
+
+    fun håndter(hendelse: SøknadMidlertidigJournalførtHendelse) {
+        innsendinger.forEach { it._håndter(hendelse) }
+    }
+
+    fun håndter(hendelse: JournalførtHendelse) {
+        innsendinger.forEach { it._håndter(hendelse) }
+    }
+
+    private fun _håndter(hendelse: BrevkodeMottattHendelse) {
+        if (hendelse.innsendingId != this.innsendingId) return
+        kontekst(hendelse)
+        tilstand.håndter(hendelse, this)
+    }
+
+    private fun _håndter(hendelse: ArkiverbarSøknadMottattHendelse) {
+        if (hendelse.innsendingId != this.innsendingId) return
+        kontekst(hendelse)
+        tilstand.håndter(hendelse, this)
+    }
+
+    private fun _håndter(hendelse: SøknadMidlertidigJournalførtHendelse) {
+        if (hendelse.innsendingId != this.innsendingId) return
+        kontekst(hendelse)
+        tilstand.håndter(hendelse, this)
+    }
+
+    private fun _håndter(hendelse: JournalførtHendelse) {
+        if (hendelse.journalpostId() != this.journalpostId) return
+        kontekst(hendelse)
+        tilstand.håndter(hendelse, this)
+    }
+
+    open fun accept(visitor: InnsendingVisitor) {
+        visitor.visit(
+            innsendingId,
+            type,
+            tilstand.tilstandType,
+            innsendt,
+            journalpostId,
+            hovedDokument,
+            dokumenter,
+            brevkode
+        )
+    }
+
+    private fun kontekst(hendelse: Hendelse) {
+        hendelse.kontekst(this)
+        hendelse.kontekst(tilstand)
+    }
+
+    override fun toSpesifikkKontekst() = SpesifikkKontekst(
+        kontekstType = "innsending",
+        mapOf(
+            "type" to type.name,
+            "innsendingId" to innsendingId.toString()
+        )
+    )
+
+    private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: Hendelse) {
+        if (nyTilstand == tilstand) {
+            return // Vi er allerede i tilstanden
+        }
+        val forrigeTilstand = tilstand
+        tilstand = nyTilstand
+        søknadHendelse.kontekst(tilstand)
+        tilstand.entering(søknadHendelse, this)
+    }
+
+    internal object Opprettet : Tilstand {
         override val tilstandType = Tilstand.Type.Opprettet
 
         override fun håndter(hendelse: SøknadInnsendtHendelse, innsending: Innsending) {
@@ -244,7 +211,7 @@ class Innsending private constructor(
         override fun entering(hendelse: Hendelse, innsending: Innsending) {
             if (innsending.brevkode != null) return innsending.endreTilstand(AvventerArkiverbarSøknad, hendelse)
             hendelse.behov(
-                InnsendingBrevkode,
+                Aktivitetslogg.Aktivitet.Behov.Behovtype.InnsendingBrevkode,
                 "Trenger metadata/klassifisering av innsending"
             )
         }
@@ -260,7 +227,7 @@ class Innsending private constructor(
 
         override fun entering(hendelse: Hendelse, innsending: Innsending) {
             hendelse.behov(
-                ArkiverbarSøknad,
+                Aktivitetslogg.Aktivitet.Behov.Behovtype.ArkiverbarSøknad,
                 "Trenger søknad på et arkiverbart format",
                 mapOf(
                     "innsendtTidspunkt" to innsending.innsendt.toString()
@@ -289,11 +256,11 @@ class Innsending private constructor(
             val hovedDokument = requireNotNull(innsending.hovedDokument) { "Hoveddokumment må være satt" }
             val dokumenter = innsending.dokumenter
             hendelse.behov(
-                NyJournalpost,
+                Aktivitetslogg.Aktivitet.Behov.Behovtype.NyJournalpost,
                 "Trenger å journalføre søknad",
                 mapOf(
-                    "hovedDokument" to hovedDokument, // urn til netto/brutto
-                    "dokumenter" to dokumenter
+                    "hovedDokument" to hovedDokument.toMap(), // urn til netto/brutto
+                    "dokumenter" to dokumenter.map { it.toMap() }
                 )
             )
         }
@@ -318,26 +285,43 @@ class Innsending private constructor(
         override val tilstandType = Tilstand.Type.Journalført
     }
 
-    private fun kontekst(hendelse: Hendelse) {
-        hendelse.kontekst(this)
-        hendelse.kontekst(tilstand)
-    }
+    companion object {
+        fun ny(innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) =
+            NyInnsending(InnsendingType.NY_DIALOG, innsendt, dokumentkrav)
 
-    override fun toSpesifikkKontekst() = SpesifikkKontekst(
-        kontekstType = "innsending",
-        mapOf(
-            "type" to type.name,
-            "innsendingId" to innsendingId.toString()
-        )
-    )
-
-    private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: Hendelse) {
-        if (nyTilstand == tilstand) {
-            return // Vi er allerede i tilstanden
+        fun rehydrer(
+            innsendingId: UUID,
+            type: InnsendingType,
+            innsendt: ZonedDateTime,
+            journalpostId: String?,
+            tilstandsType: Tilstand.Type,
+            hovedDokument: Dokument? = null,
+            dokumenter: List<Dokument>,
+            ettersendinger: MutableList<Ettersending>,
+            brevkode: Brevkode?
+        ): Innsending {
+            val tilstand: Tilstand = when (tilstandsType) {
+                Tilstand.Type.Opprettet -> Opprettet
+                Tilstand.Type.AvventerBrevkode -> AvventerMetadata
+                Tilstand.Type.AvventerArkiverbarSøknad -> AvventerArkiverbarSøknad
+                Tilstand.Type.AvventerMidlertidligJournalføring -> AvventerMidlertidligJournalføring
+                Tilstand.Type.AvventerJournalføring -> AvventerJournalføring
+                Tilstand.Type.Journalført -> Journalført
+            }
+            if (ettersendinger.isNotEmpty()) {
+                require(type == InnsendingType.NY_DIALOG) { "Kan bare lage ettersending til nye dialoger" }
+            }
+            return NyInnsending(
+                innsendingId,
+                type,
+                innsendt,
+                journalpostId,
+                tilstand,
+                hovedDokument,
+                dokumenter,
+                brevkode,
+                ettersendinger
+            )
         }
-        val forrigeTilstand = tilstand
-        tilstand = nyTilstand
-        søknadHendelse.kontekst(tilstand)
-        tilstand.entering(søknadHendelse, this)
     }
 }

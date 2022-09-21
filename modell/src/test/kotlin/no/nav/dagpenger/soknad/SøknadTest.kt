@@ -142,15 +142,15 @@ internal class SøknadTest {
         assertInnsendingTilstand(
             AvventerMidlertidligJournalføring
         )
-        val hoveddokument = Innsending.Dokument(
-            navn = "Søknad om dagpenger",
-            brevkode = "NAV 04-01.02",
-            varianter = listOf(
-                Innsending.Dokument.Dokumentvariant(
-                    filnavn = "",
-                    urn = "urn:dokument:1",
-                    variant = "ARKIV",
-                    type = "PDF"
+        val hoveddokument = mutableMapOf<String, Any>(
+            "navn" to "Søknad om dagpenger",
+            "brevkode" to "NAV 04-01.02",
+            "varianter" to listOf(
+                mapOf<String, Any>(
+                    "filnavn" to "",
+                    "urn" to "urn:dokument:1",
+                    "variant" to "ARKIV",
+                    "type" to "PDF"
                 )
             )
         )
@@ -161,27 +161,27 @@ internal class SøknadTest {
                 "innsendingId" to inspektør.innsendingId.toString(),
                 "hovedDokument" to hoveddokument,
                 "dokumenter" to listOf(
-                    Innsending.Dokument(
-                        navn = "f1-1",
-                        brevkode = "O2",
-                        varianter = listOf(
-                            Innsending.Dokument.Dokumentvariant(
-                                filnavn = "f1-1",
-                                urn = "urn:sid:bundle1",
-                                variant = "Arkiv",
-                                type = "PDF"
+                    mapOf<String, Any>(
+                        "navn" to "f1-1",
+                        "brevkode" to "O2",
+                        "varianter" to listOf(
+                            mapOf<String, Any>(
+                                "filnavn" to "f1-1",
+                                "urn" to "urn:sid:bundle1",
+                                "variant" to "ARKIV",
+                                "type" to "PDF"
                             )
                         )
                     ),
-                    Innsending.Dokument(
-                        navn = "f3-1",
-                        brevkode = "O2",
-                        varianter = listOf(
-                            Innsending.Dokument.Dokumentvariant(
-                                filnavn = "f3-1",
-                                urn = "urn:sid:bundle2",
-                                variant = "Arkiv",
-                                type = "PDF"
+                    mapOf<String, Any>(
+                        "navn" to "f3-1",
+                        "brevkode" to "O2",
+                        "varianter" to listOf(
+                            mapOf<String, Any>(
+                                "filnavn" to "f3-1",
+                                "urn" to "urn:sid:bundle2",
+                                "variant" to "ARKIV",
+                                "type" to "PDF"
                             )
                         )
                     )
@@ -206,88 +206,6 @@ internal class SøknadTest {
         )
 
         assertPuml("Søker oppretter søknad og ferdigstiller den")
-    }
-
-    @Test
-    fun innsending() {
-        håndterØnskeOmNySøknadHendelse()
-        assertBehov(Behovtype.NySøknad, mapOf("ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
-        håndterNySøknadOpprettet()
-        håndterFaktumOppdatering()
-        håndterSøkerOppgaveHendelse(
-            setOf(
-                sannsynliggjøring("1", "f1-1", "f1-2"),
-                sannsynliggjøring("2", "f2-1", "f2-2"),
-                sannsynliggjøring("3", "f3-1", "f3-2")
-            )
-        )
-        håndterLeggtilFil("1", "urn:sid:1")
-        håndterLeggtilFil("1", "urn:sid:2")
-        håndterDokumentasjonIkkeTilgjengelig("2", "Har ikke")
-        håndterLeggtilFil("3", "urn:sid:3")
-        håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
-        håndterDokumentkravSammenstilling(kravId = "3", urn = "urn:sid:bundle2")
-        håndterSendInnSøknad()
-
-        // Første innsending
-        håndterInnsendingBrevkode()
-        håndterArkiverbarSøknad()
-        val hoveddokument = Innsending.Dokument(
-            navn = "Søknad om dagpenger",
-            brevkode = "NAV 04-01.02",
-            varianter = listOf(
-                Innsending.Dokument.Dokumentvariant(
-                    filnavn = "",
-                    urn = "urn:dokument:1",
-                    variant = "ARKIV",
-                    type = "PDF"
-                )
-            )
-        )
-
-        assertBehov(
-            Behovtype.NyJournalpost,
-            mapOf(
-                "hovedDokument" to hoveddokument,
-                "dokumenter" to listOf(
-                    Innsending.Dokument(
-                        navn = "f1-1",
-                        brevkode = "O2",
-                        varianter = listOf(
-                            Innsending.Dokument.Dokumentvariant(
-                                filnavn = "f1-1",
-                                urn = "urn:sid:bundle1",
-                                variant = "Arkiv",
-                                type = "PDF"
-                            )
-                        )
-                    ),
-                    Innsending.Dokument(
-                        navn = "f3-1",
-                        brevkode = "O2",
-                        varianter = listOf(
-                            Innsending.Dokument.Dokumentvariant(
-                                filnavn = "f3-1",
-                                urn = "urn:sid:bundle2",
-                                variant = "Arkiv",
-                                type = "PDF"
-                            )
-                        )
-                    )
-                ),
-
-                "søknad_uuid" to inspektør.søknadId.toString(),
-                "ident" to testIdent,
-                "type" to InnsendingType.NY_DIALOG.name,
-                "innsendingId" to inspektør.innsendingId.toString()
-            )
-        )
-        håndterMidlertidigJournalførtSøknad()
-        håndterJournalførtSøknad()
-
-        assertInnsendingTilstand(
-            Journalført
-        )
 
         // Ettersending
         håndterLeggtilFil("2", "urn:sid:2")
@@ -299,44 +217,44 @@ internal class SøknadTest {
         assertBehov(
             Behovtype.NyJournalpost,
             mapOf(
-                "hovedDokument" to hoveddokument.copy(brevkode = "NAVe 04-01.02"),
+                "hovedDokument" to hoveddokument.also { it["brevkode"] = "NAVe 04-01.02" },
                 "dokumenter" to listOf(
-                    Innsending.Dokument(
-                        navn = "f1-1",
-                        brevkode = "O2",
-                        varianter = listOf(
-                            Innsending.Dokument.Dokumentvariant(
-                                filnavn = "f1-1",
-                                urn = "urn:sid:bundle1",
-                                variant = "Arkiv",
-                                type = "PDF"
+                    mapOf<String, Any>(
+                        "navn" to "f1-1",
+                        "brevkode" to "O2",
+                        "varianter" to listOf(
+                            mapOf<String, Any>(
+                                "filnavn" to "f1-1",
+                                "urn" to "urn:sid:bundle1",
+                                "variant" to "ARKIV",
+                                "type" to "PDF"
                             )
                         )
                     ),
-                    Innsending.Dokument(
-                        navn = "f2-1",
-                        brevkode = "O2",
-                        varianter = listOf(
-                            Innsending.Dokument.Dokumentvariant(
-                                filnavn = "f2-1",
-                                urn = "urn:sid:bundle3",
-                                variant = "Arkiv",
-                                type = "PDF"
+                    mapOf<String, Any>(
+                        "navn" to "f2-1",
+                        "brevkode" to "O2",
+                        "varianter" to listOf(
+                            mapOf<String, Any>(
+                                "filnavn" to "f2-1",
+                                "urn" to "urn:sid:bundle3",
+                                "variant" to "ARKIV",
+                                "type" to "PDF"
                             )
                         )
                     ),
-                    Innsending.Dokument(
-                        navn = "f3-1",
-                        brevkode = "O2",
-                        varianter = listOf(
-                            Innsending.Dokument.Dokumentvariant(
-                                filnavn = "f3-1",
-                                urn = "urn:sid:bundle2",
-                                variant = "Arkiv",
-                                type = "PDF"
+                    mapOf<String, Any>(
+                        "navn" to "f3-1",
+                        "brevkode" to "O2",
+                        "varianter" to listOf(
+                            mapOf<String, Any>(
+                                "filnavn" to "f3-1",
+                                "urn" to "urn:sid:bundle2",
+                                "variant" to "ARKIV",
+                                "type" to "PDF"
                             )
                         )
-                    )
+                    ),
                 ),
 
                 "søknad_uuid" to inspektør.søknadId.toString(),

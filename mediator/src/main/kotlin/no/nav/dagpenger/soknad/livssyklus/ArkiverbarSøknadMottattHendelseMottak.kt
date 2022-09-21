@@ -5,6 +5,8 @@ import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.ArkiverbarSøknad
 import no.nav.dagpenger.soknad.Innsending
+import no.nav.dagpenger.soknad.Innsending.Dokument.Dokumentvariant
+import no.nav.dagpenger.soknad.NyInnsending
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -54,7 +56,7 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
         }
     }
 
-    private fun JsonNode.dokumentVarianter(): List<Innsending.Dokument.Dokumentvariant> = this.toList().map { node ->
+    private fun JsonNode.dokumentVarianter(): List<Dokumentvariant> = this.toList().map { node ->
         val format = when (node["metainfo"]["variant"].asText()) {
             "NETTO" -> "ARKIV"
             "BRUTTO" -> "FULLVERSJON"
@@ -62,7 +64,7 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
                 throw IllegalArgumentException("Ukjent joarkvariant, se https://confluence.adeo.no/display/BOA/Variantformat")
             }
         }
-        Innsending.Dokument.Dokumentvariant(
+        Dokumentvariant(
             filnavn = node["metainfo"]["innhold"].asText(),
             urn = node["urn"].asText(),
             variant = format,

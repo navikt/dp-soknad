@@ -296,14 +296,14 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
     }
 
     override fun visit(
-        innsendingId: UUID,
-        innsending: Innsending.InnsendingType,
-        tilstand: Innsending.Tilstand.Type,
-        innsendt: ZonedDateTime,
-        journalpost: String?,
-        hovedDokument: Innsending.Dokument?,
-        dokumenter: List<Innsending.Dokument>,
-        brevkode: Innsending.Brevkode?
+            innsendingId: UUID,
+            innsending: Innsending.InnsendingType,
+            tilstand: Innsending.Tilstand.Type,
+            innsendt: ZonedDateTime,
+            journalpost: String?,
+            hovedDokument: Innsending.Dokument?,
+            dokumenter: List<Innsending.Dokument>,
+            brevkode: Innsending.Brevkode?
     ) {
         if (ettersending) {
             ettersendinger.getOrPut(aktivEttersending) {
