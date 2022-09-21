@@ -23,14 +23,14 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 class Søknad private constructor(
-        private val søknadId: UUID,
-        private val ident: String,
-        private var tilstand: Tilstand,
-        private var innsending: NyInnsending?,
-        private val språk: Språk,
-        private val dokumentkrav: Dokumentkrav,
-        private var sistEndretAvBruker: ZonedDateTime?,
-        internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+    private val søknadId: UUID,
+    private val ident: String,
+    private var tilstand: Tilstand,
+    private var innsending: NyInnsending?,
+    private val språk: Språk,
+    private val dokumentkrav: Dokumentkrav,
+    private var sistEndretAvBruker: ZonedDateTime?,
+    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 ) : Aktivitetskontekst {
     private val observers = mutableListOf<SøknadObserver>()
 
@@ -47,32 +47,7 @@ class Søknad private constructor(
     )
 
     companion object {
-        fun rehydrer(
-            søknadId: UUID,
-            ident: String,
-            språk: Språk,
-            dokumentkrav: Dokumentkrav,
-            sistEndretAvBruker: ZonedDateTime?,
-            tilstandsType: Tilstand.Type,
-            aktivitetslogg: Aktivitetslogg
-        ): Søknad {
-            val tilstand: Tilstand = when (tilstandsType) {
-                Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
-                Tilstand.Type.Påbegynt -> Påbegynt
-                Tilstand.Type.Innsendt -> Innsendt
-                Tilstand.Type.Slettet -> throw IllegalArgumentException("Kan ikke rehydrere slettet søknad med id $søknadId")
-            }
-            return Søknad(
-                søknadId = søknadId,
-                ident = ident,
-                tilstand = tilstand,
-                innsending = null,
-                språk = språk,
-                dokumentkrav = dokumentkrav,
-                sistEndretAvBruker = sistEndretAvBruker,
-                aktivitetslogg = aktivitetslogg
-            )
-        }
+
         fun rehydrer(
             søknadId: UUID,
             ident: String,

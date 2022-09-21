@@ -106,7 +106,8 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
                 dokumentkrav = Dokumentkrav(),
                 sistEndretAvBruker = ZonedDateTime.now(),
                 tilstandsType = Påbegynt,
-                aktivitetslogg = Aktivitetslogg()
+                aktivitetslogg = Aktivitetslogg(),
+                null
             )
         )
         return søknadId

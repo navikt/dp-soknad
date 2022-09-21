@@ -149,7 +149,8 @@ internal class VaktmesterRepositoryTest {
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
             tilstandsType = Innsendt,
-            aktivitetslogg = Aktivitetslogg()
+            aktivitetslogg = Aktivitetslogg(),
+            null
         )
 
     private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, ident: String) =
@@ -160,7 +161,8 @@ internal class VaktmesterRepositoryTest {
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
             tilstandsType = Påbegynt,
-            aktivitetslogg = Aktivitetslogg()
+            aktivitetslogg = Aktivitetslogg(),
+            null
         )
 
     private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, ident: String) =
@@ -171,6 +173,7 @@ internal class VaktmesterRepositoryTest {
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
             tilstandsType = Påbegynt,
-            aktivitetslogg = Aktivitetslogg()
+            aktivitetslogg = Aktivitetslogg(),
+            null
         )
 }

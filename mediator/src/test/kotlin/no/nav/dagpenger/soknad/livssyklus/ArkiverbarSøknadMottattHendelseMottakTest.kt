@@ -6,6 +6,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.NyInnsending
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
@@ -30,13 +31,13 @@ internal class ArkiverbarSøknadMottattHendelseMottakTest {
         verify(exactly = 1) { mediatorMock.behandle(any() as ArkiverbarSøknadMottattHendelse) }
         assertEquals(
             listOf(
-                NyInnsending.Dokument.Dokumentvariant(
+                Innsending.Dokument.Dokumentvariant(
                     filnavn = "brutto.pdf",
                     urn = "urn:vedlegg:soknadId/brutto.pdf",
                     variant = "FULLVERSJON",
                     type = "PDF"
                 ),
-                NyInnsending.Dokument.Dokumentvariant(
+                Innsending.Dokument.Dokumentvariant(
                     filnavn = "netto.pdf",
                     urn = "urn:vedlegg:soknadId/netto.pdf",
                     variant = "ARKIV",

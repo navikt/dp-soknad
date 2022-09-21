@@ -53,7 +53,7 @@ class NyInnsending internal constructor(
             dokumenter: List<Dokument>,
             ettersendinger: MutableList<Ettersending>,
             brevkode: Brevkode?
-        ): Innsending {
+        ): NyInnsending {
             val tilstand: Tilstand = when (tilstandsType) {
                 Tilstand.Type.Opprettet -> Opprettet
                 Tilstand.Type.AvventerBrevkode -> AvventerMetadata

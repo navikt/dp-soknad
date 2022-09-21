@@ -47,7 +47,7 @@ class Ettersending private constructor(
             hovedDokument: Dokument? = null,
             dokumenter: List<Dokument>,
             brevkode: Brevkode?
-        ): Innsending {
+        ): Ettersending {
             val tilstand: Tilstand = when (tilstandsType) {
                 Tilstand.Type.Opprettet -> Opprettet
                 Tilstand.Type.AvventerBrevkode -> AvventerMetadata

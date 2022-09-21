@@ -74,7 +74,8 @@ internal class DokumentasjonKravApiTest {
         dokumentkrav = dokumentKrav,
         sistEndretAvBruker = ZonedDateTime.now(),
         tilstandsType = Søknad.Tilstand.Type.Påbegynt,
-        aktivitetslogg = Aktivitetslogg()
+        aktivitetslogg = Aktivitetslogg(),
+        null
     )
 
     private val søknadMediatorMock = mockk<SøknadMediator>().also {

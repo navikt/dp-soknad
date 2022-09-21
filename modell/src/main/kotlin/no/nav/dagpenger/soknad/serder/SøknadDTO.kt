@@ -34,7 +34,8 @@ class SøknadDTO(
         dokumentkrav = this.dokumentkrav.rehydrer(),
         sistEndretAvBruker = this.sistEndretAvBruker,
         tilstandsType = this.tilstandType.rehydrer(),
-        aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg()
+        aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
+        null
     )
 
     class SpråkDTO(val verdi: String) {
