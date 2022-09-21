@@ -13,7 +13,7 @@ class NyInnsending internal constructor(
     hovedDokument: Dokument? = null,
     dokumenter: List<Dokument>,
     brevkode: Brevkode?,
-    private val ettersendinger: MutableList<Ettersending>,
+    private val ettersendinger: MutableList<Ettersending>
 ) : Innsending(
     innsendingId,
     type,
@@ -39,7 +39,42 @@ class NyInnsending internal constructor(
         ettersendinger = mutableListOf(),
         brevkode = brevkode
     )
+
     override val innsendinger get() = listOf(this) + ettersendinger
+
+    companion object {
+        fun rehydrer(
+            innsendingId: UUID,
+            type: InnsendingType,
+            innsendt: ZonedDateTime,
+            journalpostId: String?,
+            tilstandsType: Tilstand.Type,
+            hovedDokument: Dokument? = null,
+            dokumenter: List<Dokument>,
+            ettersendinger: MutableList<Ettersending>,
+            brevkode: Brevkode?
+        ): Innsending {
+            val tilstand: Tilstand = when (tilstandsType) {
+                Tilstand.Type.Opprettet -> Opprettet
+                Tilstand.Type.AvventerBrevkode -> AvventerMetadata
+                Tilstand.Type.AvventerArkiverbarSøknad -> AvventerArkiverbarSøknad
+                Tilstand.Type.AvventerMidlertidligJournalføring -> AvventerMidlertidligJournalføring
+                Tilstand.Type.AvventerJournalføring -> AvventerJournalføring
+                Tilstand.Type.Journalført -> Journalført
+            }
+            return NyInnsending(
+                innsendingId,
+                type,
+                innsendt,
+                journalpostId,
+                tilstand,
+                hovedDokument,
+                dokumenter,
+                brevkode,
+                ettersendinger
+            )
+        }
+    }
 
     fun ettersend(hendelse: SøknadInnsendtHendelse, dokumentkrav: Dokumentkrav) {
         Ettersending(

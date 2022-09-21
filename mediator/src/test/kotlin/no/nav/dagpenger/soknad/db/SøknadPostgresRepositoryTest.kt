@@ -7,9 +7,10 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.Ettersending
 import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.IkkeTilgangExeption
-import no.nav.dagpenger.soknad.NyInnsending
+import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
@@ -283,25 +284,25 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = ZonedDateTime.now().minusDays(1),
             tilstandsType = Søknad.Tilstand.Type.Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
-            innsending = NyInnsending.rehydrer(
+            innsending = Innsending.rehydrer(
                 UUID.randomUUID(),
-                NyInnsending.InnsendingType.NY_DIALOG,
+                Innsending.InnsendingType.NY_DIALOG,
                 ZonedDateTime.now(),
                 "123123",
-                NyInnsending.Tilstand.Type.Journalført,
-                NyInnsending.Dokument(
+                Innsending.Tilstand.Type.Journalført,
+                Innsending.Dokument(
                     UUID.randomUUID(),
                     "navn",
                     "brevkode",
                     varianter = listOf(
-                        NyInnsending.Dokument.Dokumentvariant(
+                        Innsending.Dokument.Dokumentvariant(
                             UUID.randomUUID(),
                             "filnavn1",
                             "urn:burn:turn1",
                             "variant1",
                             "type1"
                         ),
-                        NyInnsending.Dokument.Dokumentvariant(
+                        Innsending.Dokument.Dokumentvariant(
                             UUID.randomUUID(),
                             "filnavn2",
                             "urn:burn:turn2",
@@ -311,19 +312,19 @@ internal class SøknadPostgresRepositoryTest {
                     )
                 ),
                 listOf(
-                    NyInnsending.Dokument(
+                    Innsending.Dokument(
                         UUID.randomUUID(),
                         "navn2",
                         "brevkode2",
                         varianter = listOf(
-                            NyInnsending.Dokument.Dokumentvariant(
+                            Innsending.Dokument.Dokumentvariant(
                                 UUID.randomUUID(),
                                 "filnavn3",
                                 "urn:burn:turn3",
                                 "variant3",
                                 "type3"
                             ),
-                            NyInnsending.Dokument.Dokumentvariant(
+                            Innsending.Dokument.Dokumentvariant(
                                 UUID.randomUUID(),
                                 "filnavn4",
                                 "urn:burn:turn4",
@@ -334,30 +335,28 @@ internal class SøknadPostgresRepositoryTest {
                     )
                 ),
                 mutableListOf(
-                    NyInnsending.rehydrer(
+                    Ettersending.rehydrer(
                         UUID.randomUUID(),
-                        NyInnsending.InnsendingType.ETTERSENDING_TIL_DIALOG,
+                        Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG,
                         ZonedDateTime.now(),
                         null,
-                        NyInnsending.Tilstand.Type.Opprettet,
+                        Innsending.Tilstand.Type.Opprettet,
                         null,
                         listOf(),
-                        mutableListOf(),
-                        NyInnsending.Brevkode("Tittel ettersending1", "0324-23")
+                        Innsending.Brevkode("Tittel ettersending1", "0324-23")
                     ),
-                    NyInnsending.rehydrer(
+                    Ettersending.rehydrer(
                         UUID.randomUUID(),
-                        NyInnsending.InnsendingType.ETTERSENDING_TIL_DIALOG,
+                        Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG,
                         ZonedDateTime.now(),
                         null,
-                        NyInnsending.Tilstand.Type.AvventerJournalføring,
+                        Innsending.Tilstand.Type.AvventerJournalføring,
                         null,
                         listOf(),
-                        mutableListOf(),
-                        NyInnsending.Brevkode("Tittel ettersending2", "0324-23")
+                        Innsending.Brevkode("Tittel ettersending2", "0324-23")
                     )
                 ),
-                NyInnsending.Brevkode("Tittel", "04-02-03")
+                Innsending.Brevkode("Tittel", "04-02-03")
             )
         )
 

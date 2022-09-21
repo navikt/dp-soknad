@@ -11,7 +11,7 @@ class Ettersending private constructor(
     tilstand: Tilstand,
     hovedDokument: Dokument? = null,
     dokumenter: List<Dokument>,
-    brevkode: Brevkode?,
+    brevkode: Brevkode?
 ) : Innsending(
     innsendingId,
     type,
@@ -36,4 +36,36 @@ class Ettersending private constructor(
         dokumenter = dokumentkrav.tilDokument(),
         brevkode = brevkode
     )
+
+    companion object {
+        fun rehydrer(
+            innsendingId: UUID,
+            type: InnsendingType,
+            innsendt: ZonedDateTime,
+            journalpostId: String?,
+            tilstandsType: Tilstand.Type,
+            hovedDokument: Dokument? = null,
+            dokumenter: List<Dokument>,
+            brevkode: Brevkode?
+        ): Innsending {
+            val tilstand: Tilstand = when (tilstandsType) {
+                Tilstand.Type.Opprettet -> Opprettet
+                Tilstand.Type.AvventerBrevkode -> AvventerMetadata
+                Tilstand.Type.AvventerArkiverbarSøknad -> AvventerArkiverbarSøknad
+                Tilstand.Type.AvventerMidlertidligJournalføring -> AvventerMidlertidligJournalføring
+                Tilstand.Type.AvventerJournalføring -> AvventerJournalføring
+                Tilstand.Type.Journalført -> Journalført
+            }
+            return Ettersending(
+                innsendingId,
+                type,
+                innsendt,
+                journalpostId,
+                tilstand,
+                hovedDokument,
+                dokumenter,
+                brevkode
+            )
+        }
+    }
 }

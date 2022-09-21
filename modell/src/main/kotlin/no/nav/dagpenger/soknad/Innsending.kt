@@ -196,7 +196,7 @@ abstract class Innsending(
         tilstand.entering(søknadHendelse, this)
     }
 
-    internal object Opprettet : Tilstand {
+    protected object Opprettet : Tilstand {
         override val tilstandType = Tilstand.Type.Opprettet
 
         override fun håndter(hendelse: SøknadInnsendtHendelse, innsending: Innsending) {
@@ -205,7 +205,7 @@ abstract class Innsending(
         }
     }
 
-    private object AvventerMetadata : Tilstand {
+    protected object AvventerMetadata : Tilstand {
         override val tilstandType = Tilstand.Type.AvventerBrevkode
 
         override fun entering(hendelse: Hendelse, innsending: Innsending) {
@@ -222,7 +222,7 @@ abstract class Innsending(
         }
     }
 
-    private object AvventerArkiverbarSøknad : Tilstand {
+    protected object AvventerArkiverbarSøknad : Tilstand {
         override val tilstandType = Tilstand.Type.AvventerArkiverbarSøknad
 
         override fun entering(hendelse: Hendelse, innsending: Innsending) {
@@ -249,7 +249,7 @@ abstract class Innsending(
         }
     }
 
-    private object AvventerMidlertidligJournalføring : Tilstand {
+    protected object AvventerMidlertidligJournalføring : Tilstand {
         override val tilstandType = Tilstand.Type.AvventerMidlertidligJournalføring
 
         override fun entering(hendelse: Hendelse, innsending: Innsending) {
@@ -271,7 +271,7 @@ abstract class Innsending(
         }
     }
 
-    private object AvventerJournalføring : Tilstand {
+    protected object AvventerJournalføring : Tilstand {
         override val tilstandType = Tilstand.Type.AvventerJournalføring
 
         override fun håndter(hendelse: JournalførtHendelse, innsending: Innsending) {
@@ -281,7 +281,7 @@ abstract class Innsending(
         }
     }
 
-    private object Journalført : Tilstand {
+    protected object Journalført : Tilstand {
         override val tilstandType = Tilstand.Type.Journalført
     }
 
@@ -289,39 +289,5 @@ abstract class Innsending(
         fun ny(innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) =
             NyInnsending(InnsendingType.NY_DIALOG, innsendt, dokumentkrav)
 
-        fun rehydrer(
-            innsendingId: UUID,
-            type: InnsendingType,
-            innsendt: ZonedDateTime,
-            journalpostId: String?,
-            tilstandsType: Tilstand.Type,
-            hovedDokument: Dokument? = null,
-            dokumenter: List<Dokument>,
-            ettersendinger: MutableList<Ettersending>,
-            brevkode: Brevkode?
-        ): Innsending {
-            val tilstand: Tilstand = when (tilstandsType) {
-                Tilstand.Type.Opprettet -> Opprettet
-                Tilstand.Type.AvventerBrevkode -> AvventerMetadata
-                Tilstand.Type.AvventerArkiverbarSøknad -> AvventerArkiverbarSøknad
-                Tilstand.Type.AvventerMidlertidligJournalføring -> AvventerMidlertidligJournalføring
-                Tilstand.Type.AvventerJournalføring -> AvventerJournalføring
-                Tilstand.Type.Journalført -> Journalført
-            }
-            if (ettersendinger.isNotEmpty()) {
-                require(type == InnsendingType.NY_DIALOG) { "Kan bare lage ettersending til nye dialoger" }
-            }
-            return NyInnsending(
-                innsendingId,
-                type,
-                innsendt,
-                journalpostId,
-                tilstand,
-                hovedDokument,
-                dokumenter,
-                brevkode,
-                ettersendinger
-            )
-        }
     }
 }
