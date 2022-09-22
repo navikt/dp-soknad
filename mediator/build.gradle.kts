@@ -12,6 +12,7 @@ dependencies {
     implementation(Ktor2.Server.library("auth-jwt"))
     implementation(Ktor2.Server.library("status-pages"))
     implementation(Ktor2.Server.library("call-logging"))
+    implementation(Ktor2.Server.library("call-id"))
     implementation(Ktor2.Server.library("default-headers"))
     implementation(Ktor2.Client.library("cio"))
     implementation(Ktor2.Client.library("content-negotiation"))

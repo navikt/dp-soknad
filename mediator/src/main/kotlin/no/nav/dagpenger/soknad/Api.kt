@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad
 
 import io.ktor.client.plugins.ResponseException
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
@@ -15,6 +16,7 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.NotFoundException
+import io.ktor.server.plugins.callid.CallId
 import io.ktor.server.plugins.callloging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.defaultheaders.DefaultHeaders
@@ -48,6 +50,9 @@ internal fun Application.api(
                 "metrics"
             ).contains(call.request.document())
         }
+    }
+    install(CallId) {
+        retrieveFromHeader(HttpHeaders.XRequestId)
     }
     install(DefaultHeaders)
     install(StatusPages) {

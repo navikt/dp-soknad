@@ -16,9 +16,12 @@ import io.ktor.serialization.jackson.jackson
 import io.ktor.server.auth.jwt.JWTAuthenticationProvider
 import io.ktor.server.auth.jwt.JWTPrincipal
 import kotlinx.coroutines.runBlocking
+import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration
 import java.net.URL
 import java.util.concurrent.TimeUnit
+
+private val logger = KotlinLogging.logger {}
 
 object TokenXFactory {
     private object token_x : PropertyGroup() {
