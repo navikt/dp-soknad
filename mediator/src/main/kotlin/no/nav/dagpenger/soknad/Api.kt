@@ -17,6 +17,7 @@ import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.plugins.callid.CallId
+import io.ktor.server.plugins.callid.callIdMdc
 import io.ktor.server.plugins.callloging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.defaultheaders.DefaultHeaders
@@ -41,6 +42,7 @@ internal fun Application.api(
     ferdigstiltRouteBuilder: Route.() -> Unit
 ) {
     install(CallLogging) {
+        callIdMdc("call-id")
         level = Level.DEBUG
         disableDefaultColors()
         filter { call ->
