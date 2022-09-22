@@ -13,28 +13,33 @@ import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.ident
 import java.time.LocalDateTime
+import kotlin.system.measureTimeMillis
 
 private val logger = KotlinLogging.logger {}
 
 internal fun Route.besvarFaktumRoute(søknadMediator: SøknadMediator) {
     put("/{søknad_uuid}/faktum/{faktumid}") {
-        val søknadUuid = søknadUuid()
-        val ident = call.ident()
-        val faktumId = faktumId()
-        withLoggingContext("søknadid" to søknadUuid.toString()) {
-            val input = GyldigSvar(call.receive())
-            logger.info { "Besvarer faktum= $faktumId, type=${input.type} svar=${if (input.type !== "tekst") input.svarAsJson.toString() else "Viser ikke svar på fritekst"}" }
-            val faktumSvar = FaktumSvar(
-                søknadUuid = søknadUuid,
-                faktumId = faktumId,
-                type = input.type,
-                eier = ident,
-                svar = input.svarAsJson
-            )
+        val tidBrukt = measureTimeMillis {
+            val søknadUuid = søknadUuid()
+            val ident = call.ident()
+            val faktumId = faktumId()
+            withLoggingContext("søknadid" to søknadUuid.toString()) {
+                val input = GyldigSvar(call.receive())
+                logger.info { "Besvarer faktum= $faktumId, type=${input.type} svar=${if (input.type !== "tekst") input.svarAsJson.toString() else "Viser ikke svar på fritekst"}" }
+                val faktumSvar = FaktumSvar(
+                    søknadUuid = søknadUuid,
+                    faktumId = faktumId,
+                    type = input.type,
+                    eier = ident,
+                    svar = input.svarAsJson
+                )
 
-            søknadMediator.behandle(faktumSvar)
+                søknadMediator.behandle(faktumSvar)
+            }
+            call.respond(BesvartFaktum("ok", LocalDateTime.now()))
         }
-        call.respond(BesvartFaktum("ok", LocalDateTime.now()))
+
+        logger.info { "Brukte $tidBrukt ms på å håndtere faktumSvar" }
     }
 }
 
