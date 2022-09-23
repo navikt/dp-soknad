@@ -94,4 +94,8 @@ class NyInnsending internal constructor(
         ettersendinger.forEach { it.accept(visitor) }
         visitor.postVisitEttersendinger()
     }
+
+    override fun equals(other: Any?): Boolean {
+        return other is NyInnsending && super.equals(other) && ettersendinger == other.ettersendinger
+    }
 }

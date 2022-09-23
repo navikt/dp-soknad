@@ -28,7 +28,6 @@ abstract class Innsending(
         val brevkode: String,
         val varianter: List<Dokumentvariant>
     ) {
-
         fun toMap(): Map<String, Any> {
             return mapOf(
                 "navn" to navn,
@@ -63,7 +62,7 @@ abstract class Innsending(
         }
     }
 
-    data class Brevkode(val tittel: String, private val skjemakode: String) {
+    data class Brevkode(val tittel: String, val skjemakode: String) {
         internal fun brevkode(innsending: Innsending) = when (innsending.type) {
             InnsendingType.NY_DIALOG -> "NAV $skjemakode"
             InnsendingType.ETTERSENDING_TIL_DIALOG -> "NAVe $skjemakode"
@@ -284,6 +283,16 @@ abstract class Innsending(
     protected object Journalført : Tilstand {
         override val tilstandType = Tilstand.Type.Journalført
     }
+
+    override fun equals(other: Any?) = other is Innsending &&
+        innsendingId == other.innsendingId &&
+        type == other.type &&
+        innsendt == other.innsendt &&
+        journalpostId == other.journalpostId &&
+        tilstand == other.tilstand &&
+        hovedDokument == other.hovedDokument &&
+        dokumenter == other.dokumenter &&
+        brevkode == other.brevkode
 
     companion object {
         fun ny(innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) =

@@ -12,6 +12,7 @@ import kotliquery.using
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Innsending
+import no.nav.dagpenger.soknad.Innsending.Dokument.Dokumentvariant
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
@@ -64,9 +65,10 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             queryOf(
                 //language=PostgreSQL
                 statement = """   
-                       SELECT innsending_uuid, innsendt, journalpost_id, innsendingtype, tilstand, brevkode
+                       SELECT *, (innsending_v1.brevkode).tittel AS brevkode_tittel, (innsending_v1.brevkode).skjemakode AS brevkode_skjemakode
                        FROM innsending_v1
-                       WHERE soknad_uuid = :soknad_uuid """.trimMargin(),
+                       WHERE soknad_uuid = :soknad_uuid AND innsendingtype = 'NY_DIALOG'
+                """.trimMargin(),
                 paramMap = mapOf(
                     "soknad_uuid" to søknadId
                 )
@@ -75,13 +77,14 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
     }
 
     private fun Session.hentEttersendinger(innsendingId: UUID): List<InnsendingDTO> {
-        return this.run(
+        return run(
             queryOf(
                 //language=PostgreSQL
                 statement = """   
-                       SELECT innsending_v1.*
-                       FROM innsending_v1, ettersending_v1
-                       WHERE ettersending_v1.innsending_uuid = :innsendingId AND innsending_v1.innsending_uuid = ettersending_v1.ettersending_uuid """.trimMargin(),
+                   SELECT innsending_v1.*, (innsending_v1.brevkode).tittel AS brevkode_tittel, (innsending_v1.brevkode).skjemakode AS brevkode_skjemakode
+                   FROM innsending_v1, ettersending_v1
+                   WHERE ettersending_v1.innsending_uuid = :innsending_uuid AND innsending_v1.innsending_uuid = ettersending_v1.ettersending_uuid 
+                """.trimMargin(),
                 paramMap = mapOf(
                     "innsending_uuid" to innsendingId
                 )
@@ -93,7 +96,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         val innsendingId = row.uuid("innsending_uuid")
         val dokumenter: InnsendingDTO.DokumenterDTO = session.hentDokumenter(innsendingId)
         val type = InnsendingDTO.InnsendingTypeDTO.rehydrer(row.string("innsendingtype"))
-        val ettersendinger = when(type){
+        val ettersendinger = when (type) {
             InnsendingDTO.InnsendingTypeDTO.NY_DIALOG -> session.hentEttersendinger(innsendingId)
             InnsendingDTO.InnsendingTypeDTO.ETTERSENDING_TIL_DIALOG -> emptyList()
         }
@@ -106,7 +109,8 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             hovedDokument = dokumenter.hovedDokument,
             dokumenter = dokumenter.dokumenter,
             ettersendinger = ettersendinger,
-            brevkode = null
+            brevkode = row.stringOrNull("brevkode_tittel")
+                ?.let { Innsending.Brevkode(row.string("brevkode_tittel"), row.string("brevkode_skjemakode")) }
         )
     }
 
@@ -190,21 +194,24 @@ private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.Dokumenter
         queryOf(
             //language=PostgreSQL
             """WITH hoveddokument AS (SELECT dokument_uuid
-            FROM hoveddokument_v1
-            WHERE hoveddokument_v1.innsending_uuid = :innsendingId )
-             SELECT dokument_v1.*, (dokument_v1.dokument_uuid = hoveddokument.dokument_uuid) AS er_hoveddokument
-            FROM dokument_v1, hoveddokument
+                       FROM hoveddokument_v1
+                       WHERE hoveddokument_v1.innsending_uuid = :innsendingId)
+            SELECT dokument_v1.*, (dokument_v1.dokument_uuid = hoveddokument.dokument_uuid) AS er_hoveddokument
+            FROM dokument_v1,
+                 hoveddokument
             WHERE dokument_v1.innsending_uuid = :innsendingId 
-        """.trimIndent(),
+            """.trimIndent(),
             mapOf(
                 "innsendingId" to innsendingId
             )
         ).map { row ->
+            val dokument_uuid = row.uuid("dokument_uuid")
+            val varianter: List<Dokumentvariant> = this@hentDokumenter.hentVarianter(dokument_uuid)
             val dokument = Innsending.Dokument(
-                row.uuid("dokument_uuid"),
+                dokument_uuid,
                 row.string("navn"),
                 row.string("brevkode"),
-                emptyList()
+                varianter
             )
             when (row.boolean("er_hoveddokument")) {
                 true -> dokumenter.hovedDokument = dokument
@@ -214,6 +221,21 @@ private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.Dokumenter
     )
     return dokumenter
 }
+
+private fun Session.hentVarianter(dokumentUuid: UUID) = run(
+    queryOf(
+        "SELECT * FROM dokumentvariant_v1 WHERE dokument_uuid = :dokument_uuid",
+        mapOf("dokument_uuid" to dokumentUuid)
+    ).map { row ->
+        Dokumentvariant(
+            row.uuid("dokumentvariant_uuid"),
+            row.string("filnavn"),
+            row.string("urn"),
+            row.string("variant"),
+            row.string("type")
+        )
+    }.asList
+)
 
 internal fun Session.hentAktivitetslogg(søknadId: UUID): AktivitetsloggDTO? = run(
     queryOf(
@@ -409,7 +431,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                     "innsendingtype" to innsending.name,
                     "tilstand" to tilstand.name,
                     "tittel" to brevkode?.tittel,
-                    "skjemakode" to "skjema" // brevkode?.skjemakode
+                    "skjemakode" to brevkode?.skjemakode
                 )
             )
         )

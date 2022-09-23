@@ -47,7 +47,6 @@ class Søknad private constructor(
     )
 
     companion object {
-
         fun rehydrer(
             søknadId: UUID,
             ident: String,
@@ -419,7 +418,9 @@ class Søknad private constructor(
 
     fun deepEquals(other: Any?): Boolean =
         other is Søknad && other.søknadId == this.søknadId &&
-            other.tilstand == this.tilstand && this.dokumentkrav == other.dokumentkrav && this.innsending == other.innsending
+            other.tilstand == this.tilstand &&
+            this.dokumentkrav == other.dokumentkrav &&
+            this.innsending == other.innsending
 
     private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: Hendelse) {
         if (nyTilstand == tilstand) {

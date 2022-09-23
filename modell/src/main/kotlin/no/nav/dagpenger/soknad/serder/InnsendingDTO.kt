@@ -16,7 +16,6 @@ data class InnsendingDTO(
     val dokumenter: List<Innsending.Dokument>,
     val brevkode: Innsending.Brevkode?,
     val ettersendinger: List<InnsendingDTO>
-
 ) {
     fun rehydrer(): NyInnsending {
         return NyInnsending.rehydrer(
@@ -27,8 +26,19 @@ data class InnsendingDTO(
             tilstandsType = this.tilstand.rehydrer(),
             hovedDokument = hovedDokument,
             dokumenter = dokumenter,
-            ettersendinger = ettersendinger.map { Ettersending.rehydrer(it.innsendingId, it.type.rehydrer(), it.innsendt, it.journalpostId, it.tilstand.rehydrer(), it.hovedDokument, it.dokumenter, it.brevkode) },
-            brevkode = null
+            ettersendinger = ettersendinger.map {
+                Ettersending.rehydrer(
+                    it.innsendingId,
+                    it.type.rehydrer(),
+                    it.innsendt,
+                    it.journalpostId,
+                    it.tilstand.rehydrer(),
+                    it.hovedDokument,
+                    it.dokumenter,
+                    it.brevkode
+                )
+            },
+            brevkode = brevkode
         )
     }
 
@@ -46,7 +56,7 @@ data class InnsendingDTO(
                 AvventerBrevkode -> Innsending.Tilstand.Type.AvventerBrevkode
                 AvventerArkiverbarSøknad -> Innsending.Tilstand.Type.AvventerArkiverbarSøknad
                 AvventerMidlertidligJournalføring -> Innsending.Tilstand.Type.AvventerMidlertidligJournalføring
-                AvventerJournalføring -> Innsending.Tilstand.Type.AvventerBrevkode
+                AvventerJournalføring -> Innsending.Tilstand.Type.AvventerJournalføring
                 Journalført -> Innsending.Tilstand.Type.Journalført
             }
         }
