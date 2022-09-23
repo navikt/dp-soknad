@@ -4,11 +4,11 @@ import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Aktivitetslogg.AktivitetException
 import no.nav.dagpenger.soknad.Innsending.InnsendingType
-import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.AvventerArkiverbarSøknad
-import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.AvventerBrevkode
-import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.AvventerJournalføring
-import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.AvventerMidlertidligJournalføring
-import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.Journalført
+import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerArkiverbarSøknad
+import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerBrevkode
+import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerJournalføring
+import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMidlertidligJournalføring
+import no.nav.dagpenger.soknad.Innsending.TilstandType.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
@@ -206,7 +206,6 @@ internal class SøknadTest {
         )
 
         assertPuml("Søker oppretter søknad og ferdigstiller den")
-
         // Ettersending
         håndterLeggtilFil("2", "urn:sid:2")
         håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle3")
@@ -254,14 +253,12 @@ internal class SøknadTest {
                                 "type" to "PDF"
                             )
                         )
-                    ),
+                    )
                 ),
-
                 "søknad_uuid" to inspektør.søknadId.toString(),
                 "ident" to testIdent,
                 "type" to InnsendingType.ETTERSENDING_TIL_DIALOG.name,
                 "innsendingId" to ettersendinger().innsendingId.toString()
-
             )
         )
 
@@ -272,11 +269,11 @@ internal class SøknadTest {
         assertEttersendingTilstand(Journalført)
     }
 
-    private fun assertInnsendingTilstand(tilstand: Innsending.Tilstand.Type) {
+    private fun assertInnsendingTilstand(tilstand: Innsending.TilstandType) {
         assertEquals(tilstand, inspektør.innsending.tilstand)
     }
 
-    private fun assertEttersendingTilstand(tilstand: Innsending.Tilstand.Type) {
+    private fun assertEttersendingTilstand(tilstand: Innsending.TilstandType) {
         assertEquals(tilstand, ettersendinger().tilstand)
     }
 

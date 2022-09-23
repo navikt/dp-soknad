@@ -15,7 +15,7 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
     data class InnsendingData(
         val innsendingId: UUID,
         val innsending: Innsending.InnsendingType,
-        val tilstand: Innsending.Tilstand.Type,
+        val tilstand: Innsending.TilstandType,
         val innsendt: ZonedDateTime,
         val journalpost: String?,
         val hovedDokument: Innsending.Dokument?,
@@ -51,7 +51,7 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
     override fun visit(
         innsendingId: UUID,
         innsending: Innsending.InnsendingType,
-        tilstand: Innsending.Tilstand.Type,
+        tilstand: Innsending.TilstandType,
         innsendt: ZonedDateTime,
         journalpost: String?,
         hovedDokument: Innsending.Dokument?,

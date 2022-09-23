@@ -2,11 +2,11 @@ package no.nav.dagpenger.soknad
 
 import com.fasterxml.jackson.databind.node.BooleanNode
 import io.mockk.mockk
-import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.AvventerArkiverbarSøknad
-import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.AvventerBrevkode
-import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.AvventerJournalføring
-import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.AvventerMidlertidligJournalføring
-import no.nav.dagpenger.soknad.Innsending.Tilstand.Type.Journalført
+import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerArkiverbarSøknad
+import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerBrevkode
+import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerJournalføring
+import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMidlertidligJournalføring
+import no.nav.dagpenger.soknad.Innsending.TilstandType.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse

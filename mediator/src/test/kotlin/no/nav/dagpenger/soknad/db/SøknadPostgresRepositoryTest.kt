@@ -83,7 +83,7 @@ internal class SøknadPostgresRepositoryTest {
                 Innsending.InnsendingType.NY_DIALOG,
                 ZonedDateTime.now(),
                 "123123",
-                Innsending.Tilstand.Type.Journalført,
+                Innsending.TilstandType.Journalført,
                 Innsending.Dokument(
                     UUID.randomUUID(),
                     "navn",
@@ -134,7 +134,7 @@ internal class SøknadPostgresRepositoryTest {
                         Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG,
                         ZonedDateTime.now(),
                         null,
-                        Innsending.Tilstand.Type.Opprettet,
+                        Innsending.TilstandType.Opprettet,
                         null,
                         listOf(),
                         Innsending.Brevkode("Tittel ettersending1", "0324-23")
@@ -144,7 +144,7 @@ internal class SøknadPostgresRepositoryTest {
                         Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG,
                         ZonedDateTime.now(),
                         null,
-                        Innsending.Tilstand.Type.AvventerJournalføring,
+                        Innsending.TilstandType.AvventerJournalføring,
                         null,
                         listOf(),
                         Innsending.Brevkode("Tittel ettersending2", "0324-23")

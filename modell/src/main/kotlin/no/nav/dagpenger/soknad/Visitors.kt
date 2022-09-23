@@ -3,7 +3,7 @@ package no.nav.dagpenger.soknad
 import no.nav.dagpenger.soknad.Innsending.Brevkode
 import no.nav.dagpenger.soknad.Innsending.Dokument
 import no.nav.dagpenger.soknad.Innsending.InnsendingType
-import no.nav.dagpenger.soknad.Innsending.Tilstand.Type
+import no.nav.dagpenger.soknad.Innsending.TilstandType
 import no.nav.dagpenger.soknad.Søknad.Tilstand
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -18,7 +18,7 @@ interface InnsendingVisitor {
     fun visit(
         innsendingId: UUID,
         innsending: InnsendingType,
-        tilstand: Type,
+        tilstand: TilstandType,
         innsendt: ZonedDateTime,
         journalpost: String?,
         hovedDokument: Dokument?,

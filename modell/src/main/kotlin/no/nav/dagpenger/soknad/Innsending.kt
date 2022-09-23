@@ -10,7 +10,7 @@ import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import java.time.ZonedDateTime
 import java.util.UUID
 
-abstract class Innsending(
+abstract class Innsending protected constructor(
     private val innsendingId: UUID,
     private val type: InnsendingType,
     private val innsendt: ZonedDateTime,
@@ -74,46 +74,6 @@ abstract class Innsending(
         ETTERSENDING_TIL_DIALOG
     }
 
-    interface Tilstand : Aktivitetskontekst {
-        val tilstandType: Type
-
-        fun entering(hendelse: Hendelse, innsending: Innsending) {}
-
-        fun håndter(hendelse: SøknadInnsendtHendelse, innsending: Innsending) =
-            hendelse.`kan ikke håndteres i denne tilstanden`()
-
-        fun håndter(hendelse: BrevkodeMottattHendelse, innsending: Innsending) =
-            hendelse.`kan ikke håndteres i denne tilstanden`()
-
-        fun håndter(hendelse: ArkiverbarSøknadMottattHendelse, innsending: Innsending) =
-            hendelse.`kan ikke håndteres i denne tilstanden`()
-
-        fun håndter(
-            hendelse: SøknadMidlertidigJournalførtHendelse,
-            innsending: Innsending
-        ) =
-            hendelse.`kan ikke håndteres i denne tilstanden`()
-
-        fun håndter(hendelse: JournalførtHendelse, innsending: Innsending) =
-            hendelse.`kan ikke håndteres i denne tilstanden`()
-
-        private fun Hendelse.`kan ikke håndteres i denne tilstanden`() =
-            this.warn("Kan ikke håndtere ${this.javaClass.simpleName} i tilstand $tilstandType")
-
-        override fun toSpesifikkKontekst() = this.javaClass.canonicalName.split('.').last().let {
-            SpesifikkKontekst(it, emptyMap())
-        }
-
-        enum class Type {
-            Opprettet,
-            AvventerBrevkode,
-            AvventerArkiverbarSøknad,
-            AvventerMidlertidligJournalføring,
-            AvventerJournalføring,
-            Journalført
-        }
-    }
-
     fun håndter(hendelse: SøknadInnsendtHendelse) {
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
@@ -159,44 +119,48 @@ abstract class Innsending(
         tilstand.håndter(hendelse, this)
     }
 
-    open fun accept(visitor: InnsendingVisitor) {
-        visitor.visit(
-            innsendingId,
-            type,
-            tilstand.tilstandType,
-            innsendt,
-            journalpostId,
-            hovedDokument,
-            dokumenter,
-            brevkode
-        )
-    }
-
-    private fun kontekst(hendelse: Hendelse) {
-        hendelse.kontekst(this)
-        hendelse.kontekst(tilstand)
-    }
-
-    override fun toSpesifikkKontekst() = SpesifikkKontekst(
-        kontekstType = "innsending",
-        mapOf(
-            "type" to type.name,
-            "innsendingId" to innsendingId.toString()
-        )
-    )
-
     private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: Hendelse) {
         if (nyTilstand == tilstand) {
             return // Vi er allerede i tilstanden
         }
-        val forrigeTilstand = tilstand
         tilstand = nyTilstand
         søknadHendelse.kontekst(tilstand)
         tilstand.entering(søknadHendelse, this)
     }
 
+    protected interface Tilstand : Aktivitetskontekst {
+        val tilstandType: TilstandType
+
+        fun entering(hendelse: Hendelse, innsending: Innsending) {}
+
+        fun håndter(hendelse: SøknadInnsendtHendelse, innsending: Innsending) =
+            hendelse.`kan ikke håndteres i denne tilstanden`()
+
+        fun håndter(hendelse: BrevkodeMottattHendelse, innsending: Innsending) =
+            hendelse.`kan ikke håndteres i denne tilstanden`()
+
+        fun håndter(hendelse: ArkiverbarSøknadMottattHendelse, innsending: Innsending) =
+            hendelse.`kan ikke håndteres i denne tilstanden`()
+
+        fun håndter(
+            hendelse: SøknadMidlertidigJournalførtHendelse,
+            innsending: Innsending
+        ) =
+            hendelse.`kan ikke håndteres i denne tilstanden`()
+
+        fun håndter(hendelse: JournalførtHendelse, innsending: Innsending) =
+            hendelse.`kan ikke håndteres i denne tilstanden`()
+
+        private fun Hendelse.`kan ikke håndteres i denne tilstanden`() =
+            this.warn("Kan ikke håndtere ${this.javaClass.simpleName} i tilstand $tilstandType")
+
+        override fun toSpesifikkKontekst() = this.javaClass.canonicalName.split('.').last().let {
+            SpesifikkKontekst(it, emptyMap())
+        }
+    }
+
     protected object Opprettet : Tilstand {
-        override val tilstandType = Tilstand.Type.Opprettet
+        override val tilstandType = TilstandType.Opprettet
 
         override fun håndter(hendelse: SøknadInnsendtHendelse, innsending: Innsending) {
             innsending.endreTilstand(AvventerMetadata, hendelse)
@@ -205,7 +169,7 @@ abstract class Innsending(
     }
 
     protected object AvventerMetadata : Tilstand {
-        override val tilstandType = Tilstand.Type.AvventerBrevkode
+        override val tilstandType = TilstandType.AvventerBrevkode
 
         override fun entering(hendelse: Hendelse, innsending: Innsending) {
             if (innsending.brevkode != null) return innsending.endreTilstand(AvventerArkiverbarSøknad, hendelse)
@@ -222,7 +186,7 @@ abstract class Innsending(
     }
 
     protected object AvventerArkiverbarSøknad : Tilstand {
-        override val tilstandType = Tilstand.Type.AvventerArkiverbarSøknad
+        override val tilstandType = TilstandType.AvventerArkiverbarSøknad
 
         override fun entering(hendelse: Hendelse, innsending: Innsending) {
             hendelse.behov(
@@ -249,7 +213,7 @@ abstract class Innsending(
     }
 
     protected object AvventerMidlertidligJournalføring : Tilstand {
-        override val tilstandType = Tilstand.Type.AvventerMidlertidligJournalføring
+        override val tilstandType = TilstandType.AvventerMidlertidligJournalføring
 
         override fun entering(hendelse: Hendelse, innsending: Innsending) {
             val hovedDokument = requireNotNull(innsending.hovedDokument) { "Hoveddokumment må være satt" }
@@ -271,7 +235,7 @@ abstract class Innsending(
     }
 
     protected object AvventerJournalføring : Tilstand {
-        override val tilstandType = Tilstand.Type.AvventerJournalføring
+        override val tilstandType = TilstandType.AvventerJournalføring
 
         override fun håndter(hendelse: JournalførtHendelse, innsending: Innsending) {
             // TODO: Legg til sjekk om at det er DENNE søknaden som er journalført.
@@ -281,8 +245,34 @@ abstract class Innsending(
     }
 
     protected object Journalført : Tilstand {
-        override val tilstandType = Tilstand.Type.Journalført
+        override val tilstandType = TilstandType.Journalført
     }
+
+    open fun accept(visitor: InnsendingVisitor) {
+        visitor.visit(
+            innsendingId,
+            type,
+            tilstand.tilstandType,
+            innsendt,
+            journalpostId,
+            hovedDokument,
+            dokumenter,
+            brevkode
+        )
+    }
+
+    private fun kontekst(hendelse: Hendelse) {
+        hendelse.kontekst(this)
+        hendelse.kontekst(tilstand)
+    }
+
+    override fun toSpesifikkKontekst() = SpesifikkKontekst(
+        kontekstType = "innsending",
+        mapOf(
+            "type" to type.name,
+            "innsendingId" to innsendingId.toString()
+        )
+    )
 
     override fun equals(other: Any?) = other is Innsending &&
         innsendingId == other.innsendingId &&
@@ -297,5 +287,14 @@ abstract class Innsending(
     companion object {
         fun ny(innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) =
             NyInnsending(InnsendingType.NY_DIALOG, innsendt, dokumentkrav)
+    }
+
+    enum class TilstandType {
+        Opprettet,
+        AvventerBrevkode,
+        AvventerArkiverbarSøknad,
+        AvventerMidlertidligJournalføring,
+        AvventerJournalføring,
+        Journalført
     }
 }

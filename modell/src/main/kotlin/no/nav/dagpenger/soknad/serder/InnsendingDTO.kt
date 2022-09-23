@@ -50,14 +50,14 @@ data class InnsendingDTO(
         AvventerJournalføring,
         Journalført;
 
-        fun rehydrer(): Innsending.Tilstand.Type {
+        fun rehydrer(): Innsending.TilstandType {
             return when (this) {
-                Opprettet -> Innsending.Tilstand.Type.Opprettet
-                AvventerBrevkode -> Innsending.Tilstand.Type.AvventerBrevkode
-                AvventerArkiverbarSøknad -> Innsending.Tilstand.Type.AvventerArkiverbarSøknad
-                AvventerMidlertidligJournalføring -> Innsending.Tilstand.Type.AvventerMidlertidligJournalføring
-                AvventerJournalføring -> Innsending.Tilstand.Type.AvventerJournalføring
-                Journalført -> Innsending.Tilstand.Type.Journalført
+                Opprettet -> Innsending.TilstandType.Opprettet
+                AvventerBrevkode -> Innsending.TilstandType.AvventerBrevkode
+                AvventerArkiverbarSøknad -> Innsending.TilstandType.AvventerArkiverbarSøknad
+                AvventerMidlertidligJournalføring -> Innsending.TilstandType.AvventerMidlertidligJournalføring
+                AvventerJournalføring -> Innsending.TilstandType.AvventerJournalføring
+                Journalført -> Innsending.TilstandType.Journalført
             }
         }
 

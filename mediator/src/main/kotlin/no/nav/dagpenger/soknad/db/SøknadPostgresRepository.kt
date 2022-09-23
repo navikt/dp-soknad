@@ -405,7 +405,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
     override fun visit(
         innsendingId: UUID,
         innsending: Innsending.InnsendingType,
-        tilstand: Innsending.Tilstand.Type,
+        tilstand: Innsending.TilstandType,
         innsendt: ZonedDateTime,
         journalpost: String?,
         hovedDokument: Innsending.Dokument?,

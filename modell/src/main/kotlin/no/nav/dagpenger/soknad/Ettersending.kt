@@ -43,18 +43,18 @@ class Ettersending private constructor(
             type: InnsendingType,
             innsendt: ZonedDateTime,
             journalpostId: String?,
-            tilstandsType: Tilstand.Type,
+            tilstandsType: TilstandType,
             hovedDokument: Dokument? = null,
             dokumenter: List<Dokument>,
             brevkode: Brevkode?
         ): Ettersending {
             val tilstand: Tilstand = when (tilstandsType) {
-                Tilstand.Type.Opprettet -> Opprettet
-                Tilstand.Type.AvventerBrevkode -> AvventerMetadata
-                Tilstand.Type.AvventerArkiverbarSøknad -> AvventerArkiverbarSøknad
-                Tilstand.Type.AvventerMidlertidligJournalføring -> AvventerMidlertidligJournalføring
-                Tilstand.Type.AvventerJournalføring -> AvventerJournalføring
-                Tilstand.Type.Journalført -> Journalført
+                TilstandType.Opprettet -> Opprettet
+                TilstandType.AvventerBrevkode -> AvventerMetadata
+                TilstandType.AvventerArkiverbarSøknad -> AvventerArkiverbarSøknad
+                TilstandType.AvventerMidlertidligJournalføring -> AvventerMidlertidligJournalføring
+                TilstandType.AvventerJournalføring -> AvventerJournalføring
+                TilstandType.Journalført -> Journalført
             }
             return Ettersending(
                 innsendingId,
