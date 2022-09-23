@@ -140,12 +140,14 @@ private data class BundleSvar(
 ) {
 
     private val _urn: URN
+
     init {
         _urn = URN.rfc8141().parse(urn)
     }
 
     fun tilURN(): URN = _urn
 }
+
 private class ApiDokumentkravResponse(
     søknad: Søknad
 ) : SøknadVisitor {
@@ -180,6 +182,7 @@ private class ApiDokumentkravResponse(
                 filer = it.svar.filer.map { fil ->
                     ApiDokumentKrav.ApiDokumentkravFiler(
                         filnavn = fil.filnavn,
+                        filsti = fil.urn.namespaceSpecificString().toString(),
                         urn = fil.urn.toString(),
                         storrelse = fil.storrelse,
                         tidspunkt = fil.tidspunkt
@@ -205,6 +208,7 @@ data class ApiDokumentKrav(
 ) {
     data class ApiDokumentkravFiler(
         val filnavn: String,
+        val filsti: String,
         val urn: String,
         val storrelse: Long,
         val tidspunkt: ZonedDateTime
@@ -235,6 +239,7 @@ enum class GyldigValg {
         ANDRE_SENDER -> Krav.Svar.SvarValg.ANDRE_SENDER
     }
 }
+
 private fun Krav.Svar.SvarValg.fraSvarValg(): GyldigValg? = when (this) {
     Krav.Svar.SvarValg.IKKE_BESVART -> null
     Krav.Svar.SvarValg.SEND_NÅ -> GyldigValg.SEND_NAA
