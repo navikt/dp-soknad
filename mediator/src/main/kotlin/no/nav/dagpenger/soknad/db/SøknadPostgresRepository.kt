@@ -60,6 +60,9 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         }
     }
 
+    private fun Row.norskZonedDateTime(columnLabel: String): ZonedDateTime =
+        this.zonedDateTime(columnLabel).withZoneSameInstant(ZoneId.of("Europe/Oslo"))
+
     private fun Session.hentInnsending(søknadId: UUID): InnsendingDTO? {
         return this.run(
             queryOf(
@@ -103,7 +106,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         InnsendingDTO(
             innsendingId = innsendingId,
             type = type,
-            innsendt = row.zonedDateTime("innsendt"),
+            innsendt = row.norskZonedDateTime("innsendt"),
             journalpostId = row.stringOrNull("journalpost_id"),
             tilstand = InnsendingDTO.TilstandDTO.rehydrer(row.string("tilstand")),
             hovedDokument = dokumenter.hovedDokument,
@@ -147,7 +150,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             dokumentkrav = SøknadDTO.DokumentkravDTO(
                 session.hentDokumentKrav(søknadsId)
             ),
-            sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker"),
+            sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")?.withZoneSameInstant(ZoneId.of("Europe/Oslo")),
             innsendingDTO = session.hentInnsending(søknadsId),
             aktivitetslogg = session.hentAktivitetslogg(søknadsId)
         )
@@ -345,7 +348,9 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                     },
                     "sannsynliggjoer" to PGobject().apply {
                         type = "jsonb"
-                        value = objectMapper.writeValueAsString(krav.sannsynliggjøring.sannsynliggjør().map { it.originalJson() })
+                        value = objectMapper.writeValueAsString(
+                            krav.sannsynliggjøring.sannsynliggjør().map { it.originalJson() }
+                        )
                     },
                     "tilstand" to krav.tilstand.name,
                     "valg" to krav.svar.valg.name,
