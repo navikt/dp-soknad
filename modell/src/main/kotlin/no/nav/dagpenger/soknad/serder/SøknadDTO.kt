@@ -10,7 +10,6 @@ import no.nav.dagpenger.soknad.Krav.Svar
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
-import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentDTO.Companion.rehydrer
 import java.time.ZonedDateTime
 import java.util.Locale
 import java.util.UUID
@@ -19,46 +18,22 @@ class SøknadDTO(
     val søknadsId: UUID,
     val ident: String,
     val tilstandType: TilstandDTO,
-    var dokumenter: List<DokumentDTO>,
-    val journalpostId: String?,
-    val innsendtTidspunkt: ZonedDateTime?,
     val språkDTO: SpråkDTO,
     var dokumentkrav: DokumentkravDTO,
     val sistEndretAvBruker: ZonedDateTime?,
+    val innsendingDTO: InnsendingDTO?,
     var aktivitetslogg: AktivitetsloggDTO? = null
 ) {
     fun rehydrer(): Søknad = Søknad.rehydrer(
         søknadId = this.søknadsId,
         ident = this.ident,
-        journalpost = this.dokumenter.rehydrer(),
-        journalpostId = this.journalpostId,
-        innsendtTidspunkt = this.innsendtTidspunkt,
         språk = this.språkDTO.rehydrer(),
         dokumentkrav = this.dokumentkrav.rehydrer(),
         sistEndretAvBruker = this.sistEndretAvBruker,
         tilstandsType = this.tilstandType.rehydrer(),
-        aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg()
+        innsending = this.innsendingDTO?.rehydrer(),
+        aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
     )
-
-    class DokumentDTO(
-        val urn: String
-    ) {
-        companion object {
-            fun List<DokumentDTO>.rehydrer(): Søknad.Journalpost? {
-                return if (this.isEmpty()) null else {
-                    Søknad.Journalpost(
-                        varianter = this.map {
-                            Søknad.Journalpost.Variant(
-                                urn = it.urn,
-                                format = "ARKIV",
-                                type = "PDF"
-                            )
-                        }
-                    )
-                }
-            }
-        }
-    }
 
     class SpråkDTO(val verdi: String) {
         constructor(språk: Locale) : this(språk.toLanguageTag())
@@ -142,6 +117,7 @@ class SøknadDTO(
                 val storrelse: Long,
                 val tidspunkt: ZonedDateTime
             ) {
+
                 fun rehydrer() = Krav.Fil(
                     filnavn = this.filnavn,
                     urn = this.urn,
@@ -155,19 +131,13 @@ class SøknadDTO(
     enum class TilstandDTO {
         UnderOpprettelse,
         Påbegynt,
-        AvventerArkiverbarSøknad,
-        AvventerMidlertidligJournalføring,
-        AvventerJournalføring,
-        Journalført,
+        Innsendt,
         Slettet;
 
         fun rehydrer(): Søknad.Tilstand.Type = when (this) {
             UnderOpprettelse -> Søknad.Tilstand.Type.UnderOpprettelse
             Påbegynt -> Søknad.Tilstand.Type.Påbegynt
-            AvventerArkiverbarSøknad -> Søknad.Tilstand.Type.AvventerArkiverbarSøknad
-            AvventerMidlertidligJournalføring -> Søknad.Tilstand.Type.AvventerMidlertidligJournalføring
-            AvventerJournalføring -> Søknad.Tilstand.Type.AvventerJournalføring
-            Journalført -> Søknad.Tilstand.Type.Journalført
+            Innsendt -> Søknad.Tilstand.Type.Innsendt
             Slettet -> Søknad.Tilstand.Type.Slettet
         }
 

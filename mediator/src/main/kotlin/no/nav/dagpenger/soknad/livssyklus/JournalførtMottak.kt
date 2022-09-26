@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.livssyklus
 
 import mu.KotlinLogging
+import mu.withLoggingContext
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -44,9 +45,13 @@ internal class JournalførtMottak(
          * Alternativ 3: La journalpost eksistere for seg selv i modellen, med en to-veis kobling mellom Journalpost og
          * Søknad. Da kan journalpost ha sin egen tilstand og søknad delegere/spørre den
          */
-        val søknadsId = packet["søknadsData"]["søknad_uuid"].asUUID()
-        val journalførtHendelse = JournalførtHendelse(søknadsId, journalpostId, ident)
-        logger.info { "Fått løsning for innsending_ferdigstilt for $journalpostId" }
-        mediator.behandle(journalførtHendelse)
+        val søknadID = packet["søknadsData"]["søknad_uuid"].asUUID()
+        withLoggingContext(
+            "søknadId" to søknadID.toString(),
+        ) {
+            val journalførtHendelse = JournalførtHendelse(søknadID, journalpostId, ident)
+            logger.info { "Fått løsning for innsending_ferdigstilt for $journalpostId" }
+            mediator.behandle(journalførtHendelse)
+        }
     }
 }

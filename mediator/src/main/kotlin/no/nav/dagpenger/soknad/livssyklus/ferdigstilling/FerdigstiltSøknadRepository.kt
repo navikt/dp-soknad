@@ -27,7 +27,7 @@ internal class FerdigstiltSøknadPostgresRepository(private val dataSource: Data
                         //language=PostgreSQL
                         statement = "INSERT INTO soknad_tekst_v1(uuid,tekst) VALUES(:uuid,:tekst)",
                         paramMap = mapOf(
-                            "uuid" to søknadUuid.toString(),
+                            "uuid" to søknadUuid,
                             "tekst" to PGobject().also {
                                 it.type = "jsonb"
                                 it.value = søknadsTekst
@@ -54,7 +54,7 @@ internal class FerdigstiltSøknadPostgresRepository(private val dataSource: Data
                     //language=PostgreSQL
                     statement = "SELECT tekst FROM soknad_tekst_v1 WHERE uuid = :uuid",
                     paramMap = mapOf(
-                        "uuid" to søknadId.toString()
+                        "uuid" to søknadId
                     )
                 ).map { row -> row.string("tekst") }.asSingle
             ) ?: throw NotFoundException().also {
@@ -70,7 +70,7 @@ internal class FerdigstiltSøknadPostgresRepository(private val dataSource: Data
                     //language=PostgreSQL
                     statement = "SELECT soknad_data FROM soknad_cache WHERE uuid = :uuid",
                     paramMap = mapOf(
-                        "uuid" to søknadId.toString()
+                        "uuid" to søknadId
                     )
                 ).map { row -> row.string("soknad_data") }.asSingle
             ) ?: throw NotFoundException().also {

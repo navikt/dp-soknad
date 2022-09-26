@@ -9,6 +9,8 @@ internal class TestSøknadhåndtererInspektør(søknadhåndterer: Søknad) : Sø
     var innsendtTidspunkt: ZonedDateTime? = null
     var aktivitetslogg: Map<String, List<Map<String, Any>>> = emptyMap()
     var antallSøknader = 0
+    lateinit var gjeldendeInnsendingId: UUID
+    lateinit var gjeldendeInnsendingTilstand: Innsending.TilstandType
 
     init {
         søknadhåndterer.accept(this)
@@ -18,16 +20,27 @@ internal class TestSøknadhåndtererInspektør(søknadhåndterer: Søknad) : Sø
         søknadId: UUID,
         ident: String,
         tilstand: Søknad.Tilstand,
-        journalpost: Søknad.Journalpost?,
-        journalpostId: String?,
-        innsendtTidspunkt: ZonedDateTime?,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime?
     ) {
         this.gjeldendeSøknadId = søknadId.toString()
-        this.innsendtTidspunkt = innsendtTidspunkt
         this.antallSøknader++
+    }
+
+    override fun visit(
+        innsendingId: UUID,
+        innsending: Innsending.InnsendingType,
+        tilstand: Innsending.TilstandType,
+        innsendt: ZonedDateTime,
+        journalpost: String?,
+        hovedDokument: Innsending.Dokument?,
+        dokumenter: List<Innsending.Dokument>,
+        brevkode: Innsending.Brevkode?
+    ) {
+        this.innsendtTidspunkt = innsendt
+        this.gjeldendeInnsendingId = innsendingId
+        this.gjeldendeInnsendingTilstand = tilstand
     }
 
     override fun visitTilstand(tilstand: Søknad.Tilstand.Type) {

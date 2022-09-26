@@ -2,9 +2,9 @@ package no.nav.dagpenger.soknad.livssyklus
 
 import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
+import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.ArkiverbarSøknad
-import no.nav.dagpenger.soknad.Søknad
-import no.nav.dagpenger.soknad.Søknad.Journalpost.Variant
+import no.nav.dagpenger.soknad.Innsending.Dokument.Dokumentvariant
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -17,7 +17,6 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
     rapidsConnection: RapidsConnection,
     private val mediator: SøknadMediator
 ) : River.PacketListener {
-
     companion object {
         private val logger = KotlinLogging.logger {}
     }
@@ -28,7 +27,7 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "behov") }
             validate { it.demandAllOrAny("@behov", listOf(behov)) }
-            validate { it.requireKey("søknad_uuid", "ident", "@løsning") }
+            validate { it.requireKey("søknad_uuid", "ident", "innsendingId", "@løsning") }
             validate {
                 it.require("@løsning") { løsning ->
                     løsning.required(behov)
@@ -39,17 +38,23 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val søknadID = packet["søknad_uuid"].asUUID()
-        val arkiverbarSøknadMottattHendelse =
-            ArkiverbarSøknadMottattHendelse(
-                søknadID,
-                packet["ident"].asText(),
-                Søknad.Journalpost(varianter = packet["@løsning"][behov].dokumentVarianter())
+        val innsendingId = packet["innsendingId"].asUUID()
+        withLoggingContext(
+            "søknadId" to søknadID.toString(),
+            "innsendingId" to innsendingId.toString()
+        ) {
+            val arkiverbarSøknadMottattHendelse = ArkiverbarSøknadMottattHendelse(
+                innsendingId = innsendingId,
+                søknadID = søknadID,
+                ident = packet["ident"].asText(),
+                dokumentvarianter = packet["@løsning"][behov].dokumentVarianter()
             )
-        logger.info { "Fått løsning for $behov for $søknadID" }
-        mediator.behandle(arkiverbarSøknadMottattHendelse)
+            logger.info { "Fått løsning for $behov for $søknadID" }
+            mediator.behandle(arkiverbarSøknadMottattHendelse)
+        }
     }
 
-    private fun JsonNode.dokumentVarianter(): List<Variant> = this.toList().map { node ->
+    private fun JsonNode.dokumentVarianter(): List<Dokumentvariant> = this.toList().map { node ->
         val format = when (node["metainfo"]["variant"].asText()) {
             "NETTO" -> "ARKIV"
             "BRUTTO" -> "FULLVERSJON"
@@ -57,9 +62,10 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
                 throw IllegalArgumentException("Ukjent joarkvariant, se https://confluence.adeo.no/display/BOA/Variantformat")
             }
         }
-        Variant(
+        Dokumentvariant(
+            filnavn = node["metainfo"]["innhold"].asText(),
             urn = node["urn"].asText(),
-            format = format,
+            variant = format,
             type = node["metainfo"]["filtype"].asText()
         )
     }

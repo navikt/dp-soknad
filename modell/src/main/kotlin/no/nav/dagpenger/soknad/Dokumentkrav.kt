@@ -15,7 +15,6 @@ import java.time.ZonedDateTime
 class Dokumentkrav private constructor(
     private val krav: MutableSet<Krav> = mutableSetOf()
 ) {
-
     constructor() : this(mutableSetOf())
 
     companion object {
@@ -25,7 +24,6 @@ class Dokumentkrav private constructor(
     fun håndter(nyeSannsynliggjøringer: Set<Sannsynliggjøring>) {
         val håndterteSannsynliggjøringer = krav.map { it.sannsynliggjøring }.toSet()
         krav.forEach { it.håndter(nyeSannsynliggjøringer) }
-
         val ikkeHåndterte = nyeSannsynliggjøringer - håndterteSannsynliggjøringer
         krav.addAll(
             ikkeHåndterte.map {
@@ -48,6 +46,22 @@ class Dokumentkrav private constructor(
         val krav = hentKrav(hendelse)
         krav.svar.håndter(hendelse)
     }
+
+    internal fun tilDokument() =
+        aktiveDokumentKrav().filter { it.besvart() }.filter { it.svar.valg == SEND_NÅ }.map { krav ->
+            Innsending.Dokument(
+                navn = krav.beskrivendeId,
+                brevkode = "O2",
+                varianter = listOf(
+                    Innsending.Dokument.Dokumentvariant(
+                        filnavn = krav.beskrivendeId,
+                        urn = krav.svar.bundle.toString(),
+                        variant = "ARKIV", // TODO: hent filtype fra bundle
+                        type = "PDF" // TODO: Hva setter vi her?
+                    )
+                )
+            )
+        }
 
     fun aktiveDokumentKrav() = krav.filter(aktive()).toSet()
 
@@ -129,7 +143,6 @@ data class Krav(
         var begrunnelse: String?,
         var bundle: URN?
     ) {
-
         internal constructor() : this(filer = mutableSetOf(), valg = IKKE_BESVART, begrunnelse = null, bundle = null)
 
         fun håndter(hendelse: LeggTilFil) {

@@ -9,7 +9,7 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestSøkerOppgave
@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.time.ZonedDateTime
 import java.util.UUID
 
 internal class VaktmesterRepositoryTest {
@@ -93,7 +92,7 @@ internal class VaktmesterRepositoryTest {
                 //language=PostgreSQL
                 queryOf(
                     "UPDATE soknad_v1 SET sist_endret_av_bruker = (NOW() - INTERVAL '$antallDagerSiden DAYS') WHERE uuid = ?",
-                    uuid.toString()
+                    uuid
                 ).asUpdate
             )
         }
@@ -132,7 +131,7 @@ internal class VaktmesterRepositoryTest {
             session.run(
                 //language=PostgreSQL
                 queryOf(
-                    "SELECT COUNT(*) FROM aktivitetslogg_v3 WHERE soknad_uuid = ?", søknadUuid.toString()
+                    "SELECT COUNT(*) FROM aktivitetslogg_v1 WHERE soknad_uuid = ?", søknadUuid
                 ).map { row ->
                     row.int(1)
                 }.asSingle
@@ -146,41 +145,35 @@ internal class VaktmesterRepositoryTest {
         Søknad.rehydrer(
             søknadId = journalførtSøknadId,
             ident = ident,
-            journalpost = null,
-            journalpostId = "journalpostid",
-            innsendtTidspunkt = ZonedDateTime.now(),
             språk = språk,
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
-            tilstandsType = Journalført,
-            aktivitetslogg = Aktivitetslogg()
+            tilstandsType = Innsendt,
+            aktivitetslogg = Aktivitetslogg(),
+            null
         )
 
     private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, ident: String) =
         Søknad.rehydrer(
             søknadId = gammelPåbegyntSøknadId,
             ident = ident,
-            journalpost = null,
-            journalpostId = "1456",
-            innsendtTidspunkt = ZonedDateTime.now(),
             språk = språk,
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
             tilstandsType = Påbegynt,
-            aktivitetslogg = Aktivitetslogg()
+            aktivitetslogg = Aktivitetslogg(),
+            null
         )
 
     private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, ident: String) =
         Søknad.rehydrer(
             søknadId = nyPåbegyntSøknadId,
             ident = ident,
-            journalpost = null,
-            journalpostId = "1457",
-            innsendtTidspunkt = null,
             språk = språk,
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
             tilstandsType = Påbegynt,
-            aktivitetslogg = Aktivitetslogg()
+            aktivitetslogg = Aktivitetslogg(),
+            null
         )
 }

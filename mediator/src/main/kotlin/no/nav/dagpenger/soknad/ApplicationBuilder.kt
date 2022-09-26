@@ -19,6 +19,7 @@ import no.nav.dagpenger.soknad.personalia.PersonOppslag
 import no.nav.dagpenger.soknad.personalia.personaliaRouteBuilder
 import no.nav.dagpenger.soknad.sletterutine.UtdaterteSøknaderJob
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
+import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.clean
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.runMigration
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -80,6 +81,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     }
 
     override fun onStartup(rapidsConnection: RapidsConnection) {
+        clean()
         runMigration()
         SøknadsMalMottak(rapidsConnection, søknadMalRepository)
         UtdaterteSøknaderJob.sletterutine(søknadMediator)

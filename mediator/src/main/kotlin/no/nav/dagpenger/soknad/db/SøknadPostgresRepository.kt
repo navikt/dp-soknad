@@ -11,6 +11,8 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.Innsending
+import no.nav.dagpenger.soknad.Innsending.Dokument.Dokumentvariant
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
@@ -21,8 +23,8 @@ import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.serder.AktivitetsloggDTO
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
+import no.nav.dagpenger.soknad.serder.InnsendingDTO
 import no.nav.dagpenger.soknad.serder.SøknadDTO
-import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentDTO
 import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.KravDTO
 import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.KravDTO.KravTilstandDTO
 import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SannsynliggjøringDTO
@@ -46,16 +48,70 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 queryOf(
                     //language=PostgreSQL
                     statement = """
-                    SELECT uuid, tilstand, journalpost_id, innsendt_tidspunkt, spraak, sist_endret_av_bruker
+                    SELECT uuid, tilstand, spraak, sist_endret_av_bruker
                     FROM  soknad_v1
                     WHERE uuid = :uuid
                     """.trimIndent(),
                     paramMap = mapOf(
-                        "uuid" to søknadId.toString()
+                        "uuid" to søknadId
                     )
                 ).map(rowToSøknadDTO(ident, session)).asSingle
             )?.rehydrer()
         }
+    }
+
+    private fun Session.hentInnsending(søknadId: UUID): InnsendingDTO? {
+        return this.run(
+            queryOf(
+                //language=PostgreSQL
+                statement = """   
+                       SELECT *, (innsending_v1.brevkode).tittel AS brevkode_tittel, (innsending_v1.brevkode).skjemakode AS brevkode_skjemakode
+                       FROM innsending_v1
+                       WHERE soknad_uuid = :soknad_uuid AND innsendingtype = 'NY_DIALOG'
+                """.trimMargin(),
+                paramMap = mapOf(
+                    "soknad_uuid" to søknadId
+                )
+            ).map(rowToInnsendingDTO(this)).asSingle
+        )
+    }
+
+    private fun Session.hentEttersendinger(innsendingId: UUID): List<InnsendingDTO> {
+        return run(
+            queryOf(
+                //language=PostgreSQL
+                statement = """   
+                   SELECT innsending_v1.*, (innsending_v1.brevkode).tittel AS brevkode_tittel, (innsending_v1.brevkode).skjemakode AS brevkode_skjemakode
+                   FROM innsending_v1, ettersending_v1
+                   WHERE ettersending_v1.innsending_uuid = :innsending_uuid AND innsending_v1.innsending_uuid = ettersending_v1.ettersending_uuid 
+                """.trimMargin(),
+                paramMap = mapOf(
+                    "innsending_uuid" to innsendingId
+                )
+            ).map(rowToInnsendingDTO(this)).asList
+        )
+    }
+
+    private fun rowToInnsendingDTO(session: Session) = { row: Row ->
+        val innsendingId = row.uuid("innsending_uuid")
+        val dokumenter: InnsendingDTO.DokumenterDTO = session.hentDokumenter(innsendingId)
+        val type = InnsendingDTO.InnsendingTypeDTO.rehydrer(row.string("innsendingtype"))
+        val ettersendinger = when (type) {
+            InnsendingDTO.InnsendingTypeDTO.NY_DIALOG -> session.hentEttersendinger(innsendingId)
+            InnsendingDTO.InnsendingTypeDTO.ETTERSENDING_TIL_DIALOG -> emptyList()
+        }
+        InnsendingDTO(
+            innsendingId = innsendingId,
+            type = type,
+            innsendt = row.zonedDateTime("innsendt"),
+            journalpostId = row.stringOrNull("journalpost_id"),
+            tilstand = InnsendingDTO.TilstandDTO.rehydrer(row.string("tilstand")),
+            hovedDokument = dokumenter.hovedDokument,
+            dokumenter = dokumenter.dokumenter,
+            ettersendinger = ettersendinger,
+            brevkode = row.stringOrNull("brevkode_tittel")
+                ?.let { Innsending.Brevkode(row.string("brevkode_tittel"), row.string("brevkode_skjemakode")) }
+        )
     }
 
     override fun hentSøknader(ident: String): Set<Søknad> {
@@ -64,13 +120,14 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 queryOf(
                     //language=PostgreSQL
                     statement = """
-                            SELECT uuid, tilstand, journalpost_id, innsendt_tidspunkt, spraak, sist_endret_av_bruker
+                            SELECT uuid, tilstand, spraak, sist_endret_av_bruker
                             FROM  soknad_v1
                             WHERE person_ident = :ident
                     """.trimIndent(),
                     paramMap = mapOf(
                         "ident" to ident
                     )
+                    // todo
                 ).map(rowToSøknadDTO(ident, session)).asList
             ).map { it.rehydrer() }.toSet()
         }
@@ -86,14 +143,12 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             søknadsId = søknadsId,
             ident = ident,
             tilstandType = SøknadDTO.TilstandDTO.rehydrer(row.string("tilstand")),
-            dokumenter = session.hentDokumentData(søknadsId),
-            journalpostId = row.stringOrNull("journalpost_id"),
-            innsendtTidspunkt = row.zonedDateTimeOrNull("innsendt_tidspunkt"),
             språkDTO = SøknadDTO.SpråkDTO(row.string("spraak")),
             dokumentkrav = SøknadDTO.DokumentkravDTO(
                 session.hentDokumentKrav(søknadsId)
             ),
             sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker"),
+            innsendingDTO = session.hentInnsending(søknadsId),
             aktivitetslogg = session.hentAktivitetslogg(søknadsId)
         )
     }
@@ -133,16 +188,65 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
     }
 }
 
+private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.DokumenterDTO {
+    val dokumenter = InnsendingDTO.DokumenterDTO()
+    this.run(
+        queryOf(
+            //language=PostgreSQL
+            """WITH hoveddokument AS (SELECT dokument_uuid
+                       FROM hoveddokument_v1
+                       WHERE hoveddokument_v1.innsending_uuid = :innsendingId)
+            SELECT dokument_v1.*, (dokument_v1.dokument_uuid = hoveddokument.dokument_uuid) AS er_hoveddokument
+            FROM dokument_v1,
+                 hoveddokument
+            WHERE dokument_v1.innsending_uuid = :innsendingId 
+            """.trimIndent(),
+            mapOf(
+                "innsendingId" to innsendingId
+            )
+        ).map { row ->
+            val dokument_uuid = row.uuid("dokument_uuid")
+            val varianter: List<Dokumentvariant> = this@hentDokumenter.hentVarianter(dokument_uuid)
+            val dokument = Innsending.Dokument(
+                dokument_uuid,
+                row.string("navn"),
+                row.string("brevkode"),
+                varianter
+            )
+            when (row.boolean("er_hoveddokument")) {
+                true -> dokumenter.hovedDokument = dokument
+                false -> dokumenter.dokumenter.add(dokument)
+            }
+        }.asSingle
+    )
+    return dokumenter
+}
+
+private fun Session.hentVarianter(dokumentUuid: UUID) = run(
+    queryOf(
+        "SELECT * FROM dokumentvariant_v1 WHERE dokument_uuid = :dokument_uuid",
+        mapOf("dokument_uuid" to dokumentUuid)
+    ).map { row ->
+        Dokumentvariant(
+            row.uuid("dokumentvariant_uuid"),
+            row.string("filnavn"),
+            row.string("urn"),
+            row.string("variant"),
+            row.string("type")
+        )
+    }.asList
+)
+
 internal fun Session.hentAktivitetslogg(søknadId: UUID): AktivitetsloggDTO? = run(
     queryOf(
         //language=PostgreSQL
         """
         SELECT a.data AS aktivitetslogg
-        FROM aktivitetslogg_v3 AS a
+        FROM aktivitetslogg_v1 AS a
         WHERE a.soknad_uuid = :soknadId
         """.trimIndent(),
         mapOf(
-            "soknadId" to søknadId.toString()
+            "soknadId" to søknadId
         )
     ).map { row ->
         row.binaryStream("aktivitetslogg").aktivitetslogg()
@@ -150,6 +254,9 @@ internal fun Session.hentAktivitetslogg(søknadId: UUID): AktivitetsloggDTO? = r
 )
 
 private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
+    private lateinit var aktivEttersending: UUID
+    private var ettersending: Boolean = false
+    private val ettersendinger: MutableMap<UUID, MutableSet<UUID>> = mutableMapOf()
     private lateinit var søknadId: UUID
     private val queries = mutableListOf<Query>()
 
@@ -163,9 +270,6 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         søknadId: UUID,
         ident: String,
         tilstand: Søknad.Tilstand,
-        journalpost: Søknad.Journalpost?,
-        journalpostId: String?,
-        innsendtTidspunkt: ZonedDateTime?,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime?
@@ -182,42 +286,38 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queryOf(
                 // language=PostgreSQL
                 """
-                INSERT INTO soknad_v1(uuid, person_ident, tilstand, journalpost_id, spraak)
-                VALUES (:uuid, :person_ident, :tilstand, :journalpostID, :spraak)
+                INSERT INTO soknad_v1(uuid, person_ident, tilstand, spraak)
+                VALUES (:uuid, :person_ident, :tilstand, :spraak)
                 ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
-                                                journalpost_id=:journalpostID,
-                                                innsendt_tidspunkt = :innsendtTidspunkt,
                                                 sist_endret_av_bruker = :sistEndretAvBruker
                 """.trimIndent(),
                 mapOf(
                     "uuid" to søknadId,
                     "person_ident" to ident,
                     "tilstand" to tilstand.tilstandType.name,
-                    "journalpostID" to journalpostId,
-                    "innsendtTidspunkt" to innsendtTidspunkt,
                     "spraak" to språk.verdi.toLanguageTag(),
                     "sistEndretAvBruker" to sistEndretAvBruker
                 )
             )
         )
         // todo: fiks journalpost og innsending
-        journalpost?.let { journalpost ->
-            journalpost.varianter.map { variant ->
-                queryOf(
-                    //language=PostgreSQL
-                    """
-                    INSERT INTO dokument_v1(soknad_uuid, dokument_lokasjon)
-                        VALUES(:uuid, :urn) ON CONFLICT (dokument_lokasjon) DO NOTHING 
-                    """.trimIndent(),
-                    mapOf(
-                        "uuid" to søknadId.toString(),
-                        "urn" to variant.urn
-                    )
-                )
-            }.also {
-                queries.addAll(it)
-            }
-        }
+        // journalpost?.let { jp ->
+        //     jp.varianter.map { variant ->
+        //         queryOf(
+        //             //language=PostgreSQL
+        //             """
+        //             INSERT INTO dokument_v1(soknad_uuid, dokument_lokasjon)
+        //                 VALUES(:uuid, :urn) ON CONFLICT (dokument_lokasjon) DO NOTHING
+        //             """.trimIndent(),
+        //             mapOf(
+        //                 "uuid" to søknadId.toString(),
+        //                 "urn" to variant.urn
+        //             )
+        //         )
+        //     }.also {
+        //         queries.addAll(it)
+        //     }
+        // }
     }
 
     override fun visitKrav(krav: Krav) {
@@ -258,7 +358,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queryOf(
                 // language=PostgreSQL
                 "DELETE FROM dokumentkrav_filer_v1 WHERE soknad_uuid = :uuid",
-                mapOf("uuid" to søknadId.toString())
+                mapOf("uuid" to søknadId)
             )
         )
 
@@ -290,7 +390,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         queries.add(
             queryOf(
                 //language=PostgreSQL
-                statement = "INSERT INTO aktivitetslogg_v3 (soknad_uuid, data) VALUES (:uuid, :data) ON CONFLICT (soknad_uuid) DO UPDATE SET data = :data",
+                statement = "INSERT INTO aktivitetslogg_v1 (soknad_uuid, data) VALUES (:uuid, :data) ON CONFLICT (soknad_uuid) DO UPDATE SET data = :data",
                 paramMap = mapOf(
                     "uuid" to søknadId,
                     "data" to PGobject().apply {
@@ -300,6 +400,110 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                 )
             )
         )
+    }
+
+    override fun visit(
+        innsendingId: UUID,
+        innsending: Innsending.InnsendingType,
+        tilstand: Innsending.TilstandType,
+        innsendt: ZonedDateTime,
+        journalpost: String?,
+        hovedDokument: Innsending.Dokument?,
+        dokumenter: List<Innsending.Dokument>,
+        brevkode: Innsending.Brevkode?
+    ) {
+        if (ettersending) {
+            ettersendinger.getOrPut(aktivEttersending) {
+                mutableSetOf()
+            }.add(innsendingId)
+        } else {
+            aktivEttersending = innsendingId
+        }
+        queries.add(
+            queryOf(
+                //language=PostgreSQL
+                statement = "INSERT INTO innsending_v1(innsending_uuid, soknad_uuid, innsendt, journalpost_id, innsendingtype, tilstand, brevkode) VALUES (:innsending_uuid, :soknad_uuid, :innsendt, :journalpost_id, :innsendingtype, :tilstand, ROW(:tittel, :skjemakode)::brevkode)",
+                paramMap = mapOf(
+                    "innsending_uuid" to innsendingId,
+                    "soknad_uuid" to søknadId,
+                    "innsendt" to innsendt,
+                    "journalpost_id" to journalpost,
+                    "innsendingtype" to innsending.name,
+                    "tilstand" to tilstand.name,
+                    "tittel" to brevkode?.tittel,
+                    "skjemakode" to brevkode?.skjemakode
+                )
+            )
+        )
+        dokumenter.toMutableList().apply {
+            hovedDokument?.let { add(it) }
+        }.forEach { dokument ->
+            queries.add(
+                queryOf(
+                    //language=PostgreSQL
+                    "INSERT INTO dokument_v1 (dokument_uuid, innsending_uuid, navn, brevkode) VALUES (:dokument_uuid, :innsending_uuid, :navn, :brevkode)",
+                    mapOf(
+                        "dokument_uuid" to dokument.uuid,
+                        "innsending_uuid" to innsendingId,
+                        "navn" to dokument.navn,
+                        "brevkode" to dokument.brevkode
+                    )
+                )
+            )
+            dokument.varianter.forEach { variant ->
+                queries.add(
+                    queryOf(
+                        //language=PostgreSQL
+                        """
+                            INSERT INTO dokumentvariant_v1 (dokumentvariant_uuid, dokument_uuid, filnavn, urn, variant, type)
+                            VALUES (:dokumentvariant_uuid, :dokument_uuid, :filnavn, :urn, :variant, :type)
+                        """.trimIndent(),
+                        mapOf(
+                            "dokumentvariant_uuid" to variant.uuid,
+                            "dokument_uuid" to dokument.uuid,
+                            "filnavn" to variant.filnavn,
+                            "urn" to variant.urn,
+                            "variant" to variant.variant,
+                            "type" to variant.type
+                        )
+                    )
+                )
+            }
+        }
+        if (hovedDokument != null) {
+            queries.add(
+                queryOf(
+                    //language=PostgreSQL
+                    "INSERT INTO hoveddokument_v1(innsending_uuid, dokument_uuid) VALUES (:innsending_uuid, :dokumentvariant_uuid)",
+                    mapOf(
+                        "innsending_uuid" to innsendingId,
+                        "dokumentvariant_uuid" to hovedDokument.uuid
+                    )
+                )
+            )
+        }
+    }
+
+    override fun preVisitEttersendinger() {
+        ettersending = true
+    }
+
+    override fun postVisitEttersendinger() {
+        ettersending = false
+        ettersendinger.forEach { (innsending, ettersendinger) ->
+            ettersendinger.forEach { ettersending ->
+                queries.add(
+                    queryOf(
+                        //language=PostgreSQL
+                        "INSERT INTO ettersending_v1 (innsending_uuid, ettersending_uuid) VALUES (:innsending_uuid, :ettersending_uuid) ON CONFLICT DO NOTHING",
+                        mapOf(
+                            "innsending_uuid" to innsending,
+                            "ettersending_uuid" to ettersending
+                        )
+                    )
+                )
+            }
+        }
     }
 }
 
@@ -313,7 +517,7 @@ private fun Session.hentDokumentKrav(søknadsId: UUID): Set<KravDTO> =
                   WHERE soknad_uuid = :soknad_uuid
             """.trimIndent(),
             mapOf(
-                "soknad_uuid" to søknadsId.toString()
+                "soknad_uuid" to søknadsId
             )
         ).map { row ->
             val faktumId = row.string("faktum_id")
@@ -336,20 +540,6 @@ private fun Session.hentDokumentKrav(søknadsId: UUID): Set<KravDTO> =
         }.asList
     ).toSet()
 
-private fun Session.hentDokumentData(søknadId: UUID): List<DokumentDTO> {
-    return this.run(
-        queryOf(
-            //language=PostgreSQL
-            statement = "SELECT dokument_lokasjon FROM dokument_v1 WHERE soknad_uuid = :soknadId",
-            paramMap = mapOf(
-                "soknadId" to søknadId.toString()
-            )
-        ).map { row ->
-            DokumentDTO(urn = row.string("dokument_lokasjon"))
-        }.asList
-    )
-}
-
 private fun Session.hentFiler(
     søknadsId: UUID,
     faktumId: String
@@ -364,7 +554,7 @@ private fun Session.hentFiler(
                   AND faktum_id = :faktum_id 
             """.trimIndent(),
             paramMap = mapOf(
-                "soknad_uuid" to søknadsId.toString(),
+                "soknad_uuid" to søknadsId,
                 "faktum_id" to faktumId
             )
         ).map { row ->

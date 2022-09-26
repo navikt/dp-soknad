@@ -2,36 +2,30 @@ package no.nav.dagpenger.soknad
 
 import com.fasterxml.jackson.databind.node.BooleanNode
 import io.mockk.mockk
-import kotliquery.queryOf
-import kotliquery.sessionOf
-import kotliquery.using
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerArkiverbarSøknad
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerJournalføring
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.AvventerMidlertidligJournalføring
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
+import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerArkiverbarSøknad
+import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerBrevkode
+import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerJournalføring
+import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMidlertidligJournalføring
+import no.nav.dagpenger.soknad.Innsending.TilstandType.Journalført
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
-import no.nav.dagpenger.soknad.Søknadsprosess.NySøknadsProsess
-import no.nav.dagpenger.soknad.Søknadsprosess.PåbegyntSøknadsProsess
-import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
-import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
+import no.nav.dagpenger.soknad.livssyklus.InnsendingBrevkodeMottak
 import no.nav.dagpenger.soknad.livssyklus.JournalførtMottak
 import no.nav.dagpenger.soknad.livssyklus.NyJournalpostMottak
+import no.nav.dagpenger.soknad.livssyklus.PåbegyntSøknad
+import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak
-import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadCachePostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak
-import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.rapids_rivers.toUUID
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -45,49 +39,42 @@ internal class SøknadMediatorTest {
     private lateinit var mediator: SøknadMediator
     private val testRapid = TestRapid()
 
-    @BeforeEach
-    fun setup() {
-        withMigratedDb {
-            mediator = SøknadMediator(
-                testRapid,
-                SøknadCachePostgresRepository(dataSource),
-                mockk(),
-                mockk(),
-                SøknadPostgresRepository(dataSource)
-            )
+    private object TestSøknadRepository : SøknadRepository {
 
-            SøkerOppgaveMottak(testRapid, mediator)
-            SøknadOpprettetHendelseMottak(testRapid, mediator)
-            ArkiverbarSøknadMottattHendelseMottak(testRapid, mediator)
-            NyJournalpostMottak(testRapid, mediator)
-            JournalførtMottak(testRapid, mediator)
+        private val søknader = mutableListOf<Søknad>()
+        override fun hent(søknadId: UUID, ident: String): Søknad? {
+            return søknader.find { it.søknadUUID() == søknadId }
+        }
+
+        override fun hentSøknader(ident: String): Set<Søknad> {
+            return søknader.toSet()
+        }
+
+        override fun lagre(søknad: Søknad) {
+            søknader.add(søknad)
+        }
+
+        override fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad? {
+            TODO("not implemented")
         }
     }
 
-    @Test
-    @Disabled("Skrudde av uthenting av påbegynte søknad og fortsette med det. Vi må løse opp i migrering til nye versjoner i quiz.")
-    fun `Skal håndtere ønske om ny søknad når det finnes en påbegynt søknad`() {
-        val testident2 = "12346578910"
-        val expectedSøknadsId = mediator.hentEllerOpprettSøknadsprosess(testident2, språkVerdi).also {
-            assertTrue(it is NySøknadsProsess)
-        }.getSøknadsId()
+    @BeforeEach
+    fun setup() {
+        mediator = SøknadMediator(
+            testRapid,
+            mockk(relaxed = true),
+            mockk(),
+            mockk(),
+            TestSøknadRepository
+        )
 
-        assertEquals(1, testRapid.inspektør.size)
-        assertEquals(listOf("NySøknad"), behov(0))
-        assertEquals(UnderOpprettelse, oppdatertInspektør(testident2).gjeldendetilstand)
-
-        testRapid.sendTestMessage(nySøknadBehovsløsning(søknadId(testident2), testident2))
-        assertEquals(Påbegynt, oppdatertInspektør(testident2).gjeldendetilstand)
-
-        mediator.hentEllerOpprettSøknadsprosess(testident2, språkVerdi).also {
-            assertTrue(it is PåbegyntSøknadsProsess)
-            assertEquals(expectedSøknadsId.toString(), it.getSøknadsId().toString())
-        }
-        assertEquals(1, testRapid.inspektør.size)
-
-        mediator.behandle(SøknadInnsendtHendelse(UUID.fromString(søknadId(testident2)), testident2))
-        assertEquals(AvventerArkiverbarSøknad, oppdatertInspektør(testident2).gjeldendetilstand)
-        assertEquals(listOf("ArkiverbarSøknad"), behov(1))
+        SøkerOppgaveMottak(testRapid, mediator)
+        SøknadOpprettetHendelseMottak(testRapid, mediator)
+        ArkiverbarSøknadMottattHendelseMottak(testRapid, mediator)
+        NyJournalpostMottak(testRapid, mediator)
+        JournalførtMottak(testRapid, mediator)
+        InnsendingBrevkodeMottak(testRapid, mediator)
     }
 
     @Test
@@ -102,7 +89,6 @@ internal class SøknadMediatorTest {
         assertEquals(Påbegynt, oppdatertInspektør().gjeldendetilstand)
 
         testRapid.sendTestMessage(søkerOppgave(søknadUuid.toString().toUUID(), testIdent))
-        assertAntallRader("soknad_cache", antallRader = 1)
 
         mediator.behandle(FaktumSvar(søknadUuid, "1234", "boolean", testIdent, BooleanNode.TRUE))
         assertTrue("faktum_svar" in testRapid.inspektør.message(1).toString())
@@ -110,28 +96,43 @@ internal class SøknadMediatorTest {
         testRapid.sendTestMessage(ferdigSøkerOppgave(søknadUuid.toString().toUUID(), testIdent))
         mediator.behandle(SøknadInnsendtHendelse(søknadUuid, testIdent))
 
-        assertEquals(AvventerArkiverbarSøknad, oppdatertInspektør().gjeldendetilstand)
-        assertNotNull(oppdatertInspektør().innsendtTidspunkt)
-        assertEquals(listOf("ArkiverbarSøknad"), behov(2))
+        assertEquals(AvventerBrevkode, oppdatertInspektør().gjeldendeInnsendingTilstand)
+        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
+
+        assertEquals(listOf("InnsendingBrevkode"), behov(2))
+
+        testRapid.sendTestMessage(
+            innsendingBrevkodeLøsning(
+                testIdent,
+                søknadId(),
+                innsendingId()
+            )
+        )
+
+        assertEquals(AvventerArkiverbarSøknad, oppdatertInspektør().gjeldendeInnsendingTilstand)
+        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(listOf("ArkiverbarSøknad"), behov(3))
 
         testRapid.sendTestMessage(
             arkiverbarsøknadLøsning(
                 testIdent,
                 søknadId(),
-                Søknad.Journalpost(varianter = emptyList())
+                innsendingId()
             )
         )
-        assertEquals(AvventerMidlertidligJournalføring, oppdatertInspektør().gjeldendetilstand)
-        assertEquals(listOf("NyJournalpost"), behov(3))
+        assertEquals(AvventerMidlertidligJournalføring, oppdatertInspektør().gjeldendeInnsendingTilstand)
+        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
 
         testRapid.sendTestMessage(
             nyJournalpostLøsning(
                 ident = testIdent,
                 søknadUuid = søknadId(),
+                innsendingId(),
                 journalpostId = testJournalpostId
             )
         )
-        assertEquals(AvventerJournalføring, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(AvventerJournalføring, oppdatertInspektør().gjeldendeInnsendingTilstand)
+        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
 
         testRapid.sendTestMessage(
             søknadJournalførtHendelse(
@@ -140,18 +141,53 @@ internal class SøknadMediatorTest {
                 journalpostId = testJournalpostId
             )
         )
-        assertEquals(Journalført, oppdatertInspektør().gjeldendetilstand)
-        // Verifiserer at aktivitetsloggen blir lagret per søknad
-        assertAntallRader("aktivitetslogg_v3", 1)
+        assertEquals(Journalført, oppdatertInspektør().gjeldendeInnsendingTilstand)
+        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
+
         // Verifiser at det er mulig å hente en komplett aktivitetslogg
         mediator.hentSøknader(testIdent).first().let {
             with(TestSøknadhåndtererInspektør(it).aktivitetslogg["aktiviteter"]!!) {
-                assertEquals(13, size)
                 assertEquals("Ønske om søknad registrert", first()["melding"])
                 assertEquals("Søknad journalført", last()["melding"])
             }
         }
     }
+
+    private fun innsendingId() = oppdatertInspektør(testIdent).gjeldendeInnsendingId
+
+    private fun innsendingBrevkodeLøsning(
+        ident: String,
+        søknadUuid: String,
+        innsendingId: UUID
+    ) = //language=JSON
+        """
+{
+  "@event_name": "behov",
+  "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
+  "@behov": [
+    "InnsendingBrevkode"
+  ],
+  "ident": "$ident",
+  "søknad_uuid": "$søknadUuid",
+  "innsendingId": "$innsendingId",
+  "ArkiverbarSøknad": {},
+  "@id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
+  "@opprettet": "2022-03-30T12:19:08.418821",
+  "system_read_count": 0,
+  "system_participating_services": [
+    {
+      "id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
+      "time": "2022-03-30T12:19:08.418821"
+    }
+  ],
+  "@løsning": {
+    "InnsendingBrevkode": {
+      "tittel": "Søknad om dagpenger",
+      "skjemakode": "04.04-01"
+    }
+  }
+}
+        """.trimIndent()
 
     @Test
     fun `Hva skjer om en får JournalførtHendelse som ikke er tilknyttet en søknad`() {
@@ -163,23 +199,12 @@ internal class SøknadMediatorTest {
         )
     }
 
-    private fun assertAntallRader(tabell: String, antallRader: Int) {
-        val faktiskeRader = using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf("select count(1) from $tabell").map { row ->
-                    row.int(1)
-                }.asSingle
-            )
-        }
-        assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: $tabell")
-    }
-
     private fun søknadId(ident: String = testIdent) = oppdatertInspektør(ident).gjeldendeSøknadId
 
     private fun behov(indeks: Int) = testRapid.inspektør.message(indeks)["@behov"].map { it.asText() }
 
     private fun oppdatertInspektør(ident: String = testIdent) =
-        TestSøknadhåndtererInspektør(mediator.hentSøknader(ident)!!.first())
+        TestSøknadhåndtererInspektør(mediator.hentSøknader(ident).first())
 
     // language=JSON
     private fun søkerOppgave(søknadUuid: UUID, ident: String) = """{
@@ -244,33 +269,50 @@ internal class SøknadMediatorTest {
     """.trimMargin()
 
     // language=JSON
-    private fun arkiverbarsøknadLøsning(ident: String, søknadUuid: String, journalpost: Søknad.Journalpost) = """
+    private fun arkiverbarsøknadLøsning(ident: String, søknadUuid: String, innsendingId: UUID) = """
+{
+  "@event_name": "behov",
+  "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
+  "@behov": [
+    "ArkiverbarSøknad"
+  ],
+  "ident": "$ident",
+  "søknad_uuid": "$søknadUuid",
+  "innsendingId": "$innsendingId",  
+  "ArkiverbarSøknad": {},
+  "@id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
+  "@opprettet": "2022-03-30T12:19:08.418821",
+  "system_read_count": 0,
+  "system_participating_services": [
     {
-      "@event_name": "behov",
-      "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
-      "@behov": [
-        "ArkiverbarSøknad"
-      ],
-      "ident": "$ident",
-      "søknad_uuid": "$søknadUuid",
-      "ArkiverbarSøknad": {},
-      "@id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
-      "@opprettet": "2022-03-30T12:19:08.418821",
-      "system_read_count": 0,
-      "system_participating_services": [
-        {
-          "id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
-          "time": "2022-03-30T12:19:08.418821"
-        }
-      ],
-      "@løsning": {
-        "ArkiverbarSøknad": "$journalpost"
+      "id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
+      "time": "2022-03-30T12:19:08.418821"
+    }
+  ],
+  "@løsning": {
+    "ArkiverbarSøknad": [
+      {
+        "metainfo": {
+          "innhold": "netto.pdf",
+          "filtype": "PDF",          "variant": "NETTO"
+        },
+        "urn": "urn:vedlegg:soknadId/netto.pdf"
+      },
+      {
+        "metainfo": {
+          "innhold": "brutto.pdf",
+          "filtype": "PDF",
+          "variant": "BRUTTO"
+        },
+        "urn": "urn:vedlegg:soknadId/brutto.pdf"
       }
+    ]
+  }
 }
     """.trimMargin()
 
     // language=JSON
-    private fun nyJournalpostLøsning(ident: String, søknadUuid: String, journalpostId: String) = """
+    private fun nyJournalpostLøsning(ident: String, søknadUuid: String, innsendingId: UUID, journalpostId: String) = """
     {
       "@event_name": "behov",
       "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
@@ -279,6 +321,7 @@ internal class SøknadMediatorTest {
       ],
       "ident": "$ident",
       "søknad_uuid": "$søknadUuid",
+      "innsendingId": "$innsendingId",
       "NyJournalpost": {},
       "@id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
       "@opprettet": "2022-03-30T12:19:08.418821",

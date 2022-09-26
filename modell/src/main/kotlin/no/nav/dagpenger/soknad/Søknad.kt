@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.SøknadObserver.SøknadSlettetEvent
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.BrevkodeMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
@@ -25,70 +26,52 @@ class Søknad private constructor(
     private val søknadId: UUID,
     private val ident: String,
     private var tilstand: Tilstand,
-    // @todo: Endre navn fra journalpost til innsendinger? (og liste)?
-    private var journalpost: Journalpost?,
-    private var journalpostId: String?,
-    private var innsendtTidspunkt: ZonedDateTime?,
+    private var innsending: NyInnsending?,
     private val språk: Språk,
     private val dokumentkrav: Dokumentkrav,
     private var sistEndretAvBruker: ZonedDateTime?,
-    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
+    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 ) : Aktivitetskontekst {
-
     private val observers = mutableListOf<SøknadObserver>()
+
+    fun søknadUUID() = søknadId
+
     constructor(søknadId: UUID, språk: Språk, ident: String) : this(
         søknadId = søknadId,
         ident = ident,
         tilstand = UnderOpprettelse,
-        journalpost = null,
-        journalpostId = null,
-        innsendtTidspunkt = null,
+        innsending = null,
         språk = språk,
         dokumentkrav = Dokumentkrav(),
         sistEndretAvBruker = null
     )
 
     companion object {
-        internal fun List<Søknad>.harAlleredeOpprettetSøknad() =
-            this.any { it.tilstand == UnderOpprettelse || it.tilstand == Påbegynt }
-
-        internal fun List<Søknad>.harPåbegyntSøknad(): Boolean = this.filter { it.tilstand == Påbegynt }.size == 1
-        internal fun List<Søknad>.hentPåbegyntSøknad(): Søknad = this.single { it.tilstand == Påbegynt }
-        internal fun List<Søknad>.finnSøknad(søknadId: UUID): Søknad? = this.find { it.søknadId == søknadId }
-        internal fun List<Søknad>.finnSøknad(journalpostId: String): Søknad? =
-            this.find { it.journalpostId == journalpostId }
-
         fun rehydrer(
             søknadId: UUID,
             ident: String,
-            journalpost: Journalpost?,
-            journalpostId: String?,
-            innsendtTidspunkt: ZonedDateTime?,
             språk: Språk,
             dokumentkrav: Dokumentkrav,
             sistEndretAvBruker: ZonedDateTime?,
             tilstandsType: Tilstand.Type,
-            aktivitetslogg: Aktivitetslogg
+            aktivitetslogg: Aktivitetslogg,
+            innsending: NyInnsending?
         ): Søknad {
             val tilstand: Tilstand = when (tilstandsType) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
                 Tilstand.Type.Påbegynt -> Påbegynt
-                Tilstand.Type.AvventerArkiverbarSøknad -> AvventerArkiverbarSøknad
-                Tilstand.Type.AvventerMidlertidligJournalføring -> AvventerMidlertidligJournalføring
-                Tilstand.Type.AvventerJournalføring -> AvventerJournalføring
-                Tilstand.Type.Journalført -> Journalført
+                Tilstand.Type.Innsendt -> Innsendt
                 Tilstand.Type.Slettet -> throw IllegalArgumentException("Kan ikke rehydrere slettet søknad med id $søknadId")
             }
             return Søknad(
                 søknadId = søknadId,
                 ident = ident,
                 tilstand = tilstand,
-                journalpost = journalpost,
-                journalpostId = journalpostId,
-                innsendtTidspunkt = innsendtTidspunkt,
+                innsending = innsending,
                 språk = språk,
                 dokumentkrav = dokumentkrav,
-                sistEndretAvBruker = sistEndretAvBruker, aktivitetslogg = aktivitetslogg
+                sistEndretAvBruker = sistEndretAvBruker,
+                aktivitetslogg = aktivitetslogg
             )
         }
     }
@@ -121,6 +104,12 @@ class Søknad private constructor(
         søknadInnsendtHendelse.info("Sender inn søknaden")
         sistEndretAvBruker = ZonedDateTime.now()
         tilstand.håndter(søknadInnsendtHendelse, this)
+    }
+
+    fun håndter(brevkodeMottattHendelse: BrevkodeMottattHendelse) {
+        kontekst(brevkodeMottattHendelse)
+        brevkodeMottattHendelse.info("Brevkode mottatt")
+        tilstand.håndter(brevkodeMottattHendelse, this)
     }
 
     fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse) {
@@ -175,6 +164,7 @@ class Søknad private constructor(
 
     fun håndter(leggTilFil: LeggTilFil) {
         kontekst(leggTilFil)
+        leggTilFil.info("Legger til fil")
         tilstand.håndter(leggTilFil, this)
     }
 
@@ -193,7 +183,6 @@ class Søknad private constructor(
     }
 
     interface Tilstand : Aktivitetskontekst {
-
         val tilstandType: Type
 
         fun entering(søknadHendelse: Hendelse, søknad: Søknad) {}
@@ -212,6 +201,9 @@ class Søknad private constructor(
 
         fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) =
             søknadInnsendtHendelse.`kan ikke håndteres i denne tilstanden`()
+
+        fun håndter(brevkodeMottattHendelse: BrevkodeMottattHendelse, søknad: Søknad) =
+            brevkodeMottattHendelse.`kan ikke håndteres i denne tilstanden`()
 
         fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse, søknad: Søknad) =
             arkiverbarSøknadMotattHendelse.`kan ikke håndteres i denne tilstanden`()
@@ -236,6 +228,7 @@ class Søknad private constructor(
         fun håndter(dokumentasjonIkkeTilgjengelig: DokumentasjonIkkeTilgjengelig, søknad: Søknad) {
             dokumentasjonIkkeTilgjengelig.`kan ikke håndteres i denne tilstanden`()
         }
+
         fun håndter(leggTilFil: LeggTilFil, søknad: Søknad) {
             leggTilFil.`kan ikke håndteres i denne tilstanden`()
         }
@@ -264,16 +257,12 @@ class Søknad private constructor(
         enum class Type {
             UnderOpprettelse,
             Påbegynt,
-            AvventerArkiverbarSøknad,
-            AvventerMidlertidligJournalføring,
-            AvventerJournalføring,
-            Journalført,
+            Innsendt,
             Slettet
         }
     }
 
     private object UnderOpprettelse : Tilstand {
-
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.UnderOpprettelse
 
@@ -291,19 +280,23 @@ class Søknad private constructor(
     }
 
     private object Påbegynt : Tilstand {
-
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.Påbegynt
 
         override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
-            søknad.innsendtTidspunkt = søknadInnsendtHendelse.innsendtidspunkt()
-            if (søknad.dokumentkrav.ingen()) return søknad.endreTilstand(AvventerArkiverbarSøknad, søknadInnsendtHendelse)
-            if (søknad.dokumentkrav.ferdigBesvart()) {
-                søknad.endreTilstand(AvventerArkiverbarSøknad, søknadInnsendtHendelse)
-            } else {
+            if (!søknad.dokumentkrav.ferdigBesvart()) {
                 // @todo: Oversette validringsfeil til frontend. Mulig lage et eller annet som frontend kan tolke
                 søknadInnsendtHendelse.severe("Alle dokumentkrav må være besvart")
             }
+            val innsending = Innsending.ny(
+                søknadInnsendtHendelse.innsendtidspunkt(),
+                // TODO: Klassifisering til NAV skjemakode
+                dokumentkrav = søknad.dokumentkrav
+            )
+            søknad.innsending = innsending.also {
+                it.håndter(søknadInnsendtHendelse)
+            }
+            søknad.endreTilstand(Innsendt, søknadInnsendtHendelse)
         }
 
         override fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse, søknad: Søknad) {
@@ -338,8 +331,47 @@ class Søknad private constructor(
         }
     }
 
-    private fun håndter(nyeSannsynliggjøringer: Set<Sannsynliggjøring>) {
-        this.dokumentkrav.håndter(nyeSannsynliggjøringer)
+    private object Innsendt : Tilstand {
+        override val tilstandType: Tilstand.Type
+            get() = Tilstand.Type.Innsendt
+
+        override fun håndter(hendelse: BrevkodeMottattHendelse, søknad: Søknad) {
+            innsending(søknad).håndter(hendelse)
+        }
+
+        override fun håndter(hendelse: ArkiverbarSøknadMottattHendelse, søknad: Søknad) {
+            innsending(søknad).håndter(hendelse)
+        }
+
+        override fun håndter(leggTilFil: LeggTilFil, søknad: Søknad) {
+            søknad.dokumentkrav.håndter(leggTilFil)
+        }
+
+        override fun håndter(slettFil: SlettFil, søknad: Søknad) {
+            søknad.dokumentkrav.håndter(slettFil)
+        }
+
+        override fun håndter(dokumentKravSammenstilling: DokumentKravSammenstilling, søknad: Søknad) {
+            søknad.dokumentkrav.håndter(dokumentKravSammenstilling)
+        }
+
+        override fun håndter(
+            hendelse: SøknadMidlertidigJournalførtHendelse,
+            søknad: Søknad
+        ) {
+            innsending(søknad).håndter(hendelse)
+        }
+
+        override fun håndter(hendelse: JournalførtHendelse, søknad: Søknad) {
+            innsending(søknad).håndter(hendelse)
+        }
+
+        override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
+            innsending(søknad).ettersend(søknadInnsendtHendelse, søknad.dokumentkrav)
+        }
+
+        private fun innsending(søknad: Søknad) =
+            requireNotNull(søknad.innsending) { "Forventet at innsending er laget i tilstand $tilstandType" }
     }
 
     private object Slettet : Tilstand {
@@ -351,66 +383,14 @@ class Søknad private constructor(
         }
     }
 
+    private fun håndter(nyeSannsynliggjøringer: Set<Sannsynliggjøring>) {
+        this.dokumentkrav.håndter(nyeSannsynliggjøringer)
+    }
+
     private fun slettet(ident: String) {
         observers.forEach {
             it.søknadSlettet(SøknadSlettetEvent(søknadId, ident))
         }
-    }
-
-    private object AvventerArkiverbarSøknad : Tilstand {
-
-        override val tilstandType: Tilstand.Type
-            get() = Tilstand.Type.AvventerArkiverbarSøknad
-
-        override fun entering(søknadHendelse: Hendelse, søknad: Søknad) {
-            val innsendtTidspunkt =
-                requireNotNull(søknad.innsendtTidspunkt) { "Forventer at innsendttidspunkt er satt i tilstand $tilstandType" }
-            søknadHendelse.behov(
-                Behovtype.ArkiverbarSøknad, "Trenger søknad på et arkiverbart format",
-                mapOf(
-                    "innsendtTidspunkt" to innsendtTidspunkt.toString()
-                )
-            )
-            // TODO: Emit en hendelse som fører til at vi besvarer faktum i quiz for når søknaden/kravet ble fremsatt
-        }
-
-        override fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse, søknad: Søknad) {
-            søknad.journalpost = arkiverbarSøknadMotattHendelse.dokument()
-            søknad.endreTilstand(AvventerMidlertidligJournalføring, arkiverbarSøknadMotattHendelse)
-        }
-    }
-
-    private object AvventerMidlertidligJournalføring : Tilstand {
-
-        override val tilstandType: Tilstand.Type
-            get() = Tilstand.Type.AvventerMidlertidligJournalføring
-
-        override fun entering(søknadHendelse: Hendelse, søknad: Søknad) {
-            søknad.trengerNyJournalpost(søknadHendelse)
-        }
-
-        override fun håndter(
-            søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse,
-            søknad: Søknad
-        ) {
-            søknad.journalpostId = søknadMidlertidigJournalførtHendelse.journalpostId()
-            søknad.endreTilstand(AvventerJournalføring, søknadMidlertidigJournalførtHendelse)
-        }
-    }
-
-    private object AvventerJournalføring : Tilstand {
-        override val tilstandType: Tilstand.Type
-            get() = Tilstand.Type.AvventerJournalføring
-
-        override fun håndter(journalførtHendelse: JournalførtHendelse, søknad: Søknad) {
-            // TODO: Legg til sjekk om at det er DENNE søknaden som er journalført.
-            søknad.endreTilstand(Journalført, journalførtHendelse)
-        }
-    }
-
-    private object Journalført : Tilstand {
-        override val tilstandType: Tilstand.Type
-            get() = Tilstand.Type.Journalført
     }
 
     fun accept(visitor: SøknadVisitor) {
@@ -418,9 +398,6 @@ class Søknad private constructor(
             søknadId = søknadId,
             ident = ident,
             tilstand = tilstand,
-            journalpost = journalpost,
-            journalpostId = journalpostId,
-            innsendtTidspunkt = innsendtTidspunkt,
             språk = språk,
             dokumentkrav = dokumentkrav,
             sistEndretAvBruker = sistEndretAvBruker
@@ -428,6 +405,7 @@ class Søknad private constructor(
         tilstand.accept(visitor)
         aktivitetslogg.accept(visitor)
         dokumentkrav.accept(visitor)
+        innsending?.accept(visitor)
     }
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst =
@@ -438,33 +416,11 @@ class Søknad private constructor(
         hendelse.kontekst(tilstand)
     }
 
-    data class Journalpost(
-        val brevkode: String = "NAV 04-01.04",
-        val varianter: List<Variant>,
-    ) {
-        data class Variant(
-            val urn: String,
-            val format: String,
-            val type: String
-        )
-    }
-
-    private fun trengerNyJournalpost(søknadHendelse: Hendelse) {
-        val dokument = requireNotNull(journalpost) {
-            "Forventet at variabel dokumenter var satt. Er i tilstand: $tilstand"
-        }
-
-        søknadHendelse.behov(
-            Behovtype.NyJournalpost,
-            "Trenger å journalføre søknad",
-            mapOf("dokumenter" to listOf(dokument))
-        )
-    }
-
     fun deepEquals(other: Any?): Boolean =
         other is Søknad && other.søknadId == this.søknadId &&
-            other.tilstand == this.tilstand && other.journalpost == this.journalpost &&
-            other.journalpostId == this.journalpostId && this.dokumentkrav == other.dokumentkrav
+            other.tilstand == this.tilstand &&
+            this.dokumentkrav == other.dokumentkrav &&
+            this.innsending == other.innsending
 
     private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: Hendelse) {
         if (nyTilstand == tilstand) {

@@ -5,7 +5,7 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Journalført
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.TestSøkerOppgave
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
@@ -102,14 +102,12 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
             Søknad.rehydrer(
                 søknadId = søknadId,
                 ident = "12345678910",
-                journalpost = Søknad.Journalpost(varianter = emptyList()),
-                journalpostId = "journalpostid",
-                innsendtTidspunkt = ZonedDateTime.now(),
                 språk = Språk(språkVerdi),
                 dokumentkrav = Dokumentkrav(),
                 sistEndretAvBruker = ZonedDateTime.now(),
-                tilstandsType = Journalført,
-                aktivitetslogg = Aktivitetslogg()
+                tilstandsType = Påbegynt,
+                aktivitetslogg = Aktivitetslogg(),
+                null
             )
         )
         return søknadId

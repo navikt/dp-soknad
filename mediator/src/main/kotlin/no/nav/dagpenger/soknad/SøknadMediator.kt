@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad
 
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.BrevkodeMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
@@ -140,6 +141,12 @@ internal class SøknadMediator(
     fun behandle(hendelse: DokumentKravSammenstilling) {
         behandle(hendelse) { søknad ->
             søknad.håndter(hendelse)
+        }
+    }
+
+    fun behandle(brevkodeMottattHendelse: BrevkodeMottattHendelse) {
+        behandle(brevkodeMottattHendelse) { søknad ->
+            søknad.håndter(brevkodeMottattHendelse)
         }
     }
 

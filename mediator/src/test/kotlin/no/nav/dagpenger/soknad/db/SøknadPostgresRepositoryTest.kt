@@ -7,9 +7,12 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.Ettersending
 import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.IkkeTilgangExeption
+import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Krav
+import no.nav.dagpenger.soknad.NyInnsending
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
@@ -22,6 +25,7 @@ import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Disabled
@@ -52,61 +56,102 @@ internal class SøknadPostgresRepositoryTest {
     val søknad = Søknad.rehydrer(
         søknadId = søknadId,
         ident = ident,
-        journalpost = Søknad.Journalpost(
-            varianter = listOf(
-                Søknad.Journalpost.Variant(
-                    urn = "urn:soknad:fil1",
-                    format = "ARKIV",
-                    type = "PDF"
-                ),
-                Søknad.Journalpost.Variant(
-                    urn = "urn:soknad:fil2",
-                    format = "ARKIV",
-                    type = "PDF"
-                )
-            )
-        ),
-        journalpostId = "journalpostid",
-        innsendtTidspunkt = ZonedDateTime.now(),
         språk = Språk("NO"),
         dokumentkrav = Dokumentkrav.rehydrer(
             krav = setOf(krav)
         ),
         sistEndretAvBruker = ZonedDateTime.now(),
         tilstandsType = Søknad.Tilstand.Type.Påbegynt,
-        aktivitetslogg = Aktivitetslogg()
+        aktivitetslogg = Aktivitetslogg(),
+        null
     )
 
     @Test
-    fun `Lagre og hente søknad med dokument, dokumentkrav og aktivitetslogg`() {
-        val søknadId = UUID.randomUUID()
-        val ident = "12345678910"
+    fun `Lagre og hente søknad med dokument, dokumentkrav, innsending og aktivitetslogg`() {
         val søknad = Søknad.rehydrer(
             søknadId = søknadId,
             ident = ident,
-            journalpost = Søknad.Journalpost(
-                varianter = listOf(
-                    Søknad.Journalpost.Variant(
-                        urn = "urn:soknad:fil1",
-                        format = "ARKIV",
-                        type = "PDF"
-                    ),
-                    Søknad.Journalpost.Variant(
-                        urn = "urn:soknad:fil2",
-                        format = "ARKIV",
-                        type = "PDF"
-                    )
-                )
-            ),
-            journalpostId = "journalpostid",
-            innsendtTidspunkt = ZonedDateTime.now(),
             språk = språk,
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav)
             ),
             sistEndretAvBruker = ZonedDateTime.now().minusDays(1),
-            tilstandsType = Søknad.Tilstand.Type.Journalført,
-            aktivitetslogg = Aktivitetslogg()
+            tilstandsType = Søknad.Tilstand.Type.Påbegynt,
+            aktivitetslogg = Aktivitetslogg(),
+            innsending = NyInnsending.rehydrer(
+                UUID.randomUUID(),
+                Innsending.InnsendingType.NY_DIALOG,
+                ZonedDateTime.now(),
+                "123123",
+                Innsending.TilstandType.Journalført,
+                Innsending.Dokument(
+                    UUID.randomUUID(),
+                    "navn",
+                    "brevkode",
+                    varianter = listOf(
+                        Innsending.Dokument.Dokumentvariant(
+                            UUID.randomUUID(),
+                            "filnavn1",
+                            "urn:burn:turn1",
+                            "variant1",
+                            "type1"
+                        ),
+                        Innsending.Dokument.Dokumentvariant(
+                            UUID.randomUUID(),
+                            "filnavn2",
+                            "urn:burn:turn2",
+                            "variant2",
+                            "type2"
+                        )
+                    )
+                ),
+                listOf(
+                    Innsending.Dokument(
+                        UUID.randomUUID(),
+                        "navn2",
+                        "brevkode2",
+                        varianter = listOf(
+                            Innsending.Dokument.Dokumentvariant(
+                                UUID.randomUUID(),
+                                "filnavn3",
+                                "urn:burn:turn3",
+                                "variant3",
+                                "type3"
+                            ),
+                            Innsending.Dokument.Dokumentvariant(
+                                UUID.randomUUID(),
+                                "filnavn4",
+                                "urn:burn:turn4",
+                                "variant4",
+                                "type4"
+                            )
+                        )
+                    )
+                ),
+                mutableListOf(
+                    Ettersending.rehydrer(
+                        UUID.randomUUID(),
+                        Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG,
+                        ZonedDateTime.now(),
+                        null,
+                        Innsending.TilstandType.Opprettet,
+                        null,
+                        listOf(),
+                        Innsending.Brevkode("Tittel ettersending1", "0324-23")
+                    ),
+                    Ettersending.rehydrer(
+                        UUID.randomUUID(),
+                        Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG,
+                        ZonedDateTime.now(),
+                        null,
+                        Innsending.TilstandType.AvventerJournalføring,
+                        null,
+                        listOf(),
+                        Innsending.Brevkode("Tittel ettersending2", "0324-23")
+                    )
+                ),
+                Innsending.Brevkode("Tittel", "04-02-03")
+            )
         )
 
         withMigratedDb {
@@ -115,8 +160,14 @@ internal class SøknadPostgresRepositoryTest {
 
                 assertAntallRader("soknad_v1", 1)
                 assertAntallRader("dokumentkrav_v1", 1)
-                assertAntallRader("aktivitetslogg_v3", 1)
-                val rehydrertSøknad = søknadPostgresRepository.hent(søknadId, ident)
+                assertAntallRader("aktivitetslogg_v1", 1)
+                assertAntallRader("innsending_v1", 3)
+                assertAntallRader("dokument_v1", 2)
+                assertAntallRader("hoveddokument_v1", 1)
+                assertAntallRader("ettersending_v1", 2)
+                assertAntallRader("dokumentvariant_v1", 4)
+                val rehydrertSøknad: Søknad? = søknadPostgresRepository.hent(søknadId, ident)
+                assertNotNull(rehydrertSøknad)
 
                 assertDeepEquals(rehydrertSøknad!!, søknad)
                 // TODO: Flytt tilgangskontroll til API-lag
@@ -150,16 +201,14 @@ internal class SøknadPostgresRepositoryTest {
         val søknad = Søknad.rehydrer(
             søknadId = søknadId,
             ident = ident,
-            journalpost = null,
-            journalpostId = null,
-            innsendtTidspunkt = null,
             språk = språk,
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav)
             ),
             sistEndretAvBruker = ZonedDateTime.now().minusDays(1),
             tilstandsType = Søknad.Tilstand.Type.Påbegynt,
-            aktivitetslogg = Aktivitetslogg()
+            aktivitetslogg = Aktivitetslogg(),
+            innsending = null
         )
 
         withMigratedDb {
@@ -355,9 +404,6 @@ internal class SøknadPostgresRepositoryTest {
                 søknadId: UUID,
                 ident: String,
                 tilstand: Søknad.Tilstand,
-                journalpost: Søknad.Journalpost?,
-                journalpostId: String?,
-                innsendtTidspunkt: ZonedDateTime?,
                 språk: Språk,
                 dokumentkrav: Dokumentkrav,
                 sistEndretAvBruker: ZonedDateTime?

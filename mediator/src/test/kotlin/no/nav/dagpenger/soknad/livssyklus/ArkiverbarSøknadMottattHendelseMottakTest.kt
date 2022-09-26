@@ -6,7 +6,6 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -30,18 +29,21 @@ internal class ArkiverbarSøknadMottattHendelseMottakTest {
         verify(exactly = 1) { mediatorMock.behandle(any() as ArkiverbarSøknadMottattHendelse) }
         assertEquals(
             listOf(
-                Søknad.Journalpost.Variant(
-                    urn = "urn:vedlegg:soknadId/netto.pdf",
-                    format = "ARKIV",
-                    type = "PDF"
+                mapOf<String, Any>(
+                    "filnavn" to "brutto.pdf",
+                    "urn" to "urn:vedlegg:soknadId/brutto.pdf",
+                    "variant" to "FULLVERSJON",
+                    "type" to "PDF"
+
                 ),
-                Søknad.Journalpost.Variant(
-                    urn = "urn:vedlegg:soknadId/brutto.pdf",
-                    format = "FULLVERSJON",
-                    type = "PDF"
+                mapOf<String, Any>(
+                    "filnavn" to "netto.pdf",
+                    "urn" to "urn:vedlegg:soknadId/netto.pdf",
+                    "variant" to "ARKIV",
+                    "type" to "PDF"
                 )
-            ).sortedBy { it.urn },
-            slot.captured.dokument().varianter.sortedBy { it.urn }
+            ),
+            slot.captured.dokumentvarianter().sortedBy { it.urn }.map { it.toMap() }
         )
     }
 
@@ -53,6 +55,7 @@ internal class ArkiverbarSøknadMottattHendelseMottakTest {
     "ArkiverbarSøknad"
   ],
   "søknad_uuid": "f83b0db7-9555-4d1d-b5db-7ab8e3e9d1c8",
+  "innsendingId": "f83b0db7-9555-4d1d-b5db-7ab8e3e9d1c8",
   "ident": "12345678910",
   "innsendtTidspunkt": "2022-05-20T12:04:20.000625+02:00[Europe/Oslo]",
   "@id": "0d23e605-0485-4335-aafc-27015e8fcc9e",
