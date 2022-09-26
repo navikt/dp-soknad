@@ -6,6 +6,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Aktivitetslogg
+import no.nav.dagpenger.soknad.DeepEquals.assertDeepEquals
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Ettersending
 import no.nav.dagpenger.soknad.Faktum
@@ -172,8 +173,7 @@ internal class SøknadPostgresRepositoryTest {
                 assertAntallRader("dokumentvariant_v1", 4)
                 val rehydrertSøknad: Søknad? = søknadPostgresRepository.hent(søknadId, ident)
                 assertNotNull(rehydrertSøknad)
-
-                assertDeepEquals(rehydrertSøknad!!, søknad)
+                assertDeepEquals(rehydrertSøknad, søknad)
                 // TODO: Flytt tilgangskontroll til API-lag
                 /*assertThrows<IkkeTilgangExeption> {
                     søknadPostgresRepository.hent(søknadId, "ikke-tilgang")
@@ -430,9 +430,5 @@ internal class SøknadPostgresRepositoryTest {
             )
         }
         assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: $tabell")
-    }
-
-    private fun assertDeepEquals(expected: Søknad, result: Søknad) {
-        assertTrue(expected.deepEquals(result), "Søknadene var ikke like. Forventet: $expected  Faktisk: $result")
     }
 }

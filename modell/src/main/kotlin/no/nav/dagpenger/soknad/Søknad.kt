@@ -416,12 +416,6 @@ class Søknad private constructor(
         hendelse.kontekst(tilstand)
     }
 
-    fun deepEquals(other: Any?): Boolean =
-        other is Søknad && other.søknadId == this.søknadId &&
-            other.tilstand == this.tilstand &&
-            this.dokumentkrav == other.dokumentkrav &&
-            this.innsending == other.innsending
-
     private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: Hendelse) {
         if (nyTilstand == tilstand) {
             return // Vi er allerede i tilstanden
@@ -444,9 +438,5 @@ class Søknad private constructor(
                 )
             )
         }
-    }
-
-    override fun toString(): String {
-        return "Søknad(søknadId=$søknadId, ident='$ident', tilstand=$tilstand, innsending=$innsending, språk=$språk, dokumentkrav=$dokumentkrav, sistEndretAvBruker=$sistEndretAvBruker, aktivitetslogg=$aktivitetslogg )"
     }
 }

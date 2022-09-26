@@ -274,20 +274,6 @@ abstract class Innsending protected constructor(
         )
     )
 
-    override fun equals(other: Any?) = other is Innsending &&
-        innsendingId == other.innsendingId &&
-        type == other.type &&
-        innsendt == other.innsendt &&
-        journalpostId == other.journalpostId &&
-        tilstand == other.tilstand &&
-        hovedDokument == other.hovedDokument &&
-        dokumenter == other.dokumenter &&
-        brevkode == other.brevkode
-
-    override fun toString(): String {
-        return "Innsending(innsendingId=$innsendingId, type=$type, innsendt=$innsendt, journalpostId=$journalpostId, tilstand=$tilstand, hovedDokument=$hovedDokument, dokumenter=$dokumenter, brevkode=$brevkode )"
-    }
-
     companion object {
         fun ny(innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) =
             NyInnsending(InnsendingType.NY_DIALOG, innsendt, dokumentkrav)

@@ -289,8 +289,8 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queryOf(
                 // language=PostgreSQL
                 """
-                INSERT INTO soknad_v1(uuid, person_ident, tilstand, spraak)
-                VALUES (:uuid, :person_ident, :tilstand, :spraak)
+                INSERT INTO soknad_v1(uuid, person_ident, tilstand, spraak, sist_endret_av_bruker)
+                VALUES (:uuid, :person_ident, :tilstand, :spraak, :sistEndretAvBruker)
                 ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
                                                 sist_endret_av_bruker = :sistEndretAvBruker
                 """.trimIndent(),
@@ -303,24 +303,6 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                 )
             )
         )
-        // todo: fiks journalpost og innsending
-        // journalpost?.let { jp ->
-        //     jp.varianter.map { variant ->
-        //         queryOf(
-        //             //language=PostgreSQL
-        //             """
-        //             INSERT INTO dokument_v1(soknad_uuid, dokument_lokasjon)
-        //                 VALUES(:uuid, :urn) ON CONFLICT (dokument_lokasjon) DO NOTHING
-        //             """.trimIndent(),
-        //             mapOf(
-        //                 "uuid" to søknadId.toString(),
-        //                 "urn" to variant.urn
-        //             )
-        //         )
-        //     }.also {
-        //         queries.addAll(it)
-        //     }
-        // }
     }
 
     override fun visitKrav(krav: Krav) {
