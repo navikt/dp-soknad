@@ -40,6 +40,7 @@ jobs:
         with:
           context: mediator
           tags: ${{ env.IMAGE }},${{ env.LATEST_IMAGE }}
+          pull: true
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
