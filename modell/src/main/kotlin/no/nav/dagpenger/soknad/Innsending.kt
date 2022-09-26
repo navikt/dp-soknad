@@ -284,6 +284,10 @@ abstract class Innsending protected constructor(
         dokumenter == other.dokumenter &&
         brevkode == other.brevkode
 
+    override fun toString(): String {
+        return "Innsending(innsendingId=$innsendingId, type=$type, innsendt=$innsendt, journalpostId=$journalpostId, tilstand=$tilstand, hovedDokument=$hovedDokument, dokumenter=$dokumenter, brevkode=$brevkode, innsendinger=$innsendinger)"
+    }
+
     companion object {
         fun ny(innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) =
             NyInnsending(InnsendingType.NY_DIALOG, innsendt, dokumentkrav)

@@ -92,6 +92,9 @@ class Dokumentkrav private constructor(
     fun ferdigstilt(): Boolean = aktiveDokumentKrav().all { it.ferdigStilt() }
     fun ferdigBesvart() = aktiveDokumentKrav().all { it.besvart() }
     fun ingen() = krav.isEmpty()
+    override fun toString(): String {
+        return "Dokumentkrav(krav=$krav)"
+    }
 }
 
 data class Krav(

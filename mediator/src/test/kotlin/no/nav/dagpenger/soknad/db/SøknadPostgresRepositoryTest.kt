@@ -426,6 +426,6 @@ internal class SøknadPostgresRepositoryTest {
     }
 
     private fun assertDeepEquals(expected: Søknad, result: Søknad) {
-        assertTrue(expected.deepEquals(result), "Søknadene var ikke like")
+        assertTrue(expected.deepEquals(result), "Søknadene var ikke like. Forventet: $expected  Faktisk: $result")
     }
 }
