@@ -32,7 +32,9 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
+import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class SøknadPostgresRepositoryTest {
@@ -52,6 +54,8 @@ internal class SøknadPostgresRepositoryTest {
     private val krav = Krav(
         sannsynliggjøring
     )
+
+    private val now = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.SECONDS)
     val ident = "12345678910"
     val søknad = Søknad.rehydrer(
         søknadId = søknadId,
@@ -60,7 +64,7 @@ internal class SøknadPostgresRepositoryTest {
         dokumentkrav = Dokumentkrav.rehydrer(
             krav = setOf(krav)
         ),
-        sistEndretAvBruker = ZonedDateTime.now(),
+        sistEndretAvBruker = now,
         tilstandsType = Søknad.Tilstand.Type.Påbegynt,
         aktivitetslogg = Aktivitetslogg(),
         null
@@ -75,13 +79,13 @@ internal class SøknadPostgresRepositoryTest {
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav)
             ),
-            sistEndretAvBruker = ZonedDateTime.now().minusDays(1),
+            sistEndretAvBruker = now.minusDays(1),
             tilstandsType = Søknad.Tilstand.Type.Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             innsending = NyInnsending.rehydrer(
                 UUID.randomUUID(),
                 Innsending.InnsendingType.NY_DIALOG,
-                ZonedDateTime.now(),
+                now,
                 "123123",
                 Innsending.TilstandType.Journalført,
                 Innsending.Dokument(
@@ -132,7 +136,7 @@ internal class SøknadPostgresRepositoryTest {
                     Ettersending.rehydrer(
                         UUID.randomUUID(),
                         Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG,
-                        ZonedDateTime.now(),
+                        now,
                         null,
                         Innsending.TilstandType.Opprettet,
                         null,
@@ -142,7 +146,7 @@ internal class SøknadPostgresRepositoryTest {
                     Ettersending.rehydrer(
                         UUID.randomUUID(),
                         Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG,
-                        ZonedDateTime.now(),
+                        now,
                         null,
                         Innsending.TilstandType.AvventerJournalføring,
                         null,
@@ -205,7 +209,7 @@ internal class SøknadPostgresRepositoryTest {
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav)
             ),
-            sistEndretAvBruker = ZonedDateTime.now().minusDays(1),
+            sistEndretAvBruker = now.minusDays(1),
             tilstandsType = Søknad.Tilstand.Type.Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             innsending = null
@@ -218,7 +222,10 @@ internal class SøknadPostgresRepositoryTest {
 
                 val rehydrertSannsynliggjøring = dokumentkrav.aktiveDokumentKrav().first().sannsynliggjøring
                 assertEquals(originalFaktumJson, rehydrertSannsynliggjøring.faktum().originalJson())
-                assertEquals(originalFaktumSomsannsynliggjøresFakta, rehydrertSannsynliggjøring.sannsynliggjør().first().originalJson())
+                assertEquals(
+                    originalFaktumSomsannsynliggjøresFakta,
+                    rehydrertSannsynliggjøring.sannsynliggjør().first().originalJson()
+                )
             }
         }
     }
@@ -230,7 +237,7 @@ internal class SøknadPostgresRepositoryTest {
             filnavn = "ja.jpg",
             urn = URN.rfc8141().parse("urn:vedlegg:1111/12345"),
             storrelse = 50000,
-            tidspunkt = ZonedDateTime.now()
+            tidspunkt = now
         )
         withMigratedDb {
             val søknadPostgresRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
@@ -270,7 +277,7 @@ internal class SøknadPostgresRepositoryTest {
 
     @Test
     fun `livssyklus til dokumentasjonskrav svar`() {
-        val tidspunkt = ZonedDateTime.now()
+        val tidspunkt = now
         val fil1 = Krav.Fil(
             filnavn = "ja.jpg",
             urn = URN.rfc8141().parse("urn:vedlegg:1111/12345"),
