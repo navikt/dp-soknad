@@ -2,9 +2,9 @@ package no.nav.dagpenger.soknad
 
 import de.slub.urn.URN
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
-import no.nav.dagpenger.soknad.hendelse.BrevkodeMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
+import no.nav.dagpenger.soknad.hendelse.SkjemakodeMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import java.time.ZonedDateTime
@@ -79,7 +79,7 @@ abstract class Innsending protected constructor(
         tilstand.håndter(hendelse, this)
     }
 
-    fun håndter(hendelse: BrevkodeMottattHendelse) {
+    fun håndter(hendelse: SkjemakodeMottattHendelse) {
         innsendinger.forEach { it._håndter(hendelse) }
     }
 
@@ -95,7 +95,7 @@ abstract class Innsending protected constructor(
         innsendinger.forEach { it._håndter(hendelse) }
     }
 
-    private fun _håndter(hendelse: BrevkodeMottattHendelse) {
+    private fun _håndter(hendelse: SkjemakodeMottattHendelse) {
         if (hendelse.innsendingId != this.innsendingId) return
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
@@ -136,7 +136,7 @@ abstract class Innsending protected constructor(
         fun håndter(hendelse: SøknadInnsendtHendelse, innsending: Innsending) =
             hendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(hendelse: BrevkodeMottattHendelse, innsending: Innsending) =
+        fun håndter(hendelse: SkjemakodeMottattHendelse, innsending: Innsending) =
             hendelse.`kan ikke håndteres i denne tilstanden`()
 
         fun håndter(hendelse: ArkiverbarSøknadMottattHendelse, innsending: Innsending) =
@@ -174,12 +174,12 @@ abstract class Innsending protected constructor(
         override fun entering(hendelse: Hendelse, innsending: Innsending) {
             if (innsending.brevkode != null) return innsending.endreTilstand(AvventerArkiverbarSøknad, hendelse)
             hendelse.behov(
-                Aktivitetslogg.Aktivitet.Behov.Behovtype.InnsendingBrevkode,
+                Aktivitetslogg.Aktivitet.Behov.Behovtype.Skjemakode,
                 "Trenger metadata/klassifisering av innsending"
             )
         }
 
-        override fun håndter(hendelse: BrevkodeMottattHendelse, innsending: Innsending) {
+        override fun håndter(hendelse: SkjemakodeMottattHendelse, innsending: Innsending) {
             innsending.brevkode = hendelse.brevkode
             innsending.endreTilstand(AvventerArkiverbarSøknad, hendelse)
         }

@@ -13,10 +13,10 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
-import no.nav.dagpenger.soknad.livssyklus.InnsendingBrevkodeMottak
 import no.nav.dagpenger.soknad.livssyklus.JournalførtMottak
 import no.nav.dagpenger.soknad.livssyklus.NyJournalpostMottak
 import no.nav.dagpenger.soknad.livssyklus.PåbegyntSøknad
+import no.nav.dagpenger.soknad.livssyklus.SkjemakodeMottak
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak
@@ -74,7 +74,7 @@ internal class SøknadMediatorTest {
         ArkiverbarSøknadMottattHendelseMottak(testRapid, mediator)
         NyJournalpostMottak(testRapid, mediator)
         JournalførtMottak(testRapid, mediator)
-        InnsendingBrevkodeMottak(testRapid, mediator)
+        SkjemakodeMottak(testRapid, mediator)
     }
 
     @Test
@@ -99,7 +99,7 @@ internal class SøknadMediatorTest {
         assertEquals(AvventerBrevkode, oppdatertInspektør().gjeldendeInnsendingTilstand)
         assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
 
-        assertEquals(listOf("InnsendingBrevkode"), behov(2))
+        assertEquals(listOf("Skjemakode"), behov(2))
 
         testRapid.sendTestMessage(
             innsendingBrevkodeLøsning(
@@ -165,7 +165,7 @@ internal class SøknadMediatorTest {
   "@event_name": "behov",
   "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
   "@behov": [
-    "InnsendingBrevkode"
+    "Skjemakode"
   ],
   "ident": "$ident",
   "søknad_uuid": "$søknadUuid",
@@ -181,7 +181,7 @@ internal class SøknadMediatorTest {
     }
   ],
   "@løsning": {
-    "InnsendingBrevkode": {
+    "Skjemakode": {
       "tittel": "Søknad om dagpenger",
       "skjemakode": "04.04-01"
     }

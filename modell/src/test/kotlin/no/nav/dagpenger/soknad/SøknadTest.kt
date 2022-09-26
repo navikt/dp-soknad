@@ -14,12 +14,12 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
-import no.nav.dagpenger.soknad.hendelse.BrevkodeMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
+import no.nav.dagpenger.soknad.hendelse.SkjemakodeMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
@@ -113,7 +113,7 @@ internal class SøknadTest {
         )
 
         assertBehov(
-            Behovtype.InnsendingBrevkode,
+            Behovtype.Skjemakode,
             mapOf(
                 "type" to "NY_DIALOG",
                 "søknad_uuid" to inspektør.søknadId.toString(),
@@ -304,7 +304,7 @@ internal class SøknadTest {
 
     private fun håndterInnsendingBrevkode() {
         søknad.håndter(
-            BrevkodeMottattHendelse(
+            SkjemakodeMottattHendelse(
                 inspektør.innsendingId,
                 inspektør.søknadId,
                 testIdent,

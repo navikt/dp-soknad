@@ -1,22 +1,22 @@
 package no.nav.dagpenger.soknad.livssyklus
 
 import mu.KotlinLogging
-import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.InnsendingBrevkode
+import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.Skjemakode
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.hendelse.BrevkodeMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.SkjemakodeMottattHendelse
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 
-internal class InnsendingBrevkodeMottak(rapidsConnection: RapidsConnection, private val mediator: SøknadMediator) :
+internal class SkjemakodeMottak(rapidsConnection: RapidsConnection, private val mediator: SøknadMediator) :
     River.PacketListener {
 
     companion object {
         private val logger = KotlinLogging.logger {}
     }
 
-    private val behov = InnsendingBrevkode.name
+    private val behov = Skjemakode.name
 
     init {
         River(rapidsConnection).apply {
@@ -36,7 +36,7 @@ internal class InnsendingBrevkodeMottak(rapidsConnection: RapidsConnection, priv
         val innsendingId = packet["innsendingId"].asUUID()
         val ident = packet["ident"].asText()
         mediator.behandle(
-            BrevkodeMottattHendelse(
+            SkjemakodeMottattHendelse(
                 innsendingId = innsendingId,
                 søknadID = søknadID,
                 ident = ident,

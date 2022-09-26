@@ -4,7 +4,7 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Innsending.Brevkode
 import java.util.UUID
 
-class BrevkodeMottattHendelse(
+class SkjemakodeMottattHendelse(
     innsendingId: UUID,
     val søknadID: UUID,
     val ident: String,
