@@ -98,4 +98,8 @@ class NyInnsending private constructor(
     override fun equals(other: Any?): Boolean {
         return other is NyInnsending && super.equals(other) && ettersendinger == other.ettersendinger
     }
+
+    override fun toString(): String {
+        return "${super.toString()} NyInnsending(ettersendinger=$ettersendinger)"
+    }
 }

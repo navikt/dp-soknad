@@ -68,4 +68,8 @@ class Ettersending private constructor(
             )
         }
     }
+
+    override fun toString(): String {
+        return "Ettersending: ${super.toString()}"
+    }
 }

@@ -285,7 +285,7 @@ abstract class Innsending protected constructor(
         brevkode == other.brevkode
 
     override fun toString(): String {
-        return "Innsending(innsendingId=$innsendingId, type=$type, innsendt=$innsendt, journalpostId=$journalpostId, tilstand=$tilstand, hovedDokument=$hovedDokument, dokumenter=$dokumenter, brevkode=$brevkode, innsendinger=$innsendinger)"
+        return "Innsending(innsendingId=$innsendingId, type=$type, innsendt=$innsendt, journalpostId=$journalpostId, tilstand=$tilstand, hovedDokument=$hovedDokument, dokumenter=$dokumenter, brevkode=$brevkode )"
     }
 
     companion object {

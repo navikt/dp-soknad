@@ -422,7 +422,6 @@ class Søknad private constructor(
             this.dokumentkrav == other.dokumentkrav &&
             this.innsending == other.innsending
 
-
     private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: Hendelse) {
         if (nyTilstand == tilstand) {
             return // Vi er allerede i tilstanden
