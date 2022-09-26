@@ -23,7 +23,7 @@ jobs:
           arguments: check build installDist
 
       - name: Build with Gradle
-        run: ./gradlew build installDist --info
+        run: ./gradlew clean build installDist --info
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
