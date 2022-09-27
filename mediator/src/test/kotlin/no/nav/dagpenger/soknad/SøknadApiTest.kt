@@ -197,6 +197,14 @@ internal class SøknadApiTest {
                 assertEquals(HttpStatusCode.Forbidden, it.status)
                 assertEquals("application/json; charset=UTF-8", it.headers["Content-Type"])
             }
+
+            autentisert(
+                "${Configuration.basePath}/soknad/$søknadId",
+                httpMethod = HttpMethod.Delete
+            ).let {
+                assertEquals(HttpStatusCode.Forbidden, it.status)
+                assertEquals("application/json; charset=UTF-8", it.headers["Content-Type"])
+            }
         }
     }
 
@@ -250,11 +258,12 @@ internal class SøknadApiTest {
 
     @Test
     fun `Skal kunne slette påbegynt søknad`() {
-        val søknadUuid = UUID.fromString("d172a832-4f52-4e1f-ab5f-8be8348d9280")
+        val søknadUuid = UUID.randomUUID()
         val mockSøknadMediator = mockk<SøknadMediator>().also {
             justRun {
                 it.behandle(any<SlettSøknadHendelse>())
             }
+            coEvery { it.hentEier(søknadUuid) } returns defaultDummyFodselsnummer
         }
 
         TestApplication.withMockAuthServerAndTestApplication(
