@@ -48,17 +48,14 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 queryOf(
                     //language=PostgreSQL
                     statement = """
-                    SELECT p.ident
-                    FROM  person_v1 p
-                    INNER JOIN soknad_v1 s
-                    ON p.ident = s.person_ident 
-                    WHERE s.uuid = :uuid
-                    
+                    SELECT person_ident
+                    FROM  soknad_v1
+                    WHERE uuid = :uuid
                     """.trimIndent(),
                     paramMap = mapOf(
                         "uuid" to søknadId
                     )
-                ).map { it.stringOrNull("ident") }.asSingle
+                ).map { it.stringOrNull("person_ident") }.asSingle
             )
         }
     }
