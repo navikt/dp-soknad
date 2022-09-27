@@ -11,13 +11,16 @@ import mu.withLoggingContext
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.søknadUuid
+import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
 
 internal fun Route.ferdigstillSøknadRoute(søknadMediator: SøknadMediator) {
+    val validator = SøknadEierValidator(søknadMediator)
     put("/{søknad_uuid}/ferdigstill") {
         val søknadUuid = søknadUuid()
         val ident = call.ident()
         withLoggingContext("søknadid" to søknadUuid.toString()) {
+            validator.valider(søknadUuid, ident)
             val søknadInnsendtHendelse = SøknadInnsendtHendelse(søknadUuid, ident)
             call.receive<JsonNode>().let {
                 søknadMediator.lagreSøknadsTekst(søknadUuid, it.toString())

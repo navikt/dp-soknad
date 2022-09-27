@@ -6,6 +6,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
@@ -89,6 +90,7 @@ internal class SøknadApiTest {
                 it.behandle(capture(slot))
                 it.lagreSøknadsTekst(testSøknadUuid, any())
             }
+            coEvery { it.hentEier(any()) } returns TestApplication.defaultDummyFodselsnummer
         }
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -113,7 +115,9 @@ internal class SøknadApiTest {
     @Test
     fun `Kan bare sende json`() {
         val testSøknadUuid = UUID.randomUUID()
-        val søknadMediatorMock = mockk<SøknadMediator>()
+        val søknadMediatorMock = mockk<SøknadMediator>().also {
+            every { it.hentEier(any()) } returns TestApplication.defaultDummyFodselsnummer
+        }
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
