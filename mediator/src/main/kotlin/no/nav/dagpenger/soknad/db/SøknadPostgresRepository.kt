@@ -42,6 +42,25 @@ import javax.sql.DataSource
 
 class SøknadPostgresRepository(private val dataSource: DataSource) :
     SøknadRepository {
+
+    override fun hent(søknadId: UUID): Søknad? {
+        return using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf(
+                    //language=PostgreSQL
+                    statement = """
+                    SELECT uuid, tilstand, spraak, sist_endret_av_bruker, person_ident
+                    FROM  soknad_v1
+                    WHERE uuid = :uuid
+                    """.trimIndent(),
+                    paramMap = mapOf(
+                        "uuid" to søknadId
+                    )
+                ).map(rowToSøknadDTO(session)).asSingle
+            )?.rehydrer()
+        }
+    }
+
     override fun hent(søknadId: UUID, ident: String): Søknad? {
         return using(sessionOf(dataSource)) { session ->
             session.run(
@@ -136,6 +155,9 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         }
     }
 
+    private fun rowToSøknadDTO(session: Session) =
+        { row: Row -> rowToSøknadDTO(row.string("person_ident"), session).invoke(row) }
+
     private fun rowToSøknadDTO(
         ident: String,
         session: Session
@@ -150,7 +172,8 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             dokumentkrav = SøknadDTO.DokumentkravDTO(
                 session.hentDokumentKrav(søknadsId)
             ),
-            sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")?.withZoneSameInstant(ZoneId.of("Europe/Oslo")),
+            sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")
+                ?.withZoneSameInstant(ZoneId.of("Europe/Oslo")),
             innsendingDTO = session.hentInnsending(søknadsId),
             aktivitetslogg = session.hentAktivitetslogg(søknadsId)
         )

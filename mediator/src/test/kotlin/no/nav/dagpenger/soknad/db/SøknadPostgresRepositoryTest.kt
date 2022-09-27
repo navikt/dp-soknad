@@ -171,13 +171,16 @@ internal class SøknadPostgresRepositoryTest {
                 assertAntallRader("hoveddokument_v1", 1)
                 assertAntallRader("ettersending_v1", 2)
                 assertAntallRader("dokumentvariant_v1", 4)
-                val rehydrertSøknad: Søknad? = søknadPostgresRepository.hent(søknadId, ident)
-                assertNotNull(rehydrertSøknad)
-                assertDeepEquals(rehydrertSøknad, søknad)
-                // TODO: Flytt tilgangskontroll til API-lag
-                /*assertThrows<IkkeTilgangExeption> {
-                    søknadPostgresRepository.hent(søknadId, "ikke-tilgang")
-                }*/
+
+                søknadPostgresRepository.hent(søknadId, ident).let { rehydrertSøknad ->
+                    assertNotNull(rehydrertSøknad)
+                    assertDeepEquals(rehydrertSøknad, søknad)
+                }
+
+                søknadPostgresRepository.hent(søknadId).let { rehydrertSøknad ->
+                    assertNotNull(rehydrertSøknad)
+                    assertDeepEquals(rehydrertSøknad, søknad)
+                }
             }
         }
     }
