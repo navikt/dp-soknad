@@ -42,6 +42,10 @@ internal class SøknadMediatorTest {
     private object TestSøknadRepository : SøknadRepository {
 
         private val søknader = mutableListOf<Søknad>()
+        override fun hentEier(søknadId: UUID): String? {
+            TODO("Not yet implemented")
+        }
+
         override fun hent(søknadId: UUID, ident: String): Søknad? {
             return søknader.find { it.søknadUUID() == søknadId }
         }

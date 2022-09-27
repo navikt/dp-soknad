@@ -28,6 +28,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:5.0.1") //  @todo update HikariCP in service-template
     implementation("org.postgresql:postgresql:42.3.3") //  @todo update postgresql in service-template
     implementation(Database.Kotlinquery)
+    implementation("com.github.ben-manes.caffeine:caffeine:3.1.1")
 
     testImplementation(Ktor2.Server.library("test-host"))
     testImplementation(Ktor2.Client.library("mock"))

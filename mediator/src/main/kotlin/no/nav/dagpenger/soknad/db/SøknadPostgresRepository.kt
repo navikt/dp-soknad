@@ -42,6 +42,10 @@ import javax.sql.DataSource
 
 class SøknadPostgresRepository(private val dataSource: DataSource) :
     SøknadRepository {
+    override fun hentEier(søknadId: UUID): String? {
+        TODO("Not yet implemented")
+    }
+
     override fun hent(søknadId: UUID, ident: String): Søknad? {
         return using(sessionOf(dataSource)) { session ->
             session.run(
@@ -150,7 +154,8 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             dokumentkrav = SøknadDTO.DokumentkravDTO(
                 session.hentDokumentKrav(søknadsId)
             ),
-            sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")?.withZoneSameInstant(ZoneId.of("Europe/Oslo")),
+            sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")
+                ?.withZoneSameInstant(ZoneId.of("Europe/Oslo")),
             innsendingDTO = session.hentInnsending(søknadsId),
             aktivitetslogg = session.hentAktivitetslogg(søknadsId)
         )
