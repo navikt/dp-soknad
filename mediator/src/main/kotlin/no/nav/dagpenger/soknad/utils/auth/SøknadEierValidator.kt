@@ -18,7 +18,7 @@ internal class SøknadEierValidator(private val mediator: SøknadMediator) {
             .recordStats()
             .build<UUID, String>()
             .also {
-                CaffeineCacheMetrics.monitor(Metrics.globalRegistry, it, "SoknadEier");
+                CaffeineCacheMetrics.monitor(Metrics.globalRegistry, it, "SoknadEier")
             }
     }
 
