@@ -6,7 +6,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
@@ -90,7 +89,7 @@ internal class SøknadApiTest {
                 it.behandle(capture(slot))
                 it.lagreSøknadsTekst(testSøknadUuid, any())
             }
-            coEvery { it.hentEier(any()) } returns defaultDummyFodselsnummer
+            every { it.hentEier(any()) } returns defaultDummyFodselsnummer
         }
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -143,7 +142,7 @@ internal class SøknadApiTest {
             every { it.asFrontendformat() } returns objectMapper.readTree(frontendformat)
         }
         val mockSøknadMediator = mockk<SøknadMediator>().also { søknadMediator ->
-            every { søknadMediator.hent(testSøknadUuid) } returns søkerOppgave
+            every { søknadMediator.hentSøkerOppgave(testSøknadUuid) } returns søkerOppgave
             every { søknadMediator.hentEier(testSøknadUuid) } returns defaultDummyFodselsnummer
         }
         TestApplication.withMockAuthServerAndTestApplication(
@@ -263,7 +262,7 @@ internal class SøknadApiTest {
             justRun {
                 it.behandle(any<SlettSøknadHendelse>())
             }
-            coEvery { it.hentEier(søknadUuid) } returns defaultDummyFodselsnummer
+            every { it.hentEier(søknadUuid) } returns defaultDummyFodselsnummer
         }
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -332,7 +331,7 @@ internal class SøknadApiTest {
 
     @Test
     fun `Skal avvise uautentiserte kall`() {
-        TestApplication.withMockAuthServerAndTestApplication() {
+        TestApplication.withMockAuthServerAndTestApplication {
             assertEquals(
                 HttpStatusCode.Unauthorized,
                 client.get("${Configuration.basePath}/soknad/mal").status

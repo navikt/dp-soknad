@@ -42,7 +42,7 @@ class SøkerOppgaveMottakTest {
             val ident = "01234567891"
             søknadMediator.behandle(ØnskeOmNySøknadHendelse(søknadUuid, ident, språkVerdi))
             testRapid.sendTestMessage(nySøknad(søknadUuid, ident))
-            søknadMediator.hent(søknadUuid).also {
+            søknadMediator.hentSøkerOppgave(søknadUuid).also {
                 assertDoesNotThrow {
                     val seksjoner = it!!.asFrontendformat()["seksjoner"]
                     assertEquals(1, seksjoner.size())
@@ -53,10 +53,10 @@ class SøkerOppgaveMottakTest {
                 }
             }
             assertDoesNotThrow {
-                søknadMediator.hent(søknadUuid, sistLagretEtter = LocalDateTime.now().minusMinutes(2))
+                søknadMediator.hentSøkerOppgave(søknadUuid, sistLagretEtter = LocalDateTime.now().minusMinutes(2))
             }
             assertThrows<NotFoundException> {
-                søknadMediator.hent(søknadUuid, sistLagretEtter = LocalDateTime.now().plusMinutes(2))
+                søknadMediator.hentSøkerOppgave(søknadUuid, sistLagretEtter = LocalDateTime.now().plusMinutes(2))
             }
         }
     }

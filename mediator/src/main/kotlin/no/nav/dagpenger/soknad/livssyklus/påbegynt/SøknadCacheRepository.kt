@@ -14,7 +14,7 @@ import javax.sql.DataSource
 interface SøknadCacheRepository {
     fun lagre(søkerOppgave: SøkerOppgave)
     fun slett(søknadUUID: UUID): Boolean
-    fun hent(søknadUUID: UUID, sistLagretEtter: LocalDateTime? = null): SøkerOppgave?
+    fun hentSøkerOppgave(søknadUUID: UUID, sistLagretEtter: LocalDateTime? = null): SøkerOppgave?
     fun besvart(søknadUUID: UUID, besvart: LocalDateTime): Int
 }
 
@@ -62,7 +62,7 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
         }
     }
 
-    override fun hent(søknadUUID: UUID, sistLagretEtter: LocalDateTime?): SøkerOppgave {
+    override fun hentSøkerOppgave(søknadUUID: UUID, sistLagretEtter: LocalDateTime?): SøkerOppgave {
         return using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf(

@@ -27,6 +27,5 @@ internal fun Route.nesteSøkeroppgaveRoute(søknadMediator: SøknadMediator) {
 
 private suspend fun hentNesteSøkerOppgave(søknadMediator: SøknadMediator, id: UUID, sistLagret: LocalDateTime?) =
     retryIO(times = 15) {
-        søknadMediator.hent(id, sistLagret)
-            ?: throw NotFoundException("Fant ikke søker_oppgave for søknad med id $id med sistLagret=$sistLagret")
+        søknadMediator.hentSøkerOppgave(id, sistLagret) ?: throw NotFoundException("Fant ikke søker_oppgave for søknad med id $id med sistLagret=$sistLagret")
     }
