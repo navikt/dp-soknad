@@ -11,6 +11,7 @@ import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.søknadUuid
+import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
 import java.time.LocalDateTime
 import kotlin.system.measureTimeMillis
@@ -18,12 +19,14 @@ import kotlin.system.measureTimeMillis
 private val logger = KotlinLogging.logger {}
 
 internal fun Route.besvarFaktumRoute(søknadMediator: SøknadMediator) {
+    val validator = SøknadEierValidator(søknadMediator)
     put("/{søknad_uuid}/faktum/{faktumid}") {
         val tidBrukt = measureTimeMillis {
             val søknadUuid = søknadUuid()
             val ident = call.ident()
             val faktumId = faktumId()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
+                validator.valider(søknadUuid, ident)
                 val input = GyldigSvar(call.receive())
                 logger.info { "Besvarer faktum= $faktumId, type=${input.type} svar=${if (input.type !== "tekst") input.svarAsJson.toString() else "Viser ikke svar på fritekst"}" }
                 val faktumSvar = FaktumSvar(
