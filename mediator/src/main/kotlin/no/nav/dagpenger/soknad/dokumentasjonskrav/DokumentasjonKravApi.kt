@@ -6,6 +6,7 @@ import de.slub.urn.URN
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
+import io.ktor.server.auth.authenticate
 import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -37,15 +38,24 @@ private val logger = KotlinLogging.logger { }
 
 internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
     val validator = SøknadEierValidator(søknadMediator)
+
     route("/{søknad_uuid}/dokumentasjonskrav") {
-        get {
-            val søknadUuid = søknadUuid()
-            val ident = call.ident()
-            withLoggingContext("søknadid" to søknadUuid.toString()) {
-                validator.valider(søknadUuid, ident)
-                val søknad =
-                    søknadMediator.hent(søknadUuid, ident) ?: throw NotFoundException("Dokumentasjon ikke funnet")
-                call.respond(ApiDokumentkravResponse(søknad))
+        authenticate("azureAd", "tokenX") {
+            get {
+                val søknadUuid = søknadUuid()
+                withLoggingContext("søknadid" to søknadUuid.toString()) {
+                    // todo ikke baser logikk på exceptions
+                    kotlin.runCatching { call.ident() }
+                        .onFailure {
+                            // todo Antar at det er gyldig azureAd token.  Valider mot azp?
+                        }
+                        .onSuccess { ident ->
+                            validator.valider(søknadUuid, ident)
+                        }
+                    val søknad =
+                        søknadMediator.hent(søknadUuid) ?: throw NotFoundException("Dokumentasjon ikke funnet")
+                    call.respond(ApiDokumentkravResponse(søknad))
+                }
             }
         }
         put("/{kravId}/fil") {

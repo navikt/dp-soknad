@@ -103,16 +103,25 @@ internal class DokumentasjonKravApiTest {
     )
 
     private val søknadMediatorMock = mockk<SøknadMediator>().also {
-        every { it.hent(testSoknadId, defaultDummyFodselsnummer) } returns søknad
+        every { it.hent(testSoknadId) } returns søknad
         every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
     }
 
     @Test
     fun `Skal avvise uautentiserte kall`() {
+        val søknadId = UUID.randomUUID()
         TestApplication.withMockAuthServerAndTestApplication {
             assertEquals(
                 HttpStatusCode.Unauthorized,
                 client.get("${Configuration.basePath}/soknad/id/dokumentasjonskrav").status
+            )
+
+            assertEquals(
+                HttpStatusCode.Unauthorized,
+                autentisert(
+                    "${Configuration.basePath}/soknad/$søknadId/dokumentasjonskrav",
+                    token = "hubba"
+                ).status
             )
         }
     }
@@ -143,7 +152,16 @@ internal class DokumentasjonKravApiTest {
         ) {
             autentisert(
                 httpMethod = Get,
-                endepunkt = "${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav"
+                endepunkt = "${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav",
+                token = TestApplication.azureAdToken
+            ).let { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+            }
+
+            autentisert(
+                httpMethod = Get,
+                endepunkt = "${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav",
+                token = TestApplication.testTokenXToken
             ).let { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
                 assertEquals("application/json; charset=UTF-8", response.contentType().toString())
