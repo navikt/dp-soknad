@@ -60,7 +60,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         }
     }
 
-
     override fun hent(søknadId: UUID): Søknad? {
         return using(sessionOf(dataSource)) { session ->
             session.run(
