@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad.livssyklus.ferdigstilling
 
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.plugins.NotFoundException
@@ -31,6 +32,14 @@ internal class FerdigstiltSøknadApiTest {
                 HttpStatusCode.Unauthorized,
                 client.get("${Configuration.basePath}/${UUID.randomUUID()}/ferdigstilt/fakta").status
             )
+            assertEquals(
+                HttpStatusCode.Unauthorized,
+                autentisert(
+                    endepunkt = "${Configuration.basePath}/${UUID.randomUUID()}/ferdigstilt/fakta",
+                    token = TestApplication.testTokenXToken,
+                    httpMethod = HttpMethod.Get
+                ).status
+            )
         }
     }
 
@@ -40,12 +49,14 @@ internal class FerdigstiltSøknadApiTest {
             assertEquals(
                 HttpStatusCode.OK,
                 autentisert(
+                    token = TestApplication.azureAdToken,
                     endepunkt = "${Configuration.basePath}/${UUID.randomUUID()}/ferdigstilt/tekst"
                 ).status
             )
             assertEquals(
                 HttpStatusCode.OK,
                 autentisert(
+                    token = TestApplication.azureAdToken,
                     endepunkt = "${Configuration.basePath}/${UUID.randomUUID()}/ferdigstilt/tekst"
                 ).status
             )

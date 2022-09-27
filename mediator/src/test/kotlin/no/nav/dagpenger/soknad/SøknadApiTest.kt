@@ -70,7 +70,7 @@ internal class SøknadApiTest {
 
             autentisert(
                 endepunkt = "${Configuration.basePath}/soknad",
-                token = TestApplication.getToken("12345678910"),
+                token = TestApplication.getTokenXToken("12345678910"),
                 httpMethod = HttpMethod.Post
             ).apply {
                 assertEquals(HttpStatusCode.OK, this.status)

@@ -20,8 +20,9 @@ import no.nav.dagpenger.soknad.personalia.personaliaRouteBuilder
 import no.nav.security.mock.oauth2.MockOAuth2Server
 
 object TestApplication {
-    private const val ISSUER_ID = "default"
-    private const val CLIENT_ID = "default"
+    private const val TOKENX_ISSUER_ID = "tokenx"
+    private const val CLIENT_ID = "dp-soknad"
+    private const val AZURE_ISSUER_ID = "azuread"
     const val defaultDummyFodselsnummer = "12345"
 
     private val mockOAuth2Server: MockOAuth2Server by lazy {
@@ -30,16 +31,25 @@ object TestApplication {
         }
     }
 
-    private val testOAuthToken: String by lazy {
+    internal val testTokenXToken: String by lazy {
         mockOAuth2Server.issueToken(
-            issuerId = ISSUER_ID,
+            issuerId = TOKENX_ISSUER_ID,
+            audience = CLIENT_ID,
             claims = mapOf("pid" to defaultDummyFodselsnummer)
         ).serialize()
     }
 
-    internal fun getToken(pid: String): String {
+    internal val azureAdToken: String by lazy {
+        mockOAuth2Server.issueToken(
+            issuerId = AZURE_ISSUER_ID,
+            audience = CLIENT_ID,
+        ).serialize()
+    }
+
+    internal fun getTokenXToken(pid: String): String {
         return mockOAuth2Server.issueToken(
-            issuerId = ISSUER_ID,
+            issuerId = TOKENX_ISSUER_ID,
+            audience = CLIENT_ID,
             claims = mapOf("pid" to pid)
         ).serialize()
     }
@@ -66,9 +76,9 @@ object TestApplication {
         test: suspend ApplicationTestBuilder.() -> Unit
     ) {
         System.setProperty("token-x.client-id", CLIENT_ID)
-        System.setProperty("token-x.well-known-url", "${mockOAuth2Server.wellKnownUrl(ISSUER_ID)}")
+        System.setProperty("token-x.well-known-url", "${mockOAuth2Server.wellKnownUrl(TOKENX_ISSUER_ID)}")
         System.setProperty("azure-app.client-id", CLIENT_ID)
-        System.setProperty("azure-app.well-known-url", "${mockOAuth2Server.wellKnownUrl(ISSUER_ID)}")
+        System.setProperty("azure-app.well-known-url", "${mockOAuth2Server.wellKnownUrl(AZURE_ISSUER_ID)}")
 
         return testApplication {
             application(moduleFunction)
@@ -76,13 +86,13 @@ object TestApplication {
         }
     }
 
-    internal fun HttpRequestBuilder.autentisert(token: String = testOAuthToken) {
+    internal fun HttpRequestBuilder.autentisert(token: String = testTokenXToken) {
         this.header(HttpHeaders.Authorization, "Bearer $token")
     }
 
     internal suspend fun ApplicationTestBuilder.autentisert(
         endepunkt: String,
-        token: String = testOAuthToken,
+        token: String = testTokenXToken,
         httpMethod: HttpMethod = HttpMethod.Get,
         body: String? = null,
     ): HttpResponse {
