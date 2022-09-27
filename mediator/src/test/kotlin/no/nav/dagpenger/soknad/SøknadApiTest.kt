@@ -139,7 +139,7 @@ internal class SøknadApiTest {
             every { it.asFrontendformat() } returns objectMapper.readTree(frontendformat)
         }
         val mockSøknadMediator = mockk<SøknadMediator>().also { søknadMediator ->
-            every { søknadMediator.hent(UUID.fromString("d172a832-4f52-4e1f-ab5f-8be8348d9280")) } returns søkerOppgave
+            every { søknadMediator.hentSøkerOppgave(UUID.fromString("d172a832-4f52-4e1f-ab5f-8be8348d9280")) } returns søkerOppgave
         }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -164,7 +164,7 @@ internal class SøknadApiTest {
         }
         val id = "d172a832-4f52-4e1f-ab5f-8be8348d9280"
         val mockSøknadMediator = mockk<SøknadMediator>().also { søknadMediator ->
-            every { søknadMediator.hent(UUID.fromString(id)) } returns søkerOppgave
+            every { søknadMediator.hentSøkerOppgave(UUID.fromString(id)) } returns søkerOppgave
         }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(

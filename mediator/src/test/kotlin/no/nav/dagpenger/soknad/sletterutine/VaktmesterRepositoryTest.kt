@@ -123,7 +123,7 @@ internal class VaktmesterRepositoryTest {
     }
 
     private fun assertCacheSlettet(søknadUuid: UUID, søknadCacheRepository: SøknadCachePostgresRepository) {
-        assertThrows<NotFoundException> { søknadCacheRepository.hent(søknadUuid) }
+        assertThrows<NotFoundException> { søknadCacheRepository.hentSøkerOppgave(søknadUuid) }
     }
 
     private fun aktivitetsloggFinnes(søknadUuid: UUID): Boolean {

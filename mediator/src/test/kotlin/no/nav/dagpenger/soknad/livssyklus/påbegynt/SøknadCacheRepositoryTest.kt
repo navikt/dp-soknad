@@ -27,7 +27,7 @@ class SøknadCacheRepositoryTest {
             val søknad = PersistentSøkerOppgave(søknad(søknadUuid))
             søknadCache.lagre(søknad)
 
-            val rehydrertSøknad = søknadCache.hent(søknadUuid)
+            val rehydrertSøknad = søknadCache.hentSøkerOppgave(søknadUuid)
             assertEquals(søknad.søknadUUID(), rehydrertSøknad.søknadUUID())
             assertEquals(søknad.eier(), rehydrertSøknad.eier())
             assertEquals(søknad.asFrontendformat(), rehydrertSøknad.asFrontendformat())
@@ -58,7 +58,7 @@ class SøknadCacheRepositoryTest {
                 )
             )
 
-            val rehydrertSøknad = søknadCache.hent(søknadUuid)
+            val rehydrertSøknad = søknadCache.hentSøkerOppgave(søknadUuid)
 
             assertEquals(søknadUuid, rehydrertSøknad.søknadUUID())
             assertEquals("12345678910", rehydrertSøknad.eier())
@@ -73,7 +73,7 @@ class SøknadCacheRepositoryTest {
     fun `Henter en søknad som ikke finnes`() {
         withMigratedDb {
             val søknadCache = SøknadCachePostgresRepository(dataSource)
-            assertThrows<NotFoundException> { søknadCache.hent(UUID.randomUUID()) }
+            assertThrows<NotFoundException> { søknadCache.hentSøkerOppgave(UUID.randomUUID()) }
         }
     }
 
