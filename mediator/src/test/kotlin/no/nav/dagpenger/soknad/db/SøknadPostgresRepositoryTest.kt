@@ -72,6 +72,18 @@ internal class SøknadPostgresRepositoryTest {
     )
 
     @Test
+    fun `Henting av eier til søknad`() {
+        withMigratedDb {
+            SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).let { repository ->
+                repository.lagre(søknad)
+
+                assertEquals(ident, repository.hentEier(søknad.søknadUUID()))
+                assertNull(repository.hentEier(UUID.randomUUID()))
+            }
+        }
+    }
+
+    @Test
     fun `Lagre og hente søknad med dokument, dokumentkrav, innsending og aktivitetslogg`() {
         val søknad = Søknad.rehydrer(
             søknadId = søknadId,

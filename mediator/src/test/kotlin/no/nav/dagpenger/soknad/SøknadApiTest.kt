@@ -6,6 +6,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
@@ -89,6 +90,7 @@ internal class SøknadApiTest {
                 it.behandle(capture(slot))
                 it.lagreSøknadsTekst(testSøknadUuid, any())
             }
+            coEvery { it.hentEier(any()) } returns defaultDummyFodselsnummer
         }
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -113,7 +115,9 @@ internal class SøknadApiTest {
     @Test
     fun `Kan bare sende json`() {
         val testSøknadUuid = UUID.randomUUID()
-        val søknadMediatorMock = mockk<SøknadMediator>()
+        val søknadMediatorMock = mockk<SøknadMediator>().also {
+            every { it.hentEier(any()) } returns defaultDummyFodselsnummer
+        }
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -132,14 +136,15 @@ internal class SøknadApiTest {
 
     @Test
     fun `Skal hente søknad fakta`() {
+        val testSøknadUuid = UUID.randomUUID()
         // language=JSON
         val frontendformat = """{"id":"blabla"}"""
         val søkerOppgave = mockk<SøkerOppgave>().also {
-            every { it.eier() } returns defaultDummyFodselsnummer
             every { it.asFrontendformat() } returns objectMapper.readTree(frontendformat)
         }
         val mockSøknadMediator = mockk<SøknadMediator>().also { søknadMediator ->
-            every { søknadMediator.hent(UUID.fromString("d172a832-4f52-4e1f-ab5f-8be8348d9280")) } returns søkerOppgave
+            every { søknadMediator.hent(testSøknadUuid) } returns søkerOppgave
+            every { søknadMediator.hentEier(testSøknadUuid) } returns defaultDummyFodselsnummer
         }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -147,7 +152,7 @@ internal class SøknadApiTest {
             )
         ) {
             autentisert(
-                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/neste"
+                "${Configuration.basePath}/soknad/$testSøknadUuid/neste"
             ).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
                 assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])
@@ -157,14 +162,11 @@ internal class SøknadApiTest {
     }
 
     @Test
-    fun `Skal avvise uautoriserte kall`() {
-        val søkerOppgave = mockk<SøkerOppgave>().also {
-            every { it.eier() } returns "en annen eier"
-            every { it.asFrontendformat() } returns objectMapper.nullNode()
-        }
-        val id = "d172a832-4f52-4e1f-ab5f-8be8348d9280"
+    fun `Skal avvise uautoriserte pga tokenx pid ikke eier søknad`() {
+        val søknadId = UUID.randomUUID()
+
         val mockSøknadMediator = mockk<SøknadMediator>().also { søknadMediator ->
-            every { søknadMediator.hent(UUID.fromString(id)) } returns søkerOppgave
+            every { søknadMediator.hentEier(søknadId) } returns "hubba"
         }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -172,10 +174,36 @@ internal class SøknadApiTest {
             )
         ) {
             autentisert(
-                "${Configuration.basePath}/soknad/$id/neste"
-            ).apply {
-                assertEquals(HttpStatusCode.Forbidden, this.status)
-                assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])
+                "${Configuration.basePath}/soknad/$søknadId/neste"
+            ).let {
+                assertEquals(HttpStatusCode.Forbidden, it.status)
+                assertEquals("application/json; charset=UTF-8", it.headers["Content-Type"])
+            }
+
+            autentisert(
+                "${Configuration.basePath}/soknad/$søknadId/ferdigstill",
+                httpMethod = HttpMethod.Put,
+                body = "{}"
+            ).let {
+                assertEquals(HttpStatusCode.Forbidden, it.status)
+                assertEquals("application/json; charset=UTF-8", it.headers["Content-Type"])
+            }
+
+            autentisert(
+                "${Configuration.basePath}/soknad/$søknadId/faktum/3000",
+                httpMethod = HttpMethod.Put,
+                body = """{"type": "boolean", "svar": true}"""
+            ).let {
+                assertEquals(HttpStatusCode.Forbidden, it.status)
+                assertEquals("application/json; charset=UTF-8", it.headers["Content-Type"])
+            }
+
+            autentisert(
+                "${Configuration.basePath}/soknad/$søknadId",
+                httpMethod = HttpMethod.Delete
+            ).let {
+                assertEquals(HttpStatusCode.Forbidden, it.status)
+                assertEquals("application/json; charset=UTF-8", it.headers["Content-Type"])
             }
         }
     }
@@ -202,17 +230,19 @@ internal class SøknadApiTest {
         delimiter = '|'
     )
     fun `Skal kunne lagre faktum`(id: String, status: Int) {
+        val søknadId = UUID.randomUUID()
         val mockSøknadMediator = mockk<SøknadMediator>().also {
             justRun {
                 it.behandle(any<FaktumSvar>())
             }
+            every { it.hentEier(søknadId) } returns defaultDummyFodselsnummer
         }
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(søknadMediator = mockSøknadMediator)
         ) {
             autentisert(
-                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/faktum/$id",
+                "${Configuration.basePath}/soknad/$søknadId/faktum/$id",
                 httpMethod = HttpMethod.Put,
                 body = """{"type": "boolean", "svar": true}"""
             ).apply {
@@ -228,11 +258,12 @@ internal class SøknadApiTest {
 
     @Test
     fun `Skal kunne slette påbegynt søknad`() {
-        val søknadUuid = UUID.fromString("d172a832-4f52-4e1f-ab5f-8be8348d9280")
+        val søknadUuid = UUID.randomUUID()
         val mockSøknadMediator = mockk<SøknadMediator>().also {
             justRun {
                 it.behandle(any<SlettSøknadHendelse>())
             }
+            coEvery { it.hentEier(søknadUuid) } returns defaultDummyFodselsnummer
         }
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -271,9 +302,11 @@ internal class SøknadApiTest {
         delimiter = '|'
     )
     fun `test faktum svar typer`(type: String, svar: String) {
+        val søknadId = UUID.randomUUID()
         val faktumSvar = slot<FaktumSvar>()
         val mockSøknadMediator = mockk<SøknadMediator>().also {
             justRun { it.behandle(capture(faktumSvar)) }
+            every { it.hentEier(søknadId) } returns defaultDummyFodselsnummer
         }
         val jsonSvar = """{"type": "$type", "svar": $svar}"""
 
@@ -281,7 +314,7 @@ internal class SøknadApiTest {
             TestApplication.mockedSøknadApi(søknadMediator = mockSøknadMediator)
         ) {
             autentisert(
-                "${Configuration.basePath}/soknad/d172a832-4f52-4e1f-ab5f-8be8348d9280/faktum/1245",
+                "${Configuration.basePath}/soknad/$søknadId/faktum/1245",
                 httpMethod = HttpMethod.Put,
                 body = jsonSvar
             ).apply {

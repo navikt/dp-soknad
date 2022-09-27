@@ -5,6 +5,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 interface SøknadRepository {
+    fun hentEier(søknadId: UUID): String?
     fun hent(søknadId: UUID, ident: String): Søknad?
     fun hentSøknader(ident: String): Set<Søknad>
     fun lagre(søknad: Søknad)
