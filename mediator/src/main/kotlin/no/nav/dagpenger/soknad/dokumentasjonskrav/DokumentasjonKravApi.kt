@@ -27,6 +27,7 @@ import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.søknadUuid
+import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import java.time.ZonedDateTime
@@ -35,11 +36,13 @@ import java.util.UUID
 private val logger = KotlinLogging.logger { }
 
 internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
+    val validator = SøknadEierValidator(søknadMediator)
     route("/{søknad_uuid}/dokumentasjonskrav") {
         get {
             val søknadUuid = søknadUuid()
             val ident = call.ident()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
+                validator.valider(søknadUuid, ident)
                 val søknad =
                     søknadMediator.hent(søknadUuid, ident) ?: throw NotFoundException("Dokumentasjon ikke funnet")
                 call.respond(ApiDokumentkravResponse(søknad))
@@ -50,6 +53,7 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
             val ident = call.ident()
             val søknadUuid = søknadUuid()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
+                validator.valider(søknadUuid, ident)
                 val fil = call.receive<ApiFil>().also { logger.info { "Received: $it" } }
                 søknadMediator.behandle(LeggTilFil(søknadUuid, ident, kravId, fil.tilModell()))
                 call.respond(HttpStatusCode.Created)
@@ -60,6 +64,7 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
             val ident = call.ident()
             val søknadUuid = søknadUuid()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
+                validator.valider(søknadUuid, ident)
                 val svar = call.receive<Svar>()
                 søknadMediator.behandle(
                     DokumentasjonIkkeTilgjengelig(
@@ -78,6 +83,7 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
             val ident = call.ident()
             val søknadUuid = søknadUuid()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
+                validator.valider(søknadUuid, ident)
                 val urn = URN.rfc8141().parse("urn:vedlegg:${call.nss()}").also {
                     logger.info { "Delete: $it" }
                 }
@@ -91,6 +97,7 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
             val ident = call.ident()
             val søknadUuid = søknadUuid()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
+                validator.valider(søknadUuid, ident)
                 val bundleSvar = call.receive<BundleSvar>()
                 val dokumentkravSammenstilling = DokumentKravSammenstilling(
                     søknadUuid,

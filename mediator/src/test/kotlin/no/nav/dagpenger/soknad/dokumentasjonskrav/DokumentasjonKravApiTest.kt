@@ -104,6 +104,7 @@ internal class DokumentasjonKravApiTest {
 
     private val søknadMediatorMock = mockk<SøknadMediator>().also {
         every { it.hent(testSoknadId, defaultDummyFodselsnummer) } returns søknad
+        every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
     }
 
     @Test
@@ -112,6 +113,23 @@ internal class DokumentasjonKravApiTest {
             assertEquals(
                 HttpStatusCode.Unauthorized,
                 client.get("${Configuration.basePath}/soknad/id/dokumentasjonskrav").status
+            )
+        }
+    }
+
+    @Test
+    fun `Skal avvise autentiserte kall der pid på token ikke er eier av søknaden`() {
+        val søknadId = UUID.randomUUID()
+        val mediatorMock = mockk<SøknadMediator>().also {
+            every { it.hentEier(søknadId) } returns "hubba"
+        }
+
+        TestApplication.withMockAuthServerAndTestApplication(
+            mockedSøknadApi(søknadMediator = mediatorMock)
+        ) {
+            assertEquals(
+                HttpStatusCode.Forbidden,
+                autentisert("${Configuration.basePath}/soknad/$søknadId/dokumentasjonskrav").status
             )
         }
     }
@@ -180,6 +198,7 @@ internal class DokumentasjonKravApiTest {
         val slot = slot<DokumentasjonIkkeTilgjengelig>()
         val mediatorMock = mockk<SøknadMediator>().also {
             every { it.behandle(capture(slot)) } just Runs
+            every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
         }
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -244,6 +263,7 @@ internal class DokumentasjonKravApiTest {
         val tidspunkt = ZonedDateTime.now()
         val mediatorMock = mockk<SøknadMediator>().also {
             every { it.behandle(capture(slot)) } just Runs
+            every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
         }
 
         TestApplication.withMockAuthServerAndTestApplication(
