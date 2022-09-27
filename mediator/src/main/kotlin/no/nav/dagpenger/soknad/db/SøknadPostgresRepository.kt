@@ -43,7 +43,24 @@ import javax.sql.DataSource
 class SøknadPostgresRepository(private val dataSource: DataSource) :
     SøknadRepository {
     override fun hentEier(søknadId: UUID): String? {
-        TODO("Not yet implemented")
+        return using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf(
+                    //language=PostgreSQL
+                    statement = """
+                    SELECT p.ident
+                    FROM  person_v1 p
+                    INNER JOIN soknad_v1 s
+                    ON p.ident = s.person_ident 
+                    WHERE s.uuid = :uuid
+                    
+                    """.trimIndent(),
+                    paramMap = mapOf(
+                        "uuid" to søknadId
+                    )
+                ).map { it.stringOrNull("ident") }.asSingle
+            )
+        }
     }
 
     override fun hent(søknadId: UUID, ident: String): Søknad? {
