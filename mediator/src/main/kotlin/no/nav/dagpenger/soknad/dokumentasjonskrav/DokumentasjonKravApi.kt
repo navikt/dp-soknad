@@ -30,6 +30,7 @@ import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
+import no.nav.dagpenger.soknad.utils.auth.optionalIdent
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -44,14 +45,9 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
             get {
                 val søknadUuid = søknadUuid()
                 withLoggingContext("søknadid" to søknadUuid.toString()) {
-                    // todo ikke baser logikk på exceptions
-                    kotlin.runCatching { call.ident() }
-                        .onFailure {
-                            // todo Antar at det er gyldig azureAd token.  Valider mot azp?
-                        }
-                        .onSuccess { ident ->
-                            validator.valider(søknadUuid, ident)
-                        }
+                    call.optionalIdent()?.let { ident ->
+                        validator.valider(søknadUuid, ident)
+                    }
                     val søknad =
                         søknadMediator.hent(søknadUuid) ?: throw NotFoundException("Dokumentasjon ikke funnet")
                     call.respond(ApiDokumentkravResponse(søknad))
