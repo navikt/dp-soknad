@@ -35,7 +35,7 @@ class PåbegyntSøknadApiTest {
         ) {
             autentisert(
                 endepunkt = "${Configuration.basePath}/soknad/paabegynt",
-                token = TestApplication.getToken("harsoknad"),
+                token = TestApplication.getTokenXToken("harsoknad"),
                 httpMethod = HttpMethod.Get,
             ).apply {
                 val expectedJson = """{"uuid":"258b2f1b-bdda-4bed-974c-c4ddb206e4f4","startDato":"2021-10-03","språk":"NO"}"""
@@ -56,7 +56,7 @@ class PåbegyntSøknadApiTest {
         ) {
             autentisert(
                 endepunkt = "${Configuration.basePath}/soknad/paabegynt",
-                token = TestApplication.getToken("ingensoknad"),
+                token = TestApplication.getTokenXToken("ingensoknad"),
                 httpMethod = HttpMethod.Get,
             ).apply {
                 assertEquals(HttpStatusCode.NotFound, this.status)

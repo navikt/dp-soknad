@@ -6,6 +6,7 @@ import de.slub.urn.URN
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
+import io.ktor.server.auth.authenticate
 import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -29,6 +30,7 @@ import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
+import no.nav.dagpenger.soknad.utils.auth.optionalIdent
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -37,15 +39,19 @@ private val logger = KotlinLogging.logger { }
 
 internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
     val validator = SøknadEierValidator(søknadMediator)
+
     route("/{søknad_uuid}/dokumentasjonskrav") {
-        get {
-            val søknadUuid = søknadUuid()
-            val ident = call.ident()
-            withLoggingContext("søknadid" to søknadUuid.toString()) {
-                validator.valider(søknadUuid, ident)
-                val søknad =
-                    søknadMediator.hent(søknadUuid, ident) ?: throw NotFoundException("Dokumentasjon ikke funnet")
-                call.respond(ApiDokumentkravResponse(søknad))
+        authenticate("azureAd", "tokenX") {
+            get {
+                val søknadUuid = søknadUuid()
+                withLoggingContext("søknadid" to søknadUuid.toString()) {
+                    call.optionalIdent()?.let { ident ->
+                        validator.valider(søknadUuid, ident)
+                    }
+                    val søknad =
+                        søknadMediator.hent(søknadUuid) ?: throw NotFoundException("Dokumentasjon ikke funnet")
+                    call.respond(ApiDokumentkravResponse(søknad))
+                }
             }
         }
         put("/{kravId}/fil") {
