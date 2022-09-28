@@ -1,0 +1,7 @@
+ALTER TABLE dokument_v1 DROP COLUMN navn;
+
+ALTER TABLE innsending_v1 ADD COLUMN IF NOT EXISTS skjemakode VARCHAR NULL;
+
+ALTER TABLE innsending_v1 DROP COLUMN brevkode;
+
+DROP TYPE IF EXISTS brevkode;

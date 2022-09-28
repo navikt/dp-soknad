@@ -143,7 +143,6 @@ internal class SøknadTest {
             AvventerMidlertidligJournalføring
         )
         val hoveddokument = mutableMapOf<String, Any>(
-            "navn" to "Søknad om dagpenger",
             "brevkode" to "NAV 04-01.02",
             "varianter" to listOf(
                 mapOf<String, Any>(
@@ -162,7 +161,6 @@ internal class SøknadTest {
                 "hovedDokument" to hoveddokument,
                 "dokumenter" to listOf(
                     mapOf<String, Any>(
-                        "navn" to "f1-1",
                         "brevkode" to "O2",
                         "varianter" to listOf(
                             mapOf<String, Any>(
@@ -174,7 +172,6 @@ internal class SøknadTest {
                         )
                     ),
                     mapOf<String, Any>(
-                        "navn" to "f3-1",
                         "brevkode" to "O2",
                         "varianter" to listOf(
                             mapOf<String, Any>(
@@ -219,7 +216,6 @@ internal class SøknadTest {
                 "hovedDokument" to hoveddokument.also { it["brevkode"] = "NAVe 04-01.02" },
                 "dokumenter" to listOf(
                     mapOf<String, Any>(
-                        "navn" to "f1-1",
                         "brevkode" to "O2",
                         "varianter" to listOf(
                             mapOf<String, Any>(
@@ -231,7 +227,6 @@ internal class SøknadTest {
                         )
                     ),
                     mapOf<String, Any>(
-                        "navn" to "f2-1",
                         "brevkode" to "O2",
                         "varianter" to listOf(
                             mapOf<String, Any>(
@@ -243,7 +238,6 @@ internal class SøknadTest {
                         )
                     ),
                     mapOf<String, Any>(
-                        "navn" to "f3-1",
                         "brevkode" to "O2",
                         "varianter" to listOf(
                             mapOf<String, Any>(
@@ -308,8 +302,7 @@ internal class SøknadTest {
                 inspektør.innsendingId,
                 inspektør.søknadId,
                 testIdent,
-                "04-01.02",
-                "Søknad om dagpenger"
+                "04-01.02"
             )
         )
     }

@@ -24,13 +24,11 @@ abstract class Innsending protected constructor(
 
     data class Dokument(
         val uuid: UUID = UUID.randomUUID(),
-        val navn: String,
         val brevkode: String,
         val varianter: List<Dokumentvariant>
     ) {
         fun toMap(): Map<String, Any> {
             return mapOf(
-                "navn" to navn,
                 "brevkode" to brevkode,
                 "varianter" to varianter.map { it.toMap() }
             )
@@ -62,7 +60,7 @@ abstract class Innsending protected constructor(
         }
     }
 
-    data class Brevkode(val tittel: String, val skjemakode: String) {
+    data class Brevkode(val skjemakode: String) {
         internal fun brevkode(innsending: Innsending) = when (innsending.type) {
             InnsendingType.NY_DIALOG -> "NAV $skjemakode"
             InnsendingType.ETTERSENDING_TIL_DIALOG -> "NAVe $skjemakode"
@@ -201,7 +199,6 @@ abstract class Innsending protected constructor(
         override fun håndter(hendelse: ArkiverbarSøknadMottattHendelse, innsending: Innsending) {
             val brevkode = requireNotNull(innsending.brevkode) { "Må ha brevkode" }
             innsending.hovedDokument = Dokument(
-                navn = brevkode.tittel,
                 brevkode = brevkode.brevkode(innsending),
                 varianter = hendelse.dokumentvarianter()
             )

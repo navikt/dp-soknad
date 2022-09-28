@@ -86,7 +86,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             queryOf(
                 //language=PostgreSQL
                 statement = """   
-                       SELECT *, (innsending_v1.brevkode).tittel AS brevkode_tittel, (innsending_v1.brevkode).skjemakode AS brevkode_skjemakode
+                       SELECT *
                        FROM innsending_v1
                        WHERE soknad_uuid = :soknad_uuid AND innsendingtype = 'NY_DIALOG'
                 """.trimMargin(),
@@ -102,7 +102,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             queryOf(
                 //language=PostgreSQL
                 statement = """   
-                   SELECT innsending_v1.*, (innsending_v1.brevkode).tittel AS brevkode_tittel, (innsending_v1.brevkode).skjemakode AS brevkode_skjemakode
+                   SELECT innsending_v1.*
                    FROM innsending_v1, ettersending_v1
                    WHERE ettersending_v1.innsending_uuid = :innsending_uuid AND innsending_v1.innsending_uuid = ettersending_v1.ettersending_uuid 
                 """.trimMargin(),
@@ -130,8 +130,8 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             hovedDokument = dokumenter.hovedDokument,
             dokumenter = dokumenter.dokumenter,
             ettersendinger = ettersendinger,
-            brevkode = row.stringOrNull("brevkode_tittel")
-                ?.let { Innsending.Brevkode(row.string("brevkode_tittel"), row.string("brevkode_skjemakode")) }
+            brevkode = row.stringOrNull("skjemakode")
+                ?.let { skjemakode -> Innsending.Brevkode(skjemakode) }
         )
     }
 
@@ -228,7 +228,6 @@ private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.Dokumenter
             val varianter: List<Dokumentvariant> = this@hentDokumenter.hentVarianter(dokument_uuid)
             val dokument = Innsending.Dokument(
                 dokument_uuid,
-                row.string("navn"),
                 row.string("brevkode"),
                 varianter
             )
@@ -425,7 +424,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         queries.add(
             queryOf(
                 //language=PostgreSQL
-                statement = "INSERT INTO innsending_v1(innsending_uuid, soknad_uuid, innsendt, journalpost_id, innsendingtype, tilstand, brevkode) VALUES (:innsending_uuid, :soknad_uuid, :innsendt, :journalpost_id, :innsendingtype, :tilstand, ROW(:tittel, :skjemakode)::brevkode)",
+                statement = "INSERT INTO innsending_v1(innsending_uuid, soknad_uuid, innsendt, journalpost_id, innsendingtype, tilstand, skjemakode) VALUES (:innsending_uuid, :soknad_uuid, :innsendt, :journalpost_id, :innsendingtype, :tilstand, :skjemakode)",
                 paramMap = mapOf(
                     "innsending_uuid" to innsendingId,
                     "soknad_uuid" to søknadId,
@@ -433,7 +432,6 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                     "journalpost_id" to journalpost,
                     "innsendingtype" to innsending.name,
                     "tilstand" to tilstand.name,
-                    "tittel" to brevkode?.tittel,
                     "skjemakode" to brevkode?.skjemakode
                 )
             )
@@ -444,11 +442,10 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queries.add(
                 queryOf(
                     //language=PostgreSQL
-                    "INSERT INTO dokument_v1 (dokument_uuid, innsending_uuid, navn, brevkode) VALUES (:dokument_uuid, :innsending_uuid, :navn, :brevkode)",
+                    "INSERT INTO dokument_v1 (dokument_uuid, innsending_uuid, brevkode) VALUES (:dokument_uuid, :innsending_uuid, :brevkode)",
                     mapOf(
                         "dokument_uuid" to dokument.uuid,
                         "innsending_uuid" to innsendingId,
-                        "navn" to dokument.navn,
                         "brevkode" to dokument.brevkode
                     )
                 )

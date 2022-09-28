@@ -9,9 +9,8 @@ class SkjemakodeMottattHendelse(
     val søknadID: UUID,
     val ident: String,
     private val skjemaKode: String,
-    private val tittel: String,
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) :
     InnsendingHendelse(innsendingId, søknadID, ident, aktivitetslogg) {
-    val brevkode: Brevkode = Brevkode(tittel, skjemaKode)
+    val brevkode: Brevkode = Brevkode(skjemaKode)
 }

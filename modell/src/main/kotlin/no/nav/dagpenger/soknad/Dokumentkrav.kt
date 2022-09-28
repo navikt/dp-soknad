@@ -50,7 +50,6 @@ class Dokumentkrav private constructor(
     internal fun tilDokument() =
         aktiveDokumentKrav().filter { it.besvart() }.filter { it.svar.valg == SEND_NÅ }.map { krav ->
             Innsending.Dokument(
-                navn = krav.beskrivendeId,
                 brevkode = "O2",
                 varianter = listOf(
                     Innsending.Dokument.Dokumentvariant(

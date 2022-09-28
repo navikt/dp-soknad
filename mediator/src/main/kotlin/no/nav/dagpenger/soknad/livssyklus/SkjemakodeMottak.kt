@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.livssyklus
 
 import mu.KotlinLogging
+import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.Skjemakode
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.SkjemakodeMottattHendelse
@@ -32,20 +33,22 @@ internal class SkjemakodeMottak(rapidsConnection: RapidsConnection, private val 
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val søknadID = packet["søknad_uuid"].asUUID()
+        val søknadId = packet["søknad_uuid"].asUUID()
         val innsendingId = packet["innsendingId"].asUUID()
         val ident = packet["ident"].asText()
-        mediator.behandle(
-            SkjemakodeMottattHendelse(
-                innsendingId = innsendingId,
-                søknadID = søknadID,
-                ident = ident,
-                tittel = packet.tittel(),
-                skjemaKode = packet.skjemakode()
+
+        withLoggingContext("søknadId" to søknadId.toString()) {
+            logger.info { "Mottatt løsning for skjemakode" }
+            mediator.behandle(
+                SkjemakodeMottattHendelse(
+                    innsendingId = innsendingId,
+                    søknadID = søknadId,
+                    ident = ident,
+                    skjemaKode = packet.skjemakode()
+                )
             )
-        )
+        }
     }
 
-    private fun JsonMessage.tittel(): String = this["@løsning"][behov]["tittel"].asText()
     private fun JsonMessage.skjemakode(): String = this["@løsning"][behov]["skjemakode"].asText()
 }

@@ -103,7 +103,6 @@ internal class SøknadPostgresRepositoryTest {
                 Innsending.TilstandType.Journalført,
                 Innsending.Dokument(
                     UUID.randomUUID(),
-                    "navn",
                     "brevkode",
                     varianter = listOf(
                         Innsending.Dokument.Dokumentvariant(
@@ -125,7 +124,6 @@ internal class SøknadPostgresRepositoryTest {
                 listOf(
                     Innsending.Dokument(
                         UUID.randomUUID(),
-                        "navn2",
                         "brevkode2",
                         varianter = listOf(
                             Innsending.Dokument.Dokumentvariant(
@@ -154,7 +152,7 @@ internal class SøknadPostgresRepositoryTest {
                         Innsending.TilstandType.Opprettet,
                         null,
                         listOf(),
-                        Innsending.Brevkode("Tittel ettersending1", "0324-23")
+                        Innsending.Brevkode("0324-23")
                     ),
                     Ettersending.rehydrer(
                         UUID.randomUUID(),
@@ -164,10 +162,10 @@ internal class SøknadPostgresRepositoryTest {
                         Innsending.TilstandType.AvventerJournalføring,
                         null,
                         listOf(),
-                        Innsending.Brevkode("Tittel ettersending2", "0324-23")
+                        Innsending.Brevkode("0324-23")
                     )
                 ),
-                Innsending.Brevkode("Tittel", "04-02-03")
+                Innsending.Brevkode("04-02-03")
             )
         )
 
