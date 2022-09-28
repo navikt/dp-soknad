@@ -184,7 +184,7 @@ internal class SøknadPostgresRepositoryTest {
                 assertAntallRader("ettersending_v1", 2)
                 assertAntallRader("dokumentvariant_v1", 4)
 
-                søknadPostgresRepository.hent(søknadId, ident).let { rehydrertSøknad ->
+                søknadPostgresRepository.hent(søknadId).let { rehydrertSøknad ->
                     assertNotNull(rehydrertSøknad)
                     assertDeepEquals(rehydrertSøknad, søknad)
                 }
@@ -233,7 +233,7 @@ internal class SøknadPostgresRepositoryTest {
         withMigratedDb {
             SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).let { søknadPostgresRepository ->
                 søknadPostgresRepository.lagre(søknad)
-                val dokumentkrav = hentDokumentKrav(søknadPostgresRepository.hent(søknadId, ident)!!)
+                val dokumentkrav = hentDokumentKrav(søknadPostgresRepository.hent(søknadId)!!)
 
                 val rehydrertSannsynliggjøring = dokumentkrav.aktiveDokumentKrav().first().sannsynliggjøring
                 assertEquals(originalFaktumJson, rehydrertSannsynliggjøring.faktum().originalJson())
@@ -317,7 +317,7 @@ internal class SøknadPostgresRepositoryTest {
                 søknadObservers = listOf()
             )
 
-            hentDokumentKrav(søknadMediator.hent(søknadId, ident)!!).let {
+            hentDokumentKrav(søknadMediator.hent(søknadId)!!).let {
                 it.aktiveDokumentKrav().forEach { krav ->
                     assertTrue(krav.svar.filer.isEmpty())
                     assertEquals(Krav.Svar.SvarValg.IKKE_BESVART, krav.svar.valg)
@@ -350,7 +350,7 @@ internal class SøknadPostgresRepositoryTest {
                     fil2
                 )
             )
-            hentDokumentKrav(søknadMediator.hent(søknadId, ident)!!).let {
+            hentDokumentKrav(søknadMediator.hent(søknadId)!!).let {
                 assertEquals(2, it.aktiveDokumentKrav().first().svar.filer.size)
                 it.aktiveDokumentKrav().forEach { krav ->
                     assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
@@ -368,7 +368,7 @@ internal class SøknadPostgresRepositoryTest {
                 )
             )
 
-            hentDokumentKrav(søknadMediator.hent(søknadId, ident)!!).let {
+            hentDokumentKrav(søknadMediator.hent(søknadId)!!).let {
                 assertEquals(2, it.aktiveDokumentKrav().first().svar.filer.size)
                 it.aktiveDokumentKrav().forEach { krav ->
                     assertEquals(Krav.Svar.SvarValg.SEND_SENERE, krav.svar.valg)
@@ -384,9 +384,7 @@ internal class SøknadPostgresRepositoryTest {
                     urn = fil1.urn
                 )
             )
-            hentDokumentKrav(søknadMediator.hent(søknadId, ident)!!).let {
-                assertEquals(1, it.aktiveDokumentKrav().first().svar.filer.size)
-            }
+            assertEquals(1, hentDokumentKrav(søknadMediator.hent(søknadId)!!).aktiveDokumentKrav().first().svar.filer.size)
 
             søknadMediator.behandle(
                 SlettFil(
@@ -397,9 +395,7 @@ internal class SøknadPostgresRepositoryTest {
                 )
             )
 
-            hentDokumentKrav(søknadMediator.hent(søknadId, ident)!!).let {
-                assertEquals(0, it.aktiveDokumentKrav().first().svar.filer.size)
-            }
+            assertEquals(0, hentDokumentKrav(søknadMediator.hent(søknadId)!!).aktiveDokumentKrav().first().svar.filer.size)
 
             assertDoesNotThrow {
                 søknadMediator.behandle(

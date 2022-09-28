@@ -78,24 +78,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         }
     }
 
-    override fun hent(søknadId: UUID, ident: String): Søknad? {
-        return using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf(
-                    //language=PostgreSQL
-                    statement = """
-                    SELECT uuid, tilstand, spraak, sist_endret_av_bruker
-                    FROM  soknad_v1
-                    WHERE uuid = :uuid
-                    """.trimIndent(),
-                    paramMap = mapOf(
-                        "uuid" to søknadId
-                    )
-                ).map(rowToSøknadDTO(ident, session)).asSingle
-            )?.rehydrer()
-        }
-    }
-
     private fun Row.norskZonedDateTime(columnLabel: String): ZonedDateTime =
         this.zonedDateTime(columnLabel).withZoneSameInstant(ZoneId.of("Europe/Oslo"))
 
@@ -159,7 +141,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 queryOf(
                     //language=PostgreSQL
                     statement = """
-                            SELECT uuid, tilstand, spraak, sist_endret_av_bruker
+                            SELECT uuid, tilstand, spraak, sist_endret_av_bruker,person_ident
                             FROM  soknad_v1
                             WHERE person_ident = :ident
                     """.trimIndent(),
@@ -167,33 +149,28 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                         "ident" to ident
                     )
                     // todo
-                ).map(rowToSøknadDTO(ident, session)).asList
+                ).map(rowToSøknadDTO(session)).asList
             ).map { it.rehydrer() }.toSet()
         }
     }
 
     private fun rowToSøknadDTO(session: Session) =
-        { row: Row -> rowToSøknadDTO(row.string("person_ident"), session).invoke(row) }
-
-    private fun rowToSøknadDTO(
-        ident: String,
-        session: Session
-    ) = { row: Row ->
-        // TODO: Fjern duplisering fra hent()
-        val søknadsId = UUID.fromString(row.string("uuid"))
-        SøknadDTO(
-            søknadsId = søknadsId,
-            ident = ident,
-            tilstandType = SøknadDTO.TilstandDTO.rehydrer(row.string("tilstand")),
-            språkDTO = SøknadDTO.SpråkDTO(row.string("spraak")),
-            dokumentkrav = SøknadDTO.DokumentkravDTO(
-                session.hentDokumentKrav(søknadsId)
-            ),
-            sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")?.withZoneSameInstant(ZoneId.of("Europe/Oslo")),
-            innsendingDTO = session.hentInnsending(søknadsId),
-            aktivitetslogg = session.hentAktivitetslogg(søknadsId)
-        )
-    }
+        { row: Row ->
+            val søknadsId = UUID.fromString(row.string("uuid"))
+            SøknadDTO(
+                søknadsId = søknadsId,
+                ident = row.string("person_ident"),
+                tilstandType = SøknadDTO.TilstandDTO.rehydrer(row.string("tilstand")),
+                språkDTO = SøknadDTO.SpråkDTO(row.string("spraak")),
+                dokumentkrav = SøknadDTO.DokumentkravDTO(
+                    session.hentDokumentKrav(søknadsId)
+                ),
+                sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")
+                    ?.withZoneSameInstant(ZoneId.of("Europe/Oslo")),
+                innsendingDTO = session.hentInnsending(søknadsId),
+                aktivitetslogg = session.hentAktivitetslogg(søknadsId)
+            )
+        }
 
     override fun lagre(søknad: Søknad) {
         val visitor = SøknadPersistenceVisitor(søknad)

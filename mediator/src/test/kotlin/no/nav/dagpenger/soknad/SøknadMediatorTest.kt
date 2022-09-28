@@ -46,10 +46,6 @@ internal class SøknadMediatorTest {
             TODO("Not yet implemented")
         }
 
-        override fun hent(søknadId: UUID, ident: String): Søknad? {
-            return søknader.find { it.søknadUUID() == søknadId }
-        }
-
         override fun hent(søknadId: UUID): Søknad? {
             return søknader.find { it.søknadUUID() == søknadId }
         }

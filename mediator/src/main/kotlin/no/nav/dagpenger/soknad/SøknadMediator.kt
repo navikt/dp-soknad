@@ -188,7 +188,7 @@ internal class SøknadMediator(
     }
 
     private fun hentEllerOpprettSøknad(hendelse: SøknadHendelse): Søknad {
-        val søknad = hent(hendelse.søknadID(), hendelse.ident())
+        val søknad = hent(hendelse.søknadID())
         return when (hendelse) {
             is ØnskeOmNySøknadHendelse -> søknad ?: Søknad(hendelse.søknadID(), hendelse.språk(), hendelse.ident())
             else -> søknad ?: hendelse.severe("Søknaden finnes ikke")
