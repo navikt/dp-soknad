@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Aktivitetslogg.AktivitetException
@@ -43,6 +44,10 @@ internal class SøknadTest {
     private lateinit var plantUmlObservatør: PlantUmlObservatør
     private val inspektør get() = TestSøknadInspektør(søknad)
     private val språk = "NO"
+
+    private companion object {
+        val objectMapper = jacksonObjectMapper()
+    }
 
     private fun sannsynliggjøring(
         sannsynliggjøringId: String,

@@ -58,7 +58,7 @@ class Dokumentkrav private constructor(
                         variant = "ARKIV", // TODO: hent filtype fra bundle
                         type = "PDF" // TODO: Hva setter vi her?
                     )
-                    )
+                )
             )
         }
 
@@ -133,83 +133,51 @@ data class Krav(
     internal fun tilSkjemakode(): String {
         return when (this.id) {
             "faktum.avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd-dokumentasjon" -> Skjemakode.TJENESTEBEVIS
-            "faktum.dokument-tjenestepensjon" -> TODO()
-            "faktum.dokument-arbeidslos-GFF-hvilken-periode" -> TODO()
-            "faktum.dokument-garantilott-GFF-hvilken-periode" -> TODO()
-            "faktum.dokument-etterlonn" -> TODO()
-            "faktum.dokument-dagpenger-eos-land" -> TODO()
-            "faktum.dokument-annen-ytelse" -> TODO()
-            "faktum.dokument-okonomiske-goder-tidligere-arbeidsgiver" -> TODO()
-            "faktum.dokument-arbeidsavtale" -> TODO()
-            "faktum.dokument-helt-eller-delvis-avsluttet-arbeidsforhold" -> TODO()
-            "faktum.dokument-timeliste-for-rotasjon" -> TODO()
-            "faktum.dokument-brev-fra-bobestyrer-eller-konkursforvalter" -> TODO()
-            "faktum.dokument-ny-arbeidsavtale" -> TODO()
-            "faktum.dokument-varsel-om-permittering" -> TODO()
-            "faktum.dokumentasjon-redusert-helse-kun-deltid" -> TODO()
-            "faktum.dokumentasjon-eneansvar-delt-ansvar-barn-under-18-spesielle-behov-kun-deltid" -> TODO()
-            "faktum.dokumentasjon-skift-turnus-kun-deltid" -> TODO()
-            "faktum.dokumentasjon-annen-situasjon-kun-deltid" -> TODO()
-            "faktum.dokumentasjon-kan-ikke-ta-alle-typer-arbeid-kun-deltid" -> TODO()
-            "faktum.dokumentasjon-redusert-helse-ikke-jobbe-hele-norge" -> TODO()
-            "faktum.dokumentasjon-eneansvar-delt-ansvar-barn-under-18-spesielle-behov-ikke-jobbe-hele-norge" -> TODO()
-            "faktum.dokumentasjon-skift-turnus-ikke-jobbe-hele-norge" -> TODO()
-            "faktum.dokumentasjon-annen-situasjon-ikke-jobbe-hele-norge" -> TODO()
-            "faktum.dokumentasjon-kan-ikke-ta-alle-typer-arbeid-ikke-jobbe-hele-norge" -> TODO()
-            "faktum.dokument-utdanning-sluttdato" -> TODO()
+            "faktum.dokument-tjenestepensjon" -> Skjemakode.DOKUMENTASJON_AV_ANDRE_YTELSER
+            "faktum.dokument-arbeidslos-GFF-hvilken-periode" -> Skjemakode.DOKUMENTASJON_AV_ANDRE_YTELSER
+            "faktum.dokument-garantilott-GFF-hvilken-periode" -> Skjemakode.DOKUMENTASJON_AV_ANDRE_YTELSER
+            "faktum.dokument-etterlonn" -> Skjemakode.DOKUMENTASJON_AV_ANDRE_YTELSER
+            "faktum.dokument-dagpenger-eos-land" -> Skjemakode.DOKUMENTASJON_AV_ANDRE_YTELSER
+            "faktum.dokument-annen-ytelse" -> Skjemakode.DOKUMENTASJON_AV_ANDRE_YTELSER
+            "faktum.dokument-okonomiske-goder-tidligere-arbeidsgiver" -> Skjemakode.KOPI_AV_SLUTTAVTALE
+            "faktum.dokument-arbeidsavtale" -> Skjemakode.ARBEIDSAVTALTE
+            "faktum.dokument-helt-eller-delvis-avsluttet-arbeidsforhold" -> Skjemakode.DOKUMENTASJON_AV_ARBEIDSFORHOLD
+            "faktum.dokument-timeliste-for-rotasjon" -> Skjemakode.TIMELISTER
+            "faktum.dokument-brev-fra-bobestyrer-eller-konkursforvalter" -> Skjemakode.BREV_FRA_BOSTYRE_KONKURSFORVALTER
+            "faktum.dokument-ny-arbeidsavtale" -> Skjemakode.ARBEIDSAVTALTE
+            "faktum.dokument-varsel-om-permittering" -> Skjemakode.PERMITTERINGSVARSEL
+            "faktum.dokumentasjon-redusert-helse-kun-deltid" -> Skjemakode.DOKUMENTASJON_AV_HELSE_OG_FUNKSJONSNIVÅ
+            "faktum.dokumentasjon-eneansvar-delt-ansvar-barn-under-18-spesielle-behov-kun-deltid" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
+            "faktum.dokumentasjon-skift-turnus-kun-deltid" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
+            "faktum.dokumentasjon-annen-situasjon-kun-deltid" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
+            "faktum.dokumentasjon-kan-ikke-ta-alle-typer-arbeid-kun-deltid" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
+            "faktum.dokumentasjon-redusert-helse-ikke-jobbe-hele-norge" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
+            "faktum.dokumentasjon-eneansvar-delt-ansvar-barn-under-18-spesielle-behov-ikke-jobbe-hele-norge" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
+            "faktum.dokumentasjon-skift-turnus-ikke-jobbe-hele-norge" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
+            "faktum.dokumentasjon-annen-situasjon-ikke-jobbe-hele-norge" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
+            "faktum.dokumentasjon-kan-ikke-ta-alle-typer-arbeid-ikke-jobbe-hele-norge" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
+            "faktum.dokument-utdanning-sluttdato" -> Skjemakode.DOKUMENTASJON_AV_SLUTTDATO
             else -> Skjemakode.ANNET
-
         }.verdi()
     }
 
-    /**
-     *
-     *
-    "faktum.dokument-tjenestepensjon"
-    "faktum.dokument-arbeidslos-GFF-hvilken-periode"
-    "faktum.dokument-garantilott-GFF-hvilken-periode"
-    "faktum.dokument-etterlonn"
-    "faktum.dokument-dagpenger-eos-land"
-    "faktum.dokument-annen-ytelse"
-    "faktum.dokument-okonomiske-goder-tidligere-arbeidsgiver"
-    "faktum.dokument-arbeidsavtale"
-    "faktum.dokument-helt-eller-delvis-avsluttet-arbeidsforhold"
-    "faktum.dokument-timeliste-for-rotasjon"
-    "faktum.dokument-brev-fra-bobestyrer-eller-konkursforvalter"
-    "faktum.dokument-ny-arbeidsavtale"
-    "faktum.dokument-varsel-om-permittering"
-    "faktum.dokumentasjon-redusert-helse-kun-deltid"
-    "faktum.dokumentasjon-eneansvar-delt-ansvar-barn-under-18-spesielle-behov-kun-deltid"
-    "faktum.dokumentasjon-skift-turnus-kun-deltid"
-    "faktum.dokumentasjon-annen-situasjon-kun-deltid"
-    "faktum.dokumentasjon-kan-ikke-ta-alle-typer-arbeid-kun-deltid"
-    "faktum.dokumentasjon-redusert-helse-ikke-jobbe-hele-norge"
-    "faktum.dokumentasjon-eneansvar-delt-ansvar-barn-under-18-spesielle-behov-ikke-jobbe-hele-norge"
-    "faktum.dokumentasjon-skift-turnus-ikke-jobbe-hele-norge"
-    "faktum.dokumentasjon-annen-situasjon-ikke-jobbe-hele-norge"
-    "faktum.dokumentasjon-kan-ikke-ta-alle-typer-arbeid-ikke-jobbe-hele-norge"
-    "faktum.dokument-utdanning-sluttdato"
-     */
     private enum class Skjemakode(private val skjemakodeverdi: String) {
         TJENESTEBEVIS("T3"),
         ARBEIDSAVTALTE("O2"),
         TIMELISTER("M6"),
         BREV_FRA_BOSTYRE_KONKURSFORVALTER("M7"),
-        KOPI_ARBEIDSAVTALE_SLUTTÅRSAK("S7"),
-        DOKUMENTASJON_AV_SLUTTÅRSAK("S6"),
-        BEKREFTELSE_FRA_STUDIESTED_SKOLE("O9"),
-        KOPI_AV_SØKNAD("N2"),
-        KOPI_AV_UNDERSØKELSERESULTAT("N5"),
-        FØDSELSATTEST_BOSTEDSBEVIS_BARN_UNDER_18_ÅR("X8"),
-        SED_U006_FAMILEINFORMASJON("T5"),
-        OPPHOLDS_OG_ARBEIDSTILLATELSE_ELLER_REGISTRERINGSBEVIS_FOR_EØS_BORGER("T4"),
         DOKUMENTASJON_AV_SLUTTDATO("T2"),
-        ELEVDOKUMENTASJON_FRA_LÆRERSTED("T1"),
         KOPI_AV_SLUTTAVTALE("V6"),
-        U1_PERIODER_AV_BETYDNING_FOR_RETTET_TIL_DAGPENGER("U1"),
-        SJØFARTSBOK_HYREAVREGNING("S8"),
-        ANNET("N6")
-
+        OVERSIKT_OVER_ARBEIDSTIMER("NAV 04-03.08"), // todo: Mangler i quiz
+        BEKREFTELSE_PÅ_ARBEIDSFORHOLD_OG_PERMITTERING("NAV 04-08.04"), // todo: Mangler i quiz - permittering
+        DOKUMENTASJON_AV_ANDRE_YTELSER("K1"), // @todo: mangler i dp-mottak?
+        // DOKUMENTASJON_AV_ANDRE_UTBETALINGER("K5"), // @todo: mangler i dp-mottak og quiz???
+        // DOKUMENTASJON_AV_UTBETALINGER_ELLER_GODER_FRA_ARBEIDSGIVER("K6"), @todo: mangler i dp-mottak og quiz???
+        PERMITTERINGSVARSEL("T6"), // @todo: mangler i dp-mottak?
+        DOKUMENTASJON_AV_ARBEIDSFORHOLD("T8"), // @todo: mangler i dp-mottak?
+        DOKUMENTASJON_AV_HELSE_OG_FUNKSJONSNIVÅ("T9"), // @todo: mangler i dp-mottak?
+        UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL("Y2"), // @todo: mangler i dp-mottak?
+        ANNET("N6");
         fun verdi() = skjemakodeverdi
     }
 
