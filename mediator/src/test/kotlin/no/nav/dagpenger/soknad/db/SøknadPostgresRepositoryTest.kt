@@ -187,6 +187,8 @@ internal class SøknadPostgresRepositoryTest {
                     assertDeepEquals(rehydrertSøknad, søknad)
                 }
 
+                søknadPostgresRepository.lagre(søknad)
+
                 søknadPostgresRepository.hent(søknadId).let { rehydrertSøknad ->
                     assertNotNull(rehydrertSøknad)
                     assertDeepEquals(rehydrertSøknad, søknad)

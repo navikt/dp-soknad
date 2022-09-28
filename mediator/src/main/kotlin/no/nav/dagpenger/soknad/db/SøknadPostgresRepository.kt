@@ -424,7 +424,16 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         queries.add(
             queryOf(
                 //language=PostgreSQL
-                statement = "INSERT INTO innsending_v1(innsending_uuid, soknad_uuid, innsendt, journalpost_id, innsendingtype, tilstand, skjemakode) VALUES (:innsending_uuid, :soknad_uuid, :innsendt, :journalpost_id, :innsendingtype, :tilstand, :skjemakode)",
+                statement = """
+                    INSERT INTO innsending_v1(innsending_uuid, soknad_uuid, innsendt, journalpost_id, innsendingtype, tilstand, skjemakode)
+                    VALUES (:innsending_uuid, :soknad_uuid, :innsendt, :journalpost_id, :innsendingtype, :tilstand, :skjemakode)
+                    ON CONFLICT (innsending_uuid) DO UPDATE SET innsendt = :innsendt, 
+                                                                journalpost_id = :journalpost_id,
+                                                                innsendingtype = :innsendingtype,
+                                                                tilstand = :tilstand,
+                                                                skjemakode = :skjemakode
+
+                """.trimIndent(),
                 paramMap = mapOf(
                     "innsending_uuid" to innsendingId,
                     "soknad_uuid" to søknadId,
@@ -442,7 +451,11 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queries.add(
                 queryOf(
                     //language=PostgreSQL
-                    "INSERT INTO dokument_v1 (dokument_uuid, innsending_uuid, brevkode) VALUES (:dokument_uuid, :innsending_uuid, :brevkode)",
+                    """
+                        INSERT INTO dokument_v1 (dokument_uuid, innsending_uuid, brevkode)
+                        VALUES (:dokument_uuid, :innsending_uuid, :brevkode)
+                        ON CONFLICT (dokument_uuid) DO UPDATE SET brevkode = :brevkode
+                    """.trimIndent(),
                     mapOf(
                         "dokument_uuid" to dokument.uuid,
                         "innsending_uuid" to innsendingId,
@@ -457,6 +470,10 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                         """
                             INSERT INTO dokumentvariant_v1 (dokumentvariant_uuid, dokument_uuid, filnavn, urn, variant, type)
                             VALUES (:dokumentvariant_uuid, :dokument_uuid, :filnavn, :urn, :variant, :type)
+                            ON CONFLICT (dokumentvariant_uuid) DO UPDATE SET filnavn = :filnavn, 
+                                                                             urn = :urn,
+                                                                             variant = :variant,
+                                                                             type = :type
                         """.trimIndent(),
                         mapOf(
                             "dokumentvariant_uuid" to variant.uuid,
@@ -474,7 +491,11 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queries.add(
                 queryOf(
                     //language=PostgreSQL
-                    "INSERT INTO hoveddokument_v1(innsending_uuid, dokument_uuid) VALUES (:innsending_uuid, :dokumentvariant_uuid)",
+                    """
+                        INSERT INTO hoveddokument_v1(innsending_uuid, dokument_uuid)
+                        VALUES (:innsending_uuid, :dokumentvariant_uuid)
+                        ON CONFLICT (innsending_uuid) DO UPDATE SET dokument_uuid = :dokumentvariant_uuid
+                    """.trimIndent(),
                     mapOf(
                         "innsending_uuid" to innsendingId,
                         "dokumentvariant_uuid" to hovedDokument.uuid
