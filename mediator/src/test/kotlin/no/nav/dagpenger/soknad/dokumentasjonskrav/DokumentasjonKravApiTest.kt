@@ -40,6 +40,7 @@ import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.ZonedDateTime
@@ -184,7 +185,7 @@ internal class DokumentasjonKravApiTest {
                         )
                     }
                     assertNotNull(this["gyldigeValg"])
-                    assertTrue(this["begrunnelse"].isNull)
+                    assertNull(this["begrunnelse"])
                     val svar = this["svar"]
                     assertFalse(svar.isNull)
                     assertEquals("dokumentkrav.svar.send.naa", svar.asText())
