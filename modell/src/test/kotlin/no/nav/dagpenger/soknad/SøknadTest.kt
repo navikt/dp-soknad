@@ -166,7 +166,7 @@ internal class SøknadTest {
                 "hovedDokument" to hoveddokument,
                 "dokumenter" to listOf(
                     mapOf<String, Any>(
-                        "brevkode" to "O2",
+                        "brevkode" to "N6",
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f1-1",
@@ -177,7 +177,7 @@ internal class SøknadTest {
                         )
                     ),
                     mapOf<String, Any>(
-                        "brevkode" to "O2",
+                        "brevkode" to "N6",
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f3-1",
@@ -221,7 +221,7 @@ internal class SøknadTest {
                 "hovedDokument" to hoveddokument.also { it["brevkode"] = "NAVe 04-01.02" },
                 "dokumenter" to listOf(
                     mapOf<String, Any>(
-                        "brevkode" to "O2",
+                        "brevkode" to "N6",
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f1-1",
@@ -232,7 +232,7 @@ internal class SøknadTest {
                         )
                     ),
                     mapOf<String, Any>(
-                        "brevkode" to "O2",
+                        "brevkode" to "N6",
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f2-1",
@@ -243,7 +243,7 @@ internal class SøknadTest {
                         )
                     ),
                     mapOf<String, Any>(
-                        "brevkode" to "O2",
+                        "brevkode" to "N6",
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f3-1",
