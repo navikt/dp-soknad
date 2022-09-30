@@ -10,7 +10,6 @@ import no.nav.dagpenger.soknad.DeepEquals.assertDeepEquals
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Ettersending
 import no.nav.dagpenger.soknad.Faktum
-import no.nav.dagpenger.soknad.IkkeTilgangExeption
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.NyInnsending
@@ -29,10 +28,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
-import org.junit.jupiter.api.assertThrows
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
@@ -85,6 +82,25 @@ internal class SøknadPostgresRepositoryTest {
 
     @Test
     fun `Lagre og hente søknad med dokument, dokumentkrav, innsending og aktivitetslogg`() {
+        val krav = Krav(
+            id = sannsynliggjøring.id,
+            sannsynliggjøring = sannsynliggjøring,
+            tilstand = Krav.KravTilstand.AKTIV,
+            svar = Krav.Svar(
+                filer = mutableSetOf(
+                    Krav.Fil(
+                        filnavn = "test.jpg",
+                        urn = URN.rfc8141().parse("urn:nav:vedlegg:1"),
+                        storrelse = 1000,
+                        tidspunkt = ZonedDateTime.now()
+                    )
+                ),
+                valg = Krav.Svar.SvarValg.SEND_NÅ,
+                begrunnelse = null,
+                bundle = URN.rfc8141().parse("urn:nav:bundle:1")
+            )
+
+        )
         val søknad = Søknad.rehydrer(
             søknadId = søknadId,
             ident = ident,
@@ -199,7 +215,6 @@ internal class SøknadPostgresRepositoryTest {
 
     @Test
     fun `dokumentkrav som sannsynliggjøres skal lagres med samme struktur`() {
-
         val originalFaktumJson = faktumJson("1", "f1")
         val dokumentFaktum =
             Faktum(originalFaktumJson)
@@ -240,51 +255,6 @@ internal class SøknadPostgresRepositoryTest {
                 assertEquals(
                     originalFaktumSomsannsynliggjøresFakta,
                     rehydrertSannsynliggjøring.sannsynliggjør().first().originalJson()
-                )
-            }
-        }
-    }
-
-    @Test
-    @Disabled("Må flyttes opp til API-laget")
-    fun `Tilgangs kontroll til dokumentasjonskrav filer`() {
-        val fil1 = Krav.Fil(
-            filnavn = "ja.jpg",
-            urn = URN.rfc8141().parse("urn:vedlegg:1111/12345"),
-            storrelse = 50000,
-            tidspunkt = now
-        )
-        withMigratedDb {
-            val søknadPostgresRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
-            søknadPostgresRepository.lagre(søknad)
-            val søknadMediator = SøknadMediator(
-                rapidsConnection = mockk(),
-                søknadCacheRepository = mockk(),
-                søknadMalRepository = mockk(),
-                ferdigstiltSøknadRepository = mockk(),
-                søknadRepository = søknadPostgresRepository,
-                søknadObservers = listOf()
-            )
-
-            assertThrows<IkkeTilgangExeption> {
-                søknadMediator.behandle(
-                    SlettFil(
-                        søknadID = søknadId,
-                        ident = "1111",
-                        kravId = "1",
-                        urn = fil1.urn
-                    )
-                )
-            }
-
-            assertThrows<IkkeTilgangExeption> {
-                søknadMediator.behandle(
-                    LeggTilFil(
-                        søknadID = søknadId,
-                        ident = "1111",
-                        kravId = "1",
-                        fil = fil1
-                    )
                 )
             }
         }
