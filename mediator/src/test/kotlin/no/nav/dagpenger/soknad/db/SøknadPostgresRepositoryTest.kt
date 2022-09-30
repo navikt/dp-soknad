@@ -92,7 +92,7 @@ internal class SøknadPostgresRepositoryTest {
                         filnavn = "test.jpg",
                         urn = URN.rfc8141().parse("urn:nav:vedlegg:1"),
                         storrelse = 1000,
-                        tidspunkt = ZonedDateTime.now()
+                        tidspunkt = now
                     )
                 ),
                 valg = Krav.Svar.SvarValg.SEND_NÅ,
@@ -354,7 +354,10 @@ internal class SøknadPostgresRepositoryTest {
                     urn = fil1.urn
                 )
             )
-            assertEquals(1, hentDokumentKrav(søknadMediator.hent(søknadId)!!).aktiveDokumentKrav().first().svar.filer.size)
+            assertEquals(
+                1,
+                hentDokumentKrav(søknadMediator.hent(søknadId)!!).aktiveDokumentKrav().first().svar.filer.size
+            )
 
             søknadMediator.behandle(
                 SlettFil(
@@ -365,7 +368,10 @@ internal class SøknadPostgresRepositoryTest {
                 )
             )
 
-            assertEquals(0, hentDokumentKrav(søknadMediator.hent(søknadId)!!).aktiveDokumentKrav().first().svar.filer.size)
+            assertEquals(
+                0,
+                hentDokumentKrav(søknadMediator.hent(søknadId)!!).aktiveDokumentKrav().first().svar.filer.size
+            )
 
             assertDoesNotThrow {
                 søknadMediator.behandle(
