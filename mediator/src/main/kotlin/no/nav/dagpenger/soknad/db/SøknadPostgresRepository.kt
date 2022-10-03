@@ -17,6 +17,11 @@ import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.Søknad.Tilstand
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.livssyklus.PåbegyntSøknad
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
@@ -187,6 +192,34 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         TODO("Not yet implemented")
     }
 
+    override fun hentTilstand(søknadId: UUID): Tilstand.Type? {
+        val tilstand = using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf(
+                    //language=PostgreSQL
+                    statement = """
+                            SELECT tilstand
+                            FROM  soknad_v1
+                            WHERE uuid = :soknadId
+                    """.trimIndent(),
+                    paramMap = mapOf(
+                        "soknadId" to søknadId
+                    )
+                ).map { row ->
+                    row.string("tilstand")
+                }.asSingle
+            )
+        }
+
+        return when (tilstand) {
+            UnderOpprettelse.name -> UnderOpprettelse
+            Påbegynt.name -> Påbegynt
+            Innsendt.name -> Innsendt
+            Slettet.name -> Slettet
+            else -> null
+        }
+    }
+
     internal class PersistentSøkerOppgave(private val søknad: JsonNode) : SøkerOppgave {
         override fun søknadUUID(): UUID = UUID.fromString(søknad[SøkerOppgave.Keys.SØKNAD_UUID].asText())
         override fun eier(): String = søknad[SøkerOppgave.Keys.FØDSELSNUMMER].asText()
@@ -287,10 +320,10 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
     override fun visitSøknad(
         søknadId: UUID,
         ident: String,
-        tilstand: Søknad.Tilstand,
+        tilstand: Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime?
+        sistEndretAvBruker: ZonedDateTime?,
     ) {
         this.søknadId = søknadId
         queries.add(
@@ -414,7 +447,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         journalpost: String?,
         hovedDokument: Innsending.Dokument?,
         dokumenter: List<Innsending.Dokument>,
-        brevkode: Innsending.Brevkode?
+        brevkode: Innsending.Brevkode?,
     ) {
         if (ettersending) {
             ettersendinger.getOrPut(aktivEttersending) {
@@ -566,7 +599,7 @@ private fun Session.hentDokumentKrav(søknadsId: UUID): Set<KravDTO> =
 
 private fun Session.hentFiler(
     søknadsId: UUID,
-    faktumId: String
+    faktumId: String,
 ): Set<KravDTO.FilDTO> {
     return this.run(
         queryOf(

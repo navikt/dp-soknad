@@ -61,6 +61,10 @@ internal class SøknadMediatorTest {
         override fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad? {
             TODO("not implemented")
         }
+
+        override fun hentTilstand(søknadId: UUID): Søknad.Tilstand.Type? {
+            TODO("Not yet implemented")
+        }
     }
 
     @BeforeEach

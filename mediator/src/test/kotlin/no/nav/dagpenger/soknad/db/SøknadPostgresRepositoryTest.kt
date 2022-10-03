@@ -16,6 +16,7 @@ import no.nav.dagpenger.soknad.NyInnsending
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
@@ -23,7 +24,7 @@ import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
-import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
+import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -63,7 +64,7 @@ internal class SøknadPostgresRepositoryTest {
             krav = setOf(krav)
         ),
         sistEndretAvBruker = now,
-        tilstandsType = Søknad.Tilstand.Type.Påbegynt,
+        tilstandsType = Påbegynt,
         aktivitetslogg = Aktivitetslogg(),
         null
     )
@@ -71,11 +72,23 @@ internal class SøknadPostgresRepositoryTest {
     @Test
     fun `Henting av eier til søknad`() {
         withMigratedDb {
-            SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).let { repository ->
+            SøknadPostgresRepository(dataSource).let { repository ->
                 repository.lagre(søknad)
 
                 assertEquals(ident, repository.hentEier(søknad.søknadUUID()))
                 assertNull(repository.hentEier(UUID.randomUUID()))
+            }
+        }
+    }
+
+    @Test
+    fun `Henter tilstand til en søknad`() {
+        withMigratedDb {
+            SøknadPostgresRepository(dataSource).let { repository ->
+                repository.lagre(søknad)
+
+                assertEquals(Påbegynt, repository.hentTilstand(søknad.søknadUUID()))
+                assertNull(repository.hentTilstand(UUID.randomUUID()))
             }
         }
     }
@@ -109,7 +122,7 @@ internal class SøknadPostgresRepositoryTest {
                 krav = setOf(krav)
             ),
             sistEndretAvBruker = now.minusDays(1),
-            tilstandsType = Søknad.Tilstand.Type.Påbegynt,
+            tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             innsending = NyInnsending.rehydrer(
                 UUID.randomUUID(),
@@ -186,7 +199,7 @@ internal class SøknadPostgresRepositoryTest {
         )
 
         withMigratedDb {
-            SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).let { søknadPostgresRepository ->
+            SøknadPostgresRepository(dataSource).let { søknadPostgresRepository ->
                 søknadPostgresRepository.lagre(søknad)
 
                 assertAntallRader("soknad_v1", 1)
@@ -240,13 +253,13 @@ internal class SøknadPostgresRepositoryTest {
                 krav = setOf(krav)
             ),
             sistEndretAvBruker = now.minusDays(1),
-            tilstandsType = Søknad.Tilstand.Type.Påbegynt,
+            tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             innsending = null
         )
 
         withMigratedDb {
-            SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).let { søknadPostgresRepository ->
+            SøknadPostgresRepository(dataSource).let { søknadPostgresRepository ->
                 søknadPostgresRepository.lagre(søknad)
                 val dokumentkrav = hentDokumentKrav(søknadPostgresRepository.hent(søknadId)!!)
 
@@ -276,7 +289,7 @@ internal class SøknadPostgresRepositoryTest {
             tidspunkt = tidspunkt
         )
         withMigratedDb {
-            val søknadPostgresRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
+            val søknadPostgresRepository = SøknadPostgresRepository(dataSource)
             søknadPostgresRepository.lagre(søknad)
             val søknadMediator = SøknadMediator(
                 rapidsConnection = mockk(),
@@ -409,7 +422,7 @@ internal class SøknadPostgresRepositoryTest {
     }
 
     private fun assertAntallRader(tabell: String, antallRader: Int) {
-        val faktiskeRader = using(sessionOf(PostgresDataSourceBuilder.dataSource)) { session ->
+        val faktiskeRader = using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf("select count(1) from $tabell").map { row ->
                     row.int(1)
