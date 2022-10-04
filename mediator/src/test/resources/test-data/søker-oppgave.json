@@ -24,7 +24,7 @@
             "f1.svar.ja",
             "f1.svar.nei"
           ],
-          "sannsynliggjøresAv": [],
+          "sannsynliggjoresAv": [],
           "readOnly": false
         }
       ]
@@ -47,7 +47,7 @@
                 "roller": [
                   "søker"
                 ],
-                "sannsynliggjøresAv": [
+                "sannsynliggjoresAv": [
                   {
                     "id": "22.1",
                     "type": "dokument",
@@ -55,7 +55,7 @@
                     "roller": [
                       "saksbehandler"
                     ],
-                    "sannsynliggjøresAv": [],
+                    "sannsynliggjoresAv": [],
                     "readOnly": true
                   }
                 ],
@@ -73,7 +73,7 @@
                   "f7.svar.ja",
                   "f7.svar.nei"
                 ],
-                "sannsynliggjøresAv": [],
+                "sannsynliggjoresAv": [],
                 "readOnly": false
               }
             ],
@@ -86,7 +86,7 @@
                 "roller": [
                   "søker"
                 ],
-                "sannsynliggjøresAv": [],
+                "sannsynliggjoresAv": [],
                 "readOnly": false
               },
               {
@@ -101,7 +101,7 @@
                   "f7.svar.ja",
                   "f7.svar.nei"
                 ],
-                "sannsynliggjøresAv": [],
+                "sannsynliggjoresAv": [],
                 "readOnly": false
               }
             ]
@@ -155,7 +155,7 @@
             "f5.svar.ja",
             "f5.svar.nei"
           ],
-          "sannsynliggjøresAv": [],
+          "sannsynliggjoresAv": [],
           "readOnly": true
         },
         {
@@ -166,7 +166,7 @@
           "roller": [
             "nav"
           ],
-          "sannsynliggjøresAv": [],
+          "sannsynliggjoresAv": [],
           "readOnly": true
         },
         {
@@ -183,7 +183,7 @@
                 "roller": [
                   "søker"
                 ],
-                "sannsynliggjøresAv": [
+                "sannsynliggjoresAv": [
                   {
                     "id": "22.1",
                     "type": "dokument",
@@ -191,7 +191,7 @@
                     "roller": [
                       "saksbehandler"
                     ],
-                    "sannsynliggjøresAv": [],
+                    "sannsynliggjoresAv": [],
                     "readOnly": true
                   }
                 ],
@@ -209,7 +209,7 @@
                   "f7.svar.ja",
                   "f7.svar.nei"
                 ],
-                "sannsynliggjøresAv": [],
+                "sannsynliggjoresAv": [],
                 "readOnly": true
               }
             ],
@@ -222,7 +222,7 @@
                 "roller": [
                   "søker"
                 ],
-                "sannsynliggjøresAv": [],
+                "sannsynliggjoresAv": [],
                 "readOnly": true
               },
               {
@@ -237,7 +237,7 @@
                   "f7.svar.ja",
                   "f7.svar.nei"
                 ],
-                "sannsynliggjøresAv": [],
+                "sannsynliggjoresAv": [],
                 "readOnly": true
               }
             ]
@@ -284,7 +284,7 @@
           "roller": [
             "søker"
           ],
-          "sannsynliggjøresAv": [],
+          "sannsynliggjoresAv": [],
           "readOnly": false
         }
       ]
@@ -346,7 +346,7 @@
                   "f17.envalg1",
                   "f17.envalg2"
                 ],
-                "sannsynliggjøresAv": [],
+                "sannsynliggjoresAv": [],
                 "readOnly": false
               },
               {
@@ -363,7 +363,7 @@
                   "f18.flervalg1",
                   "f18.flervalg2"
                 ],
-                "sannsynliggjøresAv": [],
+                "sannsynliggjoresAv": [],
                 "readOnly": false
               }
             ]
@@ -679,7 +679,7 @@
               ]
             }
           ],
-          "sannsynliggjøresAv": [],
+          "sannsynliggjoresAv": [],
           "readOnly": false
         }
       ]

@@ -20,7 +20,7 @@ internal fun faktumJson(id: String, beskrivendeId: String) = jacksonObjectMapper
     |    "f1.svar.ja",
     |    "f1.svar.nei"
     |  ],
-    |  "sannsynliggjøresAv": [],
+    |  "sannsynliggjoresAv": [],
     |  "readOnly": false
     |}
     """.trimMargin()

@@ -28,6 +28,7 @@ internal fun Route.tilstandRoute(søknadMediator: SøknadMediator) {
         val tilstand = søknadMediator.hentTilstand(søknadUuid)
         logger.info { "Tilstand på søknad med id $søknadUuid: $tilstand" }
         val søknadTilstand = SøknadTilstand(tilstand?.name)
+
         when (tilstand) {
             UnderOpprettelse -> call.respond(status = InternalServerError, søknadTilstand)
             Påbegynt -> call.respond(status = OK, søknadTilstand)
