@@ -1,12 +1,17 @@
 package no.nav.dagpenger.soknad.status
 
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
+import io.ktor.http.HttpStatusCode.Companion.NotFound
+import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import mu.KotlinLogging
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
@@ -21,17 +26,19 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator) {
         validator.valider(søknadUuid, ident)
 
         val tilstand = søknadMediator.hentTilstand(søknadUuid)
-        if (tilstand != null) {
-            val søknadStatus = SøknadStatus(tilstand.name)
-            logger.info { "Hentet status for søknad med id: $søknadUuid" }
-            call.respond(HttpStatusCode.OK, søknadStatus)
-        } else {
-            call.respond(HttpStatusCode.NotFound)
+        logger.info { "Tilstand på søknad med id $søknadUuid: $tilstand" }
+        val søknadStatus = SøknadStatus(tilstand?.name)
+        when (tilstand) {
+            UnderOpprettelse -> call.respond(status = InternalServerError, søknadStatus)
+            Påbegynt -> call.respond(status = OK, søknadStatus)
+            Innsendt -> call.respond(status = OK, søknadStatus)
+            Slettet -> call.respond(status = NotFound, søknadStatus)
+            null -> call.respond(message = NotFound)
         }
     }
 }
 
-data class SøknadStatus(var tilstand: String) {
+data class SøknadStatus(var tilstand: String?) {
     init {
         if (tilstand == Påbegynt.name) tilstand = "Paabegynt"
     }

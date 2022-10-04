@@ -34,9 +34,9 @@ class StatusApiTest {
                 }
             )
         ) {
-            assertSøknadStatus(UnderOpprettelse)
-            assertSøknadStatus(Innsendt)
-            assertSøknadStatus(Slettet)
+            assertSøknadStatus(UnderOpprettelse, HttpStatusCode.InternalServerError)
+            assertSøknadStatus(Innsendt, HttpStatusCode.OK)
+            assertSøknadStatus(Slettet, HttpStatusCode.NotFound)
         }
     }
 
@@ -75,9 +75,9 @@ class StatusApiTest {
         }
     }
 
-    private suspend fun ApplicationTestBuilder.assertSøknadStatus(tilstand: Søknad.Tilstand.Type) {
+    private suspend fun ApplicationTestBuilder.assertSøknadStatus(tilstand: Søknad.Tilstand.Type, expectedStatusCode: HttpStatusCode) {
         autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
-            assertEquals(HttpStatusCode.OK, this.status)
+            assertEquals(expectedStatusCode, this.status)
             val expectedJson = """{"tilstand":"$tilstand"}"""
             assertEquals(expectedJson, this.bodyAsText())
             assertEquals("application/json; charset=UTF-8", this.contentType().toString())
