@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad.status
+package no.nav.dagpenger.soknad.tilstand
 
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod

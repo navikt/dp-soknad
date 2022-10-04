@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad.status
+package no.nav.dagpenger.soknad.tilstand
 
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
