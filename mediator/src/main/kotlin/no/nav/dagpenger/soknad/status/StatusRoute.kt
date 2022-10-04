@@ -6,7 +6,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import mu.KotlinLogging
-import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
@@ -22,7 +22,7 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator) {
 
         val tilstand = søknadMediator.hentTilstand(søknadUuid)
         if (tilstand != null) {
-            val søknadStatus = SøknadStatus(tilstand)
+            val søknadStatus = SøknadStatus(tilstand.name)
             logger.info { "Hentet status for søknad med id: $søknadUuid" }
             call.respond(HttpStatusCode.OK, søknadStatus)
         } else {
@@ -31,4 +31,8 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator) {
     }
 }
 
-data class SøknadStatus(val tilstand: Søknad.Tilstand.Type)
+data class SøknadStatus(var tilstand: String) {
+    init {
+        if (tilstand == Påbegynt.name) tilstand = "Paabegynt"
+    }
+}
