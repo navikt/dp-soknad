@@ -20,12 +20,12 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class StatusApiTest {
+class TilstandApiTest {
     private val søknadUuid = UUID.randomUUID()
-    private val endepunkt = "${Configuration.basePath}/soknad/$søknadUuid/status"
+    private val endepunkt = "${Configuration.basePath}/soknad/$søknadUuid/tilstand"
 
     @Test
-    fun `returnerer status til søknad`() {
+    fun `returnerer tilstand til søknad`() {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
@@ -34,14 +34,14 @@ class StatusApiTest {
                 }
             )
         ) {
-            assertSøknadStatus(UnderOpprettelse, HttpStatusCode.InternalServerError)
-            assertSøknadStatus(Innsendt, HttpStatusCode.OK)
-            assertSøknadStatus(Slettet, HttpStatusCode.NotFound)
+            assertSøknadTilstand(UnderOpprettelse, HttpStatusCode.InternalServerError)
+            assertSøknadTilstand(Innsendt, HttpStatusCode.OK)
+            assertSøknadTilstand(Slettet, HttpStatusCode.NotFound)
         }
     }
 
     @Test
-    fun `returnerer Paabegynt gitt tilstand er Påbegynt`() {
+    fun `unngå å returnere Å i api respons ved tilstand Påbegynt`() {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
@@ -75,7 +75,7 @@ class StatusApiTest {
         }
     }
 
-    private suspend fun ApplicationTestBuilder.assertSøknadStatus(tilstand: Søknad.Tilstand.Type, expectedStatusCode: HttpStatusCode) {
+    private suspend fun ApplicationTestBuilder.assertSøknadTilstand(tilstand: Søknad.Tilstand.Type, expectedStatusCode: HttpStatusCode) {
         autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
             assertEquals(expectedStatusCode, this.status)
             val expectedJson = """{"tilstand":"$tilstand"}"""

@@ -13,7 +13,7 @@ import no.nav.dagpenger.soknad.livssyklus.påbegynt.påbegyntSøknadRoute
 import no.nav.dagpenger.soknad.livssyklus.slett.slettSøknadRoute
 import no.nav.dagpenger.soknad.livssyklus.start.startSøknadRoute
 import no.nav.dagpenger.soknad.mal.nyesteMalRoute
-import no.nav.dagpenger.soknad.status.statusRoute
+import no.nav.dagpenger.soknad.status.tilstandRoute
 import java.util.UUID
 
 internal fun søknadApiRouteBuilder(søknadMediator: SøknadMediator): Route.() -> Unit = { søknadApi(søknadMediator) }
@@ -27,7 +27,7 @@ internal fun Route.søknadApi(søknadMediator: SøknadMediator) {
         besvarFaktumRoute(søknadMediator)
         nyesteMalRoute(søknadMediator)
         slettSøknadRoute(søknadMediator)
-        statusRoute(søknadMediator)
+        tilstandRoute(søknadMediator)
         dokumentasjonkravRoute(søknadMediator)
     }
 }

@@ -18,27 +18,27 @@ import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
 
 private val logger = KotlinLogging.logger {}
-internal fun Route.statusRoute(søknadMediator: SøknadMediator) {
+internal fun Route.tilstandRoute(søknadMediator: SøknadMediator) {
     val validator = SøknadEierValidator(søknadMediator)
-    get("/{søknad_uuid}/status") {
+    get("/{søknad_uuid}/tilstand") {
         val søknadUuid = søknadUuid()
         val ident = call.ident()
         validator.valider(søknadUuid, ident)
 
         val tilstand = søknadMediator.hentTilstand(søknadUuid)
         logger.info { "Tilstand på søknad med id $søknadUuid: $tilstand" }
-        val søknadStatus = SøknadStatus(tilstand?.name)
+        val søknadTilstand = SøknadTilstand(tilstand?.name)
         when (tilstand) {
-            UnderOpprettelse -> call.respond(status = InternalServerError, søknadStatus)
-            Påbegynt -> call.respond(status = OK, søknadStatus)
-            Innsendt -> call.respond(status = OK, søknadStatus)
-            Slettet -> call.respond(status = NotFound, søknadStatus)
+            UnderOpprettelse -> call.respond(status = InternalServerError, søknadTilstand)
+            Påbegynt -> call.respond(status = OK, søknadTilstand)
+            Innsendt -> call.respond(status = OK, søknadTilstand)
+            Slettet -> call.respond(status = NotFound, søknadTilstand)
             null -> call.respond(message = NotFound)
         }
     }
 }
 
-data class SøknadStatus(var tilstand: String?) {
+data class SøknadTilstand(var tilstand: String?) {
     init {
         if (tilstand == Påbegynt.name) tilstand = "Paabegynt"
     }
