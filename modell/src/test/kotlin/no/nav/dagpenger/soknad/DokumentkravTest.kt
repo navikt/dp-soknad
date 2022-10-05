@@ -128,7 +128,7 @@ internal class DokumentkravTest {
     fun `gir riktig skjemakode`() {
 
         assertEquals("N6", krav("ID").tilSkjemakode())
-        assertEquals("T3", krav("faktum.avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd-dokumentasjon").tilSkjemakode())
+        assertEquals("T3", krav("faktum.dokument-avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd-dokumentasjon").tilSkjemakode())
         assertEquals("K1", krav("faktum.dokument-tjenestepensjon").tilSkjemakode())
         assertEquals("K1", krav("faktum.dokument-arbeidslos-GFF-hvilken-periode").tilSkjemakode())
         assertEquals("K1", krav("faktum.dokument-garantilott-GFF-hvilken-periode").tilSkjemakode())
@@ -142,12 +142,12 @@ internal class DokumentkravTest {
         assertEquals("M7", krav("faktum.dokument-brev-fra-bobestyrer-eller-konkursforvalter").tilSkjemakode())
         assertEquals("O2", krav("faktum.dokument-ny-arbeidsavtale").tilSkjemakode())
         assertEquals("T6", krav("faktum.dokument-permitteringsvarsel").tilSkjemakode())
-        assertEquals("T9", krav("faktum.dokumentasjon-bekreftelse-fra-lege-eller-annen-behandler").tilSkjemakode())
-        assertEquals("Y2", krav("faktum.dokumentasjon-fulltid-bekreftelse-fra-relevant-fagpersonell").tilSkjemakode())
-        assertEquals("Y2", krav("faktum.dokumentasjon-hele-norge-bekreftelse-fra-relevant-fagpersonell").tilSkjemakode())
-        assertEquals("Y2", krav("faktum.dokumentasjon-alle-typer-bekreftelse-fra-relevant-fagpersonell").tilSkjemakode())
+        assertEquals("T9", krav("faktum.dokument-bekreftelse-fra-lege-eller-annen-behandler").tilSkjemakode())
+        assertEquals("Y2", krav("faktum.dokument-fulltid-bekreftelse-fra-relevant-fagpersonell").tilSkjemakode())
+        assertEquals("Y2", krav("faktum.dokument-hele-norge-bekreftelse-fra-relevant-fagpersonell").tilSkjemakode())
+        assertEquals("Y2", krav("faktum.dokument-alle-typer-bekreftelse-fra-relevant-fagpersonell").tilSkjemakode())
         assertEquals("T2", krav("faktum.dokument-utdanning-sluttdato").tilSkjemakode())
-        assertEquals("X8", krav("faktum.dokumentasjon-foedselsattest-bostedsbevis-for-barn-under-18aar").tilSkjemakode())
+        assertEquals("X8", krav("faktum.dokument-foedselsattest-bostedsbevis-for-barn-under-18aar").tilSkjemakode())
     }
 
     private fun krav(sannsynliggjøringId: String): Krav {

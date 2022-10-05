@@ -132,7 +132,7 @@ data class Krav(
     fun ferdigStilt() = this.svar.ferdigStilt()
     internal fun tilSkjemakode(): String {
         return when (this.id) {
-            "faktum.avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd-dokumentasjon" -> Skjemakode.TJENESTEBEVIS
+            "faktum.dokument-avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd-dokumentasjon" -> Skjemakode.TJENESTEBEVIS
             "faktum.dokument-tjenestepensjon" -> Skjemakode.DOKUMENTASJON_AV_ANDRE_YTELSER
             "faktum.dokument-arbeidslos-GFF-hvilken-periode" -> Skjemakode.DOKUMENTASJON_AV_ANDRE_YTELSER
             "faktum.dokument-garantilott-GFF-hvilken-periode" -> Skjemakode.DOKUMENTASJON_AV_ANDRE_YTELSER
@@ -147,11 +147,11 @@ data class Krav(
             "faktum.dokument-ny-arbeidsavtale" -> Skjemakode.ARBEIDSAVTALTE
             "faktum.dokument-permitteringsvarsel" -> Skjemakode.PERMITTERINGSVARSEL
             "faktum.dokument-utdanning-sluttdato" -> Skjemakode.DOKUMENTASJON_AV_SLUTTDATO
-            "faktum.dokumentasjon-bekreftelse-fra-lege-eller-annen-behandler" -> Skjemakode.DOKUMENTASJON_AV_HELSE_OG_FUNKSJONSNIVÅ
-            "faktum.dokumentasjon-fulltid-bekreftelse-fra-relevant-fagpersonell" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
-            "faktum.dokumentasjon-hele-norge-bekreftelse-fra-relevant-fagpersonell" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
-            "faktum.dokumentasjon-alle-typer-bekreftelse-fra-relevant-fagpersonell" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
-            "faktum.dokumentasjon-foedselsattest-bostedsbevis-for-barn-under-18aar" -> Skjemakode.FODSELSATTEST_BOSTEDSBEVIS_BARN_UNDER_18
+            "faktum.dokument-bekreftelse-fra-lege-eller-annen-behandler" -> Skjemakode.DOKUMENTASJON_AV_HELSE_OG_FUNKSJONSNIVÅ
+            "faktum.dokument-fulltid-bekreftelse-fra-relevant-fagpersonell" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
+            "faktum.dokument-hele-norge-bekreftelse-fra-relevant-fagpersonell" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
+            "faktum.dokument-alle-typer-bekreftelse-fra-relevant-fagpersonell" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
+            "faktum.dokument-foedselsattest-bostedsbevis-for-barn-under-18aar" -> Skjemakode.FODSELSATTEST_BOSTEDSBEVIS_BARN_UNDER_18
             else -> Skjemakode.ANNET
         }.verdi()
     }
@@ -163,11 +163,7 @@ data class Krav(
         BREV_FRA_BOSTYRE_KONKURSFORVALTER("M7"),
         DOKUMENTASJON_AV_SLUTTDATO("T2"),
         KOPI_AV_SLUTTAVTALE("V6"),
-        // OVERSIKT_OVER_ARBEIDSTIMER("NAV 04-03.08"), // todo: Mangler i quiz
-        // BEKREFTELSE_PÅ_ARBEIDSFORHOLD_OG_PERMITTERING("NAV 04-08.04"), // todo: Mangler i quiz - permittering
         DOKUMENTASJON_AV_ANDRE_YTELSER("K1"), // @todo: mangler i dp-mottak?
-        // DOKUMENTASJON_AV_ANDRE_UTBETALINGER("K5"), // @todo: mangler i dp-mottak og quiz???
-        // DOKUMENTASJON_AV_UTBETALINGER_ELLER_GODER_FRA_ARBEIDSGIVER("K6"), @todo: mangler i dp-mottak og quiz???
         PERMITTERINGSVARSEL("T6"), // @todo: mangler i dp-mottak?
         DOKUMENTASJON_AV_ARBEIDSFORHOLD("T8"), // @todo: mangler i dp-mottak?
         DOKUMENTASJON_AV_HELSE_OG_FUNKSJONSNIVÅ("T9"), // @todo: mangler i dp-mottak?
