@@ -136,13 +136,7 @@ class Søknad private constructor(
 
     fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse) {
         kontekst(faktumOppdatertHendelse)
-        // @todo : Delegere til tilstand - tilstand burde si om det er ok å lagre
-        if (tilstand == Påbegynt) {
-            sistEndretAvBruker = ZonedDateTime.now()
-            tilstand.håndter(faktumOppdatertHendelse, this)
-        } else {
-            faktumOppdatertHendelse.severe("Kan ikke oppdatere faktum for søknader i tilstand ${tilstand.tilstandType.name}")
-        }
+        tilstand.håndter(faktumOppdatertHendelse, this)
     }
 
     fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse) {
@@ -214,8 +208,8 @@ class Søknad private constructor(
         fun håndter(journalførtHendelse: JournalførtHendelse, søknad: Søknad) =
             journalførtHendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse, søknad: Søknad) =
-            faktumOppdatertHendelse.`kan ikke håndteres i denne tilstanden`()
+        fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse, søknad: Søknad): Unit =
+            faktumOppdatertHendelse.severe("Kan ikke oppdatere faktum for søknader i tilstand ${tilstandType.name}")
 
         fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse, søknad: Søknad) {
             søkeroppgaveHendelse.`kan ikke håndteres i denne tilstanden`()
@@ -300,6 +294,7 @@ class Søknad private constructor(
         }
 
         override fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse, søknad: Søknad) {
+            søknad.sistEndretAvBruker = ZonedDateTime.now()
         }
 
         override fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse, søknad: Søknad) {
