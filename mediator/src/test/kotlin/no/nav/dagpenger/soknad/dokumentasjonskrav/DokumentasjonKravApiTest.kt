@@ -193,6 +193,10 @@ internal class DokumentasjonKravApiTest {
                     assertFalse(bundle.isNull)
                     assertEquals("urn:bundle:1", bundle.asText())
 
+                    val bundleFilsti = this["bundleFilsti"]
+                    assertFalse(bundleFilsti.isNull)
+                    assertEquals("1", bundleFilsti.asText())
+
                     assertNotNull(this["fakta"])
                 }
                 with(dokumentkrav["krav"].last()) {
