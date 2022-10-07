@@ -60,6 +60,19 @@ class TilstandApiTest {
     }
 
     @Test
+    fun `Skal avvise autentiserte kall der pid på token ikke er eier av søknaden`() {
+        val mediatorMock = mockk<SøknadMediator>().also {
+            every { it.hentEier(søknadUuid) } returns "annen eier"
+        }
+
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(søknadMediator = mediatorMock)
+        ) {
+            assertEquals(HttpStatusCode.Forbidden, autentisert(endepunkt).status)
+        }
+    }
+
+    @Test
     fun `returnerer 404 når søknad ikke eksisterer`() {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
