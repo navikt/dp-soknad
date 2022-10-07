@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS soknadmal
 CREATE TABLE IF NOT EXISTS soknad_tekst_v1
 (
     id    BIGSERIAL PRIMARY KEY,
-    uuid  uuid UNIQUE REFERENCES soknad_v1 (uuid),
+    uuid  uuid UNIQUE REFERENCES soknad_v1 (uuid) ON DELETE CASCADE,
     tekst jsonb NOT NULL
 );
 

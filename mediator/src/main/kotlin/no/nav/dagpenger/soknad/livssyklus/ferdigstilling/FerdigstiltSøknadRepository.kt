@@ -25,7 +25,8 @@ internal class FerdigstiltSøknadPostgresRepository(private val dataSource: Data
                 session.run(
                     queryOf(
                         //language=PostgreSQL
-                        statement = "INSERT INTO soknad_tekst_v1(uuid,tekst) VALUES(:uuid,:tekst)",
+                        statement = """INSERT INTO soknad_tekst_v1(uuid,tekst) VALUES(:uuid,:tekst)
+ON CONFLICT (uuid) DO NOTHING """,
                         paramMap = mapOf(
                             "uuid" to søknadUuid,
                             "tekst" to PGobject().also {
@@ -37,13 +38,8 @@ internal class FerdigstiltSøknadPostgresRepository(private val dataSource: Data
                 )
             }
         } catch (error: PSQLException) {
-            if (error.sqlState == "23505") {
-                logger.error { "Forsøk på å legge inn duplikat i innsendt søknad: $søknadUuid" }
-                throw IllegalArgumentException(error)
-            } else {
-                logger.error(error) { "Ukjent feil" }
-                throw error
-            }
+            logger.error(error) { "Feil i lagring av søknad tekst for søknad: $søknadUuid" }
+            throw error
         }
     }
 

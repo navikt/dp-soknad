@@ -23,6 +23,7 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
 
     @Language("JSON")
     private val dummyTekst = """{ "id": "value" }"""
+    private val dummyTekst2 = """{ "id2": "value2" }"""
     private val dummyFakta = """{ "fakta1": "value1" }"""
 
     @Test
@@ -48,19 +49,20 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
     }
 
     @Test
-    fun `kaster exeption når søknaduuid allerede finnes`() {
-        assertThrows<IllegalArgumentException> {
-            withMigratedDb {
-                val søknadUUID = lagRandomPersonOgSøknad()
-                FerdigstiltSøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).lagreSøknadsTekst(
-                    søknadUUID,
-                    dummyTekst
-                )
-                FerdigstiltSøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).lagreSøknadsTekst(
-                    søknadUUID,
-                    dummyTekst
-                )
-            }
+    fun `Skriver ikke over tekst når søknad allerede finnes`() {
+        val ferdigstiltSøknadPostgresRepository =
+            FerdigstiltSøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
+        withMigratedDb {
+            val søknadUUID = lagRandomPersonOgSøknad()
+            ferdigstiltSøknadPostgresRepository.lagreSøknadsTekst(
+                søknadUUID,
+                dummyTekst
+            )
+            ferdigstiltSøknadPostgresRepository.lagreSøknadsTekst(
+                søknadUUID,
+                dummyTekst2
+            )
+            assertJsonEquals(dummyTekst, ferdigstiltSøknadPostgresRepository.hentTekst(søknadUUID))
         }
     }
 
