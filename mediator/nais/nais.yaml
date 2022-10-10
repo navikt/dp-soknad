@@ -33,7 +33,7 @@ spec:
       memory: "512Mi"
     requests:
       cpu: "512m"
-      memory: "256Mi"
+      memory: "512Mi"
   {{ ingresses }}
   tokenx:
     enabled: true
@@ -55,6 +55,8 @@ spec:
       value: {{PDL_API_URL}}
     - name: PDL_AUDIENCE
       value: {{PDL_AUDIENCE}}
+    - name: JAVA_OPTS
+      value: -XX:+UseG1GC -XX:MaxRAMPercentage=75.0 -XX:ActiveProcessorCount=2
   gcp:
     sqlInstances:
       - name: dp-soknad-v1
