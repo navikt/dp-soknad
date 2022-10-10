@@ -394,8 +394,11 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         queries.add(
             queryOf(
                 // language=PostgreSQL
-                "DELETE FROM dokumentkrav_filer_v1 WHERE soknad_uuid = :uuid",
-                mapOf("uuid" to søknadId)
+                "DELETE FROM dokumentkrav_filer_v1 WHERE soknad_uuid = :uuid AND faktum_id = :faktum_id",
+                mapOf(
+                    "uuid" to søknadId,
+                    "faktum_id" to krav.id
+                )
             )
         )
 

@@ -41,15 +41,30 @@ internal class SøknadPostgresRepositoryTest {
     private val språk = Språk("NO")
     private val dokumentFaktum =
         Faktum(faktumJson("1", "f1"))
+    private val dokumentFaktum2 =
+        Faktum(faktumJson("3", "f3"))
+
     private val faktaSomSannsynliggjøres =
         mutableSetOf(
             Faktum(faktumJson("2", "f2"))
+        )
+
+    private val faktaSomSannsynliggjøres2 =
+        mutableSetOf(
+            Faktum(faktumJson("4", "f4"))
         )
     private val sannsynliggjøring = Sannsynliggjøring(
         id = dokumentFaktum.id,
         faktum = dokumentFaktum,
         sannsynliggjør = faktaSomSannsynliggjøres
     )
+
+    private val sannsynliggjøring2 = Sannsynliggjøring(
+        id = dokumentFaktum2.id,
+        faktum = dokumentFaktum2,
+        sannsynliggjør = faktaSomSannsynliggjøres2
+    )
+
     private val krav = Krav(
         sannsynliggjøring
     )
@@ -95,15 +110,21 @@ internal class SøknadPostgresRepositoryTest {
 
     @Test
     fun `Lagre og hente søknad med dokument, dokumentkrav, innsending og aktivitetslogg`() {
-        val krav = Krav(
+        val krav1 = Krav(
             id = sannsynliggjøring.id,
             sannsynliggjøring = sannsynliggjøring,
             tilstand = Krav.KravTilstand.AKTIV,
             svar = Krav.Svar(
                 filer = mutableSetOf(
                     Krav.Fil(
-                        filnavn = "test.jpg",
-                        urn = URN.rfc8141().parse("urn:nav:vedlegg:1"),
+                        filnavn = "1-1.jpg",
+                        urn = URN.rfc8141().parse("urn:nav:vedlegg:1-1"),
+                        storrelse = 1000,
+                        tidspunkt = now
+                    ),
+                    Krav.Fil(
+                        filnavn = "1-2.jpg",
+                        urn = URN.rfc8141().parse("urn:nav:vedlegg:1-2"),
                         storrelse = 1000,
                         tidspunkt = now
                     )
@@ -114,12 +135,32 @@ internal class SøknadPostgresRepositoryTest {
             )
 
         )
+
+        val krav2 = Krav(
+            id = sannsynliggjøring2.id,
+            sannsynliggjøring = sannsynliggjøring2,
+            tilstand = Krav.KravTilstand.AKTIV,
+            svar = Krav.Svar(
+                filer = mutableSetOf(
+                    Krav.Fil(
+                        filnavn = "2.jpg",
+                        urn = URN.rfc8141().parse("urn:nav:vedlegg:2"),
+                        storrelse = 1000,
+                        tidspunkt = now
+                    )
+                ),
+                valg = Krav.Svar.SvarValg.SEND_NÅ,
+                begrunnelse = null,
+                bundle = URN.rfc8141().parse("urn:nav:bundle:2")
+            )
+
+        )
         val søknad = Søknad.rehydrer(
             søknadId = søknadId,
             ident = ident,
             språk = språk,
             dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav)
+                krav = setOf(krav1, krav2)
             ),
             sistEndretAvBruker = now.minusDays(1),
             tilstandsType = Påbegynt,
@@ -203,7 +244,8 @@ internal class SøknadPostgresRepositoryTest {
                 søknadPostgresRepository.lagre(søknad)
 
                 assertAntallRader("soknad_v1", 1)
-                assertAntallRader("dokumentkrav_v1", 1)
+                assertAntallRader("dokumentkrav_filer_v1", 3)
+                assertAntallRader("dokumentkrav_v1", 2)
                 assertAntallRader("aktivitetslogg_v1", 1)
                 assertAntallRader("innsending_v1", 3)
                 assertAntallRader("dokument_v1", 2)
