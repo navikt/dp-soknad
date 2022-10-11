@@ -112,7 +112,7 @@ internal class SøknadPostgresRepositoryTest {
 
     @Test
     fun `Henter søknad opprettet tidspunkt`() {
-        val opprettet = LocalDateTime.now()
+        val opprettet = LocalDateTime.of(2020, 1, 1, 1, 1)
         withMigratedDb {
             SøknadPostgresRepository(dataSource).let { repository ->
                 repository.lagre(søknad)
