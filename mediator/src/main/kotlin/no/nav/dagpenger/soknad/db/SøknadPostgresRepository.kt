@@ -220,6 +220,26 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         }
     }
 
+    override fun hentOpprettet(søknadId: UUID): LocalDateTime? {
+        return using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf(
+                    //language=PostgreSQL
+                    statement = """
+                        SELECT opprettet
+                        FROM soknad_v1
+                        WHERE uuid = :soknadId
+                    """.trimIndent(),
+                    paramMap = mapOf(
+                        "soknadId" to søknadId
+                    )
+                ).map { row ->
+                    row.localDateTime("opprettet")
+                }.asSingle
+            )
+        }
+    }
+
     internal class PersistentSøkerOppgave(private val søknad: JsonNode) : SøkerOppgave {
         override fun søknadUUID(): UUID = UUID.fromString(søknad[SøkerOppgave.Keys.SØKNAD_UUID].asText())
         override fun eier(): String = søknad[SøkerOppgave.Keys.FØDSELSNUMMER].asText()

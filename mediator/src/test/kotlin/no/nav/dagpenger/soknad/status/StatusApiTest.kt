@@ -18,11 +18,33 @@ import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 import java.util.UUID
 
 class StatusApiTest {
     private val søknadUuid = UUID.randomUUID()
     private val endepunkt = "${Configuration.basePath}/soknad/$søknadUuid/status"
+
+    @Test
+    fun `status paabegynt`() {
+        val opprettet = LocalDateTime.MAX
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(
+                søknadMediator = mockk<SøknadMediator>().also {
+                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
+                    every { it.hentTilstand(søknadUuid) } returns Påbegynt
+                    every { it.hentOpprettet(søknadUuid) } returns opprettet
+                }
+            )
+        ) {
+            autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
+                assertEquals(HttpStatusCode.OK, this.status)
+                val expectedJson = """{"status":"Paabegynt","soknadOpprettet":"$opprettet"}"""
+                assertEquals(expectedJson, this.bodyAsText())
+                assertEquals("application/json; charset=UTF-8", this.contentType().toString())
+            }
+        }
+    }
 
     @Test
     fun `returnerer tilstand til søknad`() {
@@ -31,31 +53,13 @@ class StatusApiTest {
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
                     every { it.hentTilstand(søknadUuid) } returnsMany listOf(UnderOpprettelse, Innsendt, Slettet)
+                    every { it.hentOpprettet(søknadUuid) } returns LocalDateTime.MAX
                 }
             )
         ) {
             assertSøknadTilstand(UnderOpprettelse, HttpStatusCode.InternalServerError)
             assertSøknadTilstand(Innsendt, HttpStatusCode.OK)
             assertSøknadTilstand(Slettet, HttpStatusCode.NotFound)
-        }
-    }
-
-    @Test
-    fun `unngå å returnere Å i api respons ved tilstand Påbegynt`() {
-        TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi(
-                søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
-                    every { it.hentTilstand(søknadUuid) } returns Påbegynt
-                }
-            )
-        ) {
-            autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
-                assertEquals(HttpStatusCode.OK, this.status)
-                val jsonUtenÅ = """{"tilstand":"Paabegynt"}"""
-                assertEquals(jsonUtenÅ, this.bodyAsText())
-                assertEquals("application/json; charset=UTF-8", this.contentType().toString())
-            }
         }
     }
 
@@ -79,6 +83,7 @@ class StatusApiTest {
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
                     every { it.hentTilstand(søknadUuid) } returns null
+                    every { it.hentOpprettet(søknadUuid) } returns LocalDateTime.MAX
                 }
             )
         ) {

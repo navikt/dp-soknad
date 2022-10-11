@@ -16,6 +16,7 @@ import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
+import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
 internal fun Route.statusRoute(søknadMediator: SøknadMediator) {
@@ -28,10 +29,11 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator) {
         val tilstand = søknadMediator.hentTilstand(søknadUuid)
         logger.info { "Tilstand på søknad med id $søknadUuid: $tilstand" }
         val søknadStatus = SøknadStatus(tilstand?.name)
+        val søknadOpprettet = søknadMediator.hentOpprettet(søknadUuid)!!
 
         when (tilstand) {
             UnderOpprettelse -> call.respond(status = InternalServerError, søknadStatus)
-            Påbegynt -> call.respond(status = OK, søknadStatus)
+            Påbegynt -> call.respond(status = OK, SøknadStatusDTO("Paabegynt", soknadOpprettet = søknadOpprettet))
             Innsendt -> call.respond(status = OK, søknadStatus)
             Slettet -> call.respond(status = NotFound, søknadStatus)
             null -> call.respond(message = NotFound)
@@ -44,3 +46,9 @@ data class SøknadStatus(var tilstand: String?) {
         if (tilstand == Påbegynt.name) tilstand = "Paabegynt"
     }
 }
+
+data class SøknadStatusDTO(
+    val status: String,
+    val soknadOpprettet: LocalDateTime,
+    val innsendtDato: LocalDateTime? = null,
+)

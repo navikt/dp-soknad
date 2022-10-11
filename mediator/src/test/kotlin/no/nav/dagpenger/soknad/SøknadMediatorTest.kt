@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 import java.util.UUID
 
 internal class SøknadMediatorTest {
@@ -63,6 +64,10 @@ internal class SøknadMediatorTest {
         }
 
         override fun hentTilstand(søknadId: UUID): Søknad.Tilstand.Type? {
+            TODO("Not yet implemented")
+        }
+
+        override fun hentOpprettet(søknadId: UUID): LocalDateTime {
             TODO("Not yet implemented")
         }
     }
