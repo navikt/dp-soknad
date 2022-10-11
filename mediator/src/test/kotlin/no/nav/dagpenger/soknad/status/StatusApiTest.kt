@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad.tilstand
+package no.nav.dagpenger.soknad.status
 
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
@@ -20,9 +20,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class TilstandApiTest {
+class StatusApiTest {
     private val søknadUuid = UUID.randomUUID()
-    private val endepunkt = "${Configuration.basePath}/soknad/$søknadUuid/tilstand"
+    private val endepunkt = "${Configuration.basePath}/soknad/$søknadUuid/status"
 
     @Test
     fun `returnerer tilstand til søknad`() {
@@ -88,7 +88,10 @@ class TilstandApiTest {
         }
     }
 
-    private suspend fun ApplicationTestBuilder.assertSøknadTilstand(tilstand: Søknad.Tilstand.Type, expectedStatusCode: HttpStatusCode) {
+    private suspend fun ApplicationTestBuilder.assertSøknadTilstand(
+        tilstand: Søknad.Tilstand.Type,
+        expectedStatusCode: HttpStatusCode,
+    ) {
         autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
             assertEquals(expectedStatusCode, this.status)
             val expectedJson = """{"tilstand":"$tilstand"}"""
