@@ -13,6 +13,7 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.status.SøknadStatus.Paabegynt
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
@@ -28,27 +29,27 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator) {
 
         val tilstand = søknadMediator.hentTilstand(søknadUuid)
         logger.info { "Tilstand på søknad med id $søknadUuid: $tilstand" }
-        val søknadStatus = SøknadStatus(tilstand?.name)
+        val søknadStatusOld = SøknadStatusOld(tilstand?.name)
         val søknadOpprettet = søknadMediator.hentOpprettet(søknadUuid)!!
 
         when (tilstand) {
-            UnderOpprettelse -> call.respond(status = InternalServerError, søknadStatus)
-            Påbegynt -> call.respond(status = OK, SøknadStatusDTO("Paabegynt", soknadOpprettet = søknadOpprettet))
-            Innsendt -> call.respond(status = OK, søknadStatus)
-            Slettet -> call.respond(status = NotFound, søknadStatus)
+            UnderOpprettelse -> call.respond(status = InternalServerError, søknadStatusOld)
+            Påbegynt -> call.respond(status = OK, SøknadStatusDTO(Paabegynt, soknadOpprettet = søknadOpprettet))
+            Innsendt -> call.respond(status = OK, søknadStatusOld)
+            Slettet -> call.respond(status = NotFound, søknadStatusOld)
             null -> call.respond(message = NotFound)
         }
     }
 }
 
-data class SøknadStatus(var tilstand: String?) {
+data class SøknadStatusOld(var tilstand: String?) {
     init {
         if (tilstand == Påbegynt.name) tilstand = "Paabegynt"
     }
 }
 
 data class SøknadStatusDTO(
-    val status: String,
+    val status: SøknadStatus,
     val soknadOpprettet: LocalDateTime,
     val innsendtDato: LocalDateTime? = null,
 )
