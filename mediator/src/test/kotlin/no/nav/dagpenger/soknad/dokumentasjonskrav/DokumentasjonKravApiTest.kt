@@ -95,6 +95,7 @@ internal class DokumentasjonKravApiTest {
     private val søknad = Søknad.rehydrer(
         søknadId = testSoknadId,
         ident = defaultDummyFodselsnummer,
+        ZonedDateTime.now(),
         språk = Språk("NO"),
         dokumentkrav = dokumentKrav,
         sistEndretAvBruker = ZonedDateTime.now(),

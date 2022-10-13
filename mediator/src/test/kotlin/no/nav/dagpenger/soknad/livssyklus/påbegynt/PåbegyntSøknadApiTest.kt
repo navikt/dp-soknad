@@ -13,9 +13,8 @@ import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.util.UUID
 
 class PåbegyntSøknadApiTest {
@@ -24,9 +23,6 @@ class PåbegyntSøknadApiTest {
     fun `Skal hente påbegynt søknad`() {
         val expectedIdent = "12345678901"
         val søknadUUID = "258b2f1b-bdda-4bed-974c-c4ddb206e4f4"
-        val opprettet = ZonedDateTime.of(
-            2022, 1, 1, 23, 23, 23, 11, ZoneId.of("UTC+2")
-        )
         val expectedSoknad = Søknad(
             UUID.fromString(søknadUUID),
             Språk("NO"),
@@ -50,7 +46,7 @@ class PåbegyntSøknadApiTest {
                 val response = objectMapper.readTree(this.bodyAsText())
                 assertEquals(søknadUUID, response["uuid"].asText())
                 assertEquals("no", response["spraak"].asText())
-                assertEquals(opprettet.toString(), response["opprettet"].asText())
+                assertFalse(response["opprettet"].isNull)
             }
         }
     }

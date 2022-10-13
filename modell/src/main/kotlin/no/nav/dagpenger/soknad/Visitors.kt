@@ -36,10 +36,11 @@ interface SøknadVisitor : TilstandVisitor, AktivitetsloggVisitor, DokumentkravV
     fun visitSøknad(
         søknadId: UUID,
         ident: String,
+        opprettet: ZonedDateTime,
         tilstand: Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime?
+        sistEndretAvBruker: ZonedDateTime?,
     ) {
     }
 }

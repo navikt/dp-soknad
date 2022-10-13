@@ -77,6 +77,7 @@ internal class SøknadPostgresRepositoryTest {
     val søknad = Søknad.rehydrer(
         søknadId = søknadId,
         ident = ident,
+        opprettet = ZonedDateTime.now(),
         språk = Språk("NO"),
         dokumentkrav = Dokumentkrav.rehydrer(
             krav = setOf(krav)
@@ -176,6 +177,7 @@ internal class SøknadPostgresRepositoryTest {
         val søknad = Søknad.rehydrer(
             søknadId = søknadId,
             ident = ident,
+            opprettet = ZonedDateTime.now(),
             språk = språk,
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav1, krav2)
@@ -308,6 +310,7 @@ internal class SøknadPostgresRepositoryTest {
         val søknad = Søknad.rehydrer(
             søknadId = søknadId,
             ident = ident,
+            opprettet = ZonedDateTime.now(),
             språk = språk,
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav)
@@ -478,6 +481,7 @@ internal class SøknadPostgresRepositoryTest {
         val innsendtSøknad = Søknad.rehydrer(
             søknadId = søknadIdForInnsendt,
             ident = ident,
+            opprettet = ZonedDateTime.now(),
             språk = Språk("NO"),
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav)
@@ -511,6 +515,7 @@ internal class SøknadPostgresRepositoryTest {
             override fun visitSøknad(
                 søknadId: UUID,
                 ident: String,
+                opprettet: ZonedDateTime,
                 tilstand: Søknad.Tilstand,
                 språk: Språk,
                 dokumentkrav: Dokumentkrav,

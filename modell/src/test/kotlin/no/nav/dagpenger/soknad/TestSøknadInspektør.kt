@@ -9,6 +9,7 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
     lateinit var dokumentkrav: Dokumentkrav
     lateinit var aktivitetslogg: Aktivitetslogg
     lateinit var innsending: InnsendingData
+    lateinit var opprettet: ZonedDateTime
     private var ettersending: Boolean = false
     val ettersendinger = mutableListOf<InnsendingData>()
 
@@ -31,6 +32,7 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
     override fun visitSøknad(
         søknadId: UUID,
         ident: String,
+        opprettet: ZonedDateTime,
         tilstand: Søknad.Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
@@ -38,6 +40,7 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
     ) {
         this.søknadId = søknadId
         this.dokumentkrav = dokumentkrav
+        this.opprettet = opprettet
     }
 
     override fun preVisitEttersendinger() {

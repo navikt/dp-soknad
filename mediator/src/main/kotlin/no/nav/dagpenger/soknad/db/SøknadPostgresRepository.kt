@@ -71,7 +71,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 queryOf(
                     //language=PostgreSQL
                     statement = """
-                    SELECT uuid, tilstand, spraak, sist_endret_av_bruker, person_ident
+                    SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident
                     FROM  soknad_v1
                     WHERE uuid = :uuid
                     """.trimIndent(),
@@ -82,9 +82,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             )?.rehydrer()
         }
     }
-
-    private fun Row.norskZonedDateTime(columnLabel: String): ZonedDateTime =
-        this.zonedDateTime(columnLabel).withZoneSameInstant(ZoneId.of("Europe/Oslo"))
 
     private fun Session.hentInnsending(søknadId: UUID): InnsendingDTO? {
         return this.run(
@@ -146,36 +143,38 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 queryOf(
                     //language=PostgreSQL
                     statement = """
-                            SELECT uuid, tilstand, spraak, sist_endret_av_bruker,person_ident
+                            SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident
                             FROM  soknad_v1
                             WHERE person_ident = :ident
                     """.trimIndent(),
                     paramMap = mapOf(
                         "ident" to ident
                     )
-                    // todo
                 ).map(rowToSøknadDTO(session)).asList
             ).map { it.rehydrer() }.toSet()
         }
     }
 
-    private fun rowToSøknadDTO(session: Session) =
-        { row: Row ->
+    private fun rowToSøknadDTO(session: Session): (Row) -> SøknadDTO {
+
+        return { row: Row ->
             val søknadsId = UUID.fromString(row.string("uuid"))
             SøknadDTO(
                 søknadsId = søknadsId,
                 ident = row.string("person_ident"),
+                opprettet = row.norskZonedDateTime("opprettet"),
                 tilstandType = SøknadDTO.TilstandDTO.rehydrer(row.string("tilstand")),
                 språkDTO = SøknadDTO.SpråkDTO(row.string("spraak")),
                 dokumentkrav = SøknadDTO.DokumentkravDTO(
                     session.hentDokumentKrav(søknadsId)
                 ),
                 sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")
-                    ?.withZoneSameInstant(ZoneId.of("Europe/Oslo")),
+                    ?.withZoneSameInstant(tidssone),
                 innsendingDTO = session.hentInnsending(søknadsId),
                 aktivitetslogg = session.hentAktivitetslogg(søknadsId)
             )
         }
+    }
 
     override fun lagre(søknad: Søknad) {
         val visitor = SøknadPersistenceVisitor(søknad)
@@ -342,6 +341,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
     override fun visitSøknad(
         søknadId: UUID,
         ident: String,
+        opprettet: ZonedDateTime,
         tilstand: Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
@@ -359,8 +359,8 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queryOf(
                 // language=PostgreSQL
                 """
-                INSERT INTO soknad_v1(uuid, person_ident, tilstand, spraak, sist_endret_av_bruker)
-                VALUES (:uuid, :person_ident, :tilstand, :spraak, :sistEndretAvBruker)
+                INSERT INTO soknad_v1(uuid, person_ident, tilstand, spraak, opprettet, sist_endret_av_bruker)
+                VALUES (:uuid, :person_ident, :tilstand, :spraak, :opprettet, :sistEndretAvBruker)
                 ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
                                                 sist_endret_av_bruker = :sistEndretAvBruker
                 """.trimIndent(),
@@ -369,6 +369,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                     "person_ident" to ident,
                     "tilstand" to tilstand.tilstandType.name,
                     "spraak" to språk.verdi.toLanguageTag(),
+                    "opprettet" to opprettet,
                     "sistEndretAvBruker" to sistEndretAvBruker
                 )
             )
@@ -644,8 +645,12 @@ private fun Session.hentFiler(
                 filnavn = row.string("filnavn"),
                 urn = URN.rfc8141().parse(row.string("urn")),
                 storrelse = row.long("storrelse"),
-                tidspunkt = row.instant("tidspunkt").atZone(ZoneId.of("Europe/Oslo"))
+                tidspunkt = row.norskZonedDateTime("tidspunkt")
             )
         }.asList
     ).toSet()
 }
+
+private val tidssone = ZoneId.of("Europe/Oslo")
+private fun Row.norskZonedDateTime(columnLabel: String): ZonedDateTime =
+    this.zonedDateTime(columnLabel).withZoneSameInstant(tidssone)

@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.time.ZonedDateTime
 import java.util.UUID
 
 internal class VaktmesterRepositoryTest {
@@ -145,6 +146,7 @@ internal class VaktmesterRepositoryTest {
         Søknad.rehydrer(
             søknadId = journalførtSøknadId,
             ident = ident,
+            opprettet = ZonedDateTime.now(),
             språk = språk,
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
@@ -157,6 +159,7 @@ internal class VaktmesterRepositoryTest {
         Søknad.rehydrer(
             søknadId = gammelPåbegyntSøknadId,
             ident = ident,
+            opprettet = ZonedDateTime.now(),
             språk = språk,
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,
@@ -169,6 +172,7 @@ internal class VaktmesterRepositoryTest {
         Søknad.rehydrer(
             søknadId = nyPåbegyntSøknadId,
             ident = ident,
+            opprettet = ZonedDateTime.now(),
             språk = språk,
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = null,

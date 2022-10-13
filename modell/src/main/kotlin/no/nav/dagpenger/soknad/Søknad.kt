@@ -25,6 +25,7 @@ import java.util.UUID
 class Søknad private constructor(
     private val søknadId: UUID,
     private val ident: String,
+    private val opprettet: ZonedDateTime,
     private var tilstand: Tilstand,
     private var innsending: NyInnsending?,
     private val språk: Språk,
@@ -39,6 +40,7 @@ class Søknad private constructor(
     constructor(søknadId: UUID, språk: Språk, ident: String) : this(
         søknadId = søknadId,
         ident = ident,
+        opprettet = ZonedDateTime.now(),
         tilstand = UnderOpprettelse,
         innsending = null,
         språk = språk,
@@ -50,6 +52,7 @@ class Søknad private constructor(
         fun rehydrer(
             søknadId: UUID,
             ident: String,
+            opprettet: ZonedDateTime,
             språk: Språk,
             dokumentkrav: Dokumentkrav,
             sistEndretAvBruker: ZonedDateTime?,
@@ -66,6 +69,7 @@ class Søknad private constructor(
             return Søknad(
                 søknadId = søknadId,
                 ident = ident,
+                opprettet = opprettet,
                 tilstand = tilstand,
                 innsending = innsending,
                 språk = språk,
@@ -394,6 +398,7 @@ class Søknad private constructor(
         visitor.visitSøknad(
             søknadId = søknadId,
             ident = ident,
+            opprettet = opprettet,
             tilstand = tilstand,
             språk = språk,
             dokumentkrav = dokumentkrav,
