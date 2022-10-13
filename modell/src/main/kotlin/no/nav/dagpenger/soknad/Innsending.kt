@@ -215,6 +215,7 @@ abstract class Innsending protected constructor(
         override fun entering(hendelse: Hendelse, innsending: Innsending) {
             val hovedDokument = requireNotNull(innsending.hovedDokument) { "Hoveddokumment må være satt" }
             val dokumenter = innsending.dokumenter
+            hendelse.info("Lager journalpost med dokumenter=${dokumenter.size}")
             hendelse.behov(
                 Aktivitetslogg.Aktivitet.Behov.Behovtype.NyJournalpost,
                 "Trenger å journalføre søknad",

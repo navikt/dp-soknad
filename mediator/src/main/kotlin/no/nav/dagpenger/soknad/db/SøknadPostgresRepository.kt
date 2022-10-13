@@ -9,6 +9,7 @@ import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Innsending
@@ -44,6 +45,8 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID
 import javax.sql.DataSource
+
+private val logger = KotlinLogging.logger {}
 
 class SøknadPostgresRepository(private val dataSource: DataSource) :
     SøknadRepository {
@@ -126,6 +129,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             InnsendingDTO.InnsendingTypeDTO.NY_DIALOG -> session.hentEttersendinger(innsendingId)
             InnsendingDTO.InnsendingTypeDTO.ETTERSENDING_TIL_DIALOG -> emptyList()
         }
+        logger.info { "Mapper innsending til DTO, innsendingId=$innsendingId, dokumenter=${dokumenter.dokumenter}" }
         InnsendingDTO(
             innsendingId = innsendingId,
             type = type,
@@ -343,7 +347,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         tilstand: Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime?,
+        sistEndretAvBruker: ZonedDateTime?
     ) {
         this.søknadId = søknadId
         queries.add(
@@ -470,7 +474,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         journalpost: String?,
         hovedDokument: Innsending.Dokument?,
         dokumenter: List<Innsending.Dokument>,
-        brevkode: Innsending.Brevkode?,
+        brevkode: Innsending.Brevkode?
     ) {
         if (ettersending) {
             ettersendinger.getOrPut(aktivEttersending) {
@@ -622,7 +626,7 @@ private fun Session.hentDokumentKrav(søknadsId: UUID): Set<KravDTO> =
 
 private fun Session.hentFiler(
     søknadsId: UUID,
-    faktumId: String,
+    faktumId: String
 ): Set<KravDTO.FilDTO> {
     return this.run(
         queryOf(
