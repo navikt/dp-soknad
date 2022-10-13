@@ -33,7 +33,7 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator) {
         val søknadOpprettet = søknadMediator.hentOpprettet(søknadUuid)!!
 
         when (tilstand) {
-            UnderOpprettelse -> call.respond(status = InternalServerError, søknadStatusOld)
+            UnderOpprettelse -> call.respond(InternalServerError)
             Påbegynt -> call.respond(status = OK, SøknadStatusDTO(Paabegynt, soknadOpprettet = søknadOpprettet))
             Innsendt -> call.respond(status = OK, søknadStatusOld)
             Slettet -> call.respond(status = NotFound, søknadStatusOld)

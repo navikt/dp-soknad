@@ -47,7 +47,7 @@ class StatusApiTest {
     }
 
     @Test
-    fun `returnerer tilstand til søknad`() {
+    fun `returnerer status til søknad`() {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
@@ -57,9 +57,16 @@ class StatusApiTest {
                 }
             )
         ) {
-            assertSøknadTilstand(UnderOpprettelse, HttpStatusCode.InternalServerError)
+            assertUnderOpprettelse(statuskode = HttpStatusCode.InternalServerError)
+
             assertSøknadTilstand(Innsendt, HttpStatusCode.OK)
             assertSøknadTilstand(Slettet, HttpStatusCode.NotFound)
+        }
+    }
+
+    private suspend fun ApplicationTestBuilder.assertUnderOpprettelse(statuskode: HttpStatusCode) {
+        autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
+            assertEquals(statuskode, this.status)
         }
     }
 
