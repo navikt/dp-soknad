@@ -26,7 +26,7 @@ class StatusApiTest {
     private val endepunkt = "${Configuration.basePath}/soknad/$søknadUuid/status"
 
     @Test
-    fun `status paabegynt`() {
+    fun `Status på søknad med tilstand Påbegynt`() {
         val opprettet = LocalDateTime.MAX
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -47,19 +47,47 @@ class StatusApiTest {
     }
 
     @Test
-    fun `returnerer status til søknad`() {
+    fun `Status på innsendt søknad`() {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
-                    every { it.hentTilstand(søknadUuid) } returnsMany listOf(UnderOpprettelse, Innsendt, Slettet)
+                    every { it.hentTilstand(søknadUuid) } returns Innsendt
                     every { it.hentOpprettet(søknadUuid) } returns LocalDateTime.MAX
                 }
             )
         ) {
-            assertUnderOpprettelseStatus(HttpStatusCode.InternalServerError)
             assertSøknadTilstand(Innsendt, HttpStatusCode.OK)
-            assertSlettetStatus(HttpStatusCode.NotFound)
+        }
+    }
+
+    @Test
+    fun `Status på søknad med tilstand UnderOpprettelse`() {
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(
+                søknadMediator = mockk<SøknadMediator>().also {
+                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
+                    every { it.hentTilstand(søknadUuid) } returns UnderOpprettelse
+                    every { it.hentOpprettet(søknadUuid) } returns LocalDateTime.MAX
+                }
+            )
+        ) {
+            assertStatuskode(expected = HttpStatusCode.InternalServerError)
+        }
+    }
+
+    @Test
+    fun `Status på søknad med tilstand Slettet`() {
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(
+                søknadMediator = mockk<SøknadMediator>().also {
+                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
+                    every { it.hentTilstand(søknadUuid) } returns Slettet
+                    every { it.hentOpprettet(søknadUuid) } returns LocalDateTime.MAX
+                }
+            )
+        ) {
+            assertStatuskode(expected = HttpStatusCode.NotFound)
         }
     }
 
@@ -104,15 +132,9 @@ class StatusApiTest {
         }
     }
 
-    private suspend fun ApplicationTestBuilder.assertUnderOpprettelseStatus(statuskode: HttpStatusCode) {
+    private suspend fun ApplicationTestBuilder.assertStatuskode(expected: HttpStatusCode) {
         autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
-            assertEquals(statuskode, this.status)
-        }
-    }
-
-    private suspend fun ApplicationTestBuilder.assertSlettetStatus(statuskode: HttpStatusCode) {
-        autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
-            assertEquals(statuskode, this.status)
+            assertEquals(expected, this.status)
         }
     }
 }
