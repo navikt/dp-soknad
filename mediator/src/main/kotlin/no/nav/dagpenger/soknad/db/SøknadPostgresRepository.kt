@@ -17,13 +17,13 @@ import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.Søknad.Companion.erPåbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.SøknadVisitor
-import no.nav.dagpenger.soknad.livssyklus.PåbegyntSøknad
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.serder.AktivitetsloggDTO
@@ -188,8 +188,10 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         }
     }
 
-    override fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad? {
-        TODO("Not yet implemented")
+    override fun hentPåbegyntSøknad(personIdent: String): Søknad? {
+        return hentSøknader(personIdent).firstOrNull { søknad ->
+            søknad.erPåbegynt()
+        }
     }
 
     override fun hentTilstand(søknadId: UUID): Tilstand.Type? {

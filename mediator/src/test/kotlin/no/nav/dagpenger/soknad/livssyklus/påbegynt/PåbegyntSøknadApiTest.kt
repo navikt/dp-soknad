@@ -6,23 +6,24 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.Configuration
+import no.nav.dagpenger.soknad.Språk
+import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
-import no.nav.dagpenger.soknad.livssyklus.PåbegyntSøknad
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 import java.util.UUID
 
 class PåbegyntSøknadApiTest {
 
     @Test
     fun `Skal hente påbegynt søknad`() {
-        val expectedSoknad = PåbegyntSøknad(
+        val expectedIdent = "12345678901"
+        val expectedSoknad = Søknad(
             UUID.fromString("258b2f1b-bdda-4bed-974c-c4ddb206e4f4"),
-            LocalDate.of(2021, 10, 3),
-            språk = "NO",
+            Språk("NO"),
+            expectedIdent,
         )
 
         TestApplication.withMockAuthServerAndTestApplication(

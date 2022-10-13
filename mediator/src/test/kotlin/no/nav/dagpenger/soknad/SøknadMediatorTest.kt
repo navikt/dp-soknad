@@ -15,7 +15,6 @@ import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.dagpenger.soknad.livssyklus.JournalførtMottak
 import no.nav.dagpenger.soknad.livssyklus.NyJournalpostMottak
-import no.nav.dagpenger.soknad.livssyklus.PåbegyntSøknad
 import no.nav.dagpenger.soknad.livssyklus.SkjemakodeMottak
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
@@ -59,7 +58,7 @@ internal class SøknadMediatorTest {
             søknader.add(søknad)
         }
 
-        override fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad? {
+        override fun hentPåbegyntSøknad(personIdent: String): Søknad? {
             TODO("not implemented")
         }
 

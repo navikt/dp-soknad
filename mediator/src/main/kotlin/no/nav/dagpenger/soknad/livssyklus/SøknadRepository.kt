@@ -10,9 +10,7 @@ interface SøknadRepository {
     fun hent(søknadId: UUID): Søknad?
     fun hentSøknader(ident: String): Set<Søknad>
     fun lagre(søknad: Søknad)
-    fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad?
+    fun hentPåbegyntSøknad(personIdent: String): Søknad?
     fun hentTilstand(søknadId: UUID): Søknad.Tilstand.Type?
     fun hentOpprettet(søknadId: UUID): LocalDateTime?
 }
-
-data class PåbegyntSøknad(val uuid: UUID, val startDato: LocalDate, val språk: String)

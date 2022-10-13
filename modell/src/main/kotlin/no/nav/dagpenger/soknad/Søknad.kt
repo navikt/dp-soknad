@@ -74,6 +74,8 @@ class Søknad private constructor(
                 aktivitetslogg = aktivitetslogg
             )
         }
+
+        fun Søknad.erPåbegynt() = tilstand.tilstandType == Påbegynt.tilstandType
     }
 
     fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
