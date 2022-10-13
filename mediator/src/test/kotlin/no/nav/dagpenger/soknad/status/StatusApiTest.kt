@@ -57,16 +57,9 @@ class StatusApiTest {
                 }
             )
         ) {
-            assertUnderOpprettelse(statuskode = HttpStatusCode.InternalServerError)
-
+            assertUnderOpprettelseStatus(HttpStatusCode.InternalServerError)
             assertSøknadTilstand(Innsendt, HttpStatusCode.OK)
-            assertSøknadTilstand(Slettet, HttpStatusCode.NotFound)
-        }
-    }
-
-    private suspend fun ApplicationTestBuilder.assertUnderOpprettelse(statuskode: HttpStatusCode) {
-        autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
-            assertEquals(statuskode, this.status)
+            assertSlettetStatus(HttpStatusCode.NotFound)
         }
     }
 
@@ -82,7 +75,6 @@ class StatusApiTest {
             assertEquals(HttpStatusCode.Forbidden, autentisert(endepunkt).status)
         }
     }
-
     @Test
     fun `returnerer 404 når søknad ikke eksisterer`() {
         TestApplication.withMockAuthServerAndTestApplication(
@@ -109,6 +101,18 @@ class StatusApiTest {
             val expectedJson = """{"tilstand":"$tilstand"}"""
             assertEquals(expectedJson, this.bodyAsText())
             assertEquals("application/json; charset=UTF-8", this.contentType().toString())
+        }
+    }
+
+    private suspend fun ApplicationTestBuilder.assertUnderOpprettelseStatus(statuskode: HttpStatusCode) {
+        autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
+            assertEquals(statuskode, this.status)
+        }
+    }
+
+    private suspend fun ApplicationTestBuilder.assertSlettetStatus(statuskode: HttpStatusCode) {
+        autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
+            assertEquals(statuskode, this.status)
         }
     }
 }
