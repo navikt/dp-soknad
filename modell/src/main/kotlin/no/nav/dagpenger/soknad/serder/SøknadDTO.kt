@@ -22,17 +22,19 @@ class SøknadDTO(
     var dokumentkrav: DokumentkravDTO,
     val sistEndretAvBruker: ZonedDateTime?,
     val innsendingDTO: InnsendingDTO?,
-    var aktivitetslogg: AktivitetsloggDTO? = null
+    var aktivitetslogg: AktivitetsloggDTO? = null,
+    val opprettet: ZonedDateTime
 ) {
     fun rehydrer(): Søknad = Søknad.rehydrer(
         søknadId = this.søknadsId,
         ident = this.ident,
+        opprettet = opprettet,
         språk = this.språkDTO.rehydrer(),
         dokumentkrav = this.dokumentkrav.rehydrer(),
         sistEndretAvBruker = this.sistEndretAvBruker,
         tilstandsType = this.tilstandType.rehydrer(),
-        innsending = this.innsendingDTO?.rehydrer(),
         aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
+        innsending = this.innsendingDTO?.rehydrer(),
     )
 
     class SpråkDTO(val verdi: String) {

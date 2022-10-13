@@ -156,11 +156,24 @@ internal class SøknadMediator(
         prosesstype: Prosesstype = Prosesstype.Søknad
     ): Søknadsprosess {
         return when (prosesstype) {
-            Prosesstype.Søknad -> Søknadsprosess.NySøknadsProsess().also {
-                behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident, språk))
+            Prosesstype.Søknad -> {
+                return hentEllerOpprettNyDagpengesøknad(ident, språk)
             }
             Prosesstype.Innsending -> Søknadsprosess.NySøknadsProsess().also {
                 behandle(ØnskeOmNyInnsendingHendelse(it.getSøknadsId(), ident, språk))
+            }
+        }
+    }
+
+    private fun hentEllerOpprettNyDagpengesøknad(ident: String, språk: String): Søknadsprosess {
+        val påbegyntSøknad = hentPåbegyntSøknad(ident)
+        return if (påbegyntSøknad == null) {
+            Søknadsprosess.NySøknadsProsess().also {
+                behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident, språk))
+            }
+        } else {
+            Søknadsprosess.PåbegyntSøknadsProsess(påbegyntSøknad.søknadUUID()).also {
+                behandle(HarPåbegyntSøknadHendelse(ident, it.getSøknadsId()))
             }
         }
     }

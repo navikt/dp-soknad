@@ -174,6 +174,7 @@ private class ApiDokumentkravResponse(
     override fun visitSøknad(
         søknadId: UUID,
         ident: String,
+        opprettet: ZonedDateTime,
         tilstand: Søknad.Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,

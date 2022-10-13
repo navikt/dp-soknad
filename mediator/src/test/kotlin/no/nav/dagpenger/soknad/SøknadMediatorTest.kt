@@ -15,7 +15,6 @@ import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.dagpenger.soknad.livssyklus.JournalførtMottak
 import no.nav.dagpenger.soknad.livssyklus.NyJournalpostMottak
-import no.nav.dagpenger.soknad.livssyklus.PåbegyntSøknad
 import no.nav.dagpenger.soknad.livssyklus.SkjemakodeMottak
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
@@ -23,6 +22,7 @@ import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.rapids_rivers.toUUID
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -59,16 +59,16 @@ internal class SøknadMediatorTest {
             søknader.add(søknad)
         }
 
-        override fun hentPåbegyntSøknad(personIdent: String): PåbegyntSøknad? {
-            TODO("not implemented")
-        }
-
         override fun hentTilstand(søknadId: UUID): Søknad.Tilstand.Type? {
             TODO("Not yet implemented")
         }
 
         override fun hentOpprettet(søknadId: UUID): LocalDateTime {
             TODO("Not yet implemented")
+        }
+
+        fun clear() {
+            søknader.clear()
         }
     }
 
@@ -88,6 +88,11 @@ internal class SøknadMediatorTest {
         NyJournalpostMottak(testRapid, mediator)
         JournalførtMottak(testRapid, mediator)
         SkjemakodeMottak(testRapid, mediator)
+    }
+
+    @AfterEach
+    fun tearDown() {
+        TestSøknadRepository.clear()
     }
 
     @Test
@@ -164,6 +169,14 @@ internal class SøknadMediatorTest {
                 assertEquals("Søknad journalført", last()["melding"])
             }
         }
+    }
+
+    @Test
+    fun `Hvis man har en søknad (påbegynt) fra før skal det fortsettes på denne`() {
+        val opprinneligSøknad = mediator.hentEllerOpprettSøknadsprosess(testIdent, språkVerdi)
+
+        val hentetSøknad = mediator.hentEllerOpprettSøknadsprosess(testIdent, språkVerdi)
+        assertEquals(opprinneligSøknad.getSøknadsId(), hentetSøknad.getSøknadsId())
     }
 
     private fun innsendingId() = oppdatertInspektør(testIdent).gjeldendeInnsendingId

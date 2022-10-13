@@ -6,23 +6,27 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.Configuration
+import no.nav.dagpenger.soknad.Språk
+import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
-import no.nav.dagpenger.soknad.livssyklus.PåbegyntSøknad
+import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 import java.util.UUID
 
 class PåbegyntSøknadApiTest {
 
     @Test
     fun `Skal hente påbegynt søknad`() {
-        val expectedSoknad = PåbegyntSøknad(
-            UUID.fromString("258b2f1b-bdda-4bed-974c-c4ddb206e4f4"),
-            LocalDate.of(2021, 10, 3),
-            språk = "NO",
+        val expectedIdent = "12345678901"
+        val søknadUUID = "258b2f1b-bdda-4bed-974c-c4ddb206e4f4"
+        val expectedSoknad = Søknad(
+            UUID.fromString(søknadUUID),
+            Språk("NO"),
+            expectedIdent,
         )
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -38,9 +42,11 @@ class PåbegyntSøknadApiTest {
                 token = TestApplication.getTokenXToken("harsoknad"),
                 httpMethod = HttpMethod.Get,
             ).apply {
-                val expectedJson = """{"uuid":"258b2f1b-bdda-4bed-974c-c4ddb206e4f4","startDato":"2021-10-03","språk":"NO"}"""
                 assertEquals(HttpStatusCode.OK, this.status)
-                assertEquals(expectedJson, this.bodyAsText().trimIndent())
+                val response = objectMapper.readTree(this.bodyAsText())
+                assertEquals(søknadUUID, response["uuid"].asText())
+                assertEquals("no", response["spraak"].asText())
+                assertFalse(response["opprettet"].isNull)
             }
         }
     }

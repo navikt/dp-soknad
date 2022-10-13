@@ -16,6 +16,7 @@ import no.nav.dagpenger.soknad.NyInnsending
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.SøknadVisitor
@@ -76,6 +77,7 @@ internal class SøknadPostgresRepositoryTest {
     val søknad = Søknad.rehydrer(
         søknadId = søknadId,
         ident = ident,
+        opprettet = ZonedDateTime.now(),
         språk = Språk("NO"),
         dokumentkrav = Dokumentkrav.rehydrer(
             krav = setOf(krav)
@@ -175,6 +177,7 @@ internal class SøknadPostgresRepositoryTest {
         val søknad = Søknad.rehydrer(
             søknadId = søknadId,
             ident = ident,
+            opprettet = ZonedDateTime.now(),
             språk = språk,
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav1, krav2)
@@ -307,6 +310,7 @@ internal class SøknadPostgresRepositoryTest {
         val søknad = Søknad.rehydrer(
             søknadId = søknadId,
             ident = ident,
+            opprettet = ZonedDateTime.now(),
             språk = språk,
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav)
@@ -471,6 +475,35 @@ internal class SøknadPostgresRepositoryTest {
         }
     }
 
+    @Test
+    fun `Skal kunne hente ut en påbegynt søknad`() {
+        val søknadIdForInnsendt = UUID.randomUUID()
+        val innsendtSøknad = Søknad.rehydrer(
+            søknadId = søknadIdForInnsendt,
+            ident = ident,
+            opprettet = ZonedDateTime.now(),
+            språk = Språk("NO"),
+            dokumentkrav = Dokumentkrav.rehydrer(
+                krav = setOf(krav)
+            ),
+            sistEndretAvBruker = now,
+            tilstandsType = Innsendt,
+            aktivitetslogg = Aktivitetslogg(),
+            null
+        )
+
+        withMigratedDb {
+            SøknadPostgresRepository(dataSource).let { repository ->
+                repository.lagre(innsendtSøknad)
+                repository.lagre(søknad)
+
+                val hentetPåbegyntSøknad = repository.hentPåbegyntSøknad(ident)
+                assertNotNull(hentetPåbegyntSøknad)
+                assertDeepEquals(søknad, hentetPåbegyntSøknad)
+            }
+        }
+    }
+
     private fun hentDokumentKrav(søknad: Søknad): Dokumentkrav {
         class TestSøknadVisitor(søknad: Søknad) : SøknadVisitor {
             lateinit var dokumentKrav: Dokumentkrav
@@ -482,6 +515,7 @@ internal class SøknadPostgresRepositoryTest {
             override fun visitSøknad(
                 søknadId: UUID,
                 ident: String,
+                opprettet: ZonedDateTime,
                 tilstand: Søknad.Tilstand,
                 språk: Språk,
                 dokumentkrav: Dokumentkrav,
