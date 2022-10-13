@@ -14,6 +14,7 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.status.SøknadStatus.Paabegynt
+import no.nav.dagpenger.soknad.status.SøknadStatus.UnderBehandling
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
@@ -33,22 +34,16 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator) {
 
         when (tilstand) {
             UnderOpprettelse -> call.respond(InternalServerError)
-            Påbegynt -> call.respond(status = OK, SøknadStatusDTO(Paabegynt, soknadOpprettet = søknadOpprettet))
-            Innsendt -> call.respond(status = OK, SøknadStatusOld(tilstand.name))
+            Påbegynt -> call.respond(status = OK, SøknadStatusDTO(Paabegynt, opprettet = søknadOpprettet))
+            Innsendt -> call.respond(status = OK, SøknadStatusDTO(UnderBehandling, opprettet = søknadOpprettet, innsendt = LocalDateTime.MAX))
             Slettet -> call.respond(NotFound)
             null -> call.respond(message = NotFound)
         }
     }
 }
 
-data class SøknadStatusOld(var tilstand: String?) {
-    init {
-        if (tilstand == Påbegynt.name) tilstand = "Paabegynt"
-    }
-}
-
 data class SøknadStatusDTO(
     val status: SøknadStatus,
-    val soknadOpprettet: LocalDateTime,
-    val innsendtDato: LocalDateTime? = null,
+    val opprettet: LocalDateTime,
+    val innsendt: LocalDateTime? = null,
 )

@@ -16,6 +16,8 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
+import no.nav.dagpenger.soknad.status.SøknadStatus.Paabegynt
+import no.nav.dagpenger.soknad.status.SøknadStatus.UnderBehandling
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -39,7 +41,7 @@ class StatusApiTest {
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
-                val expectedJson = """{"status":"Paabegynt","soknadOpprettet":"$opprettet"}"""
+                val expectedJson = """{"status":"$Paabegynt","opprettet":"$opprettet"}"""
                 assertEquals(expectedJson, this.bodyAsText())
                 assertEquals("application/json; charset=UTF-8", this.contentType().toString())
             }
@@ -47,17 +49,24 @@ class StatusApiTest {
     }
 
     @Test
-    fun `Status på innsendt søknad`() {
+    fun `Status på søknad med tilstand Innsendt`() {
+        val opprettet = LocalDateTime.MAX
+        val innsendt = LocalDateTime.MAX
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
                     every { it.hentTilstand(søknadUuid) } returns Innsendt
-                    every { it.hentOpprettet(søknadUuid) } returns LocalDateTime.MAX
+                    every { it.hentOpprettet(søknadUuid) } returns opprettet
                 }
             )
         ) {
-            assertSøknadTilstand(Innsendt, HttpStatusCode.OK)
+            autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
+                assertEquals(HttpStatusCode.OK, this.status)
+                val expectedJson = """{"status":"$UnderBehandling","opprettet":"$opprettet","innsendt":"$innsendt"}"""
+                assertEquals(expectedJson, this.bodyAsText())
+                assertEquals("application/json; charset=UTF-8", this.contentType().toString())
+            }
         }
     }
 
