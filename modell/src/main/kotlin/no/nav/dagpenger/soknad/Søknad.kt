@@ -79,7 +79,8 @@ class Søknad private constructor(
             )
         }
 
-        fun Søknad.erPåbegynt() = tilstand.tilstandType == Påbegynt.tilstandType
+        fun Søknad.erPåbegynt() =
+            tilstand.tilstandType == Påbegynt.tilstandType || tilstand.tilstandType == UnderOpprettelse.tilstandType
     }
 
     fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {

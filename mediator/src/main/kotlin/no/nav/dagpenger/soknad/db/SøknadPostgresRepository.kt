@@ -17,7 +17,6 @@ import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
-import no.nav.dagpenger.soknad.Søknad.Companion.erPåbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
@@ -184,12 +183,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                     transactionalSession.run(it.asUpdate)
                 }
             }
-        }
-    }
-
-    override fun hentPåbegyntSøknad(personIdent: String): Søknad? {
-        return hentSøknader(personIdent).firstOrNull { søknad ->
-            søknad.erPåbegynt()
         }
     }
 
