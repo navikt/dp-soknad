@@ -159,7 +159,6 @@ internal class SøknadMediator(
             Prosesstype.Søknad -> Søknadsprosess.NySøknadsProsess().also {
                 behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident, språk))
             }
-
             Prosesstype.Innsending -> Søknadsprosess.NySøknadsProsess().also {
                 behandle(ØnskeOmNyInnsendingHendelse(it.getSøknadsId(), ident, språk))
             }
@@ -191,6 +190,7 @@ internal class SøknadMediator(
         val søknad = hent(hendelse.søknadID())
         return when (hendelse) {
             is ØnskeOmNySøknadHendelse -> søknad ?: Søknad(hendelse.søknadID(), hendelse.språk(), hendelse.ident())
+            is ØnskeOmNyInnsendingHendelse -> søknad ?: Søknad(hendelse.søknadID(), hendelse.språk(), hendelse.ident())
             else -> søknad ?: hendelse.severe("Søknaden finnes ikke")
         }
     }
