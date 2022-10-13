@@ -283,6 +283,9 @@ private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.Dokumenter
         ).map { row ->
             val dokument_uuid = row.uuid("dokument_uuid")
             val varianter: List<Dokumentvariant> = this@hentDokumenter.hentVarianter(dokument_uuid)
+            logger.info {
+                "Hentet dokument for innsendingId=$innsendingId, dokumentId=$dokument_uuid, brevkode=${row.string("brevkode")}"
+            }
             val dokument = Innsending.Dokument(
                 dokument_uuid,
                 row.string("brevkode"),
@@ -299,6 +302,7 @@ private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.Dokumenter
 
 private fun Session.hentVarianter(dokumentUuid: UUID) = run(
     queryOf(
+        //language=PostgreSQL
         "SELECT * FROM dokumentvariant_v1 WHERE dokument_uuid = :dokument_uuid",
         mapOf("dokument_uuid" to dokumentUuid)
     ).map { row ->
