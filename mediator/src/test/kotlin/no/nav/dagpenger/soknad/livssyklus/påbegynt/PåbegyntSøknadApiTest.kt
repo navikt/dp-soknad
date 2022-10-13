@@ -11,8 +11,11 @@ import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
+import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.UUID
 
 class PåbegyntSøknadApiTest {
@@ -20,8 +23,12 @@ class PåbegyntSøknadApiTest {
     @Test
     fun `Skal hente påbegynt søknad`() {
         val expectedIdent = "12345678901"
+        val søknadUUID = "258b2f1b-bdda-4bed-974c-c4ddb206e4f4"
+        val opprettet = ZonedDateTime.of(
+            2022, 1, 1, 23, 23, 23, 11, ZoneId.of("UTC+2")
+        )
         val expectedSoknad = Søknad(
-            UUID.fromString("258b2f1b-bdda-4bed-974c-c4ddb206e4f4"),
+            UUID.fromString(søknadUUID),
             Språk("NO"),
             expectedIdent,
         )
@@ -39,9 +46,11 @@ class PåbegyntSøknadApiTest {
                 token = TestApplication.getTokenXToken("harsoknad"),
                 httpMethod = HttpMethod.Get,
             ).apply {
-                val expectedJson = """{"uuid":"258b2f1b-bdda-4bed-974c-c4ddb206e4f4","startDato":"2021-10-03","språk":"NO"}"""
                 assertEquals(HttpStatusCode.OK, this.status)
-                assertEquals(expectedJson, this.bodyAsText().trimIndent())
+                val response = objectMapper.readTree(this.bodyAsText())
+                assertEquals(søknadUUID, response["uuid"].asText())
+                assertEquals("no", response["spraak"].asText())
+                assertEquals(opprettet.toString(), response["opprettet"].asText())
             }
         }
     }

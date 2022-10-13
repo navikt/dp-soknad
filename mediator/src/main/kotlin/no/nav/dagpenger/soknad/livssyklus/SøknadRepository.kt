@@ -1,7 +1,6 @@
 package no.nav.dagpenger.soknad.livssyklus
 
 import no.nav.dagpenger.soknad.Søknad
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
