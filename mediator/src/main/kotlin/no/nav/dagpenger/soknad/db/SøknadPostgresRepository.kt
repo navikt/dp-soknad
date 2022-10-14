@@ -506,7 +506,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             )
         )
 
-        logger.info { "Her lagrer vi ${dokumenter.size} dokumenter: $dokumenter" }
+        logger.info { "Her lagrer vi ${dokumenter.size} dokumenter, innsendingId=$innsendingId, dokumenter=$dokumenter" }
         dokumenter.toMutableList().apply {
             hovedDokument?.let {
                 add(it)

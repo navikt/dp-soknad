@@ -213,7 +213,7 @@ abstract class Innsending protected constructor(
         override val tilstandType = TilstandType.AvventerMidlertidligJournalføring
 
         override fun entering(hendelse: Hendelse, innsending: Innsending) {
-            val hovedDokument = requireNotNull(innsending.hovedDokument) { "Hoveddokumment må være satt" }
+            val hovedDokument = requireNotNull(innsending.hovedDokument) { "Hoveddokument må være satt" }
             val dokumenter = innsending.dokumenter
             hendelse.info("Lager journalpost med dokumenter=${dokumenter.size}")
             hendelse.behov(

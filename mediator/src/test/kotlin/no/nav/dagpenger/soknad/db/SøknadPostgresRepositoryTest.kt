@@ -332,7 +332,7 @@ internal class SøknadPostgresRepositoryTest {
                 Innsending.InnsendingType.NY_DIALOG,
                 now,
                 "123123",
-                Innsending.TilstandType.Journalført,
+                Innsending.TilstandType.AvventerArkiverbarSøknad,
                 Innsending.Dokument(
                     UUID.randomUUID(),
                     "brevkode",
