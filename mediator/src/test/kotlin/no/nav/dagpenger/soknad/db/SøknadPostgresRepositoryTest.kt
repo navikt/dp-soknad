@@ -47,12 +47,10 @@ internal class SøknadPostgresRepositoryTest {
         Faktum(faktumJson("1", "f1"))
     private val dokumentFaktum2 =
         Faktum(faktumJson("3", "f3"))
-
     private val faktaSomSannsynliggjøres =
         mutableSetOf(
             Faktum(faktumJson("2", "f2"))
         )
-
     private val faktaSomSannsynliggjøres2 =
         mutableSetOf(
             Faktum(faktumJson("4", "f4"))
@@ -62,17 +60,14 @@ internal class SøknadPostgresRepositoryTest {
         faktum = dokumentFaktum,
         sannsynliggjør = faktaSomSannsynliggjøres
     )
-
     private val sannsynliggjøring2 = Sannsynliggjøring(
         id = dokumentFaktum2.id,
         faktum = dokumentFaktum2,
         sannsynliggjør = faktaSomSannsynliggjøres2
     )
-
     private val krav = Krav(
         sannsynliggjøring
     )
-
     private val opprettet = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.SECONDS)
     private val now = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.SECONDS)
     val ident = "12345678910"
@@ -104,7 +99,6 @@ internal class SøknadPostgresRepositoryTest {
 
     @Test
     fun `Skal ikke hente søknader som har tilstand slettet`() {
-
         val søknad = Søknad.rehydrer(
             søknadId = søknadId,
             ident = ident,
@@ -123,7 +117,8 @@ internal class SøknadPostgresRepositoryTest {
             SøknadPostgresRepository(dataSource).let { repository ->
                 søknad.håndter(
                     SlettSøknadHendelse(
-                        søknadId, ident
+                        søknadId,
+                        ident
                     )
                 )
                 repository.lagre(søknad)
@@ -153,10 +148,122 @@ internal class SøknadPostgresRepositoryTest {
             SøknadPostgresRepository(dataSource).let { repository ->
                 repository.lagre(søknad)
                 settSøknadOpprettet(opprettet, søknadId)
-
                 val opprettetFraDB = repository.hentOpprettet(søknadId)
                 assertEquals(opprettet, opprettetFraDB)
                 assertNull(repository.hentOpprettet(UUID.randomUUID()))
+            }
+        }
+    }
+
+    @Test
+    fun `Vi klarer å rehydrere innsendinger med dokumenter`() {
+        val krav1 = Krav(
+            id = sannsynliggjøring.id,
+            sannsynliggjøring = sannsynliggjøring,
+            tilstand = Krav.KravTilstand.AKTIV,
+            svar = Krav.Svar(
+                filer = mutableSetOf(
+                    Krav.Fil(
+                        filnavn = "1-1.jpg",
+                        urn = URN.rfc8141().parse("urn:nav:vedlegg:1-1"),
+                        storrelse = 1000,
+                        tidspunkt = now
+                    )
+                ),
+                valg = Krav.Svar.SvarValg.SEND_NÅ,
+                begrunnelse = null,
+                bundle = URN.rfc8141().parse("urn:nav:bundle:1")
+            )
+        )
+        val søknad = Søknad.rehydrer(
+            søknadId = søknadId,
+            ident = ident,
+            opprettet = opprettet,
+            språk = språk,
+            dokumentkrav = Dokumentkrav.rehydrer(
+                krav = setOf(krav1)
+            ),
+            sistEndretAvBruker = now.minusDays(1),
+            tilstandsType = Påbegynt,
+            aktivitetslogg = Aktivitetslogg(),
+            innsending = NyInnsending.rehydrer(
+                innsendingId = UUID.randomUUID(),
+                type = Innsending.InnsendingType.NY_DIALOG,
+                innsendt = now,
+                journalpostId = "123123",
+                tilstandsType = Innsending.TilstandType.AvventerArkiverbarSøknad,
+                hovedDokument = Innsending.Dokument(
+                    UUID.randomUUID(),
+                    "brevkode-hovedokument",
+                    varianter = listOf(
+                        Innsending.Dokument.Dokumentvariant(
+                            UUID.randomUUID(),
+                            "filnavn1",
+                            "urn:burn:turn1",
+                            "variant1",
+                            "type1"
+                        ),
+                        Innsending.Dokument.Dokumentvariant(
+                            UUID.randomUUID(),
+                            "filnavn2",
+                            "urn:burn:turn2",
+                            "variant2",
+                            "type2"
+                        )
+                    )
+                ),
+                dokumenter = listOf(
+                    Innsending.Dokument(
+                        UUID.randomUUID(),
+                        "brevkode-vedlegg",
+                        varianter = listOf(
+                            Innsending.Dokument.Dokumentvariant(
+                                UUID.randomUUID(),
+                                "filnavn3",
+                                "urn:burn:turn3",
+                                "variant3",
+                                "type3"
+                            )
+                        )
+                    )
+                ),
+                ettersendinger = mutableListOf(),
+                brevkode = Innsending.Brevkode("04-02-03")
+            )
+        )
+
+        withMigratedDb {
+            SøknadPostgresRepository(dataSource).let { søknadPostgresRepository ->
+                søknadPostgresRepository.lagre(søknad)
+
+                assertAntallRader("soknad_v1", 1)
+                assertAntallRader("dokumentkrav_filer_v1", 1)
+                assertAntallRader("dokumentkrav_v1", 1)
+                assertAntallRader("aktivitetslogg_v1", 1)
+                assertAntallRader("innsending_v1", 1)
+                assertAntallRader("dokument_v1", 2)
+                assertAntallRader("hoveddokument_v1", 1)
+                assertAntallRader("ettersending_v1", 0)
+                assertAntallRader("dokumentvariant_v1", 3)
+
+                søknadPostgresRepository.hent(søknadId).let { rehydrertSøknad ->
+                    assertNotNull(rehydrertSøknad)
+                    assertDeepEquals(rehydrertSøknad, søknad)
+                    rehydrertSøknad?.accept(object : SøknadVisitor {
+                        override fun visit(
+                            innsendingId: UUID,
+                            innsending: Innsending.InnsendingType,
+                            tilstand: Innsending.TilstandType,
+                            innsendt: ZonedDateTime,
+                            journalpost: String?,
+                            hovedDokument: Innsending.Dokument?,
+                            dokumenter: List<Innsending.Dokument>,
+                            brevkode: Innsending.Brevkode?
+                        ) {
+                            assertEquals(1, dokumenter.size)
+                        }
+                    })
+                }
             }
         }
     }
@@ -186,9 +293,7 @@ internal class SøknadPostgresRepositoryTest {
                 begrunnelse = null,
                 bundle = URN.rfc8141().parse("urn:nav:bundle:1")
             )
-
         )
-
         val krav2 = Krav(
             id = sannsynliggjøring2.id,
             sannsynliggjøring = sannsynliggjøring2,
@@ -206,7 +311,6 @@ internal class SøknadPostgresRepositoryTest {
                 begrunnelse = null,
                 bundle = URN.rfc8141().parse("urn:nav:bundle:2")
             )
-
         )
         val søknad = Søknad.rehydrer(
             søknadId = søknadId,
@@ -340,7 +444,6 @@ internal class SøknadPostgresRepositoryTest {
         val krav = Krav(
             sannsynliggjøring
         )
-
         val søknad = Søknad.rehydrer(
             søknadId = søknadId,
             ident = ident,
@@ -359,7 +462,6 @@ internal class SøknadPostgresRepositoryTest {
             SøknadPostgresRepository(dataSource).let { søknadPostgresRepository ->
                 søknadPostgresRepository.lagre(søknad)
                 val dokumentkrav = hentDokumentKrav(søknadPostgresRepository.hent(søknadId)!!)
-
                 val rehydrertSannsynliggjøring = dokumentkrav.aktiveDokumentKrav().first().sannsynliggjøring
                 assertEquals(originalFaktumJson, rehydrertSannsynliggjøring.faktum().originalJson())
                 assertEquals(
@@ -530,7 +632,6 @@ internal class SøknadPostgresRepositoryTest {
             SøknadPostgresRepository(dataSource).let { repository ->
                 repository.lagre(innsendtSøknad)
                 repository.lagre(søknad)
-
                 val hentetPåbegyntSøknad = repository.hentPåbegyntSøknad(ident)
                 assertNotNull(hentetPåbegyntSøknad)
                 assertDeepEquals(søknad, hentetPåbegyntSøknad)

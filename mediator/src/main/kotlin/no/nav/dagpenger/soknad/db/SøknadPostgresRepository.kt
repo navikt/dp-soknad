@@ -121,12 +121,13 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         val innsendingId = row.uuid("innsending_uuid")
         val dokumenter: InnsendingDTO.DokumenterDTO = session.hentDokumenter(innsendingId)
         val type = InnsendingDTO.InnsendingTypeDTO.rehydrer(row.string("innsendingtype"))
-        logger.info { "Hentet dokumenter for innsendingId=$innsendingId, dokumenter=${dokumenter.dokumenter}" }
+        logger.info { "Hentet dokumenter for innsendingId=$innsendingId, dokumenter=$dokumenter" }
+        println("LOLOLOLOL")
         val ettersendinger = when (type) {
             InnsendingDTO.InnsendingTypeDTO.NY_DIALOG -> session.hentEttersendinger(innsendingId)
             InnsendingDTO.InnsendingTypeDTO.ETTERSENDING_TIL_DIALOG -> emptyList()
         }
-        logger.info { "Mapper innsending til DTO, innsendingId=$innsendingId, dokumenter=${dokumenter.dokumenter}" }
+        logger.info { "Mapper innsending til DTO, innsendingId=$innsendingId, dokumenter=$dokumenter" }
         InnsendingDTO(
             innsendingId = innsendingId,
             type = type,
@@ -506,7 +507,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             )
         )
 
-        logger.info { "Her ska vi legge hoveddokument: $hovedDokument og andre dokumenter: $dokumenter" }
+        logger.info { "Her lagrer vi ${dokumenter.size} dokumenter: $dokumenter" }
         dokumenter.toMutableList().apply {
             hovedDokument?.let {
                 add(it)
