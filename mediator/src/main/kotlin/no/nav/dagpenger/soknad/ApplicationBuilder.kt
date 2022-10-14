@@ -29,21 +29,19 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     private val rapidsConnection: RapidsConnection = RapidApplication.Builder(
         RapidApplication.RapidApplicationConfig.fromEnv(config)
     ).withKtorModule {
-        if (System.getenv()["NAIS_CLUSTER_NAME"] == "dev-gcp") {
-            api(
-                personaliaRouteBuilder = personaliaRouteBuilder(
-                    personOppslag = PersonOppslag(createPersonOppslag(Configuration.pdlUrl)),
-                    kontonummerOppslag = KontonummerOppslag(
-                        dpProxyUrl = Configuration.dpProxyUrl,
-                        tokenProvider = { Configuration.dpProxyTokenProvider.clientCredentials(Configuration.dpProxyScope).accessToken },
-                    )
-                ),
-                søknadRouteBuilder = søknadApiRouteBuilder(søknadMediator()),
-                ferdigstiltRouteBuilder = ferdigStiltSøknadRouteBuilder(
-                    ferdigstiltRepository
+        api(
+            personaliaRouteBuilder = personaliaRouteBuilder(
+                personOppslag = PersonOppslag(createPersonOppslag(Configuration.pdlUrl)),
+                kontonummerOppslag = KontonummerOppslag(
+                    dpProxyUrl = Configuration.dpProxyUrl,
+                    tokenProvider = { Configuration.dpProxyTokenProvider.clientCredentials(Configuration.dpProxyScope).accessToken },
                 )
+            ),
+            søknadRouteBuilder = søknadApiRouteBuilder(søknadMediator()),
+            ferdigstiltRouteBuilder = ferdigStiltSøknadRouteBuilder(
+                ferdigstiltRepository
             )
-        }
+        )
     }.build()
 
     private val søknadMalRepository = SøknadMalPostgresRepository(PostgresDataSourceBuilder.dataSource)
