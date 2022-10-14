@@ -265,7 +265,7 @@ private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.Dokumenter
             "SELECT COUNT(1) AS antall FROM dokument_v1 WHERE innsending_uuid = :innsendingId",
             mapOf("innsendingId" to innsendingId)
         ).map { row ->
-            logger.info { "Fant ${row.int("antall")} dokumenter for $innsendingId}" }
+            logger.info { "Fant ${row.int("antall")} dokumenter for $innsendingId" }
         }.asSingle
     )
     this.run(
@@ -514,7 +514,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             )
         )
 
-        logger.info { "Her lagrer vi ${dokumenter.size} dokumenter, innsendingId=$innsendingId, dokumenter=$dokumenter" }
+        logger.info { "Her lagrer vi ${dokumenter.size} dokumenter, innsendingId=$innsendingId, dokumenter=$dokumenter, hovedDokument=$hovedDokument" }
         dokumenter.toMutableList().apply {
             hovedDokument?.let {
                 add(it)
