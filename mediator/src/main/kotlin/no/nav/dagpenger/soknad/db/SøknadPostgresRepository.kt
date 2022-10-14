@@ -257,38 +257,20 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
 
 private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.DokumenterDTO {
     val dokumenter = InnsendingDTO.DokumenterDTO()
+    val hovedDokumentUUID = getHovedDokumentUUID(innsendingId)
     this.run(
         queryOf( //language=PostgreSQL
             "SELECT * FROM dokument_v1 WHERE innsending_uuid = :innsendingId",
             mapOf("innsendingId" to innsendingId)
         ).map { row ->
-            logger.info { "Fant ${row.int("antall")} dokumenter for $innsendingId" }
-        }.asSingle
-    )
-    this.run(
-        queryOf( //language=PostgreSQL
-            """
-            WITH hoveddokument AS (SELECT innsending_uuid, dokument_uuid
-                                   FROM hoveddokument_v1
-                                   WHERE hoveddokument_v1.innsending_uuid = :innsendingId)
-            SELECT dokument_v1.*, (dokument_v1.dokument_uuid = hoveddokument.dokument_uuid) AS er_hoveddokument
-            FROM dokument_v1
-            LEFT JOIN hoveddokument ON hoveddokument.innsending_uuid = dokument_v1.innsending_uuid
-            WHERE dokument_v1.innsending_uuid = :innsendingId 
-            """.trimIndent(),
-            mapOf("innsendingId" to innsendingId)
-        ).map { row ->
-            val dokument_uuid = row.uuid("dokument_uuid")
-            logger.info {
-                "Hentet dokument for innsendingId=$innsendingId, dokumentId=$dokument_uuid, brevkode=${row.string("brevkode")}"
-            }
-            val varianter: List<Dokumentvariant> = this@hentDokumenter.hentVarianter(dokument_uuid)
+            val dokumentUUID = row.uuid("dokument_uuid")
+            val varianter: List<Dokumentvariant> = this@hentDokumenter.hentVarianter(dokumentUUID)
             val dokument = Innsending.Dokument(
-                dokument_uuid,
+                dokumentUUID,
                 row.string("brevkode"),
                 varianter
             )
-            when (row.boolean("er_hoveddokument")) {
+            when (dokumentUUID == hovedDokumentUUID) {
                 true -> dokumenter.hovedDokument = dokument
                 false -> dokumenter.dokumenter.add(dokument)
             }
@@ -296,6 +278,15 @@ private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.Dokumenter
     )
     return dokumenter
 }
+
+private fun Session.getHovedDokumentUUID(innsendingId: UUID) = this.run(
+    queryOf( //language=PostgreSQL
+        "SELECT dokument_uuid FROM hoveddokument_v1 WHERE innsending_uuid = :innsendingId",
+        mapOf("innsendingId" to innsendingId)
+    ).map { row ->
+        row.uuidOrNull("dokument_uuid")
+    }.asSingle
+)
 
 private fun Session.hentVarianter(dokumentUuid: UUID) = run(
     queryOf( //language=PostgreSQL
