@@ -262,6 +262,15 @@ private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.Dokumenter
     this.run(
         queryOf(
             //language=PostgreSQL
+            "SELECT COUNT(1) AS antall FROM dokument_v1 WHERE innsending_uuid = :innsendingId",
+            mapOf("innsendingId" to innsendingId)
+        ).map { row ->
+            logger.info { "Fant ${row.int("antall")} dokumenter for $innsendingId}" }
+        }.asSingle
+    )
+    this.run(
+        queryOf(
+            //language=PostgreSQL
             """WITH hoveddokument AS (SELECT dokument_uuid
                        FROM hoveddokument_v1
                        WHERE hoveddokument_v1.innsending_uuid = :innsendingId)
