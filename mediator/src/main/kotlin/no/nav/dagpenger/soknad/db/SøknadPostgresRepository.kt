@@ -126,7 +126,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             InnsendingDTO.InnsendingTypeDTO.NY_DIALOG -> session.hentEttersendinger(innsendingId)
             InnsendingDTO.InnsendingTypeDTO.ETTERSENDING_TIL_DIALOG -> emptyList()
         }
-        logger.info { "Mapper innsending til DTO, innsendingId=$innsendingId, dokumenter=$dokumenter" }
         InnsendingDTO(
             innsendingId = innsendingId,
             type = type,
