@@ -192,14 +192,13 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
     override fun hentTilstand(søknadId: UUID): Tilstand.Type? {
         val tilstand = using(sessionOf(dataSource)) { session ->
             session.run(
-                queryOf(
-                    //language=PostgreSQL
-                    statement = """
-                            SELECT tilstand
-                            FROM  soknad_v1
-                            WHERE uuid = :soknadId
+                queryOf( //language=PostgreSQL
+                    """
+                    SELECT tilstand
+                    FROM  soknad_v1
+                    WHERE uuid = :soknadId
                     """.trimIndent(),
-                    paramMap = mapOf(
+                    mapOf(
                         "soknadId" to søknadId
                     )
                 ).map { row ->
@@ -220,8 +219,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
     override fun hentOpprettet(søknadId: UUID): LocalDateTime? {
         return using(sessionOf(dataSource)) { session ->
             session.run(
-                queryOf(
-                    //language=PostgreSQL
+                queryOf( //language=PostgreSQL
                     statement = """
                         SELECT opprettet
                         FROM soknad_v1
@@ -260,23 +258,22 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
 private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.DokumenterDTO {
     val dokumenter = InnsendingDTO.DokumenterDTO()
     this.run(
-        queryOf(
-            //language=PostgreSQL
-            "SELECT COUNT(1) AS antall FROM dokument_v1 WHERE innsending_uuid = :innsendingId",
+        queryOf( //language=PostgreSQL
+            "SELECT * FROM dokument_v1 WHERE innsending_uuid = :innsendingId",
             mapOf("innsendingId" to innsendingId)
         ).map { row ->
             logger.info { "Fant ${row.int("antall")} dokumenter for $innsendingId" }
         }.asSingle
     )
     this.run(
-        queryOf(
-            //language=PostgreSQL
-            """WITH hoveddokument AS (SELECT dokument_uuid
-                       FROM hoveddokument_v1
-                       WHERE hoveddokument_v1.innsending_uuid = :innsendingId)
+        queryOf( //language=PostgreSQL
+            """
+            WITH hoveddokument AS (SELECT innsending_uuid, dokument_uuid
+                                   FROM hoveddokument_v1
+                                   WHERE hoveddokument_v1.innsending_uuid = :innsendingId)
             SELECT dokument_v1.*, (dokument_v1.dokument_uuid = hoveddokument.dokument_uuid) AS er_hoveddokument
-            FROM dokument_v1,
-                 hoveddokument
+            FROM dokument_v1
+            LEFT JOIN hoveddokument ON hoveddokument.innsending_uuid = dokument_v1.innsending_uuid
             WHERE dokument_v1.innsending_uuid = :innsendingId 
             """.trimIndent(),
             mapOf("innsendingId" to innsendingId)
@@ -301,8 +298,7 @@ private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.Dokumenter
 }
 
 private fun Session.hentVarianter(dokumentUuid: UUID) = run(
-    queryOf(
-        //language=PostgreSQL
+    queryOf( //language=PostgreSQL
         "SELECT * FROM dokumentvariant_v1 WHERE dokument_uuid = :dokument_uuid",
         mapOf("dokument_uuid" to dokumentUuid)
     ).map { row ->
@@ -493,14 +489,13 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queryOf(
                 //language=PostgreSQL
                 statement = """
-                    INSERT INTO innsending_v1(innsending_uuid, soknad_uuid, innsendt, journalpost_id, innsendingtype, tilstand, skjemakode)
-                    VALUES (:innsending_uuid, :soknad_uuid, :innsendt, :journalpost_id, :innsendingtype, :tilstand, :skjemakode)
-                    ON CONFLICT (innsending_uuid) DO UPDATE SET innsendt = :innsendt, 
-                                                                journalpost_id = :journalpost_id,
-                                                                innsendingtype = :innsendingtype,
-                                                                tilstand = :tilstand,
-                                                                skjemakode = :skjemakode
-
+                INSERT INTO innsending_v1(innsending_uuid, soknad_uuid, innsendt, journalpost_id, innsendingtype, tilstand, skjemakode)
+                VALUES (:innsending_uuid, :soknad_uuid, :innsendt, :journalpost_id, :innsendingtype, :tilstand, :skjemakode)
+                ON CONFLICT (innsending_uuid) DO UPDATE SET innsendt = :innsendt, 
+                                                            journalpost_id = :journalpost_id,
+                                                            innsendingtype = :innsendingtype,
+                                                            tilstand = :tilstand,
+                                                            skjemakode = :skjemakode
                 """.trimIndent(),
                 paramMap = mapOf(
                     "innsending_uuid" to innsendingId,
@@ -524,9 +519,9 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                 queryOf(
                     //language=PostgreSQL
                     """
-                        INSERT INTO dokument_v1 (dokument_uuid, innsending_uuid, brevkode)
-                        VALUES (:dokument_uuid, :innsending_uuid, :brevkode)
-                        ON CONFLICT (dokument_uuid) DO UPDATE SET brevkode = :brevkode
+                    INSERT INTO dokument_v1 (dokument_uuid, innsending_uuid, brevkode)
+                    VALUES (:dokument_uuid, :innsending_uuid, :brevkode)
+                    ON CONFLICT (dokument_uuid) DO UPDATE SET brevkode = :brevkode
                     """.trimIndent(),
                     mapOf(
                         "dokument_uuid" to dokument.uuid,
@@ -540,12 +535,12 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                     queryOf(
                         //language=PostgreSQL
                         """
-                            INSERT INTO dokumentvariant_v1 (dokumentvariant_uuid, dokument_uuid, filnavn, urn, variant, type)
-                            VALUES (:dokumentvariant_uuid, :dokument_uuid, :filnavn, :urn, :variant, :type)
-                            ON CONFLICT (dokumentvariant_uuid) DO UPDATE SET filnavn = :filnavn, 
-                                                                             urn = :urn,
-                                                                             variant = :variant,
-                                                                             type = :type
+                        INSERT INTO dokumentvariant_v1 (dokumentvariant_uuid, dokument_uuid, filnavn, urn, variant, type)
+                        VALUES (:dokumentvariant_uuid, :dokument_uuid, :filnavn, :urn, :variant, :type)
+                        ON CONFLICT (dokumentvariant_uuid) DO UPDATE SET filnavn = :filnavn, 
+                                                                         urn = :urn,
+                                                                         variant = :variant,
+                                                                         type = :type
                         """.trimIndent(),
                         mapOf(
                             "dokumentvariant_uuid" to variant.uuid,
@@ -564,9 +559,9 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                 queryOf(
                     //language=PostgreSQL
                     """
-                        INSERT INTO hoveddokument_v1(innsending_uuid, dokument_uuid)
-                        VALUES (:innsending_uuid, :dokumentvariant_uuid)
-                        ON CONFLICT (innsending_uuid) DO UPDATE SET dokument_uuid = :dokumentvariant_uuid
+                    INSERT INTO hoveddokument_v1(innsending_uuid, dokument_uuid)
+                    VALUES (:innsending_uuid, :dokumentvariant_uuid)
+                    ON CONFLICT (innsending_uuid) DO UPDATE SET dokument_uuid = :dokumentvariant_uuid
                     """.trimIndent(),
                     mapOf(
                         "innsending_uuid" to innsendingId,

@@ -157,6 +157,9 @@ internal class SøknadPostgresRepositoryTest {
 
     @Test
     fun `Vi klarer å rehydrere innsendinger med dokumenter`() {
+        /**
+         * Denne framprovoserer problemene vi har hatt med at innsendinger rehydreres uten dokumenter
+         */
         val krav1 = Krav(
             id = sannsynliggjøring.id,
             sannsynliggjøring = sannsynliggjøring,
@@ -192,26 +195,7 @@ internal class SøknadPostgresRepositoryTest {
                 innsendt = now,
                 journalpostId = "123123",
                 tilstandsType = Innsending.TilstandType.AvventerArkiverbarSøknad,
-                hovedDokument = Innsending.Dokument(
-                    UUID.randomUUID(),
-                    "brevkode-hovedokument",
-                    varianter = listOf(
-                        Innsending.Dokument.Dokumentvariant(
-                            UUID.randomUUID(),
-                            "filnavn1",
-                            "urn:burn:turn1",
-                            "variant1",
-                            "type1"
-                        ),
-                        Innsending.Dokument.Dokumentvariant(
-                            UUID.randomUUID(),
-                            "filnavn2",
-                            "urn:burn:turn2",
-                            "variant2",
-                            "type2"
-                        )
-                    )
-                ),
+                hovedDokument = null,
                 dokumenter = listOf(
                     Innsending.Dokument(
                         UUID.randomUUID(),
@@ -241,10 +225,10 @@ internal class SøknadPostgresRepositoryTest {
                 assertAntallRader("dokumentkrav_v1", 1)
                 assertAntallRader("aktivitetslogg_v1", 1)
                 assertAntallRader("innsending_v1", 1)
-                assertAntallRader("dokument_v1", 2)
-                assertAntallRader("hoveddokument_v1", 1)
+                assertAntallRader("dokument_v1", 1)
+                assertAntallRader("hoveddokument_v1", 0)
                 assertAntallRader("ettersending_v1", 0)
-                assertAntallRader("dokumentvariant_v1", 3)
+                assertAntallRader("dokumentvariant_v1", 1)
 
                 søknadPostgresRepository.hent(søknadId).let { rehydrertSøknad ->
                     assertNotNull(rehydrertSøknad)
@@ -260,8 +244,6 @@ internal class SøknadPostgresRepositoryTest {
                             dokumenter: List<Innsending.Dokument>,
                             brevkode: Innsending.Brevkode?
                         ) {
-                            assertEquals("brevkode-hovedokument", hovedDokument!!.brevkode)
-                            assertEquals(2, hovedDokument!!.varianter.size)
                             assertEquals(1, dokumenter.size)
                             assertEquals("brevkode-vedlegg", dokumenter.first().brevkode)
                             assertEquals(1, dokumenter.first().varianter.size)
