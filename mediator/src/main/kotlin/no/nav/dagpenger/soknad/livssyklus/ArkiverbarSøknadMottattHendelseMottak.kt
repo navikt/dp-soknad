@@ -49,7 +49,7 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
                 ident = packet["ident"].asText(),
                 dokumentvarianter = packet["@løsning"][behov].dokumentVarianter()
             )
-            logger.info { "Fått løsning for $behov for $søknadID" }
+            logger.info { "Fått løsning for $behov for $innsendingId" }
             mediator.behandle(arkiverbarSøknadMottattHendelse)
         }
     }

@@ -12,7 +12,6 @@ import no.nav.helse.rapids_rivers.River
 
 internal class SkjemakodeMottak(rapidsConnection: RapidsConnection, private val mediator: SøknadMediator) :
     River.PacketListener {
-
     companion object {
         private val logger = KotlinLogging.logger {}
     }
@@ -37,8 +36,11 @@ internal class SkjemakodeMottak(rapidsConnection: RapidsConnection, private val 
         val innsendingId = packet["innsendingId"].asUUID()
         val ident = packet["ident"].asText()
 
-        withLoggingContext("søknadId" to søknadId.toString()) {
-            logger.info { "Mottatt løsning for skjemakode" }
+        withLoggingContext(
+            "søknadId" to søknadId.toString(),
+            "innsendingId" to innsendingId.toString()
+        ) {
+            logger.info { "Mottatt løsning for $behov for $innsendingId med skjemakode=${packet.skjemakode()}" }
             mediator.behandle(
                 SkjemakodeMottattHendelse(
                     innsendingId = innsendingId,

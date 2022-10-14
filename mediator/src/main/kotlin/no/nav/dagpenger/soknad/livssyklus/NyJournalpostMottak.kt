@@ -49,7 +49,7 @@ internal class NyJournalpostMottak(
                     packet["ident"].asText(),
                     journalpostId
                 )
-            logger.info { "Fått løsning for $behov for $søknadID med journalpostId $journalpostId" }
+            logger.info { "Fått løsning for $behov for $innsendingId med journalpostId $journalpostId" }
             mediator.behandle(søknadMidlertidigJournalførtHendelse)
         }
     }
