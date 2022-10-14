@@ -17,3 +17,4 @@ jobs:
           --project-name=${{ github.repository }}
           --remote-repo-url=https://github.com/${{ github.repository }}.git
           --org=teamdagpenger
+          --all-sub-projects
