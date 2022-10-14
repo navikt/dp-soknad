@@ -11,21 +11,21 @@ import java.time.LocalDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
-interface SøknadCacheRepository {
+interface SøknadDataRepository {
     fun lagre(søkerOppgave: SøkerOppgave)
     fun slett(søknadUUID: UUID): Boolean
     fun hentSøkerOppgave(søknadUUID: UUID, sistLagretEtter: LocalDateTime? = null): SøkerOppgave?
     fun besvart(søknadUUID: UUID, besvart: LocalDateTime): Int
 }
 
-class SøknadCachePostgresRepository(private val dataSource: DataSource) : SøknadCacheRepository {
+class SøknadDataPostgresRepository(private val dataSource: DataSource) : SøknadDataRepository {
     override fun lagre(søkerOppgave: SøkerOppgave) {
         using(sessionOf(dataSource)) { session ->
             session.transaction { tx ->
                 tx.run(
                     queryOf(
                         // language=PostgreSQL
-                        """INSERT INTO soknad_cache(uuid, eier, soknad_data, sist_endret)
+                        """INSERT INTO soknad_data(uuid, eier, soknad_data, sist_endret)
                             VALUES (:uuid, :eier, :data, :sist_endret)
                             ON CONFLICT(uuid, eier)
                                 DO UPDATE SET soknad_data = :data,
@@ -52,7 +52,7 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
             session.run(
                 queryOf(
                     // language=PostgreSQL
-                    "UPDATE soknad_cache SET sist_endret=:sistEndret WHERE uuid = :uuid",
+                    "UPDATE soknad_data SET sist_endret=:sistEndret WHERE uuid = :uuid",
                     mapOf(
                         "uuid" to søknadUUID,
                         "sistEndret" to besvart
@@ -67,7 +67,7 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
             session.run(
                 queryOf(
                     // language=PostgreSQL
-                    "SELECT uuid, eier, soknad_data FROM soknad_cache WHERE uuid = :uuid AND (:sistLagret::timestamp IS NULL OR sist_endret > :sistLagret)",
+                    "SELECT uuid, eier, soknad_data FROM soknad_data WHERE uuid = :uuid AND (:sistLagret::timestamp IS NULL OR sist_endret > :sistLagret)",
                     mapOf(
                         "uuid" to søknadUUID,
                         "sistLagret" to sistLagretEtter
@@ -84,7 +84,7 @@ class SøknadCachePostgresRepository(private val dataSource: DataSource) : Søkn
             session.run(
                 queryOf(
                     //language=PostgreSQL
-                    "DELETE FROM soknad_cache WHERE uuid = ?",
+                    "DELETE FROM soknad_data WHERE uuid = ?",
                     søknadUUID
                 ).asExecute
             )

@@ -9,7 +9,7 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.TestSøkerOppgave
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
-import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadCachePostgresRepository
+import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -92,7 +92,7 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
         SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).run {
             lagre(Søknad(søknadId, Språk(språkVerdi), ident))
         }
-        val søknadCachePostgresRepository = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource)
+        val søknadCachePostgresRepository = SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource)
         søknadCachePostgresRepository.lagre(TestSøkerOppgave(søknadId, ident, fakta))
         return søknadId
     }

@@ -9,7 +9,7 @@ import no.nav.dagpenger.soknad.livssyklus.SkjemakodeMottak
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.FerdigstiltSøknadPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.ferdigStiltSøknadRouteBuilder
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak
-import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadCachePostgresRepository
+import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak
 import no.nav.dagpenger.soknad.mal.SøknadMalPostgresRepository
 import no.nav.dagpenger.soknad.mal.SøknadsMalMottak
@@ -51,7 +51,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
 
     private val søknadMediator = SøknadMediator(
         rapidsConnection = rapidsConnection,
-        søknadCacheRepository = SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource),
+        søknadDataRepository = SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource),
         søknadMalRepository = søknadMalRepository,
         ferdigstiltSøknadRepository = ferdigstiltRepository,
         søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource),

@@ -30,7 +30,7 @@ class SøkerOppgaveMottakTest {
         Postgres.withMigratedDb {
             val søknadMediator = SøknadMediator(
                 testRapid,
-                SøknadCachePostgresRepository(PostgresDataSourceBuilder.dataSource),
+                SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource),
                 mockk(),
                 mockk(),
                 SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)

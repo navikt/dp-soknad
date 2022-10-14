@@ -17,11 +17,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
-class SøknadCacheRepositoryTest {
+class SøknadDataRepositoryTest {
     @Test
     fun `Lagre søknad og hente`() {
         withMigratedDb {
-            val søknadCache = SøknadCachePostgresRepository(dataSource)
+            val søknadCache = SøknadDataPostgresRepository(dataSource)
             val søknadUuid = UUID.randomUUID()
             lagrePersonMedSøknad(søknadUuid)
             val søknad = PersistentSøkerOppgave(søknad(søknadUuid))
@@ -39,7 +39,7 @@ class SøknadCacheRepositoryTest {
         val søknadUuid = UUID.randomUUID()
         withMigratedDb {
             lagrePersonMedSøknad(søknadUuid)
-            val søknadCache = SøknadCachePostgresRepository(dataSource)
+            val søknadCache = SøknadDataPostgresRepository(dataSource)
             søknadCache.lagre(PersistentSøkerOppgave(søknad(søknadUuid)))
             søknadCache.lagre(
                 PersistentSøkerOppgave(
@@ -72,7 +72,7 @@ class SøknadCacheRepositoryTest {
     @Test
     fun `Henter en søknad som ikke finnes`() {
         withMigratedDb {
-            val søknadCache = SøknadCachePostgresRepository(dataSource)
+            val søknadCache = SøknadDataPostgresRepository(dataSource)
             assertThrows<NotFoundException> { søknadCache.hentSøkerOppgave(UUID.randomUUID()) }
         }
     }
@@ -80,7 +80,7 @@ class SøknadCacheRepositoryTest {
     @Test
     fun `Kan slette cache`() {
         withMigratedDb {
-            val søknadCache = SøknadCachePostgresRepository(dataSource)
+            val søknadCache = SøknadDataPostgresRepository(dataSource)
             val søknadUuid1 = UUID.randomUUID()
             val søknadUuid2 = UUID.randomUUID()
             val eier1 = "12345678901"
@@ -105,12 +105,12 @@ class SøknadCacheRepositoryTest {
     private fun assertAntallRader(antallRader: Int) {
         val faktiskeRader = using(sessionOf(PostgresDataSourceBuilder.dataSource)) { session ->
             session.run(
-                queryOf("select count(1) from soknad_cache").map { row ->
+                queryOf("select count(1) from soknad_data").map { row ->
                     row.int(1)
                 }.asSingle
             )
         }
-        assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: soknad_cache")
+        assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: soknad_data")
     }
 
     private fun søknad(søknadUuid: UUID, seksjoner: String = "seksjoner", fødselsnummer: String = "12345678910") =

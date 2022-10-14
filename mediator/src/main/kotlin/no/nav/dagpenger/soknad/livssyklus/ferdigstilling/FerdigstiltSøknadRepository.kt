@@ -64,7 +64,7 @@ ON CONFLICT (uuid) DO NOTHING """,
             session.run(
                 queryOf(
                     //language=PostgreSQL
-                    statement = "SELECT soknad_data FROM soknad_cache WHERE uuid = :uuid",
+                    statement = "SELECT soknad_data FROM soknad_data WHERE uuid = :uuid",
                     paramMap = mapOf(
                         "uuid" to søknadId
                     )

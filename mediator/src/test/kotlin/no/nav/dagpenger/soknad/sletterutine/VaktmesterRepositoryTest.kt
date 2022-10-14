@@ -16,7 +16,7 @@ import no.nav.dagpenger.soknad.TestSøkerOppgave
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
-import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadCachePostgresRepository
+import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.observers.SøknadSlettetObserver
 import no.nav.dagpenger.soknad.sletterutine.VaktmesterPostgresRepository.Companion.låseNøkkel
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
@@ -43,7 +43,7 @@ internal class VaktmesterRepositoryTest {
     @Test
     fun `Søknadsdata for påbegynte søknader uendret de siste 7 dagene`() = withMigratedDb {
         val søknadRepository = SøknadPostgresRepository(dataSource)
-        val søknadCacheRepository = SøknadCachePostgresRepository(dataSource)
+        val søknadCacheRepository = SøknadDataPostgresRepository(dataSource)
         val søknadMediator = søknadMediator(
             søknadCacheRepository = søknadCacheRepository,
             søknadRepository = søknadRepository
@@ -61,7 +61,7 @@ internal class VaktmesterRepositoryTest {
     @Test
     fun `Sletter all søknadsdata for påbegynte søknader uendret de siste 7 dagene`() = withMigratedDb {
         val søknadRepository = SøknadPostgresRepository(dataSource)
-        val søknadCacheRepository = SøknadCachePostgresRepository(dataSource)
+        val søknadCacheRepository = SøknadDataPostgresRepository(dataSource)
         val søknadMediator = søknadMediator(
             søknadCacheRepository = søknadCacheRepository,
             søknadRepository = søknadRepository
@@ -100,11 +100,11 @@ internal class VaktmesterRepositoryTest {
     }
 
     private fun søknadMediator(
-        søknadCacheRepository: SøknadCachePostgresRepository,
+        søknadCacheRepository: SøknadDataPostgresRepository,
         søknadRepository: SøknadRepository
     ) = SøknadMediator(
         rapidsConnection = testRapid,
-        søknadCacheRepository = søknadCacheRepository,
+        søknadDataRepository = søknadCacheRepository,
         søknadMalRepository = mockk(),
         ferdigstiltSøknadRepository = mockk(),
         søknadRepository = søknadRepository,
@@ -123,7 +123,7 @@ internal class VaktmesterRepositoryTest {
         }
     }
 
-    private fun assertCacheSlettet(søknadUuid: UUID, søknadCacheRepository: SøknadCachePostgresRepository) {
+    private fun assertCacheSlettet(søknadUuid: UUID, søknadCacheRepository: SøknadDataPostgresRepository) {
         assertThrows<NotFoundException> { søknadCacheRepository.hentSøkerOppgave(søknadUuid) }
     }
 

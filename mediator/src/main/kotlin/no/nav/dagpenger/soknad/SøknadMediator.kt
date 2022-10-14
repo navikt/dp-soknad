@@ -23,7 +23,7 @@ import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.FerdigstiltSøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
-import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadCacheRepository
+import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadDataRepository
 import no.nav.dagpenger.soknad.mal.SøknadMalRepository
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.withMDC
@@ -31,12 +31,12 @@ import java.util.UUID
 
 internal class SøknadMediator(
     private val rapidsConnection: RapidsConnection,
-    private val søknadCacheRepository: SøknadCacheRepository,
+    private val søknadDataRepository: SøknadDataRepository,
     private val søknadMalRepository: SøknadMalRepository,
     private val ferdigstiltSøknadRepository: FerdigstiltSøknadRepository,
     private val søknadRepository: SøknadRepository,
     private val søknadObservers: List<SøknadObserver> = emptyList()
-) : SøknadCacheRepository by søknadCacheRepository,
+) : SøknadDataRepository by søknadDataRepository,
     SøknadMalRepository by søknadMalRepository,
     FerdigstiltSøknadRepository by ferdigstiltSøknadRepository,
     SøknadRepository by søknadRepository {
@@ -104,7 +104,7 @@ internal class SøknadMediator(
     fun behandle(faktumSvar: FaktumSvar) {
         val faktumOppdatertHendelse = FaktumOppdatertHendelse(faktumSvar.søknadUuid(), faktumSvar.eier())
         behandle(faktumOppdatertHendelse) { person ->
-            søknadCacheRepository.besvart(faktumSvar.søknadUuid(), faktumSvar.besvart())
+            søknadDataRepository.besvart(faktumSvar.søknadUuid(), faktumSvar.besvart())
             person.håndter(faktumOppdatertHendelse)
             rapidsConnection.publish(faktumSvar.toJson())
         }
@@ -116,7 +116,7 @@ internal class SøknadMediator(
             SøkeroppgaveHendelse(søkerOppgave.søknadUUID(), søkerOppgave.eier(), søkerOppgave.sannsynliggjøringer())
         behandle(søkeroppgaveHendelse) { person ->
             person.håndter(søkeroppgaveHendelse)
-            søknadCacheRepository.lagre(søkerOppgave)
+            søknadDataRepository.lagre(søkerOppgave)
         }
     }
 
