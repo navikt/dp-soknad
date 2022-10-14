@@ -508,8 +508,12 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                 )
             )
         )
+
+        logger.info { "Her ska vi legge hoveddokument: $hovedDokument og andre dokumenter: $dokumenter" }
         dokumenter.toMutableList().apply {
-            hovedDokument?.let { add(it) }
+            hovedDokument?.let {
+                add(it)
+            }
         }.forEach { dokument ->
             queries.add(
                 queryOf(
