@@ -112,6 +112,7 @@ internal class PersonaliaApiTest {
                 mellomNavn = "mellonNavn",
                 etterNavn = "etterNavn",
                 fødselsDato = LocalDate.of(2000, 5, 1),
+                ident = TestApplication.defaultDummyFodselsnummer,
                 postAdresse = adresse,
                 folkeregistrertAdresse = adresse
             )

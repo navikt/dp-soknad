@@ -31,6 +31,7 @@ internal class PersonOppslag(
             mellomNavn = person.mellomnavn ?: "",
             etterNavn = person.etternavn,
             fødselsDato = person.fodselsdato,
+            ident = fnr,
             postAdresse = adresseMapper.postAdresse,
             folkeregistrertAdresse = adresseMapper.folkeregistertAdresse
         )
