@@ -29,7 +29,7 @@ internal object Configuration {
         map + pair.second
     }
 
-    val basePath = "/dagpenger/soknadapi"
+    val basePath = "/arbeid/dagpenger/soknadapi"
 
     val dpProxyUrl by lazy { properties[Key("DP_PROXY_URL", stringType)] }
     val dpProxyScope by lazy { properties[Key("DP_PROXY_SCOPE", stringType)] }
