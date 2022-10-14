@@ -27,12 +27,10 @@ abstract class Innsending protected constructor(
         val brevkode: String,
         val varianter: List<Dokumentvariant>
     ) {
-        fun toMap(): Map<String, Any> {
-            return mapOf(
-                "brevkode" to brevkode,
-                "varianter" to varianter.map { it.toMap() }
-            )
-        }
+        fun toMap() = mapOf(
+            "brevkode" to brevkode,
+            "varianter" to varianter.map { it.toMap() }
+        )
 
         data class Dokumentvariant(
             val uuid: UUID = UUID.randomUUID(),
@@ -49,14 +47,12 @@ abstract class Innsending protected constructor(
                 }
             }
 
-            fun toMap(): Map<String, Any> {
-                return mapOf(
-                    "filnavn" to filnavn,
-                    "urn" to urn,
-                    "variant" to variant,
-                    "type" to type
-                )
-            }
+            fun toMap() = mapOf(
+                "filnavn" to filnavn,
+                "urn" to urn,
+                "variant" to variant,
+                "type" to type
+            )
         }
     }
 

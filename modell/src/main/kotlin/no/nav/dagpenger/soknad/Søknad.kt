@@ -289,11 +289,15 @@ class Søknad private constructor(
                 // @todo: Oversette validringsfeil til frontend. Mulig lage et eller annet som frontend kan tolke
                 søknadInnsendtHendelse.severe("Alle dokumentkrav må være besvart")
             }
+            val krav = søknad.dokumentkrav.aktiveDokumentKrav()
+            val besvarte = krav.filter { it.besvart() }
+            val innsendte = besvarte.filter { it.svar.valg == Krav.Svar.SvarValg.SEND_NÅ }
             val innsending = Innsending.ny(
                 søknadInnsendtHendelse.innsendtidspunkt(),
                 // TODO: Klassifisering til NAV skjemakode
                 dokumentkrav = søknad.dokumentkrav
             )
+            søknadInnsendtHendelse.info("Innsending ${innsending.toSpesifikkKontekst()} opprettet med ${krav.size} dokumentkrav, ${besvarte.size} besvarte, ${innsendte.size} innsendte")
             søknad.innsending = innsending.also {
                 it.håndter(søknadInnsendtHendelse)
             }
