@@ -25,6 +25,7 @@ import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
+import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -97,6 +98,38 @@ internal class SøknadPostgresRepositoryTest {
 
                 assertEquals(ident, repository.hentEier(søknad.søknadUUID()))
                 assertNull(repository.hentEier(UUID.randomUUID()))
+            }
+        }
+    }
+
+    @Test
+    fun `Skal ikke hente søknader som har tilstand slettet`() {
+
+        val søknad = Søknad.rehydrer(
+            søknadId = søknadId,
+            ident = ident,
+            opprettet = opprettet,
+            språk = Språk("NO"),
+            dokumentkrav = Dokumentkrav.rehydrer(
+                krav = setOf(krav)
+            ),
+            sistEndretAvBruker = now,
+            tilstandsType = Påbegynt,
+            aktivitetslogg = Aktivitetslogg(),
+            null
+        )
+
+        withMigratedDb {
+            SøknadPostgresRepository(dataSource).let { repository ->
+                søknad.håndter(
+                    SlettSøknadHendelse(
+                        søknadId, ident
+                    )
+                )
+                repository.lagre(søknad)
+
+                assertEquals(0, repository.hentSøknader(ident).size)
+                assertNull(repository.hent(søknadId))
             }
         }
     }
