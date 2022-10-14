@@ -419,6 +419,7 @@ internal class SøknadPostgresRepositoryTest {
                             brevkode: Innsending.Brevkode?
                         ) {
                             if (innsending == Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG) return
+                            assertEquals(2, hovedDokument!!.varianter.size)
                             assertEquals(1, dokumenter.size)
                         }
                     })
