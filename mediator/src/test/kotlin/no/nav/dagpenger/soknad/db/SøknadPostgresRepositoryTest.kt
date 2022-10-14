@@ -72,12 +72,13 @@ internal class SøknadPostgresRepositoryTest {
         sannsynliggjøring
     )
 
+    private val opprettet = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.SECONDS)
     private val now = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.SECONDS)
     val ident = "12345678910"
     val søknad = Søknad.rehydrer(
         søknadId = søknadId,
         ident = ident,
-        opprettet = ZonedDateTime.now(),
+        opprettet = opprettet,
         språk = Språk("NO"),
         dokumentkrav = Dokumentkrav.rehydrer(
             krav = setOf(krav)
@@ -177,7 +178,7 @@ internal class SøknadPostgresRepositoryTest {
         val søknad = Søknad.rehydrer(
             søknadId = søknadId,
             ident = ident,
-            opprettet = ZonedDateTime.now(),
+            opprettet = opprettet,
             språk = språk,
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav1, krav2)
@@ -310,7 +311,7 @@ internal class SøknadPostgresRepositoryTest {
         val søknad = Søknad.rehydrer(
             søknadId = søknadId,
             ident = ident,
-            opprettet = ZonedDateTime.now(),
+            opprettet = opprettet,
             språk = språk,
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav)
