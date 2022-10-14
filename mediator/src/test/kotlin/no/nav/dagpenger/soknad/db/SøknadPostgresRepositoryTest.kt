@@ -260,7 +260,11 @@ internal class SøknadPostgresRepositoryTest {
                             dokumenter: List<Innsending.Dokument>,
                             brevkode: Innsending.Brevkode?
                         ) {
+                            assertEquals("brevkode-hovedokument", hovedDokument!!.brevkode)
+                            assertEquals(2, hovedDokument!!.varianter.size)
                             assertEquals(1, dokumenter.size)
+                            assertEquals("brevkode-vedlegg", dokumenter.first().brevkode)
+                            assertEquals(1, dokumenter.first().varianter.size)
                         }
                     })
                 }
@@ -421,6 +425,21 @@ internal class SøknadPostgresRepositoryTest {
                 søknadPostgresRepository.hent(søknadId).let { rehydrertSøknad ->
                     assertNotNull(rehydrertSøknad)
                     assertDeepEquals(rehydrertSøknad, søknad)
+                    rehydrertSøknad?.accept(object : SøknadVisitor {
+                        override fun visit(
+                            innsendingId: UUID,
+                            innsending: Innsending.InnsendingType,
+                            tilstand: Innsending.TilstandType,
+                            innsendt: ZonedDateTime,
+                            journalpost: String?,
+                            hovedDokument: Innsending.Dokument?,
+                            dokumenter: List<Innsending.Dokument>,
+                            brevkode: Innsending.Brevkode?
+                        ) {
+                            if (innsending == Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG) return
+                            assertEquals(1, dokumenter.size)
+                        }
+                    })
                 }
             }
         }

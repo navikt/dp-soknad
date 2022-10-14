@@ -122,7 +122,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         val dokumenter: InnsendingDTO.DokumenterDTO = session.hentDokumenter(innsendingId)
         val type = InnsendingDTO.InnsendingTypeDTO.rehydrer(row.string("innsendingtype"))
         logger.info { "Hentet dokumenter for innsendingId=$innsendingId, dokumenter=$dokumenter" }
-        println("LOLOLOLOL")
         val ettersendinger = when (type) {
             InnsendingDTO.InnsendingTypeDTO.NY_DIALOG -> session.hentEttersendinger(innsendingId)
             InnsendingDTO.InnsendingTypeDTO.ETTERSENDING_TIL_DIALOG -> emptyList()
@@ -272,7 +271,7 @@ private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.Dokumenter
                  hoveddokument
             WHERE dokument_v1.innsending_uuid = :innsendingId 
             """.trimIndent(),
-            "innsendingId" to innsendingId
+            mapOf("innsendingId" to innsendingId)
         ).map { row ->
             val dokument_uuid = row.uuid("dokument_uuid")
             logger.info {
