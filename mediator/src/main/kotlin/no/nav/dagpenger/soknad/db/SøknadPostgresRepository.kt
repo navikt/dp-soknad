@@ -160,7 +160,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
     }
 
     private fun rowToSøknadDTO(session: Session): (Row) -> SøknadDTO {
-
         return { row: Row ->
             val søknadsId = UUID.fromString(row.string("uuid"))
             SøknadDTO(
@@ -272,15 +271,13 @@ private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.Dokumenter
                  hoveddokument
             WHERE dokument_v1.innsending_uuid = :innsendingId 
             """.trimIndent(),
-            mapOf(
-                "innsendingId" to innsendingId
-            )
+            "innsendingId" to innsendingId
         ).map { row ->
             val dokument_uuid = row.uuid("dokument_uuid")
-            val varianter: List<Dokumentvariant> = this@hentDokumenter.hentVarianter(dokument_uuid)
             logger.info {
                 "Hentet dokument for innsendingId=$innsendingId, dokumentId=$dokument_uuid, brevkode=${row.string("brevkode")}"
             }
+            val varianter: List<Dokumentvariant> = this@hentDokumenter.hentVarianter(dokument_uuid)
             val dokument = Innsending.Dokument(
                 dokument_uuid,
                 row.string("brevkode"),
@@ -290,7 +287,7 @@ private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.Dokumenter
                 true -> dokumenter.hovedDokument = dokument
                 false -> dokumenter.dokumenter.add(dokument)
             }
-        }.asSingle
+        }.asList
     )
     return dokumenter
 }
