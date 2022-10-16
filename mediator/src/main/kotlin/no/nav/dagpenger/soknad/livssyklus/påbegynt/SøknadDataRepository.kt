@@ -27,7 +27,7 @@ class SøknadDataPostgresRepository(private val dataSource: DataSource) : Søkna
                             VALUES (:uuid, :eier, :data)
                             ON CONFLICT(uuid, eier)
                                 DO UPDATE SET soknad_data = :data,
-                                              versjon = excluded.versjon+1,
+                                              versjon = soknad_data.versjon+1,
                                               mottatt = (NOW() AT TIME ZONE 'utc')
                         """.trimIndent(),
                         mapOf(
