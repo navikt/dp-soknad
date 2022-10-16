@@ -235,6 +235,7 @@ internal class SøknadApiTest {
                 it.behandle(any<FaktumSvar>())
             }
             every { it.hentEier(søknadId) } returns defaultDummyFodselsnummer
+            every { it.besvart(søknadId) } returns 2
         }
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -306,6 +307,7 @@ internal class SøknadApiTest {
         val mockSøknadMediator = mockk<SøknadMediator>().also {
             justRun { it.behandle(capture(faktumSvar)) }
             every { it.hentEier(søknadId) } returns defaultDummyFodselsnummer
+            every { it.besvart(søknadId) } returns 2
         }
         val jsonSvar = """{"type": "$type", "svar": $svar}"""
 

@@ -13,7 +13,6 @@ import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
-import java.time.LocalDateTime
 import kotlin.system.measureTimeMillis
 
 private val logger = KotlinLogging.logger {}
@@ -25,6 +24,7 @@ internal fun Route.besvarFaktumRoute(søknadMediator: SøknadMediator) {
             val søknadUuid = søknadUuid()
             val ident = call.ident()
             val faktumId = faktumId()
+
             withLoggingContext("søknadid" to søknadUuid.toString()) {
                 validator.valider(søknadUuid, ident)
                 val input = GyldigSvar(call.receive())
@@ -36,10 +36,10 @@ internal fun Route.besvarFaktumRoute(søknadMediator: SøknadMediator) {
                     eier = ident,
                     svar = input.svarAsJson
                 )
-
                 søknadMediator.behandle(faktumSvar)
+                val sistBesvart = søknadMediator.besvart(faktumSvar.søknadUuid())
+                call.respond(BesvartFaktum("ok", sistBesvart))
             }
-            call.respond(BesvartFaktum("ok", LocalDateTime.now()))
         }
 
         logger.info { "Brukte $tidBrukt ms på å håndtere faktumSvar" }
@@ -48,7 +48,7 @@ internal fun Route.besvarFaktumRoute(søknadMediator: SøknadMediator) {
 
 private data class BesvartFaktum(
     val status: String,
-    val sistBesvart: LocalDateTime
+    val sistBesvart: Int
 )
 
 private fun PipelineContext<Unit, ApplicationCall>.faktumId(): String {

@@ -7,15 +7,14 @@ import kotliquery.using
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.postgresql.util.PGobject
-import java.time.LocalDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
 interface SøknadDataRepository {
     fun lagre(søkerOppgave: SøkerOppgave)
     fun slett(søknadUUID: UUID): Boolean
-    fun hentSøkerOppgave(søknadUUID: UUID, sistLagretEtter: LocalDateTime? = null): SøkerOppgave?
-    fun besvart(søknadUUID: UUID, besvart: LocalDateTime): Int
+    fun hentSøkerOppgave(søknadUUID: UUID, nyereEnn: Int = 0): SøkerOppgave?
+    fun besvart(søknadUUID: UUID): Int
 }
 
 class SøknadDataPostgresRepository(private val dataSource: DataSource) : SøknadDataRepository {
@@ -23,19 +22,17 @@ class SøknadDataPostgresRepository(private val dataSource: DataSource) : Søkna
         using(sessionOf(dataSource)) { session ->
             session.transaction { tx ->
                 tx.run(
-                    queryOf(
-                        // language=PostgreSQL
-                        """INSERT INTO soknad_data(uuid, eier, soknad_data, sist_endret)
-                            VALUES (:uuid, :eier, :data, :sist_endret)
+                    queryOf( // language=PostgreSQL
+                        """INSERT INTO soknad_data(uuid, eier, soknad_data)
+                            VALUES (:uuid, :eier, :data)
                             ON CONFLICT(uuid, eier)
                                 DO UPDATE SET soknad_data = :data,
-                                              sist_endret = :sist_endret,
+                                              versjon = excluded.versjon+1,
                                               mottatt = (NOW() AT TIME ZONE 'utc')
                         """.trimIndent(),
                         mapOf(
                             "uuid" to søkerOppgave.søknadUUID(),
                             "eier" to søkerOppgave.eier(),
-                            "sist_endret" to LocalDateTime.now(),
                             "data" to PGobject().also {
                                 it.type = "jsonb"
                                 it.value = søkerOppgave.asJson()
@@ -47,30 +44,25 @@ class SøknadDataPostgresRepository(private val dataSource: DataSource) : Søkna
         }
     }
 
-    override fun besvart(søknadUUID: UUID, besvart: LocalDateTime): Int {
-        return using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf(
-                    // language=PostgreSQL
-                    "UPDATE soknad_data SET sist_endret=:sistEndret WHERE uuid = :uuid",
-                    mapOf(
-                        "uuid" to søknadUUID,
-                        "sistEndret" to besvart
-                    )
-                ).asUpdate
-            )
-        }
-    }
+    override fun besvart(søknadUUID: UUID): Int = using(sessionOf(dataSource)) { session ->
+        session.run(
+            queryOf( // language=PostgreSQL
+                "SELECT versjon FROM soknad_data WHERE uuid = :uuid",
+                mapOf("uuid" to søknadUUID)
+            ).map {
+                it.int("versjon")
+            }.asSingle
+        )
+    } ?: 1
 
-    override fun hentSøkerOppgave(søknadUUID: UUID, sistLagretEtter: LocalDateTime?): SøkerOppgave {
+    override fun hentSøkerOppgave(søknadUUID: UUID, nyereEnn: Int): SøkerOppgave {
         return using(sessionOf(dataSource)) { session ->
             session.run(
-                queryOf(
-                    // language=PostgreSQL
-                    "SELECT uuid, eier, soknad_data FROM soknad_data WHERE uuid = :uuid AND (:sistLagret::timestamp IS NULL OR sist_endret > :sistLagret)",
+                queryOf( // language=PostgreSQL
+                    "SELECT uuid, eier, soknad_data FROM soknad_data WHERE uuid = :uuid AND versjon > :nyereEnn",
                     mapOf(
                         "uuid" to søknadUUID,
-                        "sistLagret" to sistLagretEtter
+                        "nyereEnn" to nyereEnn
                     )
                 ).map { row ->
                     SøknadPostgresRepository.PersistentSøkerOppgave(objectMapper.readTree(row.binaryStream("soknad_data")))

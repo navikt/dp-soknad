@@ -104,7 +104,6 @@ internal class SøknadMediator(
     fun behandle(faktumSvar: FaktumSvar) {
         val faktumOppdatertHendelse = FaktumOppdatertHendelse(faktumSvar.søknadUuid(), faktumSvar.eier())
         behandle(faktumOppdatertHendelse) { person ->
-            søknadDataRepository.besvart(faktumSvar.søknadUuid(), faktumSvar.besvart())
             person.håndter(faktumOppdatertHendelse)
             rapidsConnection.publish(faktumSvar.toJson())
         }
