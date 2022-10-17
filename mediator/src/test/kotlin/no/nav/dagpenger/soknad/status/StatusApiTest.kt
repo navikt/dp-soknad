@@ -9,6 +9,9 @@ import io.mockk.mockk
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.Ettersending
+import no.nav.dagpenger.soknad.Innsending
+import no.nav.dagpenger.soknad.NyInnsending
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
@@ -70,12 +73,16 @@ class StatusApiTest {
     @Test
     fun `Status på søknad med tilstand Innsendt`() {
         val opprettet = LocalDateTime.MAX
-        val innsendt = LocalDateTime.MAX
+        val innsendt = LocalDateTime.of(2022, 1, 1, 12, 15, 30)
+        val ettersendt = innsendt.plusDays(1)
+        val ettersending = ettersending(ettersendt, "456")
+        val innsending = innsending(innsendt, "123", listOf(ettersending))
+
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
-                    every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet)
+                    every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet, innsending)
                 }
             )
         ) {
@@ -116,7 +123,11 @@ class StatusApiTest {
         }
     }
 
-    private fun søknadMed(tilstand: Søknad.Tilstand.Type, opprettet: LocalDateTime = LocalDateTime.now()) = Søknad.rehydrer(
+    private fun søknadMed(
+        tilstand: Søknad.Tilstand.Type,
+        opprettet: LocalDateTime = LocalDateTime.now(),
+        innsending: NyInnsending? = null
+    ) = Søknad.rehydrer(
         søknadId = søknadUuid,
         ident = TestApplication.defaultDummyFodselsnummer,
         opprettet = ZonedDateTime.of(opprettet, ZoneId.of("Europe/Oslo")),
@@ -125,6 +136,36 @@ class StatusApiTest {
         sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.now(), ZoneId.of("Europe/Oslo")),
         tilstandsType = tilstand,
         aktivitetslogg = Aktivitetslogg(),
-        innsending = null
+        innsending = innsending
+    )
+
+    private fun innsending(
+        innsendtTidspunkt: LocalDateTime,
+        journalpostId: String,
+        ettersending: List<Ettersending> = emptyList()
+    ) = NyInnsending.rehydrer(
+        innsendingId = UUID.randomUUID(),
+        type = Innsending.InnsendingType.NY_DIALOG,
+        innsendt = ZonedDateTime.of(innsendtTidspunkt, ZoneId.of("Europe/Oslo")),
+        journalpostId = journalpostId,
+        tilstandsType = Innsending.TilstandType.Journalført,
+        hovedDokument = null,
+        dokumenter = emptyList(),
+        ettersendinger = ettersending,
+        brevkode = Innsending.Brevkode("04-02-03")
+    )
+
+    private fun ettersending(
+        innsendtTidspunkt: LocalDateTime,
+        journalpostId: String,
+    ) = Ettersending.rehydrer(
+        innsendingId = UUID.randomUUID(),
+        type = Innsending.InnsendingType.NY_DIALOG,
+        innsendt = ZonedDateTime.of(innsendtTidspunkt, ZoneId.of("Europe/Oslo")),
+        journalpostId = journalpostId,
+        tilstandsType = Innsending.TilstandType.Journalført,
+        hovedDokument = null,
+        dokumenter = emptyList(),
+        brevkode = Innsending.Brevkode("04-02-03")
     )
 }

@@ -9,6 +9,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
@@ -18,7 +19,6 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.status.SøknadStatus.Paabegynt
-import no.nav.dagpenger.soknad.status.SøknadStatus.Ukjent
 import no.nav.dagpenger.soknad.status.SøknadStatus.UnderBehandling
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
@@ -36,14 +36,18 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator) {
         try {
             validator.valider(søknadUuid, ident)
             val søknad = søknadMediator.hent(søknadUuid)!!
-            val søknadStatusVisitor = SøknadStatusVisitor(søknad)
+            val statusVisitor = SøknadStatusVisitor(søknad)
 
-            when (søknadStatusVisitor.søknadTilstand) {
+            when (statusVisitor.søknadTilstand()) {
                 UnderOpprettelse -> call.respond(InternalServerError)
-                Påbegynt -> call.respond(status = OK, søknadStatusVisitor.søknadStatus)
+                Påbegynt -> call.respond(status = OK, SøknadStatusDTO(Paabegynt, statusVisitor.søknadOpprettet()))
                 Innsendt -> call.respond(
                     status = OK,
-                    SøknadStatusDTO(UnderBehandling, opprettet = LocalDateTime.MAX, innsendt = LocalDateTime.MAX)
+                    SøknadStatusDTO(
+                        status = UnderBehandling,
+                        opprettet = statusVisitor.søknadOpprettet(),
+                        innsendt = statusVisitor.førsteInnsendingTidspunkt()
+                    )
                 )
                 // TODO: Søknad med tilstand slettet kaster IllegalArgumentException ved rehydrering, returnerer derfor 404
                 Slettet -> call.respond(NotFound)
@@ -57,12 +61,17 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator) {
 
 private class SøknadStatusVisitor(søknad: Søknad) : SøknadVisitor {
 
-    lateinit var søknadStatus: SøknadStatusDTO
-    lateinit var søknadTilstand: Søknad.Tilstand.Type
+    private lateinit var søknadOpprettet: LocalDateTime
+    private lateinit var søknadTilstand: Søknad.Tilstand.Type
+    private val søknadInnsendinger: MutableList<LocalDateTime> = mutableListOf()
 
     init {
         søknad.accept(this)
     }
+
+    fun førsteInnsendingTidspunkt() = søknadInnsendinger.minOf { it }
+    fun søknadOpprettet() = søknadOpprettet
+    fun søknadTilstand() = søknadTilstand
 
     override fun visitSøknad(
         søknadId: UUID,
@@ -73,20 +82,21 @@ private class SøknadStatusVisitor(søknad: Søknad) : SøknadVisitor {
         dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime?
     ) {
+        søknadOpprettet = opprettet.toLocalDateTime()
         søknadTilstand = tilstand.tilstandType
-        søknadStatus = SøknadStatusDTO(
-            status = avgjørStatus(tilstand),
-            opprettet = opprettet.toLocalDateTime(),
-            innsendt = null
-        )
     }
 
-    private fun avgjørStatus(tilstand: Søknad.Tilstand): SøknadStatus {
-        return when (tilstand.tilstandType) {
-            Påbegynt -> Paabegynt
-            Innsendt -> UnderBehandling // TODO: ikke hardkode en enkelt verdi
-            else -> Ukjent
-        }
+    override fun visit(
+        innsendingId: UUID,
+        innsending: Innsending.InnsendingType,
+        tilstand: Innsending.TilstandType,
+        innsendt: ZonedDateTime,
+        journalpost: String?,
+        hovedDokument: Innsending.Dokument?,
+        dokumenter: List<Innsending.Dokument>,
+        brevkode: Innsending.Brevkode?
+    ) {
+        søknadInnsendinger.add(innsendt.toLocalDateTime())
     }
 }
 
