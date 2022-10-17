@@ -115,7 +115,7 @@ data class Krav(
     val navn: String? get() = fakta.find { it.beskrivendeId == navnFaktum() }?.svar
 
     private fun navnFaktum(): String {
-        return when (this.id) {
+        return when (this.beskrivendeId) {
             "faktum.dokument-arbeidsavtale" -> "faktum.arbeidsforhold.navn-bedrift"
             "faktum.dokument-dokumentasjon-av-arbeidsforhold" -> "faktum.arbeidsforhold.navn-bedrift"
             else -> "Foo"
