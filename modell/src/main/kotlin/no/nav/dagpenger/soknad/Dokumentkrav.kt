@@ -142,7 +142,7 @@ data class Krav(
     fun besvart() = this.svar.besvart()
     fun ferdigStilt() = this.svar.ferdigStilt()
     internal fun tilSkjemakode(): String {
-        return when (this.id) {
+        return when (this.beskrivendeId) {
             "faktum.dokument-avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd-dokumentasjon" -> Skjemakode.TJENESTEBEVIS
             "faktum.dokument-tjenestepensjon" -> Skjemakode.DOKUMENTASJON_AV_ANDRE_YTELSER
             "faktum.dokument-arbeidslos-GFF-hvilken-periode" -> Skjemakode.DOKUMENTASJON_AV_ANDRE_YTELSER

@@ -150,9 +150,9 @@ internal class DokumentkravTest {
         assertEquals("X8", krav("faktum.dokument-foedselsattest-bostedsbevis-for-barn-under-18aar").tilSkjemakode())
     }
 
-    private fun krav(sannsynliggjøringId: String): Krav {
-        val faktum = Faktum(faktumJson("1", "beskrivelse"))
-        val sannsynliggjøring = Sannsynliggjøring(sannsynliggjøringId, faktum)
+    private fun krav(beskrivendeId: String): Krav {
+        val faktum = Faktum(faktumJson("1", beskrivendeId))
+        val sannsynliggjøring = Sannsynliggjøring("id", faktum)
         return Krav(sannsynliggjøring)
     }
 }
