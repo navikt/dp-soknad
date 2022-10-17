@@ -112,6 +112,16 @@ data class Krav(
 
     val beskrivendeId: String get() = sannsynliggjøring.faktum().beskrivendeId
     val fakta: Set<Faktum> get() = sannsynliggjøring.sannsynliggjør()
+    val navn: String? get() = fakta.find { it.beskrivendeId == navnFaktum() }?.svar
+
+    private fun navnFaktum(): String {
+        return when (this.id) {
+            "faktum.dokument-arbeidsavtale" -> "faktum.arbeidsforhold.navn-bedrift"
+            "faktum.dokument-dokumentasjon-av-arbeidsforhold" -> "faktum.arbeidsforhold.navn-bedrift"
+            else -> "Foo"
+        }
+    }
+
     fun håndter(nySannsynliggjøringer: Set<Sannsynliggjøring>): Boolean =
         nySannsynliggjøringer.contains(this.sannsynliggjøring).also {
             this.tilstand = when (it) {
@@ -170,6 +180,7 @@ data class Krav(
         UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL("Y2"), // @todo: mangler i dp-mottak?
         FODSELSATTEST_BOSTEDSBEVIS_BARN_UNDER_18("X8"),
         ANNET("N6");
+
         fun verdi() = skjemakodeverdi
     }
 
