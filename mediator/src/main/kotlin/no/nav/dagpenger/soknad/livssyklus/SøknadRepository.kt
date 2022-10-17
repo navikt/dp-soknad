@@ -2,7 +2,6 @@ package no.nav.dagpenger.soknad.livssyklus
 
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Companion.erPåbegynt
-import java.time.LocalDateTime
 import java.util.UUID
 
 interface SøknadRepository {
@@ -16,7 +15,4 @@ interface SøknadRepository {
             søknad.erPåbegynt()
         }
     }
-
-    fun hentTilstand(søknadId: UUID): Søknad.Tilstand.Type?
-    fun hentOpprettet(søknadId: UUID): LocalDateTime?
 }

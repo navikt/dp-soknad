@@ -4,14 +4,15 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.server.testing.ApplicationTestBuilder
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Configuration
+import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestApplication
@@ -20,7 +21,10 @@ import no.nav.dagpenger.soknad.status.SøknadStatus.Paabegynt
 import no.nav.dagpenger.soknad.status.SøknadStatus.UnderBehandling
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.lang.IllegalArgumentException
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.UUID
 
 class StatusApiTest {
@@ -34,8 +38,7 @@ class StatusApiTest {
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
-                    every { it.hentTilstand(søknadUuid) } returns Påbegynt
-                    every { it.hentOpprettet(søknadUuid) } returns opprettet
+                    every { it.hent(søknadUuid) } returns søknadMed(tilstand = Påbegynt, opprettet)
                 }
             )
         ) {
@@ -49,6 +52,22 @@ class StatusApiTest {
     }
 
     @Test
+    fun `Status på søknad med tilstand UnderOpprettelse`() {
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(
+                søknadMediator = mockk<SøknadMediator>().also {
+                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
+                    every { it.hent(søknadUuid) } returns søknadMed(tilstand = UnderOpprettelse)
+                }
+            )
+        ) {
+            autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
+                assertEquals(HttpStatusCode.InternalServerError, this.status)
+            }
+        }
+    }
+
+    @Test
     fun `Status på søknad med tilstand Innsendt`() {
         val opprettet = LocalDateTime.MAX
         val innsendt = LocalDateTime.MAX
@@ -56,8 +75,7 @@ class StatusApiTest {
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
-                    every { it.hentTilstand(søknadUuid) } returns Innsendt
-                    every { it.hentOpprettet(søknadUuid) } returns opprettet
+                    every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet)
                 }
             )
         ) {
@@ -67,36 +85,6 @@ class StatusApiTest {
                 assertEquals(expectedJson, this.bodyAsText())
                 assertEquals("application/json; charset=UTF-8", this.contentType().toString())
             }
-        }
-    }
-
-    @Test
-    fun `Status på søknad med tilstand UnderOpprettelse`() {
-        TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi(
-                søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
-                    every { it.hentTilstand(søknadUuid) } returns UnderOpprettelse
-                    every { it.hentOpprettet(søknadUuid) } returns LocalDateTime.MAX
-                }
-            )
-        ) {
-            assertStatuskode(expected = HttpStatusCode.InternalServerError)
-        }
-    }
-
-    @Test
-    fun `Status på søknad med tilstand Slettet`() {
-        TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi(
-                søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
-                    every { it.hentTilstand(søknadUuid) } returns Slettet
-                    every { it.hentOpprettet(søknadUuid) } returns LocalDateTime.MAX
-                }
-            )
-        ) {
-            assertStatuskode(expected = HttpStatusCode.NotFound)
         }
     }
 
@@ -112,14 +100,13 @@ class StatusApiTest {
             assertEquals(HttpStatusCode.Forbidden, autentisert(endepunkt).status)
         }
     }
+
     @Test
     fun `returnerer 404 når søknad ikke eksisterer`() {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
-                    every { it.hentTilstand(søknadUuid) } returns null
-                    every { it.hentOpprettet(søknadUuid) } returns LocalDateTime.MAX
+                    every { it.hentEier(søknadUuid) } throws IllegalArgumentException("Fant ikke søknad")
                 }
             )
         ) {
@@ -129,21 +116,15 @@ class StatusApiTest {
         }
     }
 
-    private suspend fun ApplicationTestBuilder.assertSøknadTilstand(
-        tilstand: Søknad.Tilstand.Type,
-        expectedStatusCode: HttpStatusCode,
-    ) {
-        autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
-            assertEquals(expectedStatusCode, this.status)
-            val expectedJson = """{"tilstand":"$tilstand"}"""
-            assertEquals(expectedJson, this.bodyAsText())
-            assertEquals("application/json; charset=UTF-8", this.contentType().toString())
-        }
-    }
-
-    private suspend fun ApplicationTestBuilder.assertStatuskode(expected: HttpStatusCode) {
-        autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
-            assertEquals(expected, this.status)
-        }
-    }
+    private fun søknadMed(tilstand: Søknad.Tilstand.Type, opprettet: LocalDateTime = LocalDateTime.now()) = Søknad.rehydrer(
+        søknadId = søknadUuid,
+        ident = TestApplication.defaultDummyFodselsnummer,
+        opprettet = ZonedDateTime.of(opprettet, ZoneId.of("Europe/Oslo")),
+        språk = Språk("NO"),
+        dokumentkrav = Dokumentkrav(),
+        sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.now(), ZoneId.of("Europe/Oslo")),
+        tilstandsType = tilstand,
+        aktivitetslogg = Aktivitetslogg(),
+        innsending = null
+    )
 }

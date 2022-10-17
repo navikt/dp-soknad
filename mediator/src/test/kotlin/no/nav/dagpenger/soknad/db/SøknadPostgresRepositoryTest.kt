@@ -26,7 +26,6 @@ import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
-import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -34,7 +33,6 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
-import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
@@ -125,32 +123,6 @@ internal class SøknadPostgresRepositoryTest {
 
                 assertEquals(0, repository.hentSøknader(ident).size)
                 assertNull(repository.hent(søknadId))
-            }
-        }
-    }
-
-    @Test
-    fun `Henter tilstand til en søknad`() {
-        withMigratedDb {
-            SøknadPostgresRepository(dataSource).let { repository ->
-                repository.lagre(søknad)
-
-                assertEquals(Påbegynt, repository.hentTilstand(søknad.søknadUUID()))
-                assertNull(repository.hentTilstand(UUID.randomUUID()))
-            }
-        }
-    }
-
-    @Test
-    fun `Henter søknad opprettet tidspunkt`() {
-        val opprettet = LocalDateTime.of(2020, 1, 1, 1, 1)
-        withMigratedDb {
-            SøknadPostgresRepository(dataSource).let { repository ->
-                repository.lagre(søknad)
-                settSøknadOpprettet(opprettet, søknadId)
-                val opprettetFraDB = repository.hentOpprettet(søknadId)
-                assertEquals(opprettet, opprettetFraDB)
-                assertNull(repository.hentOpprettet(UUID.randomUUID()))
             }
         }
     }
@@ -597,19 +569,6 @@ internal class SøknadPostgresRepositoryTest {
                     )
                 )
             }
-        }
-    }
-
-    private fun settSøknadOpprettet(opprettet: LocalDateTime, uuid: UUID) {
-        using(sessionOf(PostgresDataSourceBuilder.dataSource)) { session ->
-            session.run(
-                //language=PostgreSQL
-                queryOf(
-                    "UPDATE soknad_v1 SET opprettet = ? WHERE uuid = ?",
-                    opprettet,
-                    uuid
-                ).asUpdate
-            )
         }
     }
 

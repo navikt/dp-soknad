@@ -19,10 +19,6 @@ import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
-import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
@@ -186,52 +182,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                     transactionalSession.run(it.asUpdate)
                 }
             }
-        }
-    }
-
-    override fun hentTilstand(søknadId: UUID): Tilstand.Type? {
-        val tilstand = using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf( //language=PostgreSQL
-                    """
-                    SELECT tilstand
-                    FROM  soknad_v1
-                    WHERE uuid = :soknadId
-                    """.trimIndent(),
-                    mapOf(
-                        "soknadId" to søknadId
-                    )
-                ).map { row ->
-                    row.string("tilstand")
-                }.asSingle
-            )
-        }
-
-        return when (tilstand) {
-            UnderOpprettelse.name -> UnderOpprettelse
-            Påbegynt.name -> Påbegynt
-            Innsendt.name -> Innsendt
-            Slettet.name -> Slettet
-            else -> null
-        }
-    }
-
-    override fun hentOpprettet(søknadId: UUID): LocalDateTime? {
-        return using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf( //language=PostgreSQL
-                    statement = """
-                        SELECT opprettet
-                        FROM soknad_v1
-                        WHERE uuid = :soknadId
-                    """.trimIndent(),
-                    paramMap = mapOf(
-                        "soknadId" to søknadId
-                    )
-                ).map { row ->
-                    row.localDateTime("opprettet")
-                }.asSingle
-            )
         }
     }
 
