@@ -189,7 +189,7 @@ private class ApiDokumentkravResponse(
             ApiDokumentKrav(
                 id = it.id,
                 beskrivendeId = it.beskrivendeId,
-                navn = it.navn,
+                beskrivelse = it.beskrivelse,
                 fakta = it.fakta.fold(objectMapper.createArrayNode()) { acc, faktum -> acc.add(faktum.originalJson()) },
                 filer = it.svar.filer.map { fil ->
                     ApiDokumentKrav.ApiDokumentkravFiler(
@@ -212,7 +212,7 @@ private class ApiDokumentkravResponse(
 data class ApiDokumentKrav(
     val id: String,
     val beskrivendeId: String,
-    val navn: String?,
+    val beskrivelse: String?,
     val fakta: JsonNode,
     val filer: List<ApiDokumentkravFiler>,
     val gyldigeValg: Set<GyldigValg> = GyldigValg.values().toSet(),

@@ -112,14 +112,15 @@ data class Krav(
 
     val beskrivendeId: String get() = sannsynliggjøring.faktum().beskrivendeId
     val fakta: Set<Faktum> get() = sannsynliggjøring.sannsynliggjør()
-    val navn: String? get() = fakta.find { it.beskrivendeId == navnFaktum() }?.svar
-
-    private fun navnFaktum(): String {
-        return when (this.beskrivendeId) {
-            "faktum.dokument-arbeidsavtale" -> "faktum.arbeidsforhold.navn-bedrift"
-            "faktum.dokument-dokumentasjon-av-arbeidsforhold" -> "faktum.arbeidsforhold.navn-bedrift"
-            else -> "Foo"
+    val beskrivelse: String?
+        get() = beskrivendeFaktum()?.let { beskrivendeFaktum ->
+            fakta.find { it.beskrivendeId == beskrivendeFaktum }?.svar
         }
+
+    private fun beskrivendeFaktum() = when (this.beskrivendeId) {
+        "faktum.dokument-arbeidsavtale" -> "faktum.arbeidsforhold.navn-bedrift"
+        "faktum.dokument-dokumentasjon-av-arbeidsforhold" -> "faktum.arbeidsforhold.navn-bedrift"
+        else -> null
     }
 
     fun håndter(nySannsynliggjøringer: Set<Sannsynliggjøring>): Boolean =
