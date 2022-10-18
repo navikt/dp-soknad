@@ -125,7 +125,8 @@ class SøknadDTO(
                     filnavn = this.filnavn,
                     urn = this.urn,
                     storrelse = this.storrelse,
-                    tidspunkt = this.tidspunkt
+                    tidspunkt = this.tidspunkt,
+                    bundlet = false, //todo
                 )
             }
         }
@@ -146,7 +147,7 @@ class SøknadDTO(
 
         companion object {
             fun rehydrer(dbTilstand: String): TilstandDTO {
-                return TilstandDTO.valueOf(dbTilstand)
+                return valueOf(dbTilstand)
             }
         }
     }

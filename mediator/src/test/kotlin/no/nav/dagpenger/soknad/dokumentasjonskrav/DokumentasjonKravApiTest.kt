@@ -68,7 +68,8 @@ internal class DokumentasjonKravApiTest {
         "test.jpg",
         URN.rfc8141().parse("urn:nav:1"),
         89900,
-        ZonedDateTime.now()
+        ZonedDateTime.now(),
+        bundlet = false,
     )
     private val dokumentKrav = Dokumentkrav().also {
         it.håndter(setOf(sannsynliggjøring1, sannsynliggjøring2))
@@ -321,7 +322,7 @@ internal class DokumentasjonKravApiTest {
                             urn = URN.rfc8141().parse("urn:vedlegg:1111/123234"),
                             storrelse = 50000,
                             tidspunkt = tidspunkt,
-
+                            bundlet = false,
                         ),
                         this.fil
                     )

@@ -87,7 +87,13 @@ class SøknadDokumentasjonskravTest {
                 søknadId,
                 ident,
                 "1",
-                fil = Krav.Fil("test.jpg", URN.rfc8141().parse("urn:sid:1"), 0, ZonedDateTime.now())
+                fil = Krav.Fil(
+                    filnavn = "test.jpg",
+                    urn = URN.rfc8141().parse("urn:sid:1"),
+                    storrelse = 0,
+                    tidspunkt = ZonedDateTime.now(),
+                    bundlet = false,
+                )
             )
         )
 
@@ -105,7 +111,12 @@ class SøknadDokumentasjonskravTest {
                 søknadId,
                 ident,
                 "1",
-                fil = Krav.Fil("test2.jpg", URN.rfc8141().parse("urn:sid:2"), 0, ZonedDateTime.now())
+                fil = Krav.Fil(
+                    filnavn = "test2.jpg",
+                    urn = URN.rfc8141().parse("urn:sid:2"),
+                    storrelse = 0,
+                    tidspunkt = ZonedDateTime.now()
+                    , bundlet = false,)
             )
         )
 

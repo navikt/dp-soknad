@@ -139,7 +139,8 @@ internal data class ApiFil(
         filnavn = this.filnavn,
         urn = this._urn,
         storrelse = this.storrelse,
-        tidspunkt = this.tidspunkt
+        tidspunkt = this.tidspunkt,
+        bundlet = false
     )
 }
 

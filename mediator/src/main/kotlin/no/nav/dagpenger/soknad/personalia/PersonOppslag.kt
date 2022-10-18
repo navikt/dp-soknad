@@ -16,6 +16,7 @@ internal class PersonOppslag(
     },
     private val pdlAudience: String = Configuration.pdlAudience
 ) {
+
     suspend fun hentPerson(fnr: String, subjectToken: String): Person {
         val person = personOppslag.hentPerson(
             fnr,

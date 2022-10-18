@@ -263,7 +263,8 @@ data class Krav(
         val filnavn: String,
         val urn: URN,
         val storrelse: Long,
-        val tidspunkt: ZonedDateTime
+        val tidspunkt: ZonedDateTime,
+        val bundlet: Boolean
     ) {
         init {
             require(urn.supports(RFC.RFC_8141)) {

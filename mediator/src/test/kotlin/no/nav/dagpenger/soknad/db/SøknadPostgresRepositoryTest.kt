@@ -142,7 +142,8 @@ internal class SøknadPostgresRepositoryTest {
                         filnavn = "1-1.jpg",
                         urn = URN.rfc8141().parse("urn:nav:vedlegg:1-1"),
                         storrelse = 1000,
-                        tidspunkt = now
+                        tidspunkt = now,
+                        bundlet = false,
                     )
                 ),
                 valg = Krav.Svar.SvarValg.SEND_NÅ,
@@ -238,13 +239,15 @@ internal class SøknadPostgresRepositoryTest {
                         filnavn = "1-1.jpg",
                         urn = URN.rfc8141().parse("urn:nav:vedlegg:1-1"),
                         storrelse = 1000,
-                        tidspunkt = now
-                    ),
+                        tidspunkt = now,
+                        bundlet = false,
+                        ),
                     Krav.Fil(
                         filnavn = "1-2.jpg",
                         urn = URN.rfc8141().parse("urn:nav:vedlegg:1-2"),
                         storrelse = 1000,
-                        tidspunkt = now
+                        tidspunkt = now,
+                        bundlet = false,
                     )
                 ),
                 valg = Krav.Svar.SvarValg.SEND_NÅ,
@@ -262,7 +265,8 @@ internal class SøknadPostgresRepositoryTest {
                         filnavn = "2.jpg",
                         urn = URN.rfc8141().parse("urn:nav:vedlegg:2"),
                         storrelse = 1000,
-                        tidspunkt = now
+                        tidspunkt = now,
+                        bundlet = false,
                     )
                 ),
                 valg = Krav.Svar.SvarValg.SEND_NÅ,
@@ -453,13 +457,15 @@ internal class SøknadPostgresRepositoryTest {
             filnavn = "ja.jpg",
             urn = URN.rfc8141().parse("urn:vedlegg:1111/12345"),
             storrelse = 50000,
-            tidspunkt = tidspunkt
+            tidspunkt = tidspunkt,
+            bundlet = false,
         )
         val fil2 = Krav.Fil(
             filnavn = "nei.jpg",
             urn = URN.rfc8141().parse("urn:vedlegg:1111/45678"),
             storrelse = 50000,
-            tidspunkt = tidspunkt
+            tidspunkt = tidspunkt,
+            bundlet = false,
         )
         withMigratedDb {
             val søknadPostgresRepository = SøknadPostgresRepository(dataSource)

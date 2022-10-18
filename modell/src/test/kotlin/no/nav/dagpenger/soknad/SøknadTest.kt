@@ -379,7 +379,13 @@ internal class SøknadTest {
             inspektør.søknadId,
             testIdent,
             kravId,
-            fil = Krav.Fil("test.jpg", URN.rfc8141().parse(urn), 0, ZonedDateTime.now())
+            fil = Krav.Fil(
+                filnavn = "test.jpg",
+                urn = URN.rfc8141().parse(urn),
+                storrelse = 0,
+                tidspunkt = ZonedDateTime.now(),
+                bundlet = false,
+            )
         )
         søknad.håndter(hendelse)
     }
