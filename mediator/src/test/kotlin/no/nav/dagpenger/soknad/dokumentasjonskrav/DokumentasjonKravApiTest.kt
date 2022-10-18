@@ -48,10 +48,8 @@ import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 internal class DokumentasjonKravApiTest {
-
     private val testSoknadId = UUID.fromString("d172a832-4f52-4e1f-ab5f-8be8348d9280")
-
-    private val dokumentFaktum1 = Faktum(faktumJson(id = "1", beskrivendeId = "f1"))
+    private val dokumentFaktum1 = Faktum(faktumJson(id = "1", beskrivendeId = "f1", generertAv = "foobar"))
     private val dokumentFaktum2 = Faktum(faktumJson(id = "2", beskrivendeId = "f2"))
     private val faktaSomSannsynliggjøres = mutableSetOf(Faktum(faktumJson(id = "2", beskrivendeId = "f2")))
     private val sannsynliggjøring1 = Sannsynliggjøring(
@@ -91,7 +89,6 @@ internal class DokumentasjonKravApiTest {
             )
         )
     }
-
     private val søknad = Søknad.rehydrer(
         søknadId = testSoknadId,
         ident = defaultDummyFodselsnummer,
@@ -103,7 +100,6 @@ internal class DokumentasjonKravApiTest {
         aktivitetslogg = Aktivitetslogg(),
         null
     )
-
     private val søknadMediatorMock = mockk<SøknadMediator>().also {
         every { it.hent(testSoknadId) } returns søknad
         every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
@@ -186,6 +182,7 @@ internal class DokumentasjonKravApiTest {
                         )
                     }
                     assertNotNull(this["gyldigeValg"])
+                    assertEquals("foobar", this["beskrivelse"].asText())
                     assertNull(this["begrunnelse"])
                     val svar = this["svar"]
                     assertFalse(svar.isNull)
@@ -193,7 +190,6 @@ internal class DokumentasjonKravApiTest {
                     val bundle = this["bundle"]
                     assertFalse(bundle.isNull)
                     assertEquals("urn:bundle:1", bundle.asText())
-
                     val bundleFilsti = this["bundleFilsti"]
                     assertFalse(bundleFilsti.isNull)
                     assertEquals("1", bundleFilsti.asText())
@@ -208,7 +204,6 @@ internal class DokumentasjonKravApiTest {
                     val svar = this["svar"]
                     assertFalse(svar.isNull)
                     assertEquals("dokumentkrav.svar.sender.ikke", svar.asText())
-
                     val begrunnelse = this["begrunnelse"]
                     assertFalse(begrunnelse.isNull)
                     assertEquals("Har ikke dokumentasjon tilgjengelig", begrunnelse.asText())
@@ -233,7 +228,6 @@ internal class DokumentasjonKravApiTest {
             client.put("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451/svar") {
                 autentisert()
                 header(HttpHeaders.ContentType, "application/json")
-
                 // language=JSON
                 setBody(
                     """
@@ -282,7 +276,6 @@ internal class DokumentasjonKravApiTest {
 
     @Test
     fun `Skal kunne besvare med fil`() {
-
         val slot = slot<LeggTilFil>()
         val tidspunkt = ZonedDateTime.now()
         val mediatorMock = mockk<SøknadMediator>().also {
@@ -313,15 +306,13 @@ internal class DokumentasjonKravApiTest {
                 assertEquals(HttpStatusCode.Created, response.status)
                 assertTrue(slot.isCaptured)
                 with(slot.captured) {
-
                     assertEquals("451", this.kravId)
                     assertEquals(
                         Krav.Fil(
                             filnavn = "ja.jpg",
                             urn = URN.rfc8141().parse("urn:vedlegg:1111/123234"),
                             storrelse = 50000,
-                            tidspunkt = tidspunkt,
-
+                            tidspunkt = tidspunkt
                         ),
                         this.fil
                     )
