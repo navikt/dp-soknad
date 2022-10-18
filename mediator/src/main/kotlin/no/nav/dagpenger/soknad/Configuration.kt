@@ -44,6 +44,9 @@ internal object Configuration {
 
     val pdlUrl by lazy { properties[Key("PDL_API_URL", stringType)] }
     val pdlAudience by lazy { properties[Key("PDL_AUDIENCE", stringType)] }
+    val dpInnsynAudience by lazy { properties[Key("DP_INNSYN_AUDIENCE", stringType)] }
+    val dpInnsynUrl by lazy { properties[Key("DP_INNSYN_URL", stringType)] }
+
     val tokenXClient by lazy {
         val tokenX = OAuth2Config.TokenX(properties)
         CachedOauth2Client(

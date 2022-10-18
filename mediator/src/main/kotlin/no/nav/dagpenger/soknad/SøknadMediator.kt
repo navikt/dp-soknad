@@ -165,16 +165,20 @@ internal class SøknadMediator(
     }
 
     private fun hentEllerOpprettNyDagpengesøknad(ident: String, språk: String): Søknadsprosess {
-        val påbegyntSøknad = hentPåbegyntSøknad(ident)
-        return if (påbegyntSøknad == null) {
-            Søknadsprosess.NySøknadsProsess().also {
-                behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident, språk))
-            }
-        } else {
-            Søknadsprosess.PåbegyntSøknadsProsess(påbegyntSøknad.søknadUUID()).also {
-                behandle(HarPåbegyntSøknadHendelse(ident, it.getSøknadsId()))
-            }
+        return Søknadsprosess.NySøknadsProsess().also {
+            behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident, språk))
         }
+
+        // @todo: Vi må finne ut hvordan vi håndtere at Quiz har nye versjoner først
+        /** return if (påbegyntSøknad == null) {
+         Søknadsprosess.NySøknadsProsess().also {
+         behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident, språk))
+         }
+         } else {
+         Søknadsprosess.PåbegyntSøknadsProsess(påbegyntSøknad.søknadUUID()).also {
+         behandle(HarPåbegyntSøknadHendelse(ident, it.getSøknadsId()))
+         }
+         } **/
     }
 
     private fun behandle(hendelse: SøknadHendelse, håndter: (Søknad) -> Unit) = try {

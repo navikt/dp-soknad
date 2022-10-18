@@ -24,7 +24,8 @@ internal class TestSøkerOppgave(private val søknadUUID: UUID, private val eier
     override fun asJson(): String = json
     override fun sannsynliggjøringer(): Set<Sannsynliggjøring> = emptySet()
 }
-internal fun faktumJson(id: String, beskrivendeId: String) = jacksonObjectMapper().readTree(
+
+internal fun faktumJson(id: String, beskrivendeId: String, generertAv: String? = null) = jacksonObjectMapper().readTree(
     """{
     |  "id": "$id",
     |  "type": "boolean",
@@ -38,7 +39,8 @@ internal fun faktumJson(id: String, beskrivendeId: String) = jacksonObjectMapper
     |    "f1.svar.nei"
     |  ],
     |  "sannsynliggjoresAv": [],
-    |  "readOnly": false
+    |  "readOnly": false,
+    |  "generertAv": "$generertAv"
     |}
     """.trimMargin()
 )

@@ -6,6 +6,7 @@ dp_proxy_scope: api://prod-fss.teamdagpenger.dp-proxy/.default
 dp_proxy_url: https://dp-proxy.prod-fss-pub.nais.io
 PDL_API_URL: https://pdl-api.prod-fss-pub.nais.io/graphql
 PDL_AUDIENCE: prod-fss:pdl:pdl-api
+DP_INNSYN_AUDIENCE: prod-gcp:teamdagpenger:dp-innsyn
 kafka_pool: nav-prod
 db_tier: db-custom-4-15360
 db_size: 10
