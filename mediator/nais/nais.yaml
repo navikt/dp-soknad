@@ -46,6 +46,9 @@ spec:
         - application: dp-soknadsdialog
         - application: dp-behov-soknad-pdf
         - application: dp-behov-journalforing
+    outbound:
+      rules:
+        - application: dp-innsyn
   env:
     - name: DP_PROXY_SCOPE
       value: {{dp_proxy_scope}}
@@ -55,6 +58,10 @@ spec:
       value: {{PDL_API_URL}}
     - name: PDL_AUDIENCE
       value: {{PDL_AUDIENCE}}
+    - name: DP_INNSYN_AUDIENCE
+      value: {{DP_INNSYN_AUDIENCE}}
+    - name: DP_INNSYN_URL
+      value: http://dp-innsyn
     - name: JAVA_OPTS
       value: -XX:+UseG1GC -XX:MaxRAMPercentage=75.0 -XX:ActiveProcessorCount=2
   gcp:
