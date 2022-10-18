@@ -126,7 +126,7 @@ class SøknadDTO(
                     urn = this.urn,
                     storrelse = this.storrelse,
                     tidspunkt = this.tidspunkt,
-                    bundlet = false, //todo
+                    bundlet = false, // todo
                 )
             }
         }
