@@ -124,6 +124,7 @@ data class Krav(
 
     fun håndter(hendelse: DokumentKravSammenstilling) {
         this.svar.bundle = hendelse.urn()
+        this.svar.filer.forEach { fil -> fil.bundlet = true }
     }
 
     fun accept(dokumentkravVisitor: DokumentkravVisitor) {
@@ -254,7 +255,8 @@ data class Krav(
         val filnavn: String,
         val urn: URN,
         val storrelse: Long,
-        val tidspunkt: ZonedDateTime
+        val tidspunkt: ZonedDateTime,
+        var bundlet: Boolean
     ) {
         init {
             require(urn.supports(RFC.RFC_8141)) {

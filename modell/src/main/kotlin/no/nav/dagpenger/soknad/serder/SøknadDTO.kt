@@ -118,14 +118,16 @@ class SøknadDTO(
                 val filnavn: String,
                 val urn: URN,
                 val storrelse: Long,
-                val tidspunkt: ZonedDateTime
+                val tidspunkt: ZonedDateTime,
+                val bundlet: Boolean
             ) {
 
                 fun rehydrer() = Krav.Fil(
                     filnavn = this.filnavn,
                     urn = this.urn,
                     storrelse = this.storrelse,
-                    tidspunkt = this.tidspunkt
+                    tidspunkt = this.tidspunkt,
+                    bundlet = this.bundlet
                 )
             }
         }
@@ -146,7 +148,7 @@ class SøknadDTO(
 
         companion object {
             fun rehydrer(dbTilstand: String): TilstandDTO {
-                return TilstandDTO.valueOf(dbTilstand)
+                return valueOf(dbTilstand)
             }
         }
     }

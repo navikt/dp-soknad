@@ -22,12 +22,14 @@ import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.faktumJson
+import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -142,7 +144,8 @@ internal class SøknadPostgresRepositoryTest {
                         filnavn = "1-1.jpg",
                         urn = URN.rfc8141().parse("urn:nav:vedlegg:1-1"),
                         storrelse = 1000,
-                        tidspunkt = now
+                        tidspunkt = now,
+                        bundlet = false,
                     )
                 ),
                 valg = Krav.Svar.SvarValg.SEND_NÅ,
@@ -238,13 +241,15 @@ internal class SøknadPostgresRepositoryTest {
                         filnavn = "1-1.jpg",
                         urn = URN.rfc8141().parse("urn:nav:vedlegg:1-1"),
                         storrelse = 1000,
-                        tidspunkt = now
+                        tidspunkt = now,
+                        bundlet = false,
                     ),
                     Krav.Fil(
                         filnavn = "1-2.jpg",
                         urn = URN.rfc8141().parse("urn:nav:vedlegg:1-2"),
                         storrelse = 1000,
-                        tidspunkt = now
+                        tidspunkt = now,
+                        bundlet = false,
                     )
                 ),
                 valg = Krav.Svar.SvarValg.SEND_NÅ,
@@ -262,7 +267,8 @@ internal class SøknadPostgresRepositoryTest {
                         filnavn = "2.jpg",
                         urn = URN.rfc8141().parse("urn:nav:vedlegg:2"),
                         storrelse = 1000,
-                        tidspunkt = now
+                        tidspunkt = now,
+                        bundlet = false,
                     )
                 ),
                 valg = Krav.Svar.SvarValg.SEND_NÅ,
@@ -453,13 +459,15 @@ internal class SøknadPostgresRepositoryTest {
             filnavn = "ja.jpg",
             urn = URN.rfc8141().parse("urn:vedlegg:1111/12345"),
             storrelse = 50000,
-            tidspunkt = tidspunkt
+            tidspunkt = tidspunkt,
+            bundlet = false,
         )
         val fil2 = Krav.Fil(
             filnavn = "nei.jpg",
             urn = URN.rfc8141().parse("urn:vedlegg:1111/45678"),
             storrelse = 50000,
-            tidspunkt = tidspunkt
+            tidspunkt = tidspunkt,
+            bundlet = false,
         )
         withMigratedDb {
             val søknadPostgresRepository = SøknadPostgresRepository(dataSource)
@@ -508,9 +516,29 @@ internal class SøknadPostgresRepositoryTest {
             )
             hentDokumentKrav(søknadMediator.hent(søknadId)!!).let {
                 assertEquals(2, it.aktiveDokumentKrav().first().svar.filer.size)
+                it.aktiveDokumentKrav().first().svar.filer.forEach {
+                    assertFalse(it.bundlet)
+                }
                 it.aktiveDokumentKrav().forEach { krav ->
                     assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
                     assertNull(krav.svar.begrunnelse)
+                }
+            }
+
+            søknadMediator.behandle(
+                DokumentKravSammenstilling(
+                    søknadID = søknadId,
+                    ident = ident,
+                    kravId = "1",
+                    urn = URN.rfc8141().parse("urn:vedlegg:bundle")
+                )
+            )
+
+            hentDokumentKrav(søknadMediator.hent(søknadId)!!).let { dokumentkrav ->
+                val filer = dokumentkrav.aktiveDokumentKrav().first().svar.filer
+                assertEquals(2, filer.size)
+                filer.forEach { fil ->
+                    assertTrue(fil.bundlet)
                 }
             }
 

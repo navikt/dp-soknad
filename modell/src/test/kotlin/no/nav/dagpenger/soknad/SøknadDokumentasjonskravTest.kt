@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import de.slub.urn.URN
+import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
@@ -8,6 +9,7 @@ import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.ZonedDateTime
@@ -82,12 +84,19 @@ class SøknadDokumentasjonskravTest {
             }
         }
 
+        val testFil = Krav.Fil(
+            filnavn = "test.jpg",
+            urn = URN.rfc8141().parse("urn:sid:1"),
+            storrelse = 0,
+            tidspunkt = ZonedDateTime.now(),
+            bundlet = false,
+        )
         søknad.håndter(
             LeggTilFil(
                 søknadId,
                 ident,
                 "1",
-                fil = Krav.Fil("test.jpg", URN.rfc8141().parse("urn:sid:1"), 0, ZonedDateTime.now())
+                fil = testFil
             )
         )
 
@@ -97,6 +106,8 @@ class SøknadDokumentasjonskravTest {
                 assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
                 assertEquals(null, krav.svar.begrunnelse)
                 assertEquals(1, krav.svar.filer.size)
+                assertEquals(1, krav.svar.filer.size)
+                assertEquals(testFil, krav.svar.filer.first())
             }
         }
 
@@ -105,7 +116,13 @@ class SøknadDokumentasjonskravTest {
                 søknadId,
                 ident,
                 "1",
-                fil = Krav.Fil("test2.jpg", URN.rfc8141().parse("urn:sid:2"), 0, ZonedDateTime.now())
+                fil = Krav.Fil(
+                    filnavn = "test2.jpg",
+                    urn = URN.rfc8141().parse("urn:sid:2"),
+                    storrelse = 0,
+                    tidspunkt = ZonedDateTime.now(),
+                    bundlet = false,
+                )
             )
         )
 
@@ -133,6 +150,25 @@ class SøknadDokumentasjonskravTest {
                 assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
                 assertEquals(null, krav.svar.begrunnelse)
                 assertEquals(1, krav.svar.filer.size)
+            }
+        }
+
+        val bundleUrn = URN.rfc8141().parse("urn:sid:bundle")
+        søknad.håndter(
+            DokumentKravSammenstilling(
+                søknadID = søknadId,
+                ident = ident,
+                kravId = "1",
+                urn = bundleUrn
+            )
+        )
+
+        with(TestSøknadInspektør2(søknad).dokumentkrav) {
+            assertEquals(1, this.aktiveDokumentKrav().size)
+            this.aktiveDokumentKrav().forEach { krav ->
+                assertEquals(bundleUrn, krav.svar.bundle)
+                assertEquals(1, krav.svar.filer.size)
+                assertTrue(krav.svar.filer.first().bundlet)
             }
         }
     }
