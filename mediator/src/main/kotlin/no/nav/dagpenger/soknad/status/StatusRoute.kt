@@ -23,16 +23,21 @@ import no.nav.dagpenger.soknad.status.SøknadStatus.UnderBehandling
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
+import no.nav.dagpenger.soknad.utils.auth.jwt
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
+
 internal fun Route.statusRoute(søknadMediator: SøknadMediator) {
     val validator = SøknadEierValidator(søknadMediator)
+
     get("/{søknad_uuid}/status") {
         val søknadUuid = søknadUuid()
         val ident = call.ident()
+        val token = call.request.jwt()
+
         try {
             validator.valider(søknadUuid, ident)
             val søknad = søknadMediator.hent(søknadUuid)!!
@@ -49,7 +54,7 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator) {
                         innsendt = statusVisitor.førsteInnsendingTidspunkt()
                     )
                 )
-                // TODO: Søknad med tilstand slettet kaster IllegalArgumentException ved rehydrering, returnerer derfor 404
+                // TODO: Søknad med tilstand slettet kaster IllegalArgumentException ved rehydrering, returnerer derfor 500
                 Slettet -> call.respond(NotFound)
             }
         } catch (e: IllegalArgumentException) {
@@ -58,6 +63,17 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator) {
         }
     }
 }
+
+private suspend fun søknadStatus(
+    behandlingsstatusClient: BehandlingsstatusHttpClient,
+    førsteInnsendingTidspunkt: LocalDateTime,
+    token: String
+) = SøknadStatus.valueOf(
+    behandlingsstatusClient.hentBehandlingsstatus(
+        fom = førsteInnsendingTidspunkt,
+        token
+    ).behandlingsstatus
+)
 
 private class SøknadStatusVisitor(søknad: Søknad) : SøknadVisitor {
 

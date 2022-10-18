@@ -71,7 +71,7 @@ class StatusApiTest {
     }
 
     @Test
-    fun `Status på søknad med tilstand Innsendt`() {
+    fun `Søknad med tilstand Innsendt og status UnderBehandling`() {
         val opprettet = LocalDateTime.MAX
         val innsendt = LocalDateTime.of(2022, 1, 1, 12, 15, 30)
         val ettersendt = innsendt.plusDays(1)
