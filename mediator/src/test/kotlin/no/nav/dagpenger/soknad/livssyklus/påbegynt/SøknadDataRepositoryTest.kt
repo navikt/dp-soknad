@@ -31,12 +31,6 @@ class SøknadDataRepositoryTest {
             assertEquals(søknad.søknadUUID(), rehydrertSøknad.søknadUUID())
             assertEquals(søknad.eier(), rehydrertSøknad.eier())
             assertEquals(søknad.asFrontendformat(), rehydrertSøknad.asFrontendformat())
-
-            assertEquals(1, søknadCache.besvart(søknadUuid))
-            søknadCache.lagre(søknad)
-            assertEquals(2, søknadCache.besvart(søknadUuid))
-            søknadCache.lagre(søknad)
-            assertEquals(3, søknadCache.besvart(søknadUuid))
         }
     }
 
