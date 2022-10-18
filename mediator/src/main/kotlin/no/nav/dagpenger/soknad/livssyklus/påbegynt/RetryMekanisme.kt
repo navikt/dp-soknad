@@ -20,7 +20,8 @@ suspend fun <T> retryIO(
             return block()
         } catch (e: Exception) {
             logger.warn { "Forsøk: ${++antallForsøk}/$times på henting av neste seksjon." }
-            søknadDataRetries.inc()
+        } finally {
+            søknadDataRetries.labels(antallForsøk.toString()).inc()
         }
         delay(currentDelay)
         currentDelay = (currentDelay * factor).toLong().coerceAtMost(maxDelay)

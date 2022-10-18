@@ -25,6 +25,7 @@ object Metrics {
         .namespace("dp_soknad")
         .name("soknad_data_retries")
         .help("Hvor mange forsøk det tar å hente søknaddata")
+        .labelNames("attempt")
         .register()
     val søknadDataTimeouts: Counter = Counter.build()
         .namespace("dp_soknad")
