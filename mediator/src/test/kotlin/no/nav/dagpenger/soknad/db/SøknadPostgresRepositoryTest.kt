@@ -29,6 +29,7 @@ import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -515,6 +516,9 @@ internal class SøknadPostgresRepositoryTest {
             )
             hentDokumentKrav(søknadMediator.hent(søknadId)!!).let {
                 assertEquals(2, it.aktiveDokumentKrav().first().svar.filer.size)
+                it.aktiveDokumentKrav().first().svar.filer.forEach {
+                    assertFalse(it.bundlet)
+                }
                 it.aktiveDokumentKrav().forEach { krav ->
                     assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
                     assertNull(krav.svar.begrunnelse)

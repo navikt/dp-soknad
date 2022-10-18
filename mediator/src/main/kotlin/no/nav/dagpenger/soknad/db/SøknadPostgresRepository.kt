@@ -374,11 +374,12 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                 queryOf(
                     // language=PostgreSQL
                     statement = """
-                    INSERT INTO dokumentkrav_filer_v1(faktum_id, soknad_uuid, filnavn, storrelse, urn, tidspunkt)
-                    VALUES (:faktum_id, :soknad_uuid, :filnavn, :storrelse, :urn, :tidspunkt)
+                    INSERT INTO dokumentkrav_filer_v1(faktum_id, soknad_uuid, filnavn, storrelse, urn, tidspunkt, bundlet)
+                    VALUES (:faktum_id, :soknad_uuid, :filnavn, :storrelse, :urn, :tidspunkt,:bundlet)
                     ON CONFLICT (faktum_id, soknad_uuid, urn) DO UPDATE SET filnavn = :filnavn, 
                                                                             storrelse = :storrelse, 
-                                                                            tidspunkt = :tidspunkt
+                                                                            tidspunkt = :tidspunkt,
+                                                                            bundlet = :bundlet
                     """.trimIndent(),
                     mapOf(
                         "faktum_id" to krav.id,
@@ -386,7 +387,8 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                         "filnavn" to fil.filnavn,
                         "storrelse" to fil.storrelse,
                         "urn" to fil.urn.toString(),
-                        "tidspunkt" to fil.tidspunkt
+                        "tidspunkt" to fil.tidspunkt,
+                        "bundlet" to fil.bundlet,
                     )
                 )
             }
@@ -578,7 +580,7 @@ private fun Session.hentFiler(
         queryOf(
             //language=PostgreSQL
             statement = """
-                  SELECT faktum_id, soknad_uuid, filnavn, storrelse, urn, tidspunkt 
+                  SELECT faktum_id, soknad_uuid, filnavn, storrelse, urn, tidspunkt, bundlet
                   FROM dokumentkrav_filer_v1 
                   WHERE soknad_uuid = :soknad_uuid
                   AND faktum_id = :faktum_id 
@@ -592,7 +594,8 @@ private fun Session.hentFiler(
                 filnavn = row.string("filnavn"),
                 urn = URN.rfc8141().parse(row.string("urn")),
                 storrelse = row.long("storrelse"),
-                tidspunkt = row.norskZonedDateTime("tidspunkt")
+                tidspunkt = row.norskZonedDateTime("tidspunkt"),
+                bundlet = row.boolean("bundlet")
             )
         }.asList
     ).toSet()
