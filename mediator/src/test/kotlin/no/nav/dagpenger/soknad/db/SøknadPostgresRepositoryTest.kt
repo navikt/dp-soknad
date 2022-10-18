@@ -22,6 +22,7 @@ import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.faktumJson
+import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
@@ -241,7 +242,7 @@ internal class SøknadPostgresRepositoryTest {
                         storrelse = 1000,
                         tidspunkt = now,
                         bundlet = false,
-                        ),
+                    ),
                     Krav.Fil(
                         filnavn = "1-2.jpg",
                         urn = URN.rfc8141().parse("urn:nav:vedlegg:1-2"),
@@ -517,6 +518,23 @@ internal class SøknadPostgresRepositoryTest {
                 it.aktiveDokumentKrav().forEach { krav ->
                     assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
                     assertNull(krav.svar.begrunnelse)
+                }
+            }
+
+            søknadMediator.behandle(
+                DokumentKravSammenstilling(
+                    søknadID = søknadId,
+                    ident = ident,
+                    kravId = "1",
+                    urn = URN.rfc8141().parse("urn:vedlegg:bundle")
+                )
+            )
+
+            hentDokumentKrav(søknadMediator.hent(søknadId)!!).let { dokumentkrav ->
+                val filer = dokumentkrav.aktiveDokumentKrav().first().svar.filer
+                assertEquals(2, filer.size)
+                filer.forEach { fil ->
+                    assertTrue(fil.bundlet)
                 }
             }
 
