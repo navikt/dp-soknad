@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
+import no.nav.dagpenger.soknad.Metrics.søknadDataRetries
 
 private val logger = KotlinLogging.logger {}
 
@@ -19,6 +20,7 @@ suspend fun <T> retryIO(
             return block()
         } catch (e: Exception) {
             logger.warn { "Forsøk: ${++antallForsøk}/$times på henting av neste seksjon." }
+            søknadDataRetries.inc()
         }
         delay(currentDelay)
         currentDelay = (currentDelay * factor).toLong().coerceAtMost(maxDelay)
