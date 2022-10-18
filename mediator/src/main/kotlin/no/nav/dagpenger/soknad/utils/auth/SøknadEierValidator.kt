@@ -2,8 +2,7 @@ package no.nav.dagpenger.soknad.utils.auth
 
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
-import io.micrometer.core.instrument.Metrics
-import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics
+import io.prometheus.client.cache.caffeine.CacheMetricsCollector
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.IkkeTilgangExeption
 import no.nav.dagpenger.soknad.SøknadMediator
@@ -18,7 +17,9 @@ internal class SøknadEierValidator(private val mediator: SøknadMediator) {
             .recordStats()
             .build<UUID, String>()
             .also {
-                CaffeineCacheMetrics.monitor(Metrics.globalRegistry, it, "SoknadEier")
+                CacheMetricsCollector().register<CacheMetricsCollector>().also { collector ->
+                    collector.addCache("SoknadEier", it)
+                }
             }
     }
 

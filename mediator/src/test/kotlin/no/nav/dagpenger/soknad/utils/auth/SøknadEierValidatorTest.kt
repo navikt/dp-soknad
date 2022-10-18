@@ -3,8 +3,10 @@ package no.nav.dagpenger.soknad.utils.auth
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import io.prometheus.client.CollectorRegistry
 import no.nav.dagpenger.soknad.IkkeTilgangExeption
 import no.nav.dagpenger.soknad.SøknadMediator
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -62,5 +64,19 @@ internal class SøknadEierValidatorTest {
             }
         }
         verify(exactly = 5) { søknadMediatorMock.hentEier(ukjentSøknadId) }
+    }
+
+    @Test
+    fun `har cache metrics`() {
+        val søknadEierValidator = SøknadEierValidator(søknadMediatorMock)
+        repeat(50) {
+            søknadEierValidator.valider(søknadId1, eier1)
+        }
+
+        CollectorRegistry.defaultRegistry.filteredMetricFamilySamples(emptySet()).asSequence().filter {
+            it.name.contains("caffeine")
+        }.toList().let {
+            assertTrue(it.isNotEmpty())
+        }
     }
 }
