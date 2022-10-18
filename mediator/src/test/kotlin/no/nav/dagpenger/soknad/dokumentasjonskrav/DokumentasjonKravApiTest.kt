@@ -185,6 +185,7 @@ internal class DokumentasjonKravApiTest {
                             fil.tidspunkt.toOffsetDateTime(),
                             ZonedDateTime.parse(this["tidspunkt"].asText()).toOffsetDateTime()
                         )
+                        assertEquals(fil.bundlet, this["bundlet"].asBoolean())
                     }
                     assertNotNull(this["gyldigeValg"])
                     assertNull(this["begrunnelse"])

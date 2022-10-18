@@ -127,7 +127,7 @@ internal data class ApiFil(
     val filnavn: String,
     val urn: String,
     val storrelse: Long,
-    val tidspunkt: ZonedDateTime
+    val tidspunkt: ZonedDateTime,
 ) {
     private val _urn: URN
 
@@ -198,7 +198,8 @@ private class ApiDokumentkravResponse(
                         filsti = fil.urn.namespaceSpecificString().toString(),
                         urn = fil.urn.toString(),
                         storrelse = fil.storrelse,
-                        tidspunkt = fil.tidspunkt
+                        tidspunkt = fil.tidspunkt,
+                        bundlet = fil.bundlet
                     )
                 },
                 bundle = it.svar.bundle?.toString(),
@@ -227,7 +228,8 @@ data class ApiDokumentKrav(
         val filsti: String,
         val urn: String,
         val storrelse: Long,
-        val tidspunkt: ZonedDateTime
+        val tidspunkt: ZonedDateTime,
+        val bundlet: Boolean
     )
 }
 
