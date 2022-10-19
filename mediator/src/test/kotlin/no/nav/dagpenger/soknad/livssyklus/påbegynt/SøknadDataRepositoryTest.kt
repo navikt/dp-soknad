@@ -21,7 +21,7 @@ class SøknadDataRepositoryTest {
     @Test
     fun `Lagre søknad og hente`() {
         withMigratedDb {
-            val søknadCache = SøknadDataPostgresRepository(dataSource,)
+            val søknadCache = SøknadDataPostgresRepository(dataSource)
             val søknadUuid = UUID.randomUUID()
             lagrePersonMedSøknad(søknadUuid)
             val søknad = PersistentSøkerOppgave(søknad(søknadUuid))
@@ -45,7 +45,7 @@ class SøknadDataRepositoryTest {
         val søknadUuid = UUID.randomUUID()
         withMigratedDb {
             lagrePersonMedSøknad(søknadUuid)
-            val søknadCache = SøknadDataPostgresRepository(dataSource,)
+            val søknadCache = SøknadDataPostgresRepository(dataSource)
             søknadCache.lagre(PersistentSøkerOppgave(søknad(søknadUuid)))
             søknadCache.lagre(
                 PersistentSøkerOppgave(
@@ -78,7 +78,7 @@ class SøknadDataRepositoryTest {
     @Test
     fun `Henter en søknad som ikke finnes`() {
         withMigratedDb {
-            val søknadCache = SøknadDataPostgresRepository(dataSource,)
+            val søknadCache = SøknadDataPostgresRepository(dataSource)
             assertThrows<NotFoundException> { søknadCache.hentSøkerOppgave(UUID.randomUUID()) }
         }
     }
@@ -86,7 +86,7 @@ class SøknadDataRepositoryTest {
     @Test
     fun `Kan slette cache`() {
         withMigratedDb {
-            val søknadCache = SøknadDataPostgresRepository(dataSource,)
+            val søknadCache = SøknadDataPostgresRepository(dataSource)
             val søknadUuid1 = UUID.randomUUID()
             val søknadUuid2 = UUID.randomUUID()
             val eier1 = "12345678901"

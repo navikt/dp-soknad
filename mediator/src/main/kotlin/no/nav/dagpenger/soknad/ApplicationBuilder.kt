@@ -56,7 +56,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
 
     private val søknadMediator = SøknadMediator(
         rapidsConnection = rapidsConnection,
-        søknadDataRepository = SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource,),
+        søknadDataRepository = SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource),
         søknadMalRepository = søknadMalRepository,
         ferdigstiltSøknadRepository = ferdigstiltRepository,
         søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource),

@@ -92,7 +92,7 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
         SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).run {
             lagre(Søknad(søknadId, Språk(språkVerdi), ident))
         }
-        val søknadCachePostgresRepository = SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource,)
+        val søknadCachePostgresRepository = SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource)
         søknadCachePostgresRepository.lagre(TestSøkerOppgave(søknadId, ident, fakta))
         return søknadId
     }
