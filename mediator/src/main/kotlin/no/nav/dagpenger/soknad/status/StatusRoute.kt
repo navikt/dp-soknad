@@ -76,7 +76,7 @@ private suspend fun søknadStatus(
     return SøknadStatus.valueOf(behandlingsstatus)
 }
 
-private class SøknadStatusVisitor(søknad: Søknad) : SøknadVisitor {
+class SøknadStatusVisitor(søknad: Søknad) : SøknadVisitor {
 
     private lateinit var søknadOpprettet: LocalDateTime
     private lateinit var søknadTilstand: Søknad.Tilstand.Type

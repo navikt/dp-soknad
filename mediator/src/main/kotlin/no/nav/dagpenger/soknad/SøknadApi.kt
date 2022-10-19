@@ -13,6 +13,7 @@ import no.nav.dagpenger.soknad.livssyklus.påbegynt.påbegyntSøknadRoute
 import no.nav.dagpenger.soknad.livssyklus.slett.slettSøknadRoute
 import no.nav.dagpenger.soknad.livssyklus.start.startSøknadRoute
 import no.nav.dagpenger.soknad.mal.nyesteMalRoute
+import no.nav.dagpenger.soknad.mineSoknader.mineSoknaderRoute
 import no.nav.dagpenger.soknad.status.BehandlingsstatusClient
 import no.nav.dagpenger.soknad.status.statusRoute
 import java.util.UUID
@@ -34,6 +35,7 @@ internal fun Route.søknadApi(søknadMediator: SøknadMediator, behandlingsstatu
         slettSøknadRoute(søknadMediator)
         statusRoute(søknadMediator, behandlingsstatusClient)
         dokumentasjonkravRoute(søknadMediator)
+        mineSoknaderRoute(søknadMediator)
     }
 }
 
