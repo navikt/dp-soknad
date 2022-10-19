@@ -17,7 +17,9 @@ suspend fun <T> retryIO(
     var antallForsøk = 1
     repeat(times) {
         try {
-            return block()
+            return block().also {
+                logger.info { "Brukte $antallForsøk forsøk på henting av neste seksjon." }
+            }
         } catch (e: Exception) {
             logger.warn { "Forsøk: $antallForsøk/$times på henting av neste seksjon." }
         } finally {
@@ -27,6 +29,7 @@ suspend fun <T> retryIO(
         delay(currentDelay)
         currentDelay = (currentDelay * factor).toLong().coerceAtMost(maxDelay)
     }
-    logger.info { "Brukte $antallForsøk forsøk på henting av neste seksjon." }
-    return block() // last attempt
+    return block().also { // last attempt
+        logger.info { "Brukte $antallForsøk forsøk på henting av neste seksjon." }
+    }
 }
