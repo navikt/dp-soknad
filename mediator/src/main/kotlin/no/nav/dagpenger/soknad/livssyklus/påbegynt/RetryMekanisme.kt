@@ -27,5 +27,6 @@ suspend fun <T> retryIO(
         delay(currentDelay)
         currentDelay = (currentDelay * factor).toLong().coerceAtMost(maxDelay)
     }
+    logger.info { "Brukte $antallForsøk forsøk på henting av neste seksjon." }
     return block() // last attempt
 }
