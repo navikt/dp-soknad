@@ -19,7 +19,6 @@ internal fun Route.nesteSøkeroppgaveRoute(søknadMediator: SøknadMediator) {
         val ident = call.ident()
         validator.valider(id, ident)
         val sistLagret: Int = call.parameters["sistLagret"]?.toInt() ?: 0
-        søknadDataRequests.inc()
         val søkerOppgave: SøkerOppgave = hentNesteSøkerOppgave(søknadMediator, id, sistLagret)
         call.respond(HttpStatusCode.OK, søkerOppgave.asFrontendformat())
     }

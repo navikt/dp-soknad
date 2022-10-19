@@ -2,7 +2,9 @@ package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
-import no.nav.dagpenger.soknad.Metrics.søknadDataRetries
+import no.nav.dagpenger.soknad.Metrics.søknadDataFeilet
+import no.nav.dagpenger.soknad.Metrics.søknadDataRequests
+import no.nav.dagpenger.soknad.Metrics.søknadDataResultat
 
 private val logger = KotlinLogging.logger {}
 
@@ -15,15 +17,16 @@ suspend fun <T> retryIO(
 ): T {
     var currentDelay = initialDelay
     var antallForsøk = 1
+    søknadDataRequests.inc()
     repeat(times) {
         try {
             return block().also {
                 logger.info { "Brukte $antallForsøk forsøk på henting av neste seksjon." }
+                søknadDataResultat.labels(antallForsøk.toString()).inc()
             }
         } catch (e: Exception) {
             logger.warn { "Forsøk: $antallForsøk/$times feilet på henting av neste seksjon. Prøver igjen om $currentDelay ms." }
-        } finally {
-            søknadDataRetries.labels(antallForsøk.toString()).inc()
+            søknadDataFeilet.labels(antallForsøk.toString()).inc()
             antallForsøk++
         }
         delay(currentDelay)
