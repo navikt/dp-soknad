@@ -43,7 +43,7 @@ internal class VaktmesterRepositoryTest {
     @Test
     fun `Søknadsdata for påbegynte søknader uendret de siste 7 dagene`() = withMigratedDb {
         val søknadRepository = SøknadPostgresRepository(dataSource)
-        val søknadCacheRepository = SøknadDataPostgresRepository(dataSource)
+        val søknadCacheRepository = SøknadDataPostgresRepository(dataSource,)
         val søknadMediator = søknadMediator(
             søknadCacheRepository = søknadCacheRepository,
             søknadRepository = søknadRepository
@@ -61,7 +61,7 @@ internal class VaktmesterRepositoryTest {
     @Test
     fun `Sletter all søknadsdata for påbegynte søknader uendret de siste 7 dagene`() = withMigratedDb {
         val søknadRepository = SøknadPostgresRepository(dataSource)
-        val søknadCacheRepository = SøknadDataPostgresRepository(dataSource)
+        val søknadCacheRepository = SøknadDataPostgresRepository(dataSource,)
         val søknadMediator = søknadMediator(
             søknadCacheRepository = søknadCacheRepository,
             søknadRepository = søknadRepository

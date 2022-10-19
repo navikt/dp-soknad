@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
 import io.ktor.server.plugins.NotFoundException
+import kotlinx.coroutines.runBlocking
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
@@ -16,9 +17,20 @@ interface SøknadDataRepository {
     fun slett(søknadUUID: UUID): Boolean
     fun hentSøkerOppgave(søknadUUID: UUID, nyereEnn: Int = 0): SøkerOppgave
     fun besvart(søknadUUID: UUID): Int
+
+    fun observe(observer: SøknadDataObserver)
+
+    interface SøknadDataObserver {
+        suspend fun nyData(søkerOppgave: SøkerOppgave)
+    }
 }
 
-class SøknadDataPostgresRepository(private val dataSource: DataSource) : SøknadDataRepository {
+class SøknadDataPostgresRepository private constructor(
+    private val dataSource: DataSource,
+    private val observers: MutableList<SøknadDataRepository.SøknadDataObserver>
+) : SøknadDataRepository {
+    constructor(dataSource: DataSource) : this(dataSource, mutableListOf())
+
     override fun lagre(søkerOppgave: SøkerOppgave) {
         using(sessionOf(dataSource)) { session ->
             session.run(
@@ -39,7 +51,11 @@ class SøknadDataPostgresRepository(private val dataSource: DataSource) : Søkna
                         }
                     )
                 ).asUpdate
-            )
+            ).also {
+                runBlocking {
+                    observers.forEach { it.nyData(søkerOppgave) }
+                }
+            }
         }
     }
 
@@ -53,6 +69,10 @@ class SøknadDataPostgresRepository(private val dataSource: DataSource) : Søkna
             }.asSingle
         )
     } ?: 1
+
+    override fun observe(observer: SøknadDataRepository.SøknadDataObserver) {
+        observers.add(observer)
+    }
 
     override fun hentSøkerOppgave(søknadUUID: UUID, nyereEnn: Int): SøkerOppgave =
         using(sessionOf(dataSource)) { session ->

@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
+import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -14,6 +15,7 @@ import java.util.UUID
 
 internal fun Route.nesteSøkeroppgaveRoute(søknadMediator: SøknadMediator) {
     val validator = SøknadEierValidator(søknadMediator)
+
     get("/{søknad_uuid}/neste") {
         val id = søknadUuid()
         val ident = call.ident()
@@ -23,8 +25,19 @@ internal fun Route.nesteSøkeroppgaveRoute(søknadMediator: SøknadMediator) {
             "versjon" to sistLagret.toString()
         ) {
             validator.valider(id, ident)
-            val søkerOppgave: SøkerOppgave = hentNesteSøkerOppgave(søknadMediator, id, sistLagret)
-            call.respond(HttpStatusCode.OK, søkerOppgave.asFrontendformat())
+            try {
+                val søkerOppgave: SøkerOppgave = søknadMediator.hentSøkerOppgave(id, sistLagret)
+                call.respond(HttpStatusCode.OK, søkerOppgave.asFrontendformat())
+            } catch (e: NotFoundException) {
+                søknadMediator.observe(object : SøknadDataRepository.SøknadDataObserver {
+                    override suspend fun nyData(søkerOppgave: SøkerOppgave) {
+                        if (søkerOppgave.søknadUUID() != id) return
+                        call.respond(HttpStatusCode.OK, søkerOppgave.asFrontendformat())
+                    }
+                })
+            }
+            /*val søkerOppgave: SøkerOppgave = hentNesteSøkerOppgave(søknadMediator, id, sistLagret)
+            call.respond(HttpStatusCode.OK, søkerOppgave.asFrontendformat())*/
         }
     }
 }
