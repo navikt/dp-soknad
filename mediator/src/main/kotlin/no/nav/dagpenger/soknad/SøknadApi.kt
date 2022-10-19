@@ -13,12 +13,18 @@ import no.nav.dagpenger.soknad.livssyklus.påbegynt.påbegyntSøknadRoute
 import no.nav.dagpenger.soknad.livssyklus.slett.slettSøknadRoute
 import no.nav.dagpenger.soknad.livssyklus.start.startSøknadRoute
 import no.nav.dagpenger.soknad.mal.nyesteMalRoute
+import no.nav.dagpenger.soknad.status.BehandlingsstatusClient
+import no.nav.dagpenger.soknad.status.BehandlingsstatusHttpClient
 import no.nav.dagpenger.soknad.status.statusRoute
 import java.util.UUID
 
-internal fun søknadApiRouteBuilder(søknadMediator: SøknadMediator): Route.() -> Unit = { søknadApi(søknadMediator) }
+internal fun søknadApiRouteBuilder(
+    søknadMediator: SøknadMediator,
+    behandlingsstatusClient: BehandlingsstatusClient = BehandlingsstatusHttpClient()
+): Route.() -> Unit = { søknadApi(søknadMediator, behandlingsstatusClient) }
 
-internal fun Route.søknadApi(søknadMediator: SøknadMediator) {
+internal fun Route.søknadApi(søknadMediator: SøknadMediator, behandlingsstatusClient: BehandlingsstatusClient) {
+
     route("${Configuration.basePath}/soknad") {
         startSøknadRoute(søknadMediator)
         påbegyntSøknadRoute(søknadMediator)
@@ -27,7 +33,7 @@ internal fun Route.søknadApi(søknadMediator: SøknadMediator) {
         besvarFaktumRoute(søknadMediator)
         nyesteMalRoute(søknadMediator)
         slettSøknadRoute(søknadMediator)
-        statusRoute(søknadMediator)
+        statusRoute(søknadMediator, behandlingsstatusClient)
         dokumentasjonkravRoute(søknadMediator)
     }
 }

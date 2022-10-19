@@ -4,6 +4,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.Aktivitetslogg
@@ -83,6 +84,9 @@ class StatusApiTest {
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
                     every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet, innsending)
+                },
+                behandlingsstatusClient = mockk<BehandlingsstatusClient>().also {
+                    coEvery { it.hentBehandlingsstatus(any(), any()) } returns BehandlingsstatusDto(behandlingsstatus = "UnderBehandling")
                 }
             )
         ) {

@@ -17,6 +17,7 @@ import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.ferdigStiltSøknadRoute
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
 import no.nav.dagpenger.soknad.personalia.personaliaRouteBuilder
+import no.nav.dagpenger.soknad.status.BehandlingsstatusClient
 import no.nav.security.mock.oauth2.MockOAuth2Server
 
 object TestApplication {
@@ -57,12 +58,13 @@ object TestApplication {
     internal fun mockedSøknadApi(
         personOppslag: PersonOppslag = mockk(relaxed = true),
         kontonummerOppslag: KontonummerOppslag = mockk(relaxed = true),
-        søknadMediator: SøknadMediator = mockk(relaxed = true)
+        søknadMediator: SøknadMediator = mockk(relaxed = true),
+        behandlingsstatusClient: BehandlingsstatusClient = mockk(relaxed = true)
     ): Application.() -> Unit {
 
         return fun Application.() {
             api(
-                søknadApiRouteBuilder(søknadMediator),
+                søknadApiRouteBuilder(søknadMediator, behandlingsstatusClient),
                 personaliaRouteBuilder(
                     personOppslag, kontonummerOppslag
                 ),

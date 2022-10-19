@@ -19,7 +19,6 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.status.SøknadStatus.Paabegynt
-import no.nav.dagpenger.soknad.status.SøknadStatus.UnderBehandling
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
@@ -30,7 +29,7 @@ import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
 
-internal fun Route.statusRoute(søknadMediator: SøknadMediator) {
+internal fun Route.statusRoute(søknadMediator: SøknadMediator, behandlingsstatusClient: BehandlingsstatusClient) {
     val validator = SøknadEierValidator(søknadMediator)
 
     get("/{søknad_uuid}/status") {
@@ -46,14 +45,17 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator) {
             when (statusVisitor.søknadTilstand()) {
                 UnderOpprettelse -> call.respond(InternalServerError)
                 Påbegynt -> call.respond(status = OK, SøknadStatusDTO(Paabegynt, statusVisitor.søknadOpprettet()))
-                Innsendt -> call.respond(
-                    status = OK,
-                    SøknadStatusDTO(
-                        status = UnderBehandling,
-                        opprettet = statusVisitor.søknadOpprettet(),
-                        innsendt = statusVisitor.førsteInnsendingTidspunkt()
+                Innsendt -> {
+                    val førsteInnsendingTidspunkt = statusVisitor.førsteInnsendingTidspunkt()
+                    call.respond(
+                        status = OK,
+                        SøknadStatusDTO(
+                            status = søknadStatus(behandlingsstatusClient, førsteInnsendingTidspunkt, token),
+                            opprettet = statusVisitor.søknadOpprettet(),
+                            innsendt = førsteInnsendingTidspunkt
+                        )
                     )
-                )
+                }
                 // TODO: Søknad med tilstand slettet kaster IllegalArgumentException ved rehydrering, returnerer derfor 500
                 Slettet -> call.respond(NotFound)
             }
@@ -65,7 +67,7 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator) {
 }
 
 private suspend fun søknadStatus(
-    behandlingsstatusClient: BehandlingsstatusHttpClient,
+    behandlingsstatusClient: BehandlingsstatusClient,
     førsteInnsendingTidspunkt: LocalDateTime,
     token: String
 ) = SøknadStatus.valueOf(

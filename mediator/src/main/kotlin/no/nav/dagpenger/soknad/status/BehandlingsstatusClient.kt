@@ -43,7 +43,6 @@ internal class BehandlingsstatusHttpClient(
 
     override suspend fun hentBehandlingsstatus(fom: LocalDateTime, subjectToken: String): BehandlingsstatusDto {
         val url = "$baseUrl/behandlingsstatus?fom=$fom"
-
         return try {
             httpClient.get(url) {
                 addBearerToken(subjectToken)
