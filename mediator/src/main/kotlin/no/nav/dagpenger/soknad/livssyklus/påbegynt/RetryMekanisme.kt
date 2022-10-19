@@ -14,14 +14,15 @@ suspend fun <T> retryIO(
     block: suspend () -> T
 ): T {
     var currentDelay = initialDelay
-    var antallForsøk = 0
+    var antallForsøk = 1
     repeat(times - 1) {
         try {
             return block()
         } catch (e: Exception) {
-            logger.warn { "Forsøk: ${++antallForsøk}/$times på henting av neste seksjon." }
+            logger.warn { "Forsøk: $antallForsøk/$times på henting av neste seksjon." }
         } finally {
             søknadDataRetries.labels(antallForsøk.toString()).inc()
+            antallForsøk++
         }
         delay(currentDelay)
         currentDelay = (currentDelay * factor).toLong().coerceAtMost(maxDelay)
