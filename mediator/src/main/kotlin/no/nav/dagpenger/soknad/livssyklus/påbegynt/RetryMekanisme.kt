@@ -15,7 +15,7 @@ suspend fun <T> retryIO(
 ): T {
     var currentDelay = initialDelay
     var antallForsøk = 1
-    repeat(times - 1) {
+    repeat(times) {
         try {
             return block()
         } catch (e: Exception) {
