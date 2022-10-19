@@ -23,9 +23,9 @@ suspend fun <T> retryIO(
     repeat(times) {
         try {
             return block().also {
-                logger.info { "Brukte $antallForsøk forsøk på henting av neste seksjon." }
+                val faktiskTid: Double = tidBrukt.observeDuration()
+                logger.info { "Brukte $antallForsøk forsøk og $faktiskTid sekund på henting av neste seksjon." }
                 søknadDataResultat.labels(antallForsøk.toString()).inc()
-                tidBrukt.observeDuration()
             }
         } catch (e: Exception) {
             logger.warn { "Forsøk: $antallForsøk/$times feilet på henting av neste seksjon. Prøver igjen om $currentDelay ms." }
@@ -35,8 +35,8 @@ suspend fun <T> retryIO(
         currentDelay = (currentDelay * factor).toLong().coerceAtMost(maxDelay)
     }
     return block().also { // last attempt
-        logger.info { "Brukte $antallForsøk forsøk på henting av neste seksjon." }
+        val faktiskTid: Double = tidBrukt.observeDuration()
+        logger.info { "Brukte $antallForsøk forsøk og $faktiskTid sekund på henting av neste seksjon." }
         søknadDataResultat.labels(antallForsøk.toString()).inc()
-        tidBrukt.observeDuration()
     }
 }
