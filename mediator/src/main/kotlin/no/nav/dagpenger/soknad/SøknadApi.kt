@@ -14,13 +14,12 @@ import no.nav.dagpenger.soknad.livssyklus.slett.slettSøknadRoute
 import no.nav.dagpenger.soknad.livssyklus.start.startSøknadRoute
 import no.nav.dagpenger.soknad.mal.nyesteMalRoute
 import no.nav.dagpenger.soknad.status.BehandlingsstatusClient
-import no.nav.dagpenger.soknad.status.BehandlingsstatusHttpClient
 import no.nav.dagpenger.soknad.status.statusRoute
 import java.util.UUID
 
 internal fun søknadApiRouteBuilder(
     søknadMediator: SøknadMediator,
-    behandlingsstatusClient: BehandlingsstatusClient = BehandlingsstatusHttpClient()
+    behandlingsstatusClient: BehandlingsstatusClient
 ): Route.() -> Unit = { søknadApi(søknadMediator, behandlingsstatusClient) }
 
 internal fun Route.søknadApi(søknadMediator: SøknadMediator, behandlingsstatusClient: BehandlingsstatusClient) {

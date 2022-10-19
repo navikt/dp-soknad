@@ -60,7 +60,7 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator, behandlingsstat
                 Slettet -> call.respond(NotFound)
             }
         } catch (e: IllegalArgumentException) {
-            logger.info { "Fant ikke søknad med $søknadUuid" }
+            logger.info { "Fant ikke søknad med $søknadUuid. Error: ${e.message}" }
             call.respond(NotFound)
         }
     }
@@ -70,12 +70,11 @@ private suspend fun søknadStatus(
     behandlingsstatusClient: BehandlingsstatusClient,
     førsteInnsendingTidspunkt: LocalDateTime,
     token: String
-) = SøknadStatus.valueOf(
-    behandlingsstatusClient.hentBehandlingsstatus(
-        fom = førsteInnsendingTidspunkt,
-        token
-    ).behandlingsstatus
-)
+): SøknadStatus {
+    val behandlingsstatus =
+        behandlingsstatusClient.hentBehandlingsstatus(fom = førsteInnsendingTidspunkt, token).behandlingsstatus
+    return SøknadStatus.valueOf(behandlingsstatus)
+}
 
 private class SøknadStatusVisitor(søknad: Søknad) : SøknadVisitor {
 
