@@ -22,6 +22,8 @@ abstract class Innsending protected constructor(
 ) : Aktivitetskontekst {
     protected open val innsendinger get() = (listOf(this))
 
+    protected val observers = mutableListOf<InnsendingObserver>()
+
     data class Dokument(
         val uuid: UUID = UUID.randomUUID(),
         val brevkode: String,
@@ -88,6 +90,9 @@ abstract class Innsending protected constructor(
     fun håndter(hendelse: JournalførtHendelse) {
         innsendinger.forEach { it._håndter(hendelse) }
     }
+    open fun addObserver(innsendingObserver: InnsendingObserver) {
+        observers.add(innsendingObserver)
+    }
 
     private fun _håndter(hendelse: SkjemakodeMottattHendelse) {
         if (hendelse.innsendingId != this.innsendingId) return
@@ -117,9 +122,24 @@ abstract class Innsending protected constructor(
         if (nyTilstand == tilstand) {
             return // Vi er allerede i tilstanden
         }
+        val forrigeTilstand = tilstand
         tilstand = nyTilstand
         søknadHendelse.kontekst(tilstand)
         tilstand.entering(søknadHendelse, this)
+        varsleOmEndretTilstand(forrigeTilstand)
+    }
+
+    private fun varsleOmEndretTilstand(forrigeTilstand: Tilstand) {
+        observers.forEach {
+            it.innsendingTilstandEndret(
+                InnsendingObserver.InnsendingEndretTilstandEvent(
+                    innsendingId = innsendingId,
+                    innsendingType = type,
+                    gjeldendeTilstand = tilstand.tilstandType,
+                    forrigeTilstand = forrigeTilstand.tilstandType
+                )
+            )
+        }
     }
 
     protected interface Tilstand : Aktivitetskontekst {

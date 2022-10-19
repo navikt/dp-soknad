@@ -32,10 +32,14 @@ class Søknad private constructor(
     private val dokumentkrav: Dokumentkrav,
     private var sistEndretAvBruker: ZonedDateTime?,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
-) : Aktivitetskontekst {
+) : Aktivitetskontekst, InnsendingObserver {
     private val observers = mutableListOf<SøknadObserver>()
 
     fun søknadUUID() = søknadId
+
+    init {
+        innsending?.addObserver(this)
+    }
 
     constructor(søknadId: UUID, språk: Språk, ident: String) : this(
         søknadId = søknadId,
@@ -296,7 +300,9 @@ class Søknad private constructor(
                 søknadInnsendtHendelse.innsendtidspunkt(),
                 // TODO: Klassifisering til NAV skjemakode
                 dokumentkrav = søknad.dokumentkrav
-            )
+            ).also {
+                it.addObserver(søknad)
+            }
             søknadInnsendtHendelse.info("Innsending ${innsending.toSpesifikkKontekst()} opprettet med ${krav.size} dokumentkrav, ${besvarte.size} besvarte, ${innsendte.size} innsendte")
             søknad.innsending = innsending.also {
                 it.håndter(søknadInnsendtHendelse)
@@ -433,6 +439,18 @@ class Søknad private constructor(
         tilstand.entering(søknadHendelse, this)
 
         varsleOmEndretTilstand(forrigeTilstand)
+    }
+
+    override fun innsendingTilstandEndret(event: InnsendingObserver.InnsendingEndretTilstandEvent) {
+        observers.forEach {
+            it.innsendingTilstandEndret(
+                SøknadObserver.SøknadInnsendingEndretTilstandEvent(
+                    søknadId = this.søknadId,
+                    innsending = event
+                )
+
+            )
+        }
     }
 
     private fun varsleOmEndretTilstand(forrigeTilstand: Tilstand) {

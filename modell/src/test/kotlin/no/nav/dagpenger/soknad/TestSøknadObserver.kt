@@ -9,8 +9,16 @@ class TestSøknadObserver : SøknadObserver {
         it.add(Søknad.Tilstand.Type.UnderOpprettelse)
     }
 
+    internal val innsendTilstander = mutableListOf<Innsending.TilstandType>().also {
+        it.add(Innsending.TilstandType.Opprettet)
+    }
+
     override fun søknadTilstandEndret(event: SøknadEndretTilstandEvent) {
         tilstander.add(event.gjeldendeTilstand)
+    }
+
+    override fun innsendingTilstandEndret(event: SøknadObserver.SøknadInnsendingEndretTilstandEvent) {
+        innsendTilstander.add(event.innsending.gjeldendeTilstand)
     }
 
     override fun søknadSlettet(event: SøknadObserver.SøknadSlettetEvent) {

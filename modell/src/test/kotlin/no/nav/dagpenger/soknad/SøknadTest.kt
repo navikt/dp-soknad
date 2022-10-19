@@ -10,6 +10,7 @@ import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerBrevkode
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerJournalføring
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMidlertidligJournalføring
 import no.nav.dagpenger.soknad.Innsending.TilstandType.Journalført
+import no.nav.dagpenger.soknad.Innsending.TilstandType.Opprettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
@@ -213,6 +214,15 @@ internal class SøknadTest {
             Innsendt
         )
 
+        assertInnsendingTilstander(
+            Opprettet,
+            AvventerBrevkode,
+            AvventerArkiverbarSøknad,
+            AvventerMidlertidligJournalføring,
+            AvventerJournalføring,
+            Journalført
+        )
+
         assertPuml("Søker oppretter søknad og ferdigstiller den")
         // Ettersending
         håndterLeggtilFil("2", "urn:sid:2")
@@ -414,6 +424,10 @@ internal class SøknadTest {
 
     private fun assertTilstander(vararg tilstander: Søknad.Tilstand.Type) {
         assertEquals(tilstander.asList(), testSøknadObserver.tilstander)
+    }
+
+    private fun assertInnsendingTilstander(vararg tilstander: Innsending.TilstandType) {
+        assertEquals(tilstander.asList(), testSøknadObserver.innsendTilstander)
     }
 
     private fun assertPuml(tittel: String) {

@@ -76,6 +76,11 @@ class NyInnsending private constructor(
         }
     }
 
+    override fun addObserver(innsendingObserver: InnsendingObserver) {
+        super.addObserver(innsendingObserver)
+        ettersendinger.forEach { it.addObserver(innsendingObserver) }
+    }
+
     fun ettersend(hendelse: SøknadInnsendtHendelse, dokumentkrav: Dokumentkrav) {
         Ettersending(
             InnsendingType.ETTERSENDING_TIL_DIALOG,
@@ -84,6 +89,7 @@ class NyInnsending private constructor(
             brevkode
         ).also { ettersending ->
             ettersendinger.add(ettersending)
+            observers.forEach { ettersending.addObserver(it) }
             ettersending.håndter(hendelse)
         }
     }
