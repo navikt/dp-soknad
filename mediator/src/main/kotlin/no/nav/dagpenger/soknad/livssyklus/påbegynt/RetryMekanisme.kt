@@ -21,7 +21,7 @@ suspend fun <T> retryIO(
                 logger.info { "Brukte $antallForsøk forsøk på henting av neste seksjon." }
             }
         } catch (e: Exception) {
-            logger.warn { "Forsøk: $antallForsøk/$times på henting av neste seksjon." }
+            logger.warn { "Forsøk: $antallForsøk/$times feilet på henting av neste seksjon. Prøver igjen om $currentDelay ms." }
         } finally {
             søknadDataRetries.labels(antallForsøk.toString()).inc()
             antallForsøk++
