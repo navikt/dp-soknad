@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad.mineSoknader
+package no.nav.dagpenger.soknad.minesoknader
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
