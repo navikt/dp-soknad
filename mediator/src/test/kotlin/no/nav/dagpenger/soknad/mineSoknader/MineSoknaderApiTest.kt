@@ -21,6 +21,7 @@ import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -39,7 +40,6 @@ class MineSoknaderApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
                     every { it.hentSøknader(TestApplication.defaultDummyFodselsnummer) } returns setOf(
                         søknadMed(tilstand = Påbegynt, opprettet),
                         søknadMed(
@@ -54,7 +54,8 @@ class MineSoknaderApiTest {
                 }
             )
         ) {
-            autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
+            val fom = LocalDate.now()
+            autentisert("$endepunkt?fom=$fom", httpMethod = HttpMethod.Get).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
                 val expectedJson =
                     expectedJson(opprettet, innsendtTidspunkt)
@@ -69,12 +70,12 @@ class MineSoknaderApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
                     every { it.hentSøknader(TestApplication.defaultDummyFodselsnummer) } returns emptySet()
                 }
             )
         ) {
-            autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
+            val fom = LocalDate.now()
+            autentisert("$endepunkt?fom=$fom", httpMethod = HttpMethod.Get).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
                 val expectedJson = """{}"""
                 assertEquals(expectedJson, this.bodyAsText())
@@ -90,14 +91,14 @@ class MineSoknaderApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
                     every { it.hentSøknader(TestApplication.defaultDummyFodselsnummer) } returns setOf(
                         søknadMed(tilstand = Påbegynt, opprettet)
                     )
                 }
             )
         ) {
-            autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
+            val fom = LocalDate.now()
+            autentisert("$endepunkt?fom=$fom", httpMethod = HttpMethod.Get).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
                 val expectedJson = """{"paabegynt":{"soknadUuid":"$søknadUuid","opprettet":"$opprettet"}}"""
                 assertEquals(expectedJson, this.bodyAsText())
@@ -113,7 +114,6 @@ class MineSoknaderApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
                     every { it.hentSøknader(TestApplication.defaultDummyFodselsnummer) } returns setOf(
                         søknadMed(
                             tilstand = Innsendt,
@@ -123,7 +123,8 @@ class MineSoknaderApiTest {
                 }
             )
         ) {
-            autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
+            val fom = LocalDate.now()
+            autentisert("$endepunkt?fom=$fom", httpMethod = HttpMethod.Get).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
                 val expectedJson =
                     """{"innsendte":[{"soknadUuid":"$søknadUuid","forstInnsendt":"$innsendtTidspunkt"}]}"""
@@ -132,6 +133,52 @@ class MineSoknaderApiTest {
             }
         }
     }
+
+    @Test
+    fun `tar ikke med søknader som er innsendt før fom queryparam`() {
+        val innsendtTidspunkt = LocalDateTime.MAX
+        val fom = LocalDate.now()
+
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(
+                søknadMediator = mockk<SøknadMediator>().also {
+                    every { it.hentSøknader(TestApplication.defaultDummyFodselsnummer) } returns setOf(
+                        søknadMed(
+                            tilstand = Innsendt,
+                            innsending = innsending(innsendtTidspunkt, journalpostId = "456")
+                        ),
+                        gammelInnsendtSøknad(innsendt = fom.minusDays(2))
+                    )
+                }
+            )
+        ) {
+            autentisert("$endepunkt?fom=$fom", httpMethod = HttpMethod.Get).apply {
+                assertEquals(HttpStatusCode.OK, this.status)
+                val expectedJson =
+                    """{"innsendte":[{"soknadUuid":"$søknadUuid","forstInnsendt":"$innsendtTidspunkt"}]}"""
+                assertEquals(expectedJson, this.bodyAsText())
+                assertEquals("application/json; charset=UTF-8", this.contentType().toString())
+            }
+        }
+    }
+
+    @Test
+    fun `får 400 Bad Request ved manglende eller ugyldig fom queryparam`() {
+
+        TestApplication.withMockAuthServerAndTestApplication(TestApplication.mockedSøknadApi()) {
+            autentisert("$endepunkt", httpMethod = HttpMethod.Get).apply {
+                assertEquals(HttpStatusCode.BadRequest, this.status)
+            }
+            autentisert("$endepunkt?fom=ugyldigFom", httpMethod = HttpMethod.Get).apply {
+                assertEquals(HttpStatusCode.BadRequest, this.status)
+            }
+        }
+    }
+
+    private fun gammelInnsendtSøknad(innsendt: LocalDate) = søknadMed(
+        tilstand = Innsendt,
+        innsending = innsending(innsendt.minusDays(5).atStartOfDay(), journalpostId = "456")
+    )
 
     private fun expectedJson(opprettet: LocalDateTime?, innsendtTidspunkt: LocalDateTime?) =
         //language=JSON
