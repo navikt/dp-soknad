@@ -16,5 +16,4 @@ jobs:
           --org=teamdagpenger \
           --all-sub-projects \
           --configuration-attributes=usage:java-runtime \
-          --project-name=${{ github.repository }} \
           --remote-repo-url=https://github.com/${{ github.repository }}.git
