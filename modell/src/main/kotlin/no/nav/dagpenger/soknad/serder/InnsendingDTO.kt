@@ -44,7 +44,7 @@ data class InnsendingDTO(
 
     enum class TilstandDTO {
         Opprettet,
-        AvventerBrevkode,
+        AvventerMetadata,
         AvventerArkiverbarSøknad,
         AvventerMidlertidligJournalføring,
         AvventerJournalføring,
@@ -53,7 +53,7 @@ data class InnsendingDTO(
         fun rehydrer(): Innsending.TilstandType {
             return when (this) {
                 Opprettet -> Innsending.TilstandType.Opprettet
-                AvventerBrevkode -> Innsending.TilstandType.AvventerMetadata
+                AvventerMetadata -> Innsending.TilstandType.AvventerMetadata
                 AvventerArkiverbarSøknad -> Innsending.TilstandType.AvventerArkiverbarSøknad
                 AvventerMidlertidligJournalføring -> Innsending.TilstandType.AvventerMidlertidligJournalføring
                 AvventerJournalføring -> Innsending.TilstandType.AvventerJournalføring
