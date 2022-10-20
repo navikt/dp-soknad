@@ -9,8 +9,8 @@ import io.ktor.server.routing.get
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
+import no.nav.dagpenger.soknad.SøknadDataVisitor
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.status.SøknadStatusVisitor
 import no.nav.dagpenger.soknad.utils.auth.ident
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -33,16 +33,15 @@ private fun lagMineSøknaderDto(søknader: Set<Søknad>, fom: LocalDate): MineSo
     val innsendteSøknader = mutableListOf<InnsendtSøknadDto>()
 
     søknader.map { søknad ->
-        val visitor = SøknadStatusVisitor(søknad)
+        val søknadData = SøknadDataVisitor(søknad)
         when {
-            visitor.søknadTilstand() == Påbegynt ->
-                påbegyntSøknad =
-                    PåbegyntSøknadDto(søknad.søknadUUID(), visitor.søknadOpprettet())
+            søknadData.søknadTilstand() == Påbegynt ->
+                påbegyntSøknad = PåbegyntSøknadDto(søknad.søknadUUID(), søknadData.søknadOpprettet())
 
-            visitor.søknadTilstand() == Innsendt -> {
-                if (visitor.førsteInnsendingTidspunkt() > fom.atStartOfDay()) {
+            søknadData.søknadTilstand() == Innsendt -> {
+                if (søknadData.førsteInnsendingTidspunkt() > fom.atStartOfDay()) {
                     innsendteSøknader.add(
-                        InnsendtSøknadDto(søknad.søknadUUID(), visitor.førsteInnsendingTidspunkt())
+                        InnsendtSøknadDto(søknad.søknadUUID(), søknadData.førsteInnsendingTidspunkt())
                     )
                 }
             }

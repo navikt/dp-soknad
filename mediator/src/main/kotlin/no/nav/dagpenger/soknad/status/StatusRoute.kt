@@ -12,6 +12,7 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
+import no.nav.dagpenger.soknad.SøknadDataVisitor
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.status.SøknadStatus.Paabegynt
 import no.nav.dagpenger.soknad.søknadUuid
@@ -33,18 +34,18 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator, behandlingsstat
         try {
             validator.valider(søknadUuid, ident)
             val søknad = søknadMediator.hent(søknadUuid)!!
-            val statusVisitor = SøknadStatusVisitor(søknad)
+            val søknadData = SøknadDataVisitor(søknad)
 
-            when (statusVisitor.søknadTilstand()) {
+            when (søknadData.søknadTilstand()) {
                 UnderOpprettelse -> call.respond(InternalServerError)
-                Påbegynt -> call.respond(status = OK, SøknadStatusDTO(Paabegynt, statusVisitor.søknadOpprettet()))
+                Påbegynt -> call.respond(status = OK, SøknadStatusDTO(Paabegynt, søknadData.søknadOpprettet()))
                 Innsendt -> {
-                    val førsteInnsendingTidspunkt = statusVisitor.førsteInnsendingTidspunkt()
+                    val førsteInnsendingTidspunkt = søknadData.førsteInnsendingTidspunkt()
                     call.respond(
                         status = OK,
                         SøknadStatusDTO(
                             status = søknadStatus(behandlingsstatusClient, førsteInnsendingTidspunkt, token),
-                            opprettet = statusVisitor.søknadOpprettet(),
+                            opprettet = søknadData.søknadOpprettet(),
                             innsendt = førsteInnsendingTidspunkt
                         )
                     )
