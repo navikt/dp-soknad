@@ -18,7 +18,7 @@ import java.time.format.DateTimeParseException
 import java.util.UUID
 
 internal fun Route.mineSoknaderRoute(søknadMediator: SøknadMediator) {
-    get("/mineSoknader") {
+    get("/mine-soknader") {
         val fom = queryParamToFom(call.request.queryParameters["fom"])
 
         val søknader = søknadMediator.hentSøknader(ident = call.ident())

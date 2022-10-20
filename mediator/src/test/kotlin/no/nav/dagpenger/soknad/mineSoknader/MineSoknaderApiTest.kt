@@ -29,7 +29,7 @@ import java.util.UUID
 
 class MineSoknaderApiTest {
     private val søknadUuid = UUID.randomUUID()
-    private val endepunkt = "${Configuration.basePath}/soknad/mineSoknader"
+    private val endepunkt = "${Configuration.basePath}/soknad/mine-soknader"
 
     @Test
     fun `én påbegynt og to innsendte søknader`() {
