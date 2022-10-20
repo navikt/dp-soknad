@@ -156,7 +156,6 @@ internal class SøknadTest {
         )
         val hoveddokument = mutableMapOf(
             "brevkode" to "NAV 04-01.02",
-            "tittel" to null,
             "varianter" to listOf(
                 mapOf<String, Any>(
                     "filnavn" to "",
@@ -175,7 +174,6 @@ internal class SøknadTest {
                 "dokumenter" to listOf(
                     mapOf(
                         "brevkode" to "N6",
-                        "tittel" to null,
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f1-1",
@@ -187,7 +185,6 @@ internal class SøknadTest {
                     ),
                     mapOf(
                         "brevkode" to "N6",
-                        "tittel" to null,
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f3-1",
@@ -241,7 +238,6 @@ internal class SøknadTest {
                 "dokumenter" to listOf(
                     mapOf(
                         "brevkode" to "N6",
-                        "tittel" to null,
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f1-1",
@@ -253,7 +249,6 @@ internal class SøknadTest {
                     ),
                     mapOf(
                         "brevkode" to "N6",
-                        "tittel" to null,
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f2-1",
@@ -265,7 +260,6 @@ internal class SøknadTest {
                     ),
                     mapOf(
                         "brevkode" to "N6",
-                        "tittel" to null,
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f3-1",

@@ -4,6 +4,7 @@ import io.ktor.server.plugins.NotFoundException
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.db.Postgres
+import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder

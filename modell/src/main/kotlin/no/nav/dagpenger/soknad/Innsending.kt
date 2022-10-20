@@ -263,11 +263,12 @@ abstract class Innsending protected constructor(
         val varianter: List<Dokumentvariant>,
         val tittel: String? = null
     ) {
-        fun toMap() = mapOf(
-            "brevkode" to brevkode,
-            "tittel" to tittel,
+        fun toMap() = mutableMapOf<String, Any>(
             "varianter" to varianter.map { it.toMap() }
-        )
+        ).also { map ->
+            brevkode?.let { map["brevkode"] = it }
+            tittel?.let { map["tittel"] = it }
+        }
 
         data class Dokumentvariant(
             val uuid: UUID = UUID.randomUUID(),

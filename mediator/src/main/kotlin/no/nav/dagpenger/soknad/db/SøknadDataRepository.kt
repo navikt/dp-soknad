@@ -1,11 +1,11 @@
-package no.nav.dagpenger.soknad.livssyklus.påbegynt
+package no.nav.dagpenger.soknad.db
 
 import io.ktor.server.plugins.NotFoundException
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Metrics
-import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
+import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.postgresql.util.PGobject
 import java.util.UUID

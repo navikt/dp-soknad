@@ -14,9 +14,9 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestSøkerOppgave
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
+import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
-import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.observers.SøknadSlettetObserver
 import no.nav.dagpenger.soknad.sletterutine.VaktmesterPostgresRepository.Companion.låseNøkkel
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource

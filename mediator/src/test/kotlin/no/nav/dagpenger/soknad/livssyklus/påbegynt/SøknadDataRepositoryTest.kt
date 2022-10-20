@@ -7,6 +7,7 @@ import kotliquery.using
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
+import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository.PersistentSøkerOppgave
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder

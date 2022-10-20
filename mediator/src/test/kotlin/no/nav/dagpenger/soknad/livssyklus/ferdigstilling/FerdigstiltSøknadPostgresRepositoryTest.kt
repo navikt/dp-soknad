@@ -8,8 +8,8 @@ import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.TestSøkerOppgave
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
+import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
-import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals

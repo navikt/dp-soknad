@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad
 
 import SøknadMetrikkObserver
 import no.nav.dagpenger.pdl.createPersonOppslag
+import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.dagpenger.soknad.livssyklus.JournalførtMottak
@@ -10,7 +11,6 @@ import no.nav.dagpenger.soknad.livssyklus.SkjemakodeMottak
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.FerdigstiltSøknadPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.ferdigStiltSøknadRouteBuilder
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak
-import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak
 import no.nav.dagpenger.soknad.mal.SøknadMalPostgresRepository
 import no.nav.dagpenger.soknad.mal.SøknadsMalMottak
