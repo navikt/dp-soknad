@@ -8,24 +8,17 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import mu.KotlinLogging
-import no.nav.dagpenger.soknad.Dokumentkrav
-import no.nav.dagpenger.soknad.Innsending
-import no.nav.dagpenger.soknad.Språk
-import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.status.SøknadStatus.Paabegynt
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
 import no.nav.dagpenger.soknad.utils.auth.jwt
 import java.time.LocalDateTime
-import java.time.ZonedDateTime
-import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
 
@@ -74,47 +67,6 @@ private suspend fun søknadStatus(
     val behandlingsstatus =
         behandlingsstatusClient.hentBehandlingsstatus(fom = førsteInnsendingTidspunkt, token).behandlingsstatus
     return SøknadStatus.valueOf(behandlingsstatus)
-}
-
-class SøknadStatusVisitor(søknad: Søknad) : SøknadVisitor {
-
-    private lateinit var søknadOpprettet: LocalDateTime
-    private lateinit var søknadTilstand: Søknad.Tilstand.Type
-    private val søknadInnsendinger: MutableList<LocalDateTime> = mutableListOf()
-
-    init {
-        søknad.accept(this)
-    }
-
-    fun førsteInnsendingTidspunkt() = søknadInnsendinger.minOf { it }
-    fun søknadOpprettet() = søknadOpprettet
-    fun søknadTilstand() = søknadTilstand
-
-    override fun visitSøknad(
-        søknadId: UUID,
-        ident: String,
-        opprettet: ZonedDateTime,
-        tilstand: Søknad.Tilstand,
-        språk: Språk,
-        dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime?
-    ) {
-        søknadOpprettet = opprettet.toLocalDateTime()
-        søknadTilstand = tilstand.tilstandType
-    }
-
-    override fun visit(
-        innsendingId: UUID,
-        innsending: Innsending.InnsendingType,
-        tilstand: Innsending.TilstandType,
-        innsendt: ZonedDateTime,
-        journalpost: String?,
-        hovedDokument: Innsending.Dokument?,
-        dokumenter: List<Innsending.Dokument>,
-        metadata: Innsending.Metadata?
-    ) {
-        søknadInnsendinger.add(innsendt.toLocalDateTime())
-    }
 }
 
 data class SøknadStatusDTO(
