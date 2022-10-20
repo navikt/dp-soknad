@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS metadata
 );
 
 INSERT INTO metadata (innsending_uuid, skjemakode)
-SELECT soknad_uuid, skjemakode
+SELECT innsending_uuid, skjemakode
 FROM innsending_v1;
 
 ALTER TABLE innsending_v1
