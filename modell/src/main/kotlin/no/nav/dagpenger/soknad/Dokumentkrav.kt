@@ -72,10 +72,8 @@ class Dokumentkrav private constructor(
     override fun hashCode(): Int = 31 * krav.hashCode()
 
     private fun hentKrav(hendelse: DokumentKravHendelse) =
-        (
-            this.aktiveDokumentKrav().find { krav -> krav.id == hendelse.kravId }
-                ?: hendelse.severe("Fant ikke Dokumentasjonskrav id")
-            )
+        this.aktiveDokumentKrav().find { krav -> krav.id == hendelse.kravId }
+            ?: hendelse.severe("Fant ikke Dokumentasjonskrav id")
 
     fun håndter(hendelse: DokumentKravSammenstilling) {
         val krav = hentKrav(hendelse)

@@ -12,7 +12,7 @@ class NyInnsending private constructor(
     tilstand: Tilstand,
     hovedDokument: Dokument? = null,
     dokumenter: List<Dokument>,
-    brevkode: Brevkode?,
+    metadata: Metadata?,
     private val ettersendinger: MutableList<Ettersending>
 ) : Innsending(
     innsendingId,
@@ -22,13 +22,13 @@ class NyInnsending private constructor(
     tilstand,
     hovedDokument,
     dokumenter,
-    brevkode
+    metadata
 ) {
     internal constructor(
         type: InnsendingType,
         innsendt: ZonedDateTime,
         dokumentkrav: Dokumentkrav,
-        brevkode: Brevkode? = null
+        metadata: Metadata? = null
     ) : this(
         innsendingId = UUID.randomUUID(),
         type = type,
@@ -37,7 +37,7 @@ class NyInnsending private constructor(
         tilstand = Opprettet,
         dokumenter = dokumentkrav.tilDokument(),
         ettersendinger = mutableListOf(),
-        brevkode = brevkode
+        metadata = metadata
     )
 
     override val innsendinger get() = listOf(this) + ettersendinger
@@ -52,11 +52,11 @@ class NyInnsending private constructor(
             hovedDokument: Dokument? = null,
             dokumenter: List<Dokument>,
             ettersendinger: List<Ettersending>,
-            brevkode: Brevkode?
+            metadata: Metadata?
         ): NyInnsending {
             val tilstand: Tilstand = when (tilstandsType) {
                 TilstandType.Opprettet -> Opprettet
-                TilstandType.AvventerBrevkode -> AvventerMetadata
+                TilstandType.AvventerMetadata -> AvventerMetadata
                 TilstandType.AvventerArkiverbarSøknad -> AvventerArkiverbarSøknad
                 TilstandType.AvventerMidlertidligJournalføring -> AvventerMidlertidligJournalføring
                 TilstandType.AvventerJournalføring -> AvventerJournalføring
@@ -70,7 +70,7 @@ class NyInnsending private constructor(
                 tilstand,
                 hovedDokument,
                 dokumenter,
-                brevkode,
+                metadata,
                 ettersendinger.toMutableList()
             )
         }
@@ -86,7 +86,7 @@ class NyInnsending private constructor(
             InnsendingType.ETTERSENDING_TIL_DIALOG,
             hendelse.innsendtidspunkt(),
             dokumentkrav,
-            brevkode
+            metadata
         ).also { ettersending ->
             ettersendinger.add(ettersending)
             observers.forEach { ettersending.addObserver(it) }

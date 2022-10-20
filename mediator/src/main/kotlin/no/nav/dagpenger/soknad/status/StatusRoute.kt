@@ -111,7 +111,7 @@ class SøknadStatusVisitor(søknad: Søknad) : SøknadVisitor {
         journalpost: String?,
         hovedDokument: Innsending.Dokument?,
         dokumenter: List<Innsending.Dokument>,
-        brevkode: Innsending.Brevkode?
+        metadata: Innsending.Metadata?
     ) {
         søknadInnsendinger.add(innsendt.toLocalDateTime())
     }

@@ -145,7 +145,7 @@ internal class SøknadPostgresRepositoryTest {
                         urn = URN.rfc8141().parse("urn:nav:vedlegg:1-1"),
                         storrelse = 1000,
                         tidspunkt = now,
-                        bundlet = false,
+                        bundlet = false
                     )
                 ),
                 valg = Krav.Svar.SvarValg.SEND_NÅ,
@@ -187,7 +187,7 @@ internal class SøknadPostgresRepositoryTest {
                     )
                 ),
                 ettersendinger = mutableListOf(),
-                brevkode = Innsending.Brevkode("04-02-03")
+                metadata = Innsending.Metadata("04-02-03", "en tittel")
             )
         )
 
@@ -217,7 +217,7 @@ internal class SøknadPostgresRepositoryTest {
                             journalpost: String?,
                             hovedDokument: Innsending.Dokument?,
                             dokumenter: List<Innsending.Dokument>,
-                            brevkode: Innsending.Brevkode?
+                            metadata: Innsending.Metadata?
                         ) {
                             assertEquals(1, dokumenter.size)
                             assertEquals("brevkode-vedlegg", dokumenter.first().brevkode)
@@ -242,14 +242,14 @@ internal class SøknadPostgresRepositoryTest {
                         urn = URN.rfc8141().parse("urn:nav:vedlegg:1-1"),
                         storrelse = 1000,
                         tidspunkt = now,
-                        bundlet = false,
+                        bundlet = false
                     ),
                     Krav.Fil(
                         filnavn = "1-2.jpg",
                         urn = URN.rfc8141().parse("urn:nav:vedlegg:1-2"),
                         storrelse = 1000,
                         tidspunkt = now,
-                        bundlet = false,
+                        bundlet = false
                     )
                 ),
                 valg = Krav.Svar.SvarValg.SEND_NÅ,
@@ -268,7 +268,7 @@ internal class SøknadPostgresRepositoryTest {
                         urn = URN.rfc8141().parse("urn:nav:vedlegg:2"),
                         storrelse = 1000,
                         tidspunkt = now,
-                        bundlet = false,
+                        bundlet = false
                     )
                 ),
                 valg = Krav.Svar.SvarValg.SEND_NÅ,
@@ -344,7 +344,7 @@ internal class SøknadPostgresRepositoryTest {
                         Innsending.TilstandType.Opprettet,
                         null,
                         listOf(),
-                        Innsending.Brevkode("0324-23")
+                        Innsending.Metadata("0324-23")
                     ),
                     Ettersending.rehydrer(
                         UUID.randomUUID(),
@@ -354,10 +354,10 @@ internal class SøknadPostgresRepositoryTest {
                         Innsending.TilstandType.AvventerJournalføring,
                         null,
                         listOf(),
-                        Innsending.Brevkode("0324-23")
+                        Innsending.Metadata(tittel = "0324-23")
                     )
                 ),
-                Innsending.Brevkode("04-02-03")
+                Innsending.Metadata("04-02-03")
             )
         )
 
@@ -394,7 +394,7 @@ internal class SøknadPostgresRepositoryTest {
                             journalpost: String?,
                             hovedDokument: Innsending.Dokument?,
                             dokumenter: List<Innsending.Dokument>,
-                            brevkode: Innsending.Brevkode?
+                            metadata: Innsending.Metadata?
                         ) {
                             if (innsending == Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG) return
                             assertEquals(2, hovedDokument!!.varianter.size)
@@ -460,14 +460,14 @@ internal class SøknadPostgresRepositoryTest {
             urn = URN.rfc8141().parse("urn:vedlegg:1111/12345"),
             storrelse = 50000,
             tidspunkt = tidspunkt,
-            bundlet = false,
+            bundlet = false
         )
         val fil2 = Krav.Fil(
             filnavn = "nei.jpg",
             urn = URN.rfc8141().parse("urn:vedlegg:1111/45678"),
             storrelse = 50000,
             tidspunkt = tidspunkt,
-            bundlet = false,
+            bundlet = false
         )
         withMigratedDb {
             val søknadPostgresRepository = SøknadPostgresRepository(dataSource)

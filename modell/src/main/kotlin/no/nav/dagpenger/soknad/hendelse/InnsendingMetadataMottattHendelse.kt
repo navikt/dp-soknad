@@ -1,16 +1,17 @@
 package no.nav.dagpenger.soknad.hendelse
 
 import no.nav.dagpenger.soknad.Aktivitetslogg
-import no.nav.dagpenger.soknad.Innsending.Brevkode
+import no.nav.dagpenger.soknad.Innsending.Metadata
 import java.util.UUID
 
-class SkjemakodeMottattHendelse(
+class InnsendingMetadataMottattHendelse(
     innsendingId: UUID,
     val søknadID: UUID,
     val ident: String,
-    private val skjemaKode: String,
+    skjemaKode: String?,
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
+    tittel: String? = null
 ) :
     InnsendingHendelse(innsendingId, søknadID, ident, aktivitetslogg) {
-    val brevkode: Brevkode = Brevkode(skjemaKode)
+    val metadata: Metadata = Metadata(skjemaKode, tittel)
 }

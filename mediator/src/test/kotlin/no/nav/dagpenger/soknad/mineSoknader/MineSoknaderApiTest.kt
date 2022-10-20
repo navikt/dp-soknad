@@ -28,7 +28,6 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 class MineSoknaderApiTest {
-
     private val søknadUuid = UUID.randomUUID()
     private val endepunkt = "${Configuration.basePath}/soknad/mineSoknader"
 
@@ -187,7 +186,7 @@ class MineSoknaderApiTest {
     private fun søknadMed(
         tilstand: Søknad.Tilstand.Type,
         opprettet: LocalDateTime = LocalDateTime.now(),
-        innsending: NyInnsending? = null,
+        innsending: NyInnsending? = null
     ) = Søknad.rehydrer(
         søknadId = søknadUuid,
         ident = TestApplication.defaultDummyFodselsnummer,
@@ -203,7 +202,7 @@ class MineSoknaderApiTest {
     private fun innsending(
         innsendtTidspunkt: LocalDateTime,
         journalpostId: String,
-        ettersending: List<Ettersending> = emptyList(),
+        ettersending: List<Ettersending> = emptyList()
     ) = NyInnsending.rehydrer(
         innsendingId = UUID.randomUUID(),
         type = Innsending.InnsendingType.NY_DIALOG,
@@ -213,6 +212,6 @@ class MineSoknaderApiTest {
         hovedDokument = null,
         dokumenter = emptyList(),
         ettersendinger = ettersending,
-        brevkode = Innsending.Brevkode("04-02-03")
+        metadata = Innsending.Metadata("04-02-03")
     )
 }

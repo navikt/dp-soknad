@@ -2,9 +2,9 @@ package no.nav.dagpenger.soknad.livssyklus
 
 import mu.KotlinLogging
 import mu.withLoggingContext
-import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.Skjemakode
+import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.InnsendingMetadata
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.hendelse.SkjemakodeMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.InnsendingMetadataMottattHendelse
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -16,7 +16,7 @@ internal class SkjemakodeMottak(rapidsConnection: RapidsConnection, private val 
         private val logger = KotlinLogging.logger {}
     }
 
-    private val behov = Skjemakode.name
+    private val behov = InnsendingMetadata.name
 
     init {
         River(rapidsConnection).apply {
@@ -42,15 +42,17 @@ internal class SkjemakodeMottak(rapidsConnection: RapidsConnection, private val 
         ) {
             logger.info { "Mottatt løsning for $behov for $innsendingId med skjemakode=${packet.skjemakode()}" }
             mediator.behandle(
-                SkjemakodeMottattHendelse(
+                InnsendingMetadataMottattHendelse(
                     innsendingId = innsendingId,
                     søknadID = søknadId,
                     ident = ident,
-                    skjemaKode = packet.skjemakode()
+                    skjemaKode = packet.skjemakode(),
+                    tittel = packet.tittel()
                 )
             )
         }
     }
 
-    private fun JsonMessage.skjemakode(): String = this["@løsning"][behov]["skjemakode"].asText()
+    private fun JsonMessage.skjemakode(): String? = this["@løsning"][behov]["skjemakode"]?.asText()
+    private fun JsonMessage.tittel(): String? = this["@løsning"][behov]["tittel"]?.asText()
 }

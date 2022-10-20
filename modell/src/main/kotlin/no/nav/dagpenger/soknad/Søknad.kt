@@ -8,9 +8,9 @@ import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
+import no.nav.dagpenger.soknad.hendelse.InnsendingMetadataMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
-import no.nav.dagpenger.soknad.hendelse.SkjemakodeMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
@@ -117,10 +117,10 @@ class Søknad private constructor(
         tilstand.håndter(søknadInnsendtHendelse, this)
     }
 
-    fun håndter(skjemakodeMottattHendelse: SkjemakodeMottattHendelse) {
-        kontekst(skjemakodeMottattHendelse)
-        skjemakodeMottattHendelse.info("Brevkode mottatt")
-        tilstand.håndter(skjemakodeMottattHendelse, this)
+    fun håndter(innsendingMetadataMottattHendelse: InnsendingMetadataMottattHendelse) {
+        kontekst(innsendingMetadataMottattHendelse)
+        innsendingMetadataMottattHendelse.info("Brevkode mottatt")
+        tilstand.håndter(innsendingMetadataMottattHendelse, this)
     }
 
     fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse) {
@@ -207,8 +207,8 @@ class Søknad private constructor(
         fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) =
             søknadInnsendtHendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(skjemakodeMottattHendelse: SkjemakodeMottattHendelse, søknad: Søknad) =
-            skjemakodeMottattHendelse.`kan ikke håndteres i denne tilstanden`()
+        fun håndter(innsendingMetadataMottattHendelse: InnsendingMetadataMottattHendelse, søknad: Søknad) =
+            innsendingMetadataMottattHendelse.`kan ikke håndteres i denne tilstanden`()
 
         fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse, søknad: Søknad) =
             arkiverbarSøknadMotattHendelse.`kan ikke håndteres i denne tilstanden`()
@@ -347,7 +347,7 @@ class Søknad private constructor(
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.Innsendt
 
-        override fun håndter(hendelse: SkjemakodeMottattHendelse, søknad: Søknad) {
+        override fun håndter(hendelse: InnsendingMetadataMottattHendelse, søknad: Søknad) {
             innsending(søknad).håndter(hendelse)
         }
 

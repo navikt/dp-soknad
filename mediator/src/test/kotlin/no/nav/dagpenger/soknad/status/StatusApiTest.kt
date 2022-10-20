@@ -156,7 +156,7 @@ class StatusApiTest {
         hovedDokument = null,
         dokumenter = emptyList(),
         ettersendinger = ettersending,
-        brevkode = Innsending.Brevkode("04-02-03")
+        metadata = Innsending.Metadata("04-02-03")
     )
 
     private fun ettersending(
@@ -170,6 +170,6 @@ class StatusApiTest {
         tilstandsType = Innsending.TilstandType.Journalført,
         hovedDokument = null,
         dokumenter = emptyList(),
-        brevkode = Innsending.Brevkode("04-02-03")
+        metadata = Innsending.Metadata("04-02-03")
     )
 }

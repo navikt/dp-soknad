@@ -122,6 +122,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             InnsendingDTO.InnsendingTypeDTO.NY_DIALOG -> session.hentEttersendinger(innsendingId)
             InnsendingDTO.InnsendingTypeDTO.ETTERSENDING_TIL_DIALOG -> emptyList()
         }
+        val metadata = session.hentMetadata(innsendingId)
         InnsendingDTO(
             innsendingId = innsendingId,
             type = type,
@@ -131,8 +132,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             hovedDokument = dokumenter.hovedDokument,
             dokumenter = dokumenter.dokumenter,
             ettersendinger = ettersendinger,
-            brevkode = row.stringOrNull("skjemakode")
-                ?.let { skjemakode -> Innsending.Brevkode(skjemakode) }
+            metadata = metadata
         )
     }
 
@@ -204,6 +204,18 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         }
     }
 }
+
+private fun Session.hentMetadata(innsendingId: UUID): InnsendingDTO.MetadataDTO? = run(
+    queryOf( //language=PostgreSQL
+        "SELECT * FROM metadata WHERE innsending_uuid = :innsending_uuid",
+        mapOf("innsending_uuid" to innsendingId)
+    ).map { row ->
+        InnsendingDTO.MetadataDTO(
+            skjemakode = row.stringOrNull("skjemakode"),
+            tittel = row.stringOrNull("tittel")
+        )
+    }.asSingle
+)
 
 private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.DokumenterDTO {
     val dokumenter = InnsendingDTO.DokumenterDTO()
@@ -388,7 +400,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                         "storrelse" to fil.storrelse,
                         "urn" to fil.urn.toString(),
                         "tidspunkt" to fil.tidspunkt,
-                        "bundlet" to fil.bundlet,
+                        "bundlet" to fil.bundlet
                     )
                 )
             }
@@ -419,7 +431,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         journalpost: String?,
         hovedDokument: Innsending.Dokument?,
         dokumenter: List<Innsending.Dokument>,
-        brevkode: Innsending.Brevkode?
+        metadata: Innsending.Metadata?
     ) {
         if (ettersending) {
             ettersendinger.getOrPut(aktivEttersending) {
@@ -432,13 +444,12 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queryOf(
                 //language=PostgreSQL
                 statement = """
-                INSERT INTO innsending_v1(innsending_uuid, soknad_uuid, innsendt, journalpost_id, innsendingtype, tilstand, skjemakode)
-                VALUES (:innsending_uuid, :soknad_uuid, :innsendt, :journalpost_id, :innsendingtype, :tilstand, :skjemakode)
+                INSERT INTO innsending_v1(innsending_uuid, soknad_uuid, innsendt, journalpost_id, innsendingtype, tilstand)
+                VALUES (:innsending_uuid, :soknad_uuid, :innsendt, :journalpost_id, :innsendingtype, :tilstand)
                 ON CONFLICT (innsending_uuid) DO UPDATE SET innsendt = :innsendt, 
                                                             journalpost_id = :journalpost_id,
                                                             innsendingtype = :innsendingtype,
-                                                            tilstand = :tilstand,
-                                                            skjemakode = :skjemakode
+                                                            tilstand = :tilstand
                 """.trimIndent(),
                 paramMap = mapOf(
                     "innsending_uuid" to innsendingId,
@@ -446,21 +457,35 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                     "innsendt" to innsendt,
                     "journalpost_id" to journalpost,
                     "innsendingtype" to innsending.name,
-                    "tilstand" to tilstand.name,
-                    "skjemakode" to brevkode?.skjemakode
+                    "tilstand" to tilstand.name
                 )
             )
         )
+        metadata?.let {
+            queries.add(
+                queryOf( //language=PostgreSQL
+                    """
+                    INSERT INTO metadata (innsending_uuid, skjemakode, tittel)
+                    VALUES (:innsending_uuid, :skjemakode, :tittel)
+                    ON CONFLICT (innsending_uuid) DO UPDATE SET skjemakode=:skjemakode,
+                                                                tittel=:tittel
+                    """.trimIndent(),
+                    mapOf(
+                        "innsending_uuid" to innsendingId,
+                        "skjemakode" to it.skjemakode,
+                        "tittel" to it.tittel
+                    )
+                )
+            )
+        }
 
-        logger.info { "Her lagrer vi ${dokumenter.size} dokumenter, innsendingId=$innsendingId, dokumenter=$dokumenter, hovedDokument=$hovedDokument" }
         dokumenter.toMutableList().apply {
             hovedDokument?.let {
                 add(it)
             }
         }.forEach { dokument ->
             queries.add(
-                queryOf(
-                    //language=PostgreSQL
+                queryOf( //language=PostgreSQL
                     """
                     INSERT INTO dokument_v1 (dokument_uuid, innsending_uuid, brevkode)
                     VALUES (:dokument_uuid, :innsending_uuid, :brevkode)

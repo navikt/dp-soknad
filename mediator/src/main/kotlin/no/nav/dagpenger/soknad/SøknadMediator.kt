@@ -7,9 +7,9 @@ import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
+import no.nav.dagpenger.soknad.hendelse.InnsendingMetadataMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
-import no.nav.dagpenger.soknad.hendelse.SkjemakodeMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
@@ -143,9 +143,9 @@ internal class SøknadMediator(
         }
     }
 
-    fun behandle(skjemakodeMottattHendelse: SkjemakodeMottattHendelse) {
-        behandle(skjemakodeMottattHendelse) { søknad ->
-            søknad.håndter(skjemakodeMottattHendelse)
+    fun behandle(innsendingMetadataMottattHendelse: InnsendingMetadataMottattHendelse) {
+        behandle(innsendingMetadataMottattHendelse) { søknad ->
+            søknad.håndter(innsendingMetadataMottattHendelse)
         }
     }
 

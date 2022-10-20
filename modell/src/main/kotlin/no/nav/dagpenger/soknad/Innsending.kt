@@ -3,8 +3,8 @@ package no.nav.dagpenger.soknad
 import de.slub.urn.URN
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
+import no.nav.dagpenger.soknad.hendelse.InnsendingMetadataMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
-import no.nav.dagpenger.soknad.hendelse.SkjemakodeMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import java.time.ZonedDateTime
@@ -18,56 +18,14 @@ abstract class Innsending protected constructor(
     private var tilstand: Tilstand,
     private var hovedDokument: Dokument? = null,
     private val dokumenter: List<Dokument>,
-    internal var brevkode: Brevkode?
+    internal var metadata: Metadata?
 ) : Aktivitetskontekst {
     protected open val innsendinger get() = (listOf(this))
-
     protected val observers = mutableListOf<InnsendingObserver>()
 
-    data class Dokument(
-        val uuid: UUID = UUID.randomUUID(),
-        val brevkode: String,
-        val varianter: List<Dokumentvariant>
-    ) {
-        fun toMap() = mapOf(
-            "brevkode" to brevkode,
-            "varianter" to varianter.map { it.toMap() }
-        )
-
-        data class Dokumentvariant(
-            val uuid: UUID = UUID.randomUUID(),
-            val filnavn: String,
-            val urn: String,
-            val variant: String,
-            val type: String
-        ) {
-            init {
-                kotlin.runCatching {
-                    URN.rfc8141().parse(urn)
-                }.onFailure {
-                    throw IllegalArgumentException("Ikke gyldig URN: $urn")
-                }
-            }
-
-            fun toMap() = mapOf(
-                "filnavn" to filnavn,
-                "urn" to urn,
-                "variant" to variant,
-                "type" to type
-            )
-        }
-    }
-
-    data class Brevkode(val skjemakode: String) {
-        internal fun brevkode(innsending: Innsending) = when (innsending.type) {
-            InnsendingType.NY_DIALOG -> "NAV $skjemakode"
-            InnsendingType.ETTERSENDING_TIL_DIALOG -> "NAVe $skjemakode"
-        }
-    }
-
-    enum class InnsendingType {
-        NY_DIALOG,
-        ETTERSENDING_TIL_DIALOG
+    companion object {
+        fun ny(innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) =
+            NyInnsending(InnsendingType.NY_DIALOG, innsendt, dokumentkrav)
     }
 
     fun håndter(hendelse: SøknadInnsendtHendelse) {
@@ -75,7 +33,7 @@ abstract class Innsending protected constructor(
         tilstand.håndter(hendelse, this)
     }
 
-    fun håndter(hendelse: SkjemakodeMottattHendelse) {
+    fun håndter(hendelse: InnsendingMetadataMottattHendelse) {
         innsendinger.forEach { it._håndter(hendelse) }
     }
 
@@ -90,11 +48,8 @@ abstract class Innsending protected constructor(
     fun håndter(hendelse: JournalførtHendelse) {
         innsendinger.forEach { it._håndter(hendelse) }
     }
-    open fun addObserver(innsendingObserver: InnsendingObserver) {
-        observers.add(innsendingObserver)
-    }
 
-    private fun _håndter(hendelse: SkjemakodeMottattHendelse) {
+    private fun _håndter(hendelse: InnsendingMetadataMottattHendelse) {
         if (hendelse.innsendingId != this.innsendingId) return
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
@@ -150,7 +105,7 @@ abstract class Innsending protected constructor(
         fun håndter(hendelse: SøknadInnsendtHendelse, innsending: Innsending) =
             hendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(hendelse: SkjemakodeMottattHendelse, innsending: Innsending) =
+        fun håndter(hendelse: InnsendingMetadataMottattHendelse, innsending: Innsending) =
             hendelse.`kan ikke håndteres i denne tilstanden`()
 
         fun håndter(hendelse: ArkiverbarSøknadMottattHendelse, innsending: Innsending) =
@@ -183,18 +138,18 @@ abstract class Innsending protected constructor(
     }
 
     protected object AvventerMetadata : Tilstand {
-        override val tilstandType = TilstandType.AvventerBrevkode
+        override val tilstandType = TilstandType.AvventerMetadata
 
         override fun entering(hendelse: Hendelse, innsending: Innsending) {
-            if (innsending.brevkode != null) return innsending.endreTilstand(AvventerArkiverbarSøknad, hendelse)
+            if (innsending.metadata != null) return innsending.endreTilstand(AvventerArkiverbarSøknad, hendelse)
             hendelse.behov(
-                Aktivitetslogg.Aktivitet.Behov.Behovtype.Skjemakode,
+                Aktivitetslogg.Aktivitet.Behov.Behovtype.InnsendingMetadata,
                 "Trenger metadata/klassifisering av innsending"
             )
         }
 
-        override fun håndter(hendelse: SkjemakodeMottattHendelse, innsending: Innsending) {
-            innsending.brevkode = hendelse.brevkode
+        override fun håndter(hendelse: InnsendingMetadataMottattHendelse, innsending: Innsending) {
+            innsending.metadata = hendelse.metadata
             innsending.endreTilstand(AvventerArkiverbarSøknad, hendelse)
         }
     }
@@ -213,9 +168,10 @@ abstract class Innsending protected constructor(
         }
 
         override fun håndter(hendelse: ArkiverbarSøknadMottattHendelse, innsending: Innsending) {
-            val brevkode = requireNotNull(innsending.brevkode) { "Må ha brevkode" }
+            val metadata = requireNotNull(innsending.metadata) { "Må ha metadata" }
             innsending.hovedDokument = Dokument(
-                brevkode = brevkode.brevkode(innsending),
+                brevkode = metadata.brevkode(innsending),
+                tittel = metadata.tittel,
                 varianter = hendelse.dokumentvarianter()
             )
             innsending.endreTilstand(
@@ -271,7 +227,7 @@ abstract class Innsending protected constructor(
             journalpostId,
             hovedDokument,
             dokumenter,
-            brevkode
+            metadata
         )
     }
 
@@ -288,17 +244,70 @@ abstract class Innsending protected constructor(
         )
     )
 
-    companion object {
-        fun ny(innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) =
-            NyInnsending(InnsendingType.NY_DIALOG, innsendt, dokumentkrav)
+    open fun addObserver(innsendingObserver: InnsendingObserver) {
+        observers.add(innsendingObserver)
     }
 
     enum class TilstandType {
         Opprettet,
-        AvventerBrevkode,
+        AvventerMetadata,
         AvventerArkiverbarSøknad,
         AvventerMidlertidligJournalføring,
         AvventerJournalføring,
         Journalført
+    }
+
+    data class Dokument(
+        val uuid: UUID = UUID.randomUUID(),
+        val brevkode: String?,
+        val varianter: List<Dokumentvariant>,
+        val tittel: String? = null
+    ) {
+        fun toMap() = mapOf(
+            "brevkode" to brevkode,
+            "tittel" to tittel,
+            "varianter" to varianter.map { it.toMap() }
+        )
+
+        data class Dokumentvariant(
+            val uuid: UUID = UUID.randomUUID(),
+            val filnavn: String,
+            val urn: String,
+            val variant: String,
+            val type: String
+        ) {
+            init {
+                kotlin.runCatching {
+                    URN.rfc8141().parse(urn)
+                }.onFailure {
+                    throw IllegalArgumentException("Ikke gyldig URN: $urn")
+                }
+            }
+
+            fun toMap() = mapOf(
+                "filnavn" to filnavn,
+                "urn" to urn,
+                "variant" to variant,
+                "type" to type
+            )
+        }
+    }
+
+    data class Metadata(val skjemakode: String? = null, val tittel: String? = null) {
+        init {
+            require(listOf(skjemakode, tittel).any { it != null }) { "Metadata må ha enten skjemakode eller tittel" }
+        }
+
+        internal fun brevkode(innsending: Innsending) = skjemakode?.let {
+            when (innsending.type) {
+                InnsendingType.NY_DIALOG -> "NAV $skjemakode"
+                InnsendingType.ETTERSENDING_TIL_DIALOG -> "NAVe $skjemakode"
+            }
+        }
+    }
+
+    enum class InnsendingType {
+        NY_DIALOG,
+        ETTERSENDING_TIL_DIALOG
     }
 }

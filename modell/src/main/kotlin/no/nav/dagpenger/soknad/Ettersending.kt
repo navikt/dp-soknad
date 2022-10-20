@@ -11,7 +11,7 @@ class Ettersending private constructor(
     tilstand: Tilstand,
     hovedDokument: Dokument? = null,
     dokumenter: List<Dokument>,
-    brevkode: Brevkode?
+    metadata: Metadata?
 ) : Innsending(
     innsendingId,
     type,
@@ -20,13 +20,13 @@ class Ettersending private constructor(
     tilstand,
     hovedDokument,
     dokumenter,
-    brevkode
+    metadata
 ) {
     internal constructor(
         type: InnsendingType,
         innsendt: ZonedDateTime,
         dokumentkrav: Dokumentkrav,
-        brevkode: Brevkode? = null
+        metadata: Metadata? = null
     ) : this(
         innsendingId = UUID.randomUUID(),
         type = type,
@@ -34,7 +34,7 @@ class Ettersending private constructor(
         journalpostId = null,
         tilstand = Opprettet,
         dokumenter = dokumentkrav.tilDokument(),
-        brevkode = brevkode
+        metadata = metadata
     )
 
     companion object {
@@ -46,11 +46,11 @@ class Ettersending private constructor(
             tilstandsType: TilstandType,
             hovedDokument: Dokument? = null,
             dokumenter: List<Dokument>,
-            brevkode: Brevkode?
+            metadata: Metadata?
         ): Ettersending {
             val tilstand: Tilstand = when (tilstandsType) {
                 TilstandType.Opprettet -> Opprettet
-                TilstandType.AvventerBrevkode -> AvventerMetadata
+                TilstandType.AvventerMetadata -> AvventerMetadata
                 TilstandType.AvventerArkiverbarSøknad -> AvventerArkiverbarSøknad
                 TilstandType.AvventerMidlertidligJournalføring -> AvventerMidlertidligJournalføring
                 TilstandType.AvventerJournalføring -> AvventerJournalføring
@@ -64,7 +64,7 @@ class Ettersending private constructor(
                 tilstand,
                 hovedDokument,
                 dokumenter,
-                brevkode
+                metadata
             )
         }
     }

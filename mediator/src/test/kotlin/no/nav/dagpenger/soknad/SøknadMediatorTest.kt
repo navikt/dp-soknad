@@ -3,8 +3,8 @@ package no.nav.dagpenger.soknad
 import com.fasterxml.jackson.databind.node.BooleanNode
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerArkiverbarSøknad
-import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerBrevkode
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerJournalføring
+import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMetadata
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMidlertidligJournalføring
 import no.nav.dagpenger.soknad.Innsending.TilstandType.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
@@ -106,10 +106,10 @@ internal class SøknadMediatorTest {
         testRapid.sendTestMessage(ferdigSøkerOppgave(søknadUuid.toString().toUUID(), testIdent))
         mediator.behandle(SøknadInnsendtHendelse(søknadUuid, testIdent))
 
-        assertEquals(AvventerBrevkode, oppdatertInspektør().gjeldendeInnsendingTilstand)
+        assertEquals(AvventerMetadata, oppdatertInspektør().gjeldendeInnsendingTilstand)
         assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
 
-        assertEquals(listOf("Skjemakode"), behov(2))
+        assertEquals(listOf("InnsendingMetadata"), behov(2))
 
         testRapid.sendTestMessage(
             innsendingBrevkodeLøsning(
@@ -184,7 +184,7 @@ internal class SøknadMediatorTest {
   "@event_name": "behov",
   "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
   "@behov": [
-    "Skjemakode"
+    "InnsendingMetadata"
   ],
   "ident": "$ident",
   "søknad_uuid": "$søknadUuid",
@@ -200,7 +200,7 @@ internal class SøknadMediatorTest {
     }
   ],
   "@løsning": {
-    "Skjemakode": {
+    "InnsendingMetadata": {
       "tittel": "Søknad om dagpenger",
       "skjemakode": "04.04-01"
     }

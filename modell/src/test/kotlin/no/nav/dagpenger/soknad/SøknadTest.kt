@@ -6,8 +6,8 @@ import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Aktivitetslogg.AktivitetException
 import no.nav.dagpenger.soknad.Innsending.InnsendingType
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerArkiverbarSøknad
-import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerBrevkode
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerJournalføring
+import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMetadata
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMidlertidligJournalføring
 import no.nav.dagpenger.soknad.Innsending.TilstandType.Journalført
 import no.nav.dagpenger.soknad.Innsending.TilstandType.Opprettet
@@ -19,9 +19,9 @@ import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
+import no.nav.dagpenger.soknad.hendelse.InnsendingMetadataMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
-import no.nav.dagpenger.soknad.hendelse.SkjemakodeMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
@@ -121,11 +121,11 @@ internal class SøknadTest {
         )
 
         assertInnsendingTilstand(
-            AvventerBrevkode
+            AvventerMetadata
         )
 
         assertBehov(
-            Behovtype.Skjemakode,
+            Behovtype.InnsendingMetadata,
             mapOf(
                 "type" to "NY_DIALOG",
                 "søknad_uuid" to inspektør.søknadId.toString(),
@@ -134,7 +134,7 @@ internal class SøknadTest {
             )
         )
 
-        håndterInnsendingBrevkode()
+        håndterInnsendingMetadata()
 
         assertInnsendingTilstand(
             AvventerArkiverbarSøknad
@@ -154,8 +154,9 @@ internal class SøknadTest {
         assertInnsendingTilstand(
             AvventerMidlertidligJournalføring
         )
-        val hoveddokument = mutableMapOf<String, Any>(
+        val hoveddokument = mutableMapOf(
             "brevkode" to "NAV 04-01.02",
+            "tittel" to null,
             "varianter" to listOf(
                 mapOf<String, Any>(
                     "filnavn" to "",
@@ -172,8 +173,9 @@ internal class SøknadTest {
                 "innsendingId" to inspektør.innsendingId.toString(),
                 "hovedDokument" to hoveddokument,
                 "dokumenter" to listOf(
-                    mapOf<String, Any>(
+                    mapOf(
                         "brevkode" to "N6",
+                        "tittel" to null,
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f1-1",
@@ -183,8 +185,9 @@ internal class SøknadTest {
                             )
                         )
                     ),
-                    mapOf<String, Any>(
+                    mapOf(
                         "brevkode" to "N6",
+                        "tittel" to null,
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f3-1",
@@ -216,7 +219,7 @@ internal class SøknadTest {
 
         assertInnsendingTilstander(
             Opprettet,
-            AvventerBrevkode,
+            AvventerMetadata,
             AvventerArkiverbarSøknad,
             AvventerMidlertidligJournalføring,
             AvventerJournalføring,
@@ -236,8 +239,9 @@ internal class SøknadTest {
             mapOf(
                 "hovedDokument" to hoveddokument.also { it["brevkode"] = "NAVe 04-01.02" },
                 "dokumenter" to listOf(
-                    mapOf<String, Any>(
+                    mapOf(
                         "brevkode" to "N6",
+                        "tittel" to null,
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f1-1",
@@ -247,8 +251,9 @@ internal class SøknadTest {
                             )
                         )
                     ),
-                    mapOf<String, Any>(
+                    mapOf(
                         "brevkode" to "N6",
+                        "tittel" to null,
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f2-1",
@@ -258,8 +263,9 @@ internal class SøknadTest {
                             )
                         )
                     ),
-                    mapOf<String, Any>(
+                    mapOf(
                         "brevkode" to "N6",
+                        "tittel" to null,
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f3-1",
@@ -317,9 +323,9 @@ internal class SøknadTest {
         søknad.håndter(SlettSøknadHendelse(inspektør.søknadId, testIdent))
     }
 
-    private fun håndterInnsendingBrevkode() {
+    private fun håndterInnsendingMetadata() {
         søknad.håndter(
-            SkjemakodeMottattHendelse(
+            InnsendingMetadataMottattHendelse(
                 inspektør.innsendingId,
                 inspektør.søknadId,
                 testIdent,
@@ -394,7 +400,7 @@ internal class SøknadTest {
                 urn = URN.rfc8141().parse(urn),
                 storrelse = 0,
                 tidspunkt = ZonedDateTime.now(),
-                bundlet = false,
+                bundlet = false
             )
         )
         søknad.håndter(hendelse)
