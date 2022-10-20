@@ -6,6 +6,7 @@ import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
+import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
@@ -16,6 +17,8 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeParseException
 import java.util.UUID
+
+private val logger = KotlinLogging.logger { }
 
 internal fun Route.mineSoknaderRoute(søknadMediator: SøknadMediator) {
     get("/mine-soknader") {
@@ -59,10 +62,14 @@ data class PåbegyntSøknadDto(val soknadUuid: UUID, val opprettet: LocalDateTim
 data class InnsendtSøknadDto(val soknadUuid: UUID, val forstInnsendt: LocalDateTime)
 
 private fun queryParamToFom(param: String?): LocalDate {
-    if (param == null) throw BadRequestException("Mangler fom queryparameter i url")
+    if (param == null) {
+        logger.error("Mangler fom queryparameter i url")
+        throw BadRequestException("Mangler fom queryparameter i url")
+    }
     return try {
         LocalDate.parse(param)
     } catch (e: DateTimeParseException) {
+        logger.error("Kan ikke parse fom queryparameter: $param")
         throw BadRequestException("Kan ikke parse fom queryparameter: $param")
     }
 }
