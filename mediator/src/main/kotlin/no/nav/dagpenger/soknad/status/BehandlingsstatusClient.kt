@@ -15,10 +15,10 @@ import io.ktor.http.contentType
 import io.ktor.serialization.jackson.jackson
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 internal interface BehandlingsstatusClient {
-    suspend fun hentBehandlingsstatus(fom: LocalDateTime, subjectToken: String): BehandlingsstatusDto
+    suspend fun hentBehandlingsstatus(fom: LocalDate, subjectToken: String): BehandlingsstatusDto
 }
 
 internal class BehandlingsstatusHttpClient(
@@ -41,7 +41,7 @@ internal class BehandlingsstatusHttpClient(
         }
     }
 
-    override suspend fun hentBehandlingsstatus(fom: LocalDateTime, subjectToken: String): BehandlingsstatusDto {
+    override suspend fun hentBehandlingsstatus(fom: LocalDate, subjectToken: String): BehandlingsstatusDto {
         val url = "$baseUrl/behandlingsstatus?fom=$fom"
         return try {
             httpClient.get(url) {

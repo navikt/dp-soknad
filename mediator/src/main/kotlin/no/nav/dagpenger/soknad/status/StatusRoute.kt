@@ -19,6 +19,7 @@ import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
 import no.nav.dagpenger.soknad.utils.auth.jwt
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
@@ -44,7 +45,7 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator, behandlingsstat
                     call.respond(
                         status = OK,
                         SøknadStatusDTO(
-                            status = søknadStatus(behandlingsstatusClient, førsteInnsendingTidspunkt, token),
+                            status = søknadStatus(behandlingsstatusClient, førsteInnsendingTidspunkt.toLocalDate(), token),
                             opprettet = søknadData.søknadOpprettet(),
                             innsendt = førsteInnsendingTidspunkt
                         )
@@ -62,7 +63,7 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator, behandlingsstat
 
 private suspend fun søknadStatus(
     behandlingsstatusClient: BehandlingsstatusClient,
-    førsteInnsendingTidspunkt: LocalDateTime,
+    førsteInnsendingTidspunkt: LocalDate,
     token: String
 ): SøknadStatus {
     val behandlingsstatus =

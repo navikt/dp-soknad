@@ -10,7 +10,7 @@ import io.ktor.http.headersOf
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 class BehandlingsstatusClientTest {
 
@@ -21,7 +21,7 @@ class BehandlingsstatusClientTest {
 
     @Test
     fun `Får deserialisert til BehandlingsstatusDto`() {
-        val fom = LocalDateTime.now()
+        val fom = LocalDate.now()
 
         runBlocking {
             val behandlingsstatusClient = BehandlingsstatusHttpClient(
@@ -63,7 +63,7 @@ class BehandlingsstatusClientTest {
 
             assertEquals(
                 BehandlingsstatusDto("Ukjent"),
-                behandlingsstatusClient.hentBehandlingsstatus(LocalDateTime.now(), subjectToken)
+                behandlingsstatusClient.hentBehandlingsstatus(LocalDate.now(), subjectToken)
             )
         }
     }
