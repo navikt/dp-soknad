@@ -24,7 +24,7 @@ internal interface BehandlingsstatusClient {
 internal class BehandlingsstatusHttpClient(
     private val baseUrl: String = Configuration.dpInnsynUrl,
     private val innsynAudience: String = Configuration.dpInnsynAudience,
-    private val tokenProvider: (token: String, audience: String) -> String = exchangeToOboToken(),
+    private val tokenProvider: (token: String, audience: String) -> String = exchangeToOboToken,
     engine: HttpClientEngine = CIO.create()
 ) : BehandlingsstatusClient {
     companion object {
@@ -67,6 +67,10 @@ internal data class BehandlingsstatusDto(
     val behandlingsstatus: String
 )
 
-private fun exchangeToOboToken() = { token: String, audience: String ->
-    Configuration.tokenXClient.tokenExchange(token, audience).accessToken
+private val sikkerlogg = KotlinLogging.logger("tjenestekall.exchange")
+private val exchangeToOboToken = { token: String, audience: String ->
+    sikkerlogg.info { "Skal utveksle token=$token med audience=$audience" }
+    val accessTokenResponse = Configuration.tokenXClient.tokenExchange(token, audience)
+    sikkerlogg.info { "Utførte Token Exchange: $accessTokenResponse" }
+    accessTokenResponse.accessToken
 }
