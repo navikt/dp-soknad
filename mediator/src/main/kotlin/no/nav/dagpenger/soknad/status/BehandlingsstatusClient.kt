@@ -27,9 +27,9 @@ internal class BehandlingsstatusHttpClient(
     private val tokenProvider: (token: String, audience: String) -> String = exchangeToOboToken(),
     engine: HttpClientEngine = CIO.create()
 ) : BehandlingsstatusClient {
-
     companion object {
         private val logger = KotlinLogging.logger {}
+        private val sikkerlogg = KotlinLogging.logger("tjenestekall.behandlingsstatus")
     }
 
     private val httpClient = HttpClient(engine) {
@@ -42,7 +42,7 @@ internal class BehandlingsstatusHttpClient(
     }
 
     override suspend fun hentBehandlingsstatus(fom: LocalDateTime, subjectToken: String): BehandlingsstatusDto {
-        val url = "$baseUrl/behandlingsstatus?fom=$fom"
+        val url = "http://dp-innsyn/behandlingsstatus?fom=$fom"
         return try {
             httpClient.get(url) {
                 addBearerToken(subjectToken)
@@ -55,7 +55,10 @@ internal class BehandlingsstatusHttpClient(
     }
 
     private fun HttpRequestBuilder.addBearerToken(subjectToken: String) {
-        headers[HttpHeaders.Authorization] = "Bearer ${tokenProvider.invoke(subjectToken, innsynAudience)}"
+        val invoke = tokenProvider.invoke(subjectToken, innsynAudience).also {
+            sikkerlogg.info { "Laget token=$it" }
+        }
+        headers[HttpHeaders.Authorization] = "Bearer $invoke"
     }
 }
 
