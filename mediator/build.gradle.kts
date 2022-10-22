@@ -19,8 +19,8 @@ dependencies {
     implementation(Ktor2.Server.library("content-negotiation"))
     implementation("io.prometheus:simpleclient_caffeine:0.15.0")
     implementation("io.ktor:ktor-serialization-jackson:${Ktor2.version}")
-    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2022.05.30-09.37.623ee13a49dd")
-    implementation("com.github.navikt.dp-biblioteker:pdl-klient:2022.05.30-09.37.623ee13a49dd")
+    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2022.10.22-09.05.6fcf3395aa4f")
+    implementation("com.github.navikt.dp-biblioteker:pdl-klient:2022.10.22-09.05.6fcf3395aa4f")
     implementation("com.github.navikt:pam-geography:2.15")
 
     implementation("com.fasterxml.jackson.module:jackson-module-blackbird:2.13.3")
@@ -35,11 +35,11 @@ dependencies {
     testImplementation(Ktor2.Client.library("mock"))
     testImplementation(Mockk.mockk)
     testImplementation(Junit5.params)
-    testImplementation("no.nav.security:mock-oauth2-server:0.4.1")
+    testImplementation("no.nav.security:mock-oauth2-server:0.5.5")
     testImplementation("org.testcontainers:testcontainers:${TestContainers.version}")
     testImplementation(TestContainers.postgresql)
+    
 }
-
 application {
     mainClass.set("no.nav.dagpenger.soknad.AppKt")
 }
