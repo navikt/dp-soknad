@@ -228,7 +228,6 @@ internal class SøknadTest {
         håndterLeggtilFil("2", "urn:sid:2")
         håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle3")
 
-        håndterSendInnSøknad()
         håndterArkiverbarSøknad(ettersendinger().innsendingId)
 
         assertBehov(
@@ -293,6 +292,37 @@ internal class SøknadTest {
     }
 
     private fun ettersendinger() = inspektør.ettersendinger.last()
+
+    @Test
+    fun ` Ettersendinger av dokumentasjon - dokumentkravsammenstilling (bundle) trigger send inn søknad`() {
+        håndterØnskeOmNySøknadHendelse()
+        håndterNySøknadOpprettet()
+        håndterSøkerOppgaveHendelse(
+            setOf(
+                sannsynliggjøring("1", "f1-1", "f1-2"),
+            )
+        )
+        håndterDokumentasjonIkkeTilgjengelig("1", "Har ikke")
+        håndterSendInnSøknad()
+        håndterInnsendingMetadata()
+        håndterMidlertidigJournalførtSøknad()
+        håndterJournalførtSøknad()
+        assertTilstander(
+            UnderOpprettelse,
+            Påbegynt,
+            Innsendt
+        )
+
+        håndterLeggtilFil(kravId = "1", "urn:sid:2")
+        håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle3")
+
+        håndterArkiverbarSøknad(ettersendinger().innsendingId)
+        håndterMidlertidigJournalførtSøknad(ettersendinger().innsendingId)
+        assertEttersendingTilstand(AvventerJournalføring)
+
+        håndterJournalførtSøknad()
+        assertEttersendingTilstand(Journalført)
+    }
 
     @Test
     fun `Slett søknad for person`() {

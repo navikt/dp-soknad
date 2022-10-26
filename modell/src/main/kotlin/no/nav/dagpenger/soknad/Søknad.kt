@@ -365,6 +365,7 @@ class Søknad private constructor(
 
         override fun håndter(dokumentKravSammenstilling: DokumentKravSammenstilling, søknad: Søknad) {
             søknad.dokumentkrav.håndter(dokumentKravSammenstilling)
+            søknad.håndter(SøknadInnsendtHendelse(dokumentKravSammenstilling.søknadID(), søknad.ident))
         }
 
         override fun håndter(

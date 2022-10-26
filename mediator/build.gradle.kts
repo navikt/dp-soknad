@@ -38,7 +38,6 @@ dependencies {
     testImplementation("no.nav.security:mock-oauth2-server:0.5.5")
     testImplementation("org.testcontainers:testcontainers:${TestContainers.version}")
     testImplementation(TestContainers.postgresql)
-    
 }
 application {
     mainClass.set("no.nav.dagpenger.soknad.AppKt")
