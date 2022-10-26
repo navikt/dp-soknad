@@ -227,6 +227,19 @@ internal class SøknadTest {
         // Ettersending
         håndterLeggtilFil("2", "urn:sid:2")
         håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle3")
+        assertBehovContains(
+            Behovtype.FaktumSvar,
+        ) { behovParametre ->
+
+            assertEquals("2", behovParametre["id"])
+            assertEquals("2", behovParametre["id"])
+            assertEquals("dokument", behovParametre["type"])
+            val svar = behovParametre["svar"] as Map<*, *>
+            assertEquals("urn:sid:bundle3", svar["urn"])
+            assertNotNull(svar["lastOppTidsstempel"])
+            assertEquals(inspektør.søknadId.toString(), behovParametre["søknad_uuid"])
+            assertEquals(testIdent, behovParametre["ident"])
+        }
 
         håndterArkiverbarSøknad(ettersendinger().innsendingId)
 
@@ -470,6 +483,13 @@ internal class SøknadTest {
         } ?: throw AssertionError("Fant ikke behov $behovtype")
 
         assertEquals(forventetDetaljer, behov.detaljer() + behov.kontekst())
+    }
+    private fun assertBehovContains(behovtype: Behovtype, block: (Map<String, Any>) -> Unit) {
+        val behov = inspektør.aktivitetslogg.behov().findLast {
+            it.type == behovtype
+        } ?: throw AssertionError("Fant ikke behov $behovtype")
+
+        block(behov.detaljer() + behov.kontekst())
     }
 }
 
