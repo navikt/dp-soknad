@@ -10,7 +10,6 @@ import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
-import no.nav.dagpenger.soknad.SøknadDataVisitor
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.utils.auth.ident
 import java.time.LocalDate
@@ -36,7 +35,7 @@ private fun lagMineSøknaderDto(søknader: Set<Søknad>, fom: LocalDate): MineSo
     val innsendteSøknader = mutableListOf<InnsendtSøknadDto>()
 
     søknader.map { søknad ->
-        val søknadData = SøknadDataVisitor(søknad)
+        val søknadData = MineSøknaderVisitor(søknad)
         when {
             søknadData.søknadTilstand() == Påbegynt ->
                 påbegyntSøknad = PåbegyntSøknadDto(søknad.søknadUUID(), søknadData.søknadOpprettet())

@@ -27,7 +27,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID
 
-class MineSoknaderApiTest {
+class MineSøknaderApiTest {
     private val søknadUuid = UUID.randomUUID()
     private val endepunkt = "${Configuration.basePath}/soknad/mine-soknader"
 
@@ -165,7 +165,7 @@ class MineSoknaderApiTest {
     fun `får 400 Bad Request ved manglende eller ugyldig fom queryparam`() {
 
         TestApplication.withMockAuthServerAndTestApplication(TestApplication.mockedSøknadApi()) {
-            autentisert("$endepunkt", httpMethod = HttpMethod.Get).apply {
+            autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
                 assertEquals(HttpStatusCode.BadRequest, this.status)
             }
             autentisert("$endepunkt?fom=ugyldigFom", httpMethod = HttpMethod.Get).apply {

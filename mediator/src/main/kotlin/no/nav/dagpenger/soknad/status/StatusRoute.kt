@@ -12,7 +12,6 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
-import no.nav.dagpenger.soknad.SøknadDataVisitor
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.status.SøknadStatus.Paabegynt
 import no.nav.dagpenger.soknad.søknadUuid
@@ -35,18 +34,22 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator, behandlingsstat
         try {
             validator.valider(søknadUuid, ident)
             val søknad = søknadMediator.hent(søknadUuid)!!
-            val søknadData = SøknadDataVisitor(søknad)
+            val søknadStatusVisitor = SøknadStatusVisitor(søknad)
 
-            when (søknadData.søknadTilstand()) {
+            when (søknadStatusVisitor.søknadTilstand()) {
                 UnderOpprettelse -> call.respond(InternalServerError)
-                Påbegynt -> call.respond(status = OK, SøknadStatusDTO(Paabegynt, søknadData.søknadOpprettet()))
+                Påbegynt -> call.respond(status = OK, SøknadStatusDTO(Paabegynt, søknadStatusVisitor.søknadOpprettet()))
                 Innsendt -> {
-                    val førsteInnsendingTidspunkt = søknadData.førsteInnsendingTidspunkt()
+                    val førsteInnsendingTidspunkt = søknadStatusVisitor.førsteInnsendingTidspunkt()
                     call.respond(
                         status = OK,
                         SøknadStatusDTO(
-                            status = søknadStatus(behandlingsstatusClient, førsteInnsendingTidspunkt.toLocalDate(), token),
-                            opprettet = søknadData.søknadOpprettet(),
+                            status = søknadStatus(
+                                behandlingsstatusClient,
+                                førsteInnsendingTidspunkt.toLocalDate(),
+                                token
+                            ),
+                            opprettet = søknadStatusVisitor.søknadOpprettet(),
                             innsendt = førsteInnsendingTidspunkt
                         )
                     )
