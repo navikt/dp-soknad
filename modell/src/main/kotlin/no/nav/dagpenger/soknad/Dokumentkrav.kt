@@ -2,7 +2,7 @@ package no.nav.dagpenger.soknad
 
 import de.slub.urn.RFC
 import de.slub.urn.URN
-import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.FaktumSvar
+import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.DokumentkravSvar
 import no.nav.dagpenger.soknad.Krav.Companion.aktive
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.IKKE_BESVART
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SEND_NÅ
@@ -126,7 +126,7 @@ data class Krav(
         this.svar.bundle = hendelse.urn()
         this.svar.filer.forEach { fil -> fil.bundlet = true }
         hendelse.behov(
-            FaktumSvar, "Må svare dokumentkravet i Quiz",
+            DokumentkravSvar, "Må svare dokumentkravet i Quiz",
             mapOf(
                 "id" to this.id,
                 "type" to "dokument",

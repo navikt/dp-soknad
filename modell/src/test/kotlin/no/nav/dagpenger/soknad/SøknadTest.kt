@@ -228,7 +228,7 @@ internal class SøknadTest {
         håndterLeggtilFil("2", "urn:sid:2")
         håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle3")
         assertBehovContains(
-            Behovtype.FaktumSvar,
+            Behovtype.DokumentkravSvar,
         ) { behovParametre ->
 
             assertEquals("2", behovParametre["id"])
