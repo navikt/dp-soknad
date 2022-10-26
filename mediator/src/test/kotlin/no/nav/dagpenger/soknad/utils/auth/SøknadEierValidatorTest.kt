@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.utils.auth
 
+import io.ktor.server.plugins.NotFoundException
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -46,14 +47,14 @@ internal class SøknadEierValidatorTest {
     @Test
     fun `Ingen eier for søknad gir validerings feil`() {
         SøknadEierValidator(søknadMediatorMock).let { validator ->
-            assertThrows<IllegalArgumentException> {
+            assertThrows<NotFoundException> {
                 validator.valider(ukjentSøknadId, eier1)
             }
         }
     }
 
     @Test
-    fun `caching`() {
+    fun caching() {
         repeat(5) { SøknadEierValidator(søknadMediatorMock).valider(søknadId1, eier1) }
         verify(exactly = 1) { søknadMediatorMock.hentEier(søknadId1) }
 

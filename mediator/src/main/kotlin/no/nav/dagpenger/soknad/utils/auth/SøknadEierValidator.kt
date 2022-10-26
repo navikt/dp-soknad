@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad.utils.auth
 
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
+import io.ktor.server.plugins.NotFoundException
 import io.prometheus.client.cache.caffeine.CacheMetricsCollector
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.IkkeTilgangExeption
@@ -23,10 +24,10 @@ internal class SøknadEierValidator(private val mediator: SøknadMediator) {
             }
     }
 
-    fun erEier(søknadId: UUID, forventetEier: String): Boolean {
-        val faktiskEier = requireNotNull(cache.get(søknadId, mediator::hentEier)) {
-            "Fant ikke søknad: $søknadId"
-        }
+    private fun erEier(søknadId: UUID, forventetEier: String): Boolean {
+        val faktiskEier = cache.get(søknadId, mediator::hentEier)
+            ?: throw NotFoundException("Finner ikke søknad med uuid: $søknadId")
+
         return sjekkEier(faktiskEier, forventetEier)
     }
 

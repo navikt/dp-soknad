@@ -3,7 +3,9 @@ package no.nav.dagpenger.soknad.status
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.contentType
+import io.ktor.server.plugins.NotFoundException
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -25,7 +27,6 @@ import no.nav.dagpenger.soknad.status.SøknadStatus.Paabegynt
 import no.nav.dagpenger.soknad.status.SøknadStatus.UnderBehandling
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import java.lang.IllegalArgumentException
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -66,7 +67,7 @@ class StatusApiTest {
             )
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
-                assertEquals(HttpStatusCode.NotFound, this.status)
+                assertEquals(NotFound, this.status)
             }
         }
     }
@@ -117,12 +118,12 @@ class StatusApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } throws IllegalArgumentException("Fant ikke søknad")
+                    every { it.hentEier(søknadUuid) } throws NotFoundException()
                 }
             )
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
-                assertEquals(HttpStatusCode.NotFound, this.status)
+                assertEquals(NotFound, this.status)
             }
         }
     }
