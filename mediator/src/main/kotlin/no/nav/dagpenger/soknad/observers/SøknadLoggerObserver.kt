@@ -12,6 +12,12 @@ object SøknadLoggerObserver : SøknadObserver {
         }
     }
 
+    override fun innsendingTilstandEndret(event: SøknadObserver.SøknadInnsendingEndretTilstandEvent) {
+        log.info {
+            "Søknad ${event.søknadId} med innsending ${event.innsending.innsendingId} endret tilstand fra ${event.innsending.forrigeTilstand.name} til ${event.innsending.gjeldendeTilstand.name}"
+        }
+    }
+
     override fun søknadSlettet(event: SøknadObserver.SøknadSlettetEvent) {
         log.info {
             "Søknad ${event.søknadId} slettet"
