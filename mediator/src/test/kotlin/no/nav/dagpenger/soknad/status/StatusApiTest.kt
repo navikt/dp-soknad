@@ -66,7 +66,7 @@ class StatusApiTest {
             )
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
-                assertEquals(HttpStatusCode.InternalServerError, this.status)
+                assertEquals(HttpStatusCode.NotFound, this.status)
             }
         }
     }

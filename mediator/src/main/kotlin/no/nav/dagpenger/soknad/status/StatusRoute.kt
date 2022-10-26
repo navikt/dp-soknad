@@ -1,6 +1,5 @@
 package no.nav.dagpenger.soknad.status
 
-import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.application.call
@@ -33,30 +32,12 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator, behandlingsstat
 
         try {
             validator.valider(søknadUuid, ident)
+
             val søknad = søknadMediator.hent(søknadUuid)!!
             val søknadStatusVisitor = SøknadStatusVisitor(søknad)
+            val søknadStatusDto = createSøknadStatusDto(søknadStatusVisitor, behandlingsstatusClient, token)
 
-            when (søknadStatusVisitor.søknadTilstand()) {
-                UnderOpprettelse -> call.respond(InternalServerError)
-                Påbegynt -> call.respond(status = OK, SøknadStatusDTO(Paabegynt, søknadStatusVisitor.søknadOpprettet()))
-                Innsendt -> {
-                    val førsteInnsendingTidspunkt = søknadStatusVisitor.førsteInnsendingTidspunkt()
-                    call.respond(
-                        status = OK,
-                        SøknadStatusDTO(
-                            status = søknadStatus(
-                                behandlingsstatusClient,
-                                førsteInnsendingTidspunkt.toLocalDate(),
-                                token
-                            ),
-                            opprettet = søknadStatusVisitor.søknadOpprettet(),
-                            innsendt = førsteInnsendingTidspunkt
-                        )
-                    )
-                }
-                // TODO: Søknad med tilstand slettet kaster IllegalArgumentException ved rehydrering, returnerer derfor 500
-                Slettet -> call.respond(NotFound)
-            }
+            call.respond(OK, søknadStatusDto)
         } catch (e: IllegalArgumentException) {
             logger.info { "Fant ikke søknad med $søknadUuid. Error: ${e.message}" }
             call.respond(NotFound)
@@ -64,17 +45,39 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator, behandlingsstat
     }
 }
 
-private suspend fun søknadStatus(
+private suspend fun createSøknadStatusDto(
+    statusVisitor: SøknadStatusVisitor,
+    behandlingsstatusClient: BehandlingsstatusClient,
+    token: String,
+) = when (statusVisitor.søknadTilstand()) {
+    Påbegynt -> SøknadStatusDto(Paabegynt, statusVisitor.søknadOpprettet())
+    Innsendt -> {
+        SøknadStatusDto(
+            status = hentSøknadStatus(
+                behandlingsstatusClient,
+                førsteInnsendingTidspunkt = statusVisitor.førsteInnsendingTidspunkt().toLocalDate(),
+                token
+            ),
+            opprettet = statusVisitor.søknadOpprettet(),
+            innsendt = statusVisitor.førsteInnsendingTidspunkt()
+        )
+    }
+
+    UnderOpprettelse -> throw IllegalArgumentException("Kan ikke gi status for søknad som er under opprettelse")
+    Slettet -> throw IllegalArgumentException("Kan ikke gi status for søknad som er slettet")
+}
+
+private suspend fun hentSøknadStatus(
     behandlingsstatusClient: BehandlingsstatusClient,
     førsteInnsendingTidspunkt: LocalDate,
-    token: String
+    token: String,
 ): SøknadStatus {
     val behandlingsstatus =
         behandlingsstatusClient.hentBehandlingsstatus(fom = førsteInnsendingTidspunkt, token).behandlingsstatus
     return SøknadStatus.valueOf(behandlingsstatus)
 }
 
-data class SøknadStatusDTO(
+data class SøknadStatusDto(
     val status: SøknadStatus,
     val opprettet: LocalDateTime,
     val innsendt: LocalDateTime? = null,
