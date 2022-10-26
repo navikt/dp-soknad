@@ -130,10 +130,9 @@ data class Krav(
             mapOf(
                 "id" to this.id,
                 "type" to "dokument",
-                "svar" to mapOf(
-                    "urn" to hendelse.urn().toString(),
-                    "lastOppTidsstempel" to LocalDateTime.now()
-                )
+                "urn" to hendelse.urn().toString(),
+                "lastOppTidsstempel" to LocalDateTime.now()
+
             )
         )
     }

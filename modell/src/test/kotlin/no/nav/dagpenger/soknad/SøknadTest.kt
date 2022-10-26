@@ -234,9 +234,8 @@ internal class SøknadTest {
             assertEquals("2", behovParametre["id"])
             assertEquals("2", behovParametre["id"])
             assertEquals("dokument", behovParametre["type"])
-            val svar = behovParametre["svar"] as Map<*, *>
-            assertEquals("urn:sid:bundle3", svar["urn"])
-            assertNotNull(svar["lastOppTidsstempel"])
+            assertEquals("urn:sid:bundle3", behovParametre["urn"])
+            assertNotNull(behovParametre["lastOppTidsstempel"])
             assertEquals(inspektør.søknadId.toString(), behovParametre["søknad_uuid"])
             assertEquals(testIdent, behovParametre["ident"])
         }
