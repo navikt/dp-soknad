@@ -35,12 +35,13 @@ class MineSøknaderApiTest {
     fun `én påbegynt og to innsendte søknader`() {
         val opprettet = LocalDateTime.MAX
         val innsendtTidspunkt = LocalDateTime.MAX
+        val sistEndretAvBruker = LocalDateTime.MAX
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentSøknader(TestApplication.defaultDummyFodselsnummer) } returns setOf(
-                        søknadMed(tilstand = Påbegynt, opprettet),
+                        søknadMed(tilstand = Påbegynt, opprettet, sistEndretAvBruker = sistEndretAvBruker),
                         søknadMed(
                             tilstand = Innsendt,
                             innsending = innsending(innsendtTidspunkt, journalpostId = "123")
@@ -56,8 +57,7 @@ class MineSøknaderApiTest {
             val fom = LocalDate.now()
             autentisert("$endepunkt?fom=$fom", httpMethod = HttpMethod.Get).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
-                val expectedJson =
-                    expectedJson(opprettet, innsendtTidspunkt)
+                val expectedJson = expectedJson(opprettet, innsendtTidspunkt, sistEndretAvBruker)
                 assertEquals(expectedJson, this.bodyAsText())
                 assertEquals("application/json; charset=UTF-8", this.contentType().toString())
             }
@@ -84,14 +84,14 @@ class MineSøknaderApiTest {
     }
 
     @Test
-    fun `én påbegynt og ingen innsendte`() {
+    fun `én påbegynt som ikke er endret av bruker, og ingen innsendte søknader`() {
         val opprettet = LocalDateTime.MAX
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentSøknader(TestApplication.defaultDummyFodselsnummer) } returns setOf(
-                        søknadMed(tilstand = Påbegynt, opprettet)
+                        søknadMed(tilstand = Påbegynt, opprettet, sistEndretAvBruker = null)
                     )
                 }
             )
@@ -107,7 +107,7 @@ class MineSøknaderApiTest {
     }
 
     @Test
-    fun `én innsendt og ingen påbegynte`() {
+    fun `én innsendt og ingen påbegynte søknader`() {
         val innsendtTidspunkt = LocalDateTime.MAX
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -179,21 +179,28 @@ class MineSøknaderApiTest {
         innsending = innsending(innsendt.minusDays(5).atStartOfDay(), journalpostId = "456")
     )
 
-    private fun expectedJson(opprettet: LocalDateTime?, innsendtTidspunkt: LocalDateTime?) =
+    private fun expectedJson(
+        opprettet: LocalDateTime?,
+        innsendtTidspunkt: LocalDateTime?,
+        sistEndretAvBruker: LocalDateTime
+    ) =
         //language=JSON
-        """{"paabegynt":{"soknadUuid":"$søknadUuid","opprettet":"$opprettet"},"innsendte":[{"soknadUuid":"$søknadUuid","forstInnsendt":"$innsendtTidspunkt"},{"soknadUuid":"$søknadUuid","forstInnsendt":"$innsendtTidspunkt"}]}"""
+        """{"paabegynt":{"soknadUuid":"$søknadUuid","opprettet":"$opprettet","sistEndretAvBruker":"$sistEndretAvBruker"},"innsendte":[{"soknadUuid":"$søknadUuid","forstInnsendt":"$innsendtTidspunkt"},{"soknadUuid":"$søknadUuid","forstInnsendt":"$innsendtTidspunkt"}]}"""
 
     private fun søknadMed(
         tilstand: Søknad.Tilstand.Type,
         opprettet: LocalDateTime = LocalDateTime.now(),
-        innsending: NyInnsending? = null
+        innsending: NyInnsending? = null,
+        sistEndretAvBruker: LocalDateTime? = null
     ) = Søknad.rehydrer(
         søknadId = søknadUuid,
         ident = TestApplication.defaultDummyFodselsnummer,
         opprettet = ZonedDateTime.of(opprettet, ZoneId.of("Europe/Oslo")),
         språk = Språk("NO"),
         dokumentkrav = Dokumentkrav(),
-        sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.now(), ZoneId.of("Europe/Oslo")),
+        sistEndretAvBruker = if (sistEndretAvBruker != null) {
+            ZonedDateTime.of(sistEndretAvBruker, ZoneId.of("Europe/Oslo"))
+        } else null,
         tilstandsType = tilstand,
         aktivitetslogg = Aktivitetslogg(),
         innsending = innsending

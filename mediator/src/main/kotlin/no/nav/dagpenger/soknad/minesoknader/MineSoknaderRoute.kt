@@ -35,15 +35,19 @@ private fun lagMineSøknaderDto(søknader: Set<Søknad>, fom: LocalDate): MineSo
     val innsendteSøknader = mutableListOf<InnsendtSøknadDto>()
 
     søknader.map { søknad ->
-        val søknadData = MineSøknaderVisitor(søknad)
+        val mineSøknaderVisitor = MineSøknaderVisitor(søknad)
         when {
-            søknadData.søknadTilstand() == Påbegynt ->
-                påbegyntSøknad = PåbegyntSøknadDto(søknad.søknadUUID(), søknadData.søknadOpprettet())
+            mineSøknaderVisitor.søknadTilstand() == Påbegynt ->
+                påbegyntSøknad = PåbegyntSøknadDto(
+                    søknad.søknadUUID(),
+                    mineSøknaderVisitor.søknadOpprettet(),
+                    mineSøknaderVisitor.sistEndretAvBruker()
+                )
 
-            søknadData.søknadTilstand() == Innsendt -> {
-                if (søknadData.førsteInnsendingTidspunkt() > fom.atStartOfDay()) {
+            mineSøknaderVisitor.søknadTilstand() == Innsendt -> {
+                if (mineSøknaderVisitor.førsteInnsendingTidspunkt() > fom.atStartOfDay()) {
                     innsendteSøknader.add(
-                        InnsendtSøknadDto(søknad.søknadUUID(), søknadData.førsteInnsendingTidspunkt())
+                        InnsendtSøknadDto(søknad.søknadUUID(), mineSøknaderVisitor.førsteInnsendingTidspunkt())
                     )
                 }
             }
@@ -56,7 +60,7 @@ private fun lagMineSøknaderDto(søknader: Set<Søknad>, fom: LocalDate): MineSo
 
 data class MineSoknaderDto(val paabegynt: PåbegyntSøknadDto?, val innsendte: List<InnsendtSøknadDto>?)
 
-data class PåbegyntSøknadDto(val soknadUuid: UUID, val opprettet: LocalDateTime)
+data class PåbegyntSøknadDto(val soknadUuid: UUID, val opprettet: LocalDateTime, val sistEndretAvBruker: LocalDateTime?)
 
 data class InnsendtSøknadDto(val soknadUuid: UUID, val forstInnsendt: LocalDateTime)
 

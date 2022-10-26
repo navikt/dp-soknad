@@ -15,6 +15,7 @@ import java.util.UUID
 class MineSøknaderVisitor(søknad: Søknad) : SøknadVisitor {
 
     private lateinit var søknadOpprettet: LocalDateTime
+    private var søknadSistEndretAvBruker: LocalDateTime? = null
     private lateinit var søknadTilstand: Søknad.Tilstand.Type
     private val søknadInnsendinger: MutableList<LocalDateTime> = mutableListOf()
 
@@ -23,6 +24,7 @@ class MineSøknaderVisitor(søknad: Søknad) : SøknadVisitor {
     }
 
     fun førsteInnsendingTidspunkt() = søknadInnsendinger.minOf { it }
+    fun sistEndretAvBruker() = søknadSistEndretAvBruker
     fun søknadOpprettet() = søknadOpprettet
     fun søknadTilstand() = søknadTilstand
 
@@ -36,6 +38,9 @@ class MineSøknaderVisitor(søknad: Søknad) : SøknadVisitor {
         sistEndretAvBruker: ZonedDateTime?
     ) {
         søknadOpprettet = opprettet.toLocalDateTime()
+        if (sistEndretAvBruker != null) {
+            søknadSistEndretAvBruker = sistEndretAvBruker.toLocalDateTime()
+        }
         søknadTilstand = tilstand.tilstandType
     }
 
