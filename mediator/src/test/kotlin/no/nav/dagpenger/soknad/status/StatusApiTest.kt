@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad.status
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.contentType
 import io.ktor.server.plugins.NotFoundException
@@ -67,7 +68,7 @@ class StatusApiTest {
             )
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
-                assertEquals(NotFound, this.status)
+                assertEquals(BadRequest, this.status)
             }
         }
     }

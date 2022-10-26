@@ -1,6 +1,5 @@
 package no.nav.dagpenger.soknad.status
 
-import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.application.call
 import io.ktor.server.response.respond
@@ -20,8 +19,6 @@ import no.nav.dagpenger.soknad.utils.auth.jwt
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-private val logger = KotlinLogging.logger {}
-
 internal fun Route.statusRoute(søknadMediator: SøknadMediator, behandlingsstatusClient: BehandlingsstatusClient) {
     val validator = SøknadEierValidator(søknadMediator)
 
@@ -30,18 +27,13 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator, behandlingsstat
         val ident = call.ident()
         val token = call.request.jwt()
 
-        try {
-            validator.valider(søknadUuid, ident)
+        validator.valider(søknadUuid, ident)
 
-            val søknad = søknadMediator.hent(søknadUuid)!!
-            val søknadStatusVisitor = SøknadStatusVisitor(søknad)
-            val søknadStatusDto = createSøknadStatusDto(søknadStatusVisitor, behandlingsstatusClient, token)
+        val søknad = søknadMediator.hent(søknadUuid)!!
+        val søknadStatusVisitor = SøknadStatusVisitor(søknad)
+        val søknadStatusDto = createSøknadStatusDto(søknadStatusVisitor, behandlingsstatusClient, token)
 
-            call.respond(OK, søknadStatusDto)
-        } catch (e: IllegalArgumentException) {
-            logger.info { "Fant ikke søknad med $søknadUuid. Error: ${e.message}" }
-            call.respond(NotFound)
-        }
+        call.respond(OK, søknadStatusDto)
     }
 }
 
