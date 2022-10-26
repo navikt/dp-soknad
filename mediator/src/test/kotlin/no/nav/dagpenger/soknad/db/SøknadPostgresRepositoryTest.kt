@@ -473,7 +473,7 @@ internal class SøknadPostgresRepositoryTest {
             val søknadPostgresRepository = SøknadPostgresRepository(dataSource)
             søknadPostgresRepository.lagre(søknad)
             val søknadMediator = SøknadMediator(
-                rapidsConnection = mockk(),
+                rapidsConnection = mockk(relaxed = true),
                 søknadDataRepository = mockk(),
                 søknadMalRepository = mockk(),
                 ferdigstiltSøknadRepository = mockk(),

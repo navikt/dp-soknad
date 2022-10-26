@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad
 
 import de.slub.urn.RFC
 import de.slub.urn.URN
+import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.DokumentkravSvar
 import no.nav.dagpenger.soknad.Krav.Companion.aktive
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.IKKE_BESVART
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SEND_NÅ
@@ -10,6 +11,7 @@ import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
 class Dokumentkrav private constructor(
@@ -123,6 +125,17 @@ data class Krav(
     fun håndter(hendelse: DokumentKravSammenstilling) {
         this.svar.bundle = hendelse.urn()
         this.svar.filer.forEach { fil -> fil.bundlet = true }
+        hendelse.behov(
+            DokumentkravSvar, "Må svare dokumentkravet i Quiz",
+            mapOf(
+                "id" to this.id,
+                "type" to "dokument",
+                "svar" to mapOf(
+                    "urn" to hendelse.urn().toString(),
+                    "lastOppTidsstempel" to LocalDateTime.now()
+                )
+            )
+        )
     }
 
     fun accept(dokumentkravVisitor: DokumentkravVisitor) {
