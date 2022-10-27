@@ -25,7 +25,7 @@ internal class KontonummerOppslag(
 ) {
 
     private val dpProxyClient = HttpClient(httpClientEngine) {
-
+        expectSuccess = true
         install(DefaultRequest) {
         }
         install(ContentNegotiation) {
