@@ -9,7 +9,6 @@ import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Innsending
@@ -40,8 +39,6 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID
 import javax.sql.DataSource
-
-private val logger = KotlinLogging.logger {}
 
 class SøknadPostgresRepository(private val dataSource: DataSource) :
     SøknadRepository {
