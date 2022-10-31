@@ -117,7 +117,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         val innsendingId = row.uuid("innsending_uuid")
         val dokumenter: InnsendingDTO.DokumenterDTO = session.hentDokumenter(innsendingId)
         val type = InnsendingDTO.InnsendingTypeDTO.rehydrer(row.string("innsendingtype"))
-        logger.info { "Hentet dokumenter for innsendingId=$innsendingId, dokumenter=$dokumenter" }
         val ettersendinger = when (type) {
             InnsendingDTO.InnsendingTypeDTO.NY_DIALOG -> session.hentEttersendinger(innsendingId)
             InnsendingDTO.InnsendingTypeDTO.ETTERSENDING_TIL_DIALOG -> emptyList()
