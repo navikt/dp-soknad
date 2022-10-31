@@ -11,6 +11,8 @@ import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
+import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -22,12 +24,25 @@ class PåbegyntSøknadApiTest {
     @Test
     fun `Skal hente påbegynt søknad`() {
         val expectedIdent = "12345678901"
-        val søknadUUID = "258b2f1b-bdda-4bed-974c-c4ddb206e4f4"
+        val søknadId = UUID.fromString("258b2f1b-bdda-4bed-974c-c4ddb206e4f4")
         val expectedSoknad = Søknad(
-            UUID.fromString(søknadUUID),
+            søknadId,
             Språk("NO"),
-            expectedIdent,
-        )
+            expectedIdent
+        ).also {
+            it.håndter(
+                SøknadOpprettetHendelse(
+                    søknadId,
+                    expectedIdent
+                )
+            )
+            it.håndter(
+                FaktumOppdatertHendelse(
+                    søknadId,
+                    expectedIdent
+                )
+            )
+        }
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -40,13 +55,14 @@ class PåbegyntSøknadApiTest {
             autentisert(
                 endepunkt = "${Configuration.basePath}/soknad/paabegynt",
                 token = TestApplication.getTokenXToken("harsoknad"),
-                httpMethod = HttpMethod.Get,
+                httpMethod = HttpMethod.Get
             ).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
                 val response = objectMapper.readTree(this.bodyAsText())
-                assertEquals(søknadUUID, response["uuid"].asText())
+                assertEquals(søknadId.toString(), response["uuid"].asText())
                 assertEquals("no", response["spraak"].asText())
                 assertFalse(response["opprettet"].isNull)
+                assertFalse(response["sistEndret"].isNull)
             }
         }
     }
@@ -63,7 +79,7 @@ class PåbegyntSøknadApiTest {
             autentisert(
                 endepunkt = "${Configuration.basePath}/soknad/paabegynt",
                 token = TestApplication.getTokenXToken("ingensoknad"),
-                httpMethod = HttpMethod.Get,
+                httpMethod = HttpMethod.Get
             ).apply {
                 assertEquals(HttpStatusCode.NotFound, this.status)
             }
