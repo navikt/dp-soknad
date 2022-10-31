@@ -36,7 +36,7 @@ internal class BehandlingsstatusHttpClient(
         expectSuccess = true
         install(ContentNegotiation) {
             jackson {
-                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
+                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             }
         }
     }
