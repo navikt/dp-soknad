@@ -15,6 +15,7 @@ import io.ktor.http.contentType
 import io.ktor.serialization.jackson.jackson
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration
+import no.nav.dagpenger.soknad.Configuration.tokenXClient
 import java.time.LocalDate
 
 internal interface BehandlingsstatusClient {
@@ -29,7 +30,6 @@ internal class BehandlingsstatusHttpClient(
 ) : BehandlingsstatusClient {
     companion object {
         private val logger = KotlinLogging.logger {}
-        private val sikkerlogg = KotlinLogging.logger("tjenestekall.behandlingsstatus")
     }
 
     private val httpClient = HttpClient(engine) {
@@ -55,10 +55,7 @@ internal class BehandlingsstatusHttpClient(
     }
 
     private fun HttpRequestBuilder.addBearerToken(subjectToken: String) {
-        val invoke = tokenProvider.invoke(subjectToken, innsynAudience).also {
-            sikkerlogg.info { "Laget token=$it" }
-        }
-        headers[HttpHeaders.Authorization] = "Bearer $invoke"
+        headers[HttpHeaders.Authorization] = "Bearer ${tokenProvider.invoke(subjectToken, innsynAudience)}"
     }
 }
 
@@ -67,10 +64,6 @@ internal data class BehandlingsstatusDto(
     val behandlingsstatus: String
 )
 
-private val sikkerlogg = KotlinLogging.logger("tjenestekall.exchange")
 private val exchangeToOboToken = { token: String, audience: String ->
-    sikkerlogg.info { "Skal utveksle token=$token med audience=$audience" }
-    val accessTokenResponse = Configuration.tokenXClient.tokenExchange(token, audience)
-    sikkerlogg.info { "Utførte Token Exchange: $accessTokenResponse" }
-    accessTokenResponse.accessToken
+    tokenXClient.tokenExchange(token, audience).accessToken
 }
