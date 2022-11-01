@@ -1,15 +1,18 @@
 package no.nav.dagpenger.soknad
 
 import com.fasterxml.jackson.databind.node.BooleanNode
+import de.slub.urn.URN
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerArkiverbarSøknad
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerJournalføring
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMetadata
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMidlertidligJournalføring
 import no.nav.dagpenger.soknad.Innsending.TilstandType.Journalført
+import no.nav.dagpenger.soknad.Innsending.TilstandType.Opprettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
+import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
@@ -28,6 +31,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import java.time.ZonedDateTime
 import java.util.UUID
 
 internal class SøknadMediatorTest {
@@ -35,6 +39,50 @@ internal class SøknadMediatorTest {
         private const val testIdent = "12345678913"
         private const val testJournalpostId = "123455PDS"
         private val språkVerdi = "NO"
+        private val søknadMedDokumentasjonsKravId = UUID.randomUUID()
+        private fun søknadMedDokumentasjonsKrav(): Søknad {
+            val originalFaktumJson = faktumJson("1", "f1")
+            val dokumentFaktum =
+                Faktum(originalFaktumJson)
+            val originalFaktumSomsannsynliggjøresFakta = faktumJson("2", "f2")
+            val faktaSomSannsynliggjøres =
+                mutableSetOf(
+                    Faktum(originalFaktumSomsannsynliggjøresFakta)
+                )
+            val sannsynliggjøring = Sannsynliggjøring(
+                id = dokumentFaktum.id,
+                faktum = dokumentFaktum,
+                sannsynliggjør = faktaSomSannsynliggjøres
+            )
+            val krav = Krav(
+                sannsynliggjøring
+            )
+            return Søknad.rehydrer(
+                søknadId = søknadMedDokumentasjonsKravId,
+                ident = testIdent,
+                opprettet = ZonedDateTime.now(),
+                språk = Språk("NO"),
+                dokumentkrav = Dokumentkrav.rehydrer(
+                    krav = setOf(krav)
+                ),
+                sistEndretAvBruker = ZonedDateTime.now(),
+                tilstandsType = Innsendt,
+                aktivitetslogg = Aktivitetslogg(),
+                innsending = NyInnsending.rehydrer(
+                    innsendingId = UUID.randomUUID(),
+                    type = Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG,
+                    innsendt = ZonedDateTime.now(),
+                    journalpostId = null,
+                    tilstandsType = Opprettet,
+                    hovedDokument = null,
+                    dokumenter = listOf(),
+                    ettersendinger = listOf(),
+                    metadata = Innsending.Metadata(
+                        skjemakode = "hubba", tittel = "bubba"
+                    )
+                )
+            )
+        }
     }
 
     private lateinit var mediator: SøknadMediator
@@ -43,6 +91,7 @@ internal class SøknadMediatorTest {
     private object TestSøknadRepository : SøknadRepository {
 
         private val søknader = mutableListOf<Søknad>()
+
         override fun hentEier(søknadId: UUID): String? {
             TODO("Not yet implemented")
         }
@@ -85,6 +134,24 @@ internal class SøknadMediatorTest {
     @AfterEach
     fun tearDown() {
         TestSøknadRepository.clear()
+    }
+
+    @Test
+    fun `Behov ved ettersending `() {
+        TestSøknadRepository.lagre(søknadMedDokumentasjonsKrav())
+        mediator.behandle(
+            DokumentKravSammenstilling(
+                søknadMedDokumentasjonsKravId,
+                testIdent,
+                "1",
+                URN.rfc8141().parse("urn:vedlegg:1")
+            )
+        )
+
+        assertEquals(2, testRapid.inspektør.size)
+        assertEquals(listOf("DokumentkravSvar"), behov(0))
+        assertEquals(listOf("ArkiverbarSøknad"), behov(1))
+        assertEquals("ETTERSENDING_TIL_DIALOG", testRapid.inspektør.message(1)["type"].asText())
     }
 
     @Test
