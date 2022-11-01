@@ -70,7 +70,7 @@ internal class SøknadMediatorTest {
                 aktivitetslogg = Aktivitetslogg(),
                 innsending = NyInnsending.rehydrer(
                     innsendingId = UUID.randomUUID(),
-                    type = Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG,
+                    type = Innsending.InnsendingType.NY_DIALOG,
                     innsendt = ZonedDateTime.now(),
                     journalpostId = null,
                     tilstandsType = Opprettet,
@@ -78,7 +78,8 @@ internal class SøknadMediatorTest {
                     dokumenter = listOf(),
                     ettersendinger = listOf(),
                     metadata = Innsending.Metadata(
-                        skjemakode = "hubba", tittel = "bubba"
+                        skjemakode = "hubba",
+                        tittel = "bubba"
                     )
                 )
             )

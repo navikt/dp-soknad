@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter
 // Implements Visitor pattern to traverse the messages
 class Aktivitetslogg private constructor(
     private var forelder: Aktivitetslogg? = null,
-    private val aktiviteter: MutableList<Aktivitet>,
+    private val aktiviteter: MutableList<Aktivitet>
 ) : IAktivitetslogg {
     private val kontekster: MutableList<Aktivitetskontekst> = mutableListOf()
 
@@ -20,7 +20,7 @@ class Aktivitetslogg private constructor(
 
         private val MODELL_KONTEKSTER = listOf("søknad")
         fun rehyder(
-            aktiviteter: MutableList<Aktivitet>,
+            aktiviteter: MutableList<Aktivitet>
         ) = Aktivitetslogg(null, aktiviteter)
     }
 
@@ -78,7 +78,11 @@ class Aktivitetslogg private constructor(
     }
 
     override fun kontekst(søknad: Søknad) {
-        forelder = søknad.aktivitetslogg
+        if (this.forelder == null) {
+            this.forelder = søknad.aktivitetslogg
+        } else {
+            this.forelder?.forelder = søknad.aktivitetslogg
+        }
         kontekst(søknad as Aktivitetskontekst)
     }
 

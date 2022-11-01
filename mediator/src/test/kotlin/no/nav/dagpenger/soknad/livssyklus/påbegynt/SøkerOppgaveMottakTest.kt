@@ -45,7 +45,7 @@ class SøkerOppgaveMottakTest {
             testRapid.sendTestMessage(nySøknad(søknadUuid, ident))
             søknadMediator.hentSøkerOppgave(søknadUuid).also {
                 assertDoesNotThrow {
-                    val seksjoner = it!!.asFrontendformat()["seksjoner"]
+                    val seksjoner = it.asFrontendformat()["seksjoner"]
                     assertEquals(1, seksjoner.size())
                     assertEquals(0, seksjoner[0]["fakta"].size())
                     assertEquals(ident, it.eier())

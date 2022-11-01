@@ -49,7 +49,7 @@ internal class SøknadTest {
     private val språk = "NO"
 
     private companion object {
-        val objectMapper = jacksonObjectMapper()
+        val objectMapper = jacksonObjectMapper().writerWithDefaultPrettyPrinter()
     }
 
     private fun sannsynliggjøring(
@@ -92,7 +92,7 @@ internal class SøknadTest {
             assertNotNull(this)
             assertEquals(LocalDate.now(), this.toLocalDate())
         }
-        assertBehov(Behovtype.NySøknad, mapOf("ident" to testIdent, "søknad_uuid" to inspektør.søknadId.toString()))
+        assertBehov(Behovtype.NySøknad, mapOf("søknad_uuid" to inspektør.søknadId.toString(), "ident" to testIdent))
         håndterNySøknadOpprettet()
         håndterFaktumOppdatering()
         håndterSøkerOppgaveHendelse(
@@ -127,9 +127,9 @@ internal class SøknadTest {
         assertBehov(
             Behovtype.InnsendingMetadata,
             mapOf(
-                "type" to "NY_DIALOG",
                 "søknad_uuid" to inspektør.søknadId.toString(),
                 "ident" to testIdent,
+                "type" to "NY_DIALOG",
                 "innsendingId" to inspektør.innsendingId.toString()
             )
         )
@@ -144,9 +144,9 @@ internal class SøknadTest {
             Behovtype.ArkiverbarSøknad,
             mapOf(
                 "innsendtTidspunkt" to hendelse.innsendtidspunkt().toString(),
-                "type" to "NY_DIALOG",
                 "søknad_uuid" to inspektør.søknadId.toString(),
                 "ident" to testIdent,
+                "type" to "NY_DIALOG",
                 "innsendingId" to inspektør.innsendingId.toString()
             )
         )
@@ -155,7 +155,6 @@ internal class SøknadTest {
             AvventerMidlertidligJournalføring
         )
         val hoveddokument = mutableMapOf(
-            "brevkode" to "NAV 04-01.02",
             "varianter" to listOf(
                 mapOf<String, Any>(
                     "filnavn" to "",
@@ -163,17 +162,16 @@ internal class SøknadTest {
                     "variant" to "ARKIV",
                     "type" to "PDF"
                 )
-            )
+            ),
+            "brevkode" to "NAV 04-01.02"
         )
 
         assertBehov(
             Behovtype.NyJournalpost,
             mapOf(
-                "innsendingId" to inspektør.innsendingId.toString(),
                 "hovedDokument" to hoveddokument,
                 "dokumenter" to listOf(
                     mapOf(
-                        "brevkode" to "N6",
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f1-1",
@@ -181,10 +179,10 @@ internal class SøknadTest {
                                 "variant" to "ARKIV",
                                 "type" to "PDF"
                             )
-                        )
+                        ),
+                        "brevkode" to "N6"
                     ),
                     mapOf(
-                        "brevkode" to "N6",
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f3-1",
@@ -192,12 +190,14 @@ internal class SøknadTest {
                                 "variant" to "ARKIV",
                                 "type" to "PDF"
                             )
-                        )
+                        ),
+                        "brevkode" to "N6"
                     )
                 ),
-                "type" to "NY_DIALOG",
                 "søknad_uuid" to inspektør.søknadId.toString(),
-                "ident" to testIdent
+                "ident" to testIdent,
+                "type" to "NY_DIALOG",
+                "innsendingId" to inspektør.innsendingId.toString()
             )
         )
         håndterMidlertidigJournalførtSøknad()
@@ -228,7 +228,7 @@ internal class SøknadTest {
         håndterLeggtilFil("2", "urn:sid:2")
         håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle3")
         assertBehovContains(
-            Behovtype.DokumentkravSvar,
+            Behovtype.DokumentkravSvar
         ) { behovParametre ->
 
             assertEquals("2", behovParametre["id"])
@@ -244,9 +244,9 @@ internal class SøknadTest {
             Behovtype.ArkiverbarSøknad,
             mapOf(
                 "innsendtTidspunkt" to hendelse.innsendtidspunkt().toString(),
-                "type" to "ETTERSENDING_TIL_DIALOG",
                 "søknad_uuid" to inspektør.søknadId.toString(),
                 "ident" to testIdent,
+                "type" to "ETTERSENDING_TIL_DIALOG",
                 "innsendingId" to ettersendinger().innsendingId.toString()
             )
         )
@@ -259,7 +259,6 @@ internal class SøknadTest {
                 "hovedDokument" to hoveddokument.also { it["brevkode"] = "NAVe 04-01.02" },
                 "dokumenter" to listOf(
                     mapOf(
-                        "brevkode" to "N6",
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f1-1",
@@ -267,10 +266,10 @@ internal class SøknadTest {
                                 "variant" to "ARKIV",
                                 "type" to "PDF"
                             )
-                        )
+                        ),
+                        "brevkode" to "N6"
                     ),
                     mapOf(
-                        "brevkode" to "N6",
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f2-1",
@@ -278,10 +277,10 @@ internal class SøknadTest {
                                 "variant" to "ARKIV",
                                 "type" to "PDF"
                             )
-                        )
+                        ),
+                        "brevkode" to "N6"
                     ),
                     mapOf(
-                        "brevkode" to "N6",
                         "varianter" to listOf(
                             mapOf<String, Any>(
                                 "filnavn" to "f3-1",
@@ -289,7 +288,8 @@ internal class SøknadTest {
                                 "variant" to "ARKIV",
                                 "type" to "PDF"
                             )
-                        )
+                        ),
+                        "brevkode" to "N6"
                     )
                 ),
                 "søknad_uuid" to inspektør.søknadId.toString(),
@@ -322,7 +322,7 @@ internal class SøknadTest {
         håndterNySøknadOpprettet()
         håndterSøkerOppgaveHendelse(
             setOf(
-                sannsynliggjøring("1", "f1-1", "f1-2"),
+                sannsynliggjøring("1", "f1-1", "f1-2")
             )
         )
         håndterDokumentasjonIkkeTilgjengelig("1", "Har ikke")
@@ -492,7 +492,7 @@ internal class SøknadTest {
             it.type == behovtype
         } ?: throw AssertionError("Fant ikke behov $behovtype")
 
-        assertEquals(forventetDetaljer, behov.detaljer() + behov.kontekst())
+        assertEquals(objectMapper.writeValueAsString(forventetDetaljer), objectMapper.writeValueAsString(behov.detaljer() + behov.kontekst()))
     }
 
     private fun assertBehovContains(behovtype: Behovtype, block: (Map<String, Any>) -> Unit) {
