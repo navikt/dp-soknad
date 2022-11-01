@@ -5,7 +5,6 @@ import mu.KotlinLogging
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
-import kotlin.math.log
 
 class BehovMediator(
     private val rapidsConnection: RapidsConnection,
