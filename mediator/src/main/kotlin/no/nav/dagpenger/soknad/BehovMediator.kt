@@ -5,6 +5,7 @@ import mu.KotlinLogging
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
+import kotlin.math.log
 
 class BehovMediator(
     private val rapidsConnection: RapidsConnection,
@@ -23,6 +24,7 @@ class BehovMediator(
         hendelse: Hendelse,
         behov: List<Aktivitetslogg.Aktivitet.Behov>
     ) {
+        logger.info { "Skal sende ${behov.size} behov  ${behov.joinToString { "$it" }}" }
         behov
             .groupBy { it.kontekst() }
             .onEach { (_, behovMap) ->
