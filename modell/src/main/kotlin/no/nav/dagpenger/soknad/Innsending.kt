@@ -133,7 +133,6 @@ abstract class Innsending protected constructor(
 
         override fun håndter(hendelse: SøknadInnsendtHendelse, innsending: Innsending) {
             innsending.endreTilstand(AvventerMetadata, hendelse)
-            // TODO: DokumentKrav/Ferdigstill må bli med på et vis
         }
     }
 

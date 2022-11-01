@@ -88,6 +88,7 @@ class NyInnsending private constructor(
             dokumentkrav,
             metadata
         ).also { ettersending ->
+            hendelse.info("Lagde ny ettersending")
             ettersendinger.add(ettersending)
             observers.forEach { ettersending.addObserver(it) }
             ettersending.håndter(hendelse)
