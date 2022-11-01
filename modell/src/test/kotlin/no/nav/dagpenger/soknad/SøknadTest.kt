@@ -240,6 +240,17 @@ internal class SøknadTest {
             assertEquals(testIdent, behovParametre["ident"])
         }
 
+        assertBehov(
+            Behovtype.ArkiverbarSøknad,
+            mapOf(
+                "innsendtTidspunkt" to hendelse.innsendtidspunkt().toString(),
+                "type" to "ETTERSENDING_TIL_DIALOG",
+                "søknad_uuid" to inspektør.søknadId.toString(),
+                "ident" to testIdent,
+                "innsendingId" to ettersendinger().innsendingId.toString()
+            )
+        )
+
         håndterArkiverbarSøknad(ettersendinger().innsendingId)
 
         assertBehov(
@@ -483,6 +494,7 @@ internal class SøknadTest {
 
         assertEquals(forventetDetaljer, behov.detaljer() + behov.kontekst())
     }
+
     private fun assertBehovContains(behovtype: Behovtype, block: (Map<String, Any>) -> Unit) {
         val behov = inspektør.aktivitetslogg.behov().findLast {
             it.type == behovtype
