@@ -23,7 +23,6 @@ class BehovMediator(
         hendelse: Hendelse,
         behov: List<Aktivitetslogg.Aktivitet.Behov>
     ) {
-        logger.info { "Skal sende ${behov.size} behov  ${behov.joinToString { "$it" }}" }
         behov
             .groupBy { it.kontekst() }
             .onEach { (_, behovMap) ->
