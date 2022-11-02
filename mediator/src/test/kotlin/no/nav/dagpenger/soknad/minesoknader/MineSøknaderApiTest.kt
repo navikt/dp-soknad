@@ -84,29 +84,6 @@ class MineSøknaderApiTest {
     }
 
     @Test
-    fun `én påbegynt som ikke er endret av bruker, og ingen innsendte søknader`() {
-        val opprettet = LocalDateTime.MAX
-
-        TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi(
-                søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentSøknader(TestApplication.defaultDummyFodselsnummer) } returns setOf(
-                        søknadMed(tilstand = Påbegynt, opprettet, sistEndretAvBruker = null)
-                    )
-                }
-            )
-        ) {
-            val fom = LocalDate.now()
-            autentisert("$endepunkt?fom=$fom", httpMethod = HttpMethod.Get).apply {
-                assertEquals(HttpStatusCode.OK, this.status)
-                val expectedJson = """{"paabegynt":{"soknadUuid":"$søknadUuid","opprettet":"$opprettet"}}"""
-                assertEquals(expectedJson, this.bodyAsText())
-                assertEquals("application/json; charset=UTF-8", this.contentType().toString())
-            }
-        }
-    }
-
-    @Test
     fun `én innsendt og ingen påbegynte søknader`() {
         val innsendtTidspunkt = LocalDateTime.MAX
 
@@ -191,16 +168,14 @@ class MineSøknaderApiTest {
         tilstand: Søknad.Tilstand.Type,
         opprettet: LocalDateTime = LocalDateTime.now(),
         innsending: NyInnsending? = null,
-        sistEndretAvBruker: LocalDateTime? = null
+        sistEndretAvBruker: LocalDateTime = LocalDateTime.MAX
     ) = Søknad.rehydrer(
         søknadId = søknadUuid,
         ident = TestApplication.defaultDummyFodselsnummer,
         opprettet = ZonedDateTime.of(opprettet, ZoneId.of("Europe/Oslo")),
         språk = Språk("NO"),
         dokumentkrav = Dokumentkrav(),
-        sistEndretAvBruker = if (sistEndretAvBruker != null) {
-            ZonedDateTime.of(sistEndretAvBruker, ZoneId.of("Europe/Oslo"))
-        } else null,
+        sistEndretAvBruker = ZonedDateTime.of(sistEndretAvBruker, ZoneId.of("Europe/Oslo")),
         tilstandsType = tilstand,
         aktivitetslogg = Aktivitetslogg(),
         innsending = innsending

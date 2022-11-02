@@ -33,7 +33,7 @@ class SøknadStatusVisitor(søknad: Søknad) : SøknadVisitor {
         tilstand: Søknad.Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime?
+        sistEndretAvBruker: ZonedDateTime
     ) {
         søknadOpprettet = opprettet.toLocalDateTime()
         søknadTilstand = tilstand.tilstandType

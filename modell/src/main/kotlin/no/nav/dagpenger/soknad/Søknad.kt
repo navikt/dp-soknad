@@ -30,7 +30,7 @@ class Søknad private constructor(
     private var innsending: NyInnsending?,
     private val språk: Språk,
     private val dokumentkrav: Dokumentkrav,
-    private var sistEndretAvBruker: ZonedDateTime?,
+    private var sistEndretAvBruker: ZonedDateTime,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 ) : Aktivitetskontekst, InnsendingObserver {
     private val observers = mutableListOf<SøknadObserver>()
@@ -49,7 +49,7 @@ class Søknad private constructor(
         innsending = null,
         språk = språk,
         dokumentkrav = Dokumentkrav(),
-        sistEndretAvBruker = null
+        sistEndretAvBruker = ZonedDateTime.now()
     )
 
     companion object {
@@ -59,7 +59,7 @@ class Søknad private constructor(
             opprettet: ZonedDateTime,
             språk: Språk,
             dokumentkrav: Dokumentkrav,
-            sistEndretAvBruker: ZonedDateTime?,
+            sistEndretAvBruker: ZonedDateTime,
             tilstandsType: Tilstand.Type,
             aktivitetslogg: Aktivitetslogg,
             innsending: NyInnsending?

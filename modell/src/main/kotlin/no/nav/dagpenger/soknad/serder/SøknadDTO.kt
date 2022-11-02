@@ -20,7 +20,7 @@ class SøknadDTO(
     val tilstandType: TilstandDTO,
     val språkDTO: SpråkDTO,
     var dokumentkrav: DokumentkravDTO,
-    val sistEndretAvBruker: ZonedDateTime?,
+    val sistEndretAvBruker: ZonedDateTime,
     val innsendingDTO: InnsendingDTO?,
     var aktivitetslogg: AktivitetsloggDTO? = null,
     val opprettet: ZonedDateTime

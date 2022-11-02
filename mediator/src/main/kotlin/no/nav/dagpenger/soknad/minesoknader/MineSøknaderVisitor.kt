@@ -35,12 +35,10 @@ class MineSøknaderVisitor(søknad: Søknad) : SøknadVisitor {
         tilstand: Søknad.Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime?
+        sistEndretAvBruker: ZonedDateTime
     ) {
         søknadOpprettet = opprettet.toLocalDateTime()
-        if (sistEndretAvBruker != null) {
-            søknadSistEndretAvBruker = sistEndretAvBruker.toLocalDateTime()
-        }
+        søknadSistEndretAvBruker = sistEndretAvBruker.toLocalDateTime()
         søknadTilstand = tilstand.tilstandType
     }
 

@@ -643,7 +643,7 @@ internal class SøknadPostgresRepositoryTest {
                 tilstand: Søknad.Tilstand,
                 språk: Språk,
                 dokumentkrav: Dokumentkrav,
-                sistEndretAvBruker: ZonedDateTime?
+                sistEndretAvBruker: ZonedDateTime
             ) {
                 this.dokumentKrav = dokumentkrav
             }

@@ -28,6 +28,8 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -149,7 +151,7 @@ internal class VaktmesterRepositoryTest {
             opprettet = ZonedDateTime.now(),
             språk = språk,
             dokumentkrav = Dokumentkrav(),
-            sistEndretAvBruker = null,
+            sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.of(2022, 11, 2, 2, 2, 2, 2), ZoneId.of("Europe/Oslo")),
             tilstandsType = Innsendt,
             aktivitetslogg = Aktivitetslogg(),
             null
@@ -162,7 +164,7 @@ internal class VaktmesterRepositoryTest {
             opprettet = ZonedDateTime.now(),
             språk = språk,
             dokumentkrav = Dokumentkrav(),
-            sistEndretAvBruker = null,
+            sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.of(2022, 11, 2, 2, 2, 2, 2), ZoneId.of("Europe/Oslo")),
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             null
@@ -175,7 +177,7 @@ internal class VaktmesterRepositoryTest {
             opprettet = ZonedDateTime.now(),
             språk = språk,
             dokumentkrav = Dokumentkrav(),
-            sistEndretAvBruker = null,
+            sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.of(2022, 11, 2, 2, 2, 2, 2), ZoneId.of("Europe/Oslo")),
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             null

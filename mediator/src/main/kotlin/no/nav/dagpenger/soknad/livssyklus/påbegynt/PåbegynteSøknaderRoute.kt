@@ -50,7 +50,7 @@ private class PåbegynteSøknadVisitor(søknad: Søknad) : SøknadVisitor {
         tilstand: Søknad.Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime?
+        sistEndretAvBruker: ZonedDateTime
     ) {
         påbegyntSøknad = PåbegyntSøknad(
             uuid = søknadId,

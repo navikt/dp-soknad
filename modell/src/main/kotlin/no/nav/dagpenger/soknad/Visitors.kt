@@ -40,7 +40,7 @@ interface SøknadVisitor : TilstandVisitor, AktivitetsloggVisitor, DokumentkravV
         tilstand: Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime?,
+        sistEndretAvBruker: ZonedDateTime,
     ) {
     }
 }

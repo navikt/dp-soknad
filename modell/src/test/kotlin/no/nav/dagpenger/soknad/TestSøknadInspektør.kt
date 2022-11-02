@@ -36,7 +36,7 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
         tilstand: Søknad.Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime?
+        sistEndretAvBruker: ZonedDateTime
     ) {
         this.søknadId = søknadId
         this.dokumentkrav = dokumentkrav

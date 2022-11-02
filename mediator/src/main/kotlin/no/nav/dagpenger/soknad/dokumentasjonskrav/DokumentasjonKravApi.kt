@@ -179,7 +179,7 @@ private class ApiDokumentkravResponse(
         tilstand: Søknad.Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime?
+        sistEndretAvBruker: ZonedDateTime
     ) {
         soknad_uuid = søknadId
         krav = dokumentkrav.aktiveDokumentKrav().toApiKrav()

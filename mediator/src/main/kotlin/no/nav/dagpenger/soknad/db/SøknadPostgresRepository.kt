@@ -162,8 +162,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 dokumentkrav = SøknadDTO.DokumentkravDTO(
                     session.hentDokumentKrav(søknadsId)
                 ),
-                sistEndretAvBruker = row.zonedDateTimeOrNull("sist_endret_av_bruker")
-                    ?.withZoneSameInstant(tidssone),
+                sistEndretAvBruker = row.zonedDateTime("sist_endret_av_bruker").withZoneSameInstant(tidssone),
                 innsendingDTO = session.hentInnsending(søknadsId),
                 aktivitetslogg = session.hentAktivitetslogg(søknadsId)
             )
@@ -297,7 +296,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         tilstand: Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime?
+        sistEndretAvBruker: ZonedDateTime
     ) {
         this.søknadId = søknadId
         queries.add(
