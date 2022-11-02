@@ -47,6 +47,7 @@ spec:
         - application: dp-behov-soknad-pdf
         - application: dp-behov-journalforing
         - application: dp-soknad-veileder
+        - application: dp-innsyn
     outbound:
       rules:
         - application: dp-innsyn
