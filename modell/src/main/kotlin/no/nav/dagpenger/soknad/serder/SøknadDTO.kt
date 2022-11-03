@@ -66,7 +66,8 @@ class SøknadDTO(
             val begrunnelse: String?,
             val filer: Set<KravDTO.FilDTO>,
             val valg: SvarValgDTO,
-            val bundle: URN?
+            val bundle: URN?,
+            val innsendt: Boolean
         ) {
             fun rehydrer() = Svar(
                 filer = this.filer.map { it.rehydrer() }.toMutableSet(),
@@ -79,7 +80,8 @@ class SøknadDTO(
                     SvarValgDTO.SENDER_IKKE -> Svar.SvarValg.SENDER_IKKE
                 },
                 begrunnelse = this.begrunnelse,
-                bundle = bundle
+                bundle = bundle,
+                innsendt = innsendt
             )
 
             enum class SvarValgDTO {

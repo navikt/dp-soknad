@@ -6,9 +6,11 @@ import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -169,6 +171,33 @@ class SøknadDokumentasjonskravTest {
                 assertEquals(bundleUrn, krav.svar.bundle)
                 assertEquals(1, krav.svar.filer.size)
                 assertTrue(krav.svar.filer.first().bundlet)
+            }
+        }
+
+        søknad.håndter(
+            SøknadInnsendtHendelse(
+                søknadID = søknadId, ident = ident
+            )
+        )
+
+        with(TestSøknadInspektør2(søknad).dokumentkrav) {
+            assertEquals(1, this.aktiveDokumentKrav().size)
+            this.aktiveDokumentKrav().forEach { krav ->
+                assertTrue(krav.svar.innsendt)
+            }
+        }
+
+        val bundleUrn2 = URN.rfc8141().parse("urn:sid:bundle")
+        søknad.håndter(
+            DokumentKravSammenstilling(
+                søknadID = søknadId, ident = ident, kravId = "1", urn = bundleUrn2
+            )
+        )
+
+        with(TestSøknadInspektør2(søknad).dokumentkrav) {
+            assertEquals(1, this.aktiveDokumentKrav().size)
+            this.aktiveDokumentKrav().forEach { krav ->
+                assertFalse(krav.svar.innsendt)
             }
         }
     }

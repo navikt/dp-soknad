@@ -196,9 +196,10 @@ data class Krav(
         val filer: MutableSet<Fil> = mutableSetOf(),
         var valg: SvarValg,
         var begrunnelse: String?,
-        var bundle: URN?
+        var bundle: URN?,
+        var innsendt: Boolean // todo slå sammen med bundle?
     ) {
-        internal constructor() : this(filer = mutableSetOf(), valg = IKKE_BESVART, begrunnelse = null, bundle = null)
+        internal constructor() : this(filer = mutableSetOf(), valg = IKKE_BESVART, begrunnelse = null, bundle = null, innsendt = false)
 
         fun håndter(hendelse: LeggTilFil) {
             filer.add(hendelse.fil)

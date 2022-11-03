@@ -584,7 +584,8 @@ private fun Session.hentDokumentKrav(søknadsId: UUID): Set<KravDTO> =
                     begrunnelse = row.stringOrNull("begrunnelse"),
                     filer = hentFiler(søknadsId, faktumId),
                     valg = SvarValgDTO.valueOf(row.string("valg")),
-                    bundle = row.stringOrNull("bundle_urn")?.let { URN.rfc8141().parse(it) }
+                    bundle = row.stringOrNull("bundle_urn")?.let { URN.rfc8141().parse(it) },
+                    innsendt = false // todo fix me
                 ),
                 tilstand = row.string("tilstand")
                     .let { KravTilstandDTO.valueOf(it) }
