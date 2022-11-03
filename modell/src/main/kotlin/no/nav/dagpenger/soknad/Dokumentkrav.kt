@@ -11,6 +11,7 @@ import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
+import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
@@ -49,6 +50,17 @@ class Dokumentkrav private constructor(
         krav.svar.håndter(hendelse)
     }
 
+    fun håndter(hendelse: DokumentKravSammenstilling) {
+        val krav = hentKrav(hendelse)
+        krav.håndter(hendelse)
+    }
+
+    fun håndter(hendelse: SøknadInnsendtHendelse) {
+        aktiveDokumentKrav().forEach {
+            it.svar.håndter(hendelse)
+        }
+    }
+
     internal fun tilDokument() =
         aktiveDokumentKrav().filter { it.besvart() }.filter { it.svar.valg == SEND_NÅ }.map { krav ->
             Innsending.Dokument(
@@ -76,11 +88,6 @@ class Dokumentkrav private constructor(
     private fun hentKrav(hendelse: DokumentKravHendelse) =
         this.aktiveDokumentKrav().find { krav -> krav.id == hendelse.kravId }
             ?: hendelse.severe("Fant ikke Dokumentasjonskrav id")
-
-    fun håndter(hendelse: DokumentKravSammenstilling) {
-        val krav = hentKrav(hendelse)
-        krav.håndter(hendelse)
-    }
 
     fun accept(dokumentkravVisitor: DokumentkravVisitor) {
         dokumentkravVisitor.preVisitDokumentkrav()
@@ -123,8 +130,6 @@ data class Krav(
         }
 
     fun håndter(hendelse: DokumentKravSammenstilling) {
-        this.svar.bundle = hendelse.urn()
-        this.svar.filer.forEach { fil -> fil.bundlet = true }
         hendelse.behov(
             DokumentkravSvar, "Må svare dokumentkravet i Quiz",
             mapOf(
@@ -135,6 +140,7 @@ data class Krav(
 
             )
         )
+        this.svar.håndter(hendelse)
     }
 
     fun accept(dokumentkravVisitor: DokumentkravVisitor) {
@@ -199,7 +205,13 @@ data class Krav(
         var bundle: URN?,
         var innsendt: Boolean // todo slå sammen med bundle?
     ) {
-        internal constructor() : this(filer = mutableSetOf(), valg = IKKE_BESVART, begrunnelse = null, bundle = null, innsendt = false)
+        internal constructor() : this(
+            filer = mutableSetOf(),
+            valg = IKKE_BESVART,
+            begrunnelse = null,
+            bundle = null,
+            innsendt = false
+        )
 
         fun håndter(hendelse: LeggTilFil) {
             filer.add(hendelse.fil)
@@ -214,6 +226,16 @@ data class Krav(
         fun håndter(hendelse: DokumentasjonIkkeTilgjengelig) {
             valg = hendelse.valg
             begrunnelse = hendelse.begrunnelse
+        }
+
+        fun håndter(hendelse: SøknadInnsendtHendelse) {
+            innsendt = true
+        }
+
+        fun håndter(hendelse: DokumentKravSammenstilling) {
+            this.bundle = hendelse.urn()
+            this.filer.forEach { fil -> fil.bundlet = true }
+            this.innsendt = false
         }
 
         fun besvart() = TilstandStrategy.strategy(this).besvart(this)

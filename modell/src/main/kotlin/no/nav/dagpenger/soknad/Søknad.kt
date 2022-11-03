@@ -307,6 +307,7 @@ class Søknad private constructor(
             søknad.innsending = innsending.also {
                 it.håndter(søknadInnsendtHendelse)
             }
+            søknad.dokumentkrav.håndter(søknadInnsendtHendelse)
             søknad.endreTilstand(Innsendt, søknadInnsendtHendelse)
         }
 
@@ -365,13 +366,6 @@ class Søknad private constructor(
 
         override fun håndter(dokumentKravSammenstilling: DokumentKravSammenstilling, søknad: Søknad) {
             søknad.dokumentkrav.håndter(dokumentKravSammenstilling)
-            søknad.håndter(
-                SøknadInnsendtHendelse(
-                    dokumentKravSammenstilling.søknadID(),
-                    søknad.ident,
-                    Aktivitetslogg(dokumentKravSammenstilling.aktivitetslogg)
-                )
-            )
         }
 
         override fun håndter(
@@ -387,6 +381,7 @@ class Søknad private constructor(
 
         override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
             innsending(søknad).ettersend(søknadInnsendtHendelse, søknad.dokumentkrav)
+            søknad.dokumentkrav.håndter(søknadInnsendtHendelse)
         }
 
         private fun innsending(søknad: Søknad) =
