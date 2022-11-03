@@ -145,10 +145,11 @@ internal class SøknadTest {
             Behovtype.ArkiverbarSøknad,
             mapOf(
                 "innsendtTidspunkt" to hendelse.innsendtidspunkt().toString(),
+                "dokumentasjonKravId" to listOf("1", "3"),
                 "søknad_uuid" to inspektør.søknadId.toString(),
                 "ident" to testIdent,
                 "type" to "NY_DIALOG",
-                "innsendingId" to inspektør.innsendingId.toString()
+                "innsendingId" to inspektør.innsendingId.toString(),
             )
         )
         håndterArkiverbarSøknad()
@@ -233,7 +234,6 @@ internal class SøknadTest {
         ) { behovParametre ->
 
             assertEquals("2", behovParametre["id"])
-            assertEquals("2", behovParametre["id"])
             assertEquals("dokument", behovParametre["type"])
             assertEquals("urn:sid:bundle3", behovParametre["urn"])
             assertNotNull(behovParametre["lastOppTidsstempel"])
@@ -247,10 +247,11 @@ internal class SøknadTest {
             Behovtype.ArkiverbarSøknad,
             mapOf(
                 "innsendtTidspunkt" to ettersendingHendelse.innsendtidspunkt().toString(),
+                "dokumentasjonKravId" to listOf("2"),
                 "søknad_uuid" to inspektør.søknadId.toString(),
                 "ident" to testIdent,
                 "type" to "ETTERSENDING_TIL_DIALOG",
-                "innsendingId" to ettersendinger().innsendingId.toString()
+                "innsendingId" to ettersendinger().innsendingId.toString(),
             )
         )
 
@@ -264,30 +265,8 @@ internal class SøknadTest {
                     mapOf(
                         "varianter" to listOf(
                             mapOf<String, Any>(
-                                "filnavn" to "f1-1",
-                                "urn" to "urn:sid:bundle1",
-                                "variant" to "ARKIV",
-                                "type" to "PDF"
-                            )
-                        ),
-                        "brevkode" to "N6"
-                    ),
-                    mapOf(
-                        "varianter" to listOf(
-                            mapOf<String, Any>(
                                 "filnavn" to "f2-1",
                                 "urn" to "urn:sid:bundle3",
-                                "variant" to "ARKIV",
-                                "type" to "PDF"
-                            )
-                        ),
-                        "brevkode" to "N6"
-                    ),
-                    mapOf(
-                        "varianter" to listOf(
-                            mapOf<String, Any>(
-                                "filnavn" to "f3-1",
-                                "urn" to "urn:sid:bundle2",
                                 "variant" to "ARKIV",
                                 "type" to "PDF"
                             )

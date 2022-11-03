@@ -61,20 +61,22 @@ class Dokumentkrav private constructor(
         }
     }
 
-    internal fun tilDokument() =
-        aktiveDokumentKrav().filter { it.besvart() }.filter { it.svar.valg == SEND_NÅ }.map { krav ->
-            Innsending.Dokument(
-                brevkode = krav.tilSkjemakode(),
-                varianter = listOf(
-                    Innsending.Dokument.Dokumentvariant(
-                        filnavn = krav.beskrivendeId,
-                        urn = krav.svar.bundle.toString(),
-                        variant = "ARKIV", // TODO: hent filtype fra bundle
-                        type = "PDF" // TODO: Hva setter vi her?
+    internal fun tilDokument(): List<Innsending.Dokument> =
+        aktiveDokumentKrav().filterNot { it.innsendt() }.filter { it.besvart() }.filter { it.svar.valg == SEND_NÅ }
+            .map { krav ->
+                Innsending.Dokument(
+                    brevkode = krav.tilSkjemakode(),
+                    kravId = krav.id,
+                    varianter = listOf(
+                        Innsending.Dokument.Dokumentvariant(
+                            filnavn = krav.beskrivendeId,
+                            urn = krav.svar.bundle.toString(),
+                            variant = "ARKIV", // TODO: hent filtype fra bundle
+                            type = "PDF" // TODO: Hva setter vi her?
+                        )
                     )
                 )
-            )
-        }
+            }
 
     fun aktiveDokumentKrav() = krav.filter(aktive()).toSet()
 
@@ -95,7 +97,6 @@ class Dokumentkrav private constructor(
         dokumentkravVisitor.postVisitDokumentkrav()
     }
 
-    fun ferdigstilt(): Boolean = aktiveDokumentKrav().all { it.ferdigStilt() }
     fun ferdigBesvart() = aktiveDokumentKrav().all { it.besvart() }
     fun ingen() = krav.isEmpty()
 }
@@ -148,7 +149,8 @@ data class Krav(
     }
 
     fun besvart() = this.svar.besvart()
-    fun ferdigStilt() = this.svar.ferdigStilt()
+    fun innsendt() = this.svar.innsendt
+
     internal fun tilSkjemakode(): String {
         return when (this.beskrivendeId) {
             "faktum.dokument-avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd-dokumentasjon" -> Skjemakode.TJENESTEBEVIS
@@ -239,7 +241,6 @@ data class Krav(
         }
 
         fun besvart() = TilstandStrategy.strategy(this).besvart(this)
-        fun ferdigStilt() = TilstandStrategy.strategy(this).ferdigStilt(this)
 
         private sealed interface TilstandStrategy {
             companion object {
@@ -256,21 +257,17 @@ data class Krav(
             }
 
             fun besvart(svar: Svar): Boolean
-            fun ferdigStilt(svar: Svar): Boolean
 
             object FilSvar : TilstandStrategy {
                 override fun besvart(svar: Svar): Boolean = svar.filer.size > 0 && svar.bundle != null
-                override fun ferdigStilt(svar: Svar): Boolean = besvart(svar) && svar.bundle != null
             }
 
             object IngenSvar : TilstandStrategy {
                 override fun besvart(svar: Svar): Boolean = false
-                override fun ferdigStilt(svar: Svar): Boolean = false
             }
 
             object AnnetSvar : TilstandStrategy {
                 override fun besvart(svar: Svar): Boolean = svar.begrunnelse != null
-                override fun ferdigStilt(svar: Svar): Boolean = besvart(svar)
             }
         }
 

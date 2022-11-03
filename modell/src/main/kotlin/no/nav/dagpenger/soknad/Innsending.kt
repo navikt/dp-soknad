@@ -161,7 +161,8 @@ abstract class Innsending protected constructor(
                 Aktivitetslogg.Aktivitet.Behov.Behovtype.ArkiverbarSøknad,
                 "Trenger søknad på et arkiverbart format",
                 mapOf(
-                    "innsendtTidspunkt" to innsending.innsendt.toString()
+                    "innsendtTidspunkt" to innsending.innsendt.toString(),
+                    "dokumentasjonKravId" to innsending.dokumenter.map { it.kravId }
                 )
             )
         }
@@ -171,7 +172,9 @@ abstract class Innsending protected constructor(
             innsending.hovedDokument = Dokument(
                 brevkode = metadata.brevkode(innsending),
                 tittel = metadata.tittel,
-                varianter = hendelse.dokumentvarianter()
+                varianter = hendelse.dokumentvarianter(),
+                kravId = "THIS IS A SMELL"
+
             )
             innsending.endreTilstand(
                 AvventerMidlertidligJournalføring,
@@ -258,6 +261,7 @@ abstract class Innsending protected constructor(
 
     data class Dokument(
         val uuid: UUID = UUID.randomUUID(),
+        val kravId: String,
         val brevkode: String?,
         val varianter: List<Dokumentvariant>,
         val tittel: String? = null
