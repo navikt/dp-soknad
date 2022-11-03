@@ -1,6 +1,8 @@
 package no.nav.dagpenger.soknad
 
 import io.ktor.client.request.get
+import io.ktor.client.request.put
+import io.ktor.client.request.url
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -78,6 +80,51 @@ internal class SøknadApiTest {
                 assertEquals("NB", defaultSpråk.captured)
             }
         }
+    }
+
+    @Test
+    fun `Ettersending til søknad uautentisert`() {
+        val testSøknadUuid = UUID.randomUUID()
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(
+                søknadMediator = mockk()
+            )
+        ) {
+            client.put {
+                url("${Configuration.basePath}/soknad/${UUID.randomUUID()}/ettersend")
+            }.let { response ->
+                assertEquals(HttpStatusCode.Unauthorized, response.status)
+            }
+        }
+    }
+
+    @Test
+    fun `Ettersending til søknad happy path`() {
+        val testSøknadUuid = UUID.randomUUID()
+        val slot = slot<SøknadInnsendtHendelse>()
+        val søknadMediatorMock = mockk<SøknadMediator>().also {
+            justRun {
+                it.behandle(capture(slot))
+            }
+            every { it.hentEier(any()) } returns defaultDummyFodselsnummer
+        }
+
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(
+                søknadMediator = søknadMediatorMock
+            )
+        ) {
+            autentisert(
+                "${Configuration.basePath}/soknad/$testSøknadUuid/ettersend",
+                httpMethod = HttpMethod.Put,
+            ).apply {
+                assertEquals(HttpStatusCode.NoContent, this.status)
+            }
+        }
+        verify(exactly = 1) { søknadMediatorMock.behandle(any<SøknadInnsendtHendelse>()) }
+        assertTrue(slot.isCaptured)
+        assertEquals(testSøknadUuid, slot.captured.søknadID())
+        assertEquals(defaultDummyFodselsnummer, slot.captured.ident())
     }
 
     @Test

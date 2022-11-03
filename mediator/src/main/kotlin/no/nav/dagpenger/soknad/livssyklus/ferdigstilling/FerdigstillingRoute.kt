@@ -29,4 +29,15 @@ internal fun Route.ferdigstillSøknadRoute(søknadMediator: SøknadMediator) {
         }
         call.respond(HttpStatusCode.NoContent)
     }
+
+    put("/{søknad_uuid}/ettersend") {
+        val søknadUuid = søknadUuid()
+        val ident = call.ident()
+        withLoggingContext("søknadid" to søknadUuid.toString()) {
+            validator.valider(søknadUuid, ident)
+            val søknadInnsendtHendelse = SøknadInnsendtHendelse(søknadUuid, ident)
+            søknadMediator.behandle(søknadInnsendtHendelse)
+        }
+        call.respond(HttpStatusCode.NoContent)
+    }
 }
