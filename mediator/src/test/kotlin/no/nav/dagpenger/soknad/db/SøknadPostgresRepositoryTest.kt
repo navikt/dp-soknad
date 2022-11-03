@@ -174,8 +174,8 @@ internal class SøknadPostgresRepositoryTest {
                 hovedDokument = null,
                 dokumenter = listOf(
                     Innsending.Dokument(
-                        UUID.randomUUID(),
-                        "brevkode-vedlegg",
+                        uuid = UUID.randomUUID(),
+                        brevkode = "brevkode-vedlegg",
                         varianter = listOf(
                             Innsending.Dokument.Dokumentvariant(
                                 UUID.randomUUID(),
@@ -184,7 +184,8 @@ internal class SøknadPostgresRepositoryTest {
                                 "variant3",
                                 "type3"
                             )
-                        )
+                        ),
+                        kravId = "kravId" // todo fixme
                     )
                 ),
                 ettersendinger = mutableListOf(),
@@ -297,8 +298,8 @@ internal class SøknadPostgresRepositoryTest {
                 "123123",
                 Innsending.TilstandType.AvventerArkiverbarSøknad,
                 Innsending.Dokument(
-                    UUID.randomUUID(),
-                    "brevkode",
+                    uuid = UUID.randomUUID(),
+                    brevkode = "brevkode",
                     varianter = listOf(
                         Innsending.Dokument.Dokumentvariant(
                             UUID.randomUUID(),
@@ -314,12 +315,13 @@ internal class SøknadPostgresRepositoryTest {
                             "variant2",
                             "type2"
                         )
-                    )
+                    ),
+                    kravId = "kravId" // todo fixme
                 ),
                 listOf(
                     Innsending.Dokument(
-                        UUID.randomUUID(),
-                        "brevkode2",
+                        uuid = UUID.randomUUID(),
+                        brevkode = "brevkode2",
                         varianter = listOf(
                             Innsending.Dokument.Dokumentvariant(
                                 UUID.randomUUID(),
@@ -335,7 +337,8 @@ internal class SøknadPostgresRepositoryTest {
                                 "variant4",
                                 "type4"
                             )
-                        )
+                        ),
+                        kravId = "kravId" // todo fixme
                     )
                 ),
                 mutableListOf(

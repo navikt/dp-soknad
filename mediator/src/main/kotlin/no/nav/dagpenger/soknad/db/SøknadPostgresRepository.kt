@@ -223,9 +223,10 @@ private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.Dokumenter
             val dokumentUUID = row.uuid("dokument_uuid")
             val varianter: List<Dokumentvariant> = this@hentDokumenter.hentVarianter(dokumentUUID)
             val dokument = Innsending.Dokument(
-                dokumentUUID,
-                row.string("brevkode"),
-                varianter
+                uuid = dokumentUUID,
+                brevkode = row.string("brevkode"),
+                varianter = varianter,
+                kravId = "kravid" // todo må vi utvide dokument_v1?
             )
             when (dokumentUUID == hovedDokumentUUID) {
                 true -> dokumenter.hovedDokument = dokument
