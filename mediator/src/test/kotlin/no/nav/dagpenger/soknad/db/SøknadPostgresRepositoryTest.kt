@@ -150,7 +150,8 @@ internal class SøknadPostgresRepositoryTest {
                 ),
                 valg = Krav.Svar.SvarValg.SEND_NÅ,
                 begrunnelse = null,
-                bundle = URN.rfc8141().parse("urn:nav:bundle:1")
+                bundle = URN.rfc8141().parse("urn:nav:bundle:1"),
+                innsendt = false
             )
         )
         val søknad = Søknad.rehydrer(
@@ -242,7 +243,7 @@ internal class SøknadPostgresRepositoryTest {
                         urn = URN.rfc8141().parse("urn:nav:vedlegg:1-1"),
                         storrelse = 1000,
                         tidspunkt = now,
-                        bundlet = false
+                        bundlet = false,
                     ),
                     Krav.Fil(
                         filnavn = "1-2.jpg",
@@ -254,7 +255,8 @@ internal class SøknadPostgresRepositoryTest {
                 ),
                 valg = Krav.Svar.SvarValg.SEND_NÅ,
                 begrunnelse = null,
-                bundle = URN.rfc8141().parse("urn:nav:bundle:1")
+                bundle = URN.rfc8141().parse("urn:nav:bundle:1"),
+                innsendt = false
             )
         )
         val krav2 = Krav(
@@ -273,7 +275,8 @@ internal class SøknadPostgresRepositoryTest {
                 ),
                 valg = Krav.Svar.SvarValg.SEND_NÅ,
                 begrunnelse = null,
-                bundle = URN.rfc8141().parse("urn:nav:bundle:2")
+                bundle = URN.rfc8141().parse("urn:nav:bundle:2"),
+                innsendt = false
             )
         )
         val søknad = Søknad.rehydrer(
