@@ -32,7 +32,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
@@ -297,41 +296,6 @@ internal class SøknadTest {
     }
 
     private fun ettersendinger() = inspektør.ettersendinger.last()
-
-    @Test
-    @Disabled("Trenger denne ikke lengre?")
-    fun ` Ettersendinger av dokumentasjon - dokumentkravsammenstilling (bundle) trigger send inn søknad`() {
-        håndterØnskeOmNySøknadHendelse()
-        håndterNySøknadOpprettet()
-        håndterSøkerOppgaveHendelse(
-            setOf(
-                sannsynliggjøring("1", "f1-1", "f1-2")
-            )
-        )
-        håndterDokumentasjonIkkeTilgjengelig("1", "Har ikke")
-        håndterSendInnSøknad()
-        håndterInnsendingMetadata()
-        håndterMidlertidigJournalførtSøknad()
-        håndterJournalførtSøknad()
-        assertTilstander(
-            UnderOpprettelse,
-            Påbegynt,
-            Innsendt
-        )
-
-        håndterLeggtilFil(kravId = "1", "urn:sid:2")
-        håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle3")
-
-        håndterArkiverbarSøknad(ettersendinger().innsendingId)
-        assertBehov(Behovtype.NyJournalpost)
-
-        håndterMidlertidigJournalførtSøknad(ettersendinger().innsendingId)
-        assertEttersendingTilstand(AvventerJournalføring)
-
-        håndterJournalførtSøknad()
-        assertEttersendingTilstand(Journalført)
-    }
-
     @Test
     fun `Slett søknad for person`() {
         håndterØnskeOmNySøknadHendelse()

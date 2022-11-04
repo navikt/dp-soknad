@@ -151,7 +151,7 @@ internal class SøknadPostgresRepositoryTest {
                 valg = Krav.Svar.SvarValg.SEND_NÅ,
                 begrunnelse = null,
                 bundle = URN.rfc8141().parse("urn:nav:bundle:1"),
-                innsendt = false
+                innsendt = true
             )
         )
         val søknad = Søknad.rehydrer(

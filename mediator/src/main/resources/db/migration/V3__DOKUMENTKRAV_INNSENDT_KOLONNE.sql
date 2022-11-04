@@ -1,0 +1,1 @@
+ALTER TABLE dokumentkrav_v1 ADD COLUMN innsendt BOOLEAN NOT NULL;

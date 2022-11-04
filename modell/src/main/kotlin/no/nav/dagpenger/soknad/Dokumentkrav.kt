@@ -132,7 +132,8 @@ data class Krav(
 
     fun håndter(hendelse: DokumentKravSammenstilling) {
         hendelse.behov(
-            DokumentkravSvar, "Må svare dokumentkravet i Quiz",
+            DokumentkravSvar,
+            "Må svare dokumentkravet i Quiz",
             mapOf(
                 "id" to this.id,
                 "type" to "dokument",
