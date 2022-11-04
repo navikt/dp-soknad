@@ -334,15 +334,16 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                 // language=PostgreSQL
                 """
                 INSERT INTO dokumentkrav_v1(faktum_id, beskrivende_id, soknad_uuid, faktum, sannsynliggjoer, tilstand, valg,
-                                            begrunnelse, bundle_urn)
-                VALUES (:faktum_id, :beskrivende_id, :soknad_uuid, :faktum, :sannsynliggjoer, :tilstand, :valg, :begrunnelse, :bundle)
+                                            begrunnelse, bundle_urn, innsendt)
+                VALUES (:faktum_id, :beskrivende_id, :soknad_uuid, :faktum, :sannsynliggjoer, :tilstand, :valg, :begrunnelse, :bundle, :innsendt)
                 ON CONFLICT (faktum_id, soknad_uuid) DO UPDATE SET beskrivende_id  = :beskrivende_id,
                                                                    faktum          = :faktum,
                                                                    sannsynliggjoer = :sannsynliggjoer,
                                                                    tilstand        = :tilstand,
                                                                    valg            = :valg,
                                                                    begrunnelse     = :begrunnelse,
-                                                                   bundle_urn      = :bundle
+                                                                   bundle_urn      = :bundle,
+                                                                   innsendt        = :innsendt
                 """.trimIndent(),
                 mapOf(
                     "faktum_id" to krav.id,
@@ -361,7 +362,8 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                     "tilstand" to krav.tilstand.name,
                     "valg" to krav.svar.valg.name,
                     "begrunnelse" to krav.svar.begrunnelse,
-                    "bundle" to krav.svar.bundle?.toString()
+                    "bundle" to krav.svar.bundle?.toString(),
+                    "innsendt" to krav.svar.innsendt
                 )
             )
         )
@@ -564,7 +566,7 @@ private fun Session.hentDokumentKrav(søknadsId: UUID): Set<KravDTO> =
         queryOf(
             // language=PostgreSQL
             """
-                  SELECT faktum_id, beskrivende_id, faktum, sannsynliggjoer, tilstand, valg, begrunnelse, bundle_urn
+                  SELECT faktum_id, beskrivende_id, faktum, sannsynliggjoer, tilstand, valg, begrunnelse, bundle_urn, innsendt
                   FROM dokumentkrav_v1 
                   WHERE soknad_uuid = :soknad_uuid
             """.trimIndent(),
@@ -586,7 +588,7 @@ private fun Session.hentDokumentKrav(søknadsId: UUID): Set<KravDTO> =
                     filer = hentFiler(søknadsId, faktumId),
                     valg = SvarValgDTO.valueOf(row.string("valg")),
                     bundle = row.stringOrNull("bundle_urn")?.let { URN.rfc8141().parse(it) },
-                    innsendt = false // todo fix me
+                    innsendt = row.boolean("innsendt")
                 ),
                 tilstand = row.string("tilstand")
                     .let { KravTilstandDTO.valueOf(it) }
