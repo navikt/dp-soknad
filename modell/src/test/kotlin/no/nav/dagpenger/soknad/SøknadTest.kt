@@ -92,7 +92,14 @@ internal class SøknadTest {
             assertNotNull(this)
             assertEquals(LocalDate.now(), this.toLocalDate())
         }
-        assertBehov(Behovtype.NySøknad, mapOf("søknad_uuid" to inspektør.søknadId.toString(), "ident" to testIdent))
+        assertBehov(
+            Behovtype.NySøknad,
+            mapOf(
+                "prosessnavn" to "prosessnavn",
+                "søknad_uuid" to inspektør.søknadId.toString(),
+                "ident" to testIdent
+            )
+        )
         håndterNySøknadOpprettet()
         håndterFaktumOppdatering()
         håndterSøkerOppgaveHendelse(
@@ -231,7 +238,6 @@ internal class SøknadTest {
         assertBehovContains(
             Behovtype.DokumentkravSvar
         ) { behovParametre ->
-
             assertEquals("2", behovParametre["id"])
             assertEquals("dokument", behovParametre["type"])
             assertEquals("urn:sid:bundle3", behovParametre["urn"])
@@ -312,7 +318,7 @@ internal class SøknadTest {
     }
 
     private fun håndterNySøknadOpprettet() {
-        søknad.håndter(SøknadOpprettetHendelse(inspektør.søknadId, testIdent))
+        søknad.håndter(SøknadOpprettetHendelse(Prosessversjon("navn", 1), inspektør.søknadId, testIdent))
     }
 
     private fun håndterSlettet() {
@@ -383,7 +389,14 @@ internal class SøknadTest {
     }
 
     private fun håndterØnskeOmNySøknadHendelse() {
-        søknad.håndter(ØnskeOmNySøknadHendelse(søknadID = UUID.randomUUID(), ident = testIdent, språk = språk))
+        søknad.håndter(
+            ØnskeOmNySøknadHendelse(
+                søknadID = UUID.randomUUID(),
+                ident = testIdent,
+                språk = språk,
+                prosessnavn = Prosessnavn("prosessnavn")
+            )
+        )
     }
 
     private fun håndterLeggtilFil(kravId: String, urn: String) {

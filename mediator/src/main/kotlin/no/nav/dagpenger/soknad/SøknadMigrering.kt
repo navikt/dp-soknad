@@ -18,7 +18,7 @@ class SøknadMigrering constructor(
     }
 
     private fun migrer(søknadMal: SøknadMal) {
-        val søknader = søknadRepository.hentPåbegynteSøknader(søknadMal)
+        val søknader = søknadRepository.hentPåbegynteSøknader(søknadMal.prosessversjon)
 
         søknader.forEach {
             rapid.publish(MigreringsBehov(it.søknadUUID(), it.ident()).asMessage().toString())
@@ -30,7 +30,8 @@ class SøknadMigrering constructor(
         fun asMessage() = JsonMessage.newNeed(
             listOf(
                 "MigrerProsess"
-            ), mapOf(
+            ),
+            mapOf(
                 "søknad_uuid" to søknadUUID.toString(),
                 "ident" to ident
             )

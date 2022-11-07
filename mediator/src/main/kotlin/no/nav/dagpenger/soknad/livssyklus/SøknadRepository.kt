@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.livssyklus
 
+import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Companion.erPåbegynt
 import java.util.UUID
@@ -16,5 +17,5 @@ interface SøknadRepository {
         }
     }
 
-    fun hentPåbegynteSøknader(): List<Søknad>
+    fun hentPåbegynteSøknader(prosessversjon: Prosessversjon): List<Søknad>
 }

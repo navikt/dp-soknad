@@ -82,6 +82,7 @@ internal class SøknadPostgresRepositoryTest {
         sistEndretAvBruker = now,
         tilstandsType = Påbegynt,
         aktivitetslogg = Aktivitetslogg(),
+        null,
         null
     )
 
@@ -110,6 +111,7 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
+            null,
             null
         )
 
@@ -190,7 +192,8 @@ internal class SøknadPostgresRepositoryTest {
                 ),
                 ettersendinger = mutableListOf(),
                 metadata = Innsending.Metadata("04-02-03", "en tittel")
-            )
+            ),
+            prosessversjon = null
         )
 
         withMigratedDb {
@@ -365,7 +368,8 @@ internal class SøknadPostgresRepositoryTest {
                     )
                 ),
                 Innsending.Metadata("04-02-03")
-            )
+            ),
+            prosessversjon = null
         )
 
         withMigratedDb {
@@ -442,7 +446,8 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now.minusDays(1),
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
-            innsending = null
+            innsending = null,
+            prosessversjon = null
         )
 
         withMigratedDb {
@@ -621,6 +626,7 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now,
             tilstandsType = Innsendt,
             aktivitetslogg = Aktivitetslogg(),
+            null,
             null
         )
 

@@ -154,6 +154,7 @@ internal class VaktmesterRepositoryTest {
             sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.of(2022, 11, 2, 2, 2, 2, 2), ZoneId.of("Europe/Oslo")),
             tilstandsType = Innsendt,
             aktivitetslogg = Aktivitetslogg(),
+            null,
             null
         )
 
@@ -167,6 +168,7 @@ internal class VaktmesterRepositoryTest {
             sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.of(2022, 11, 2, 2, 2, 2, 2), ZoneId.of("Europe/Oslo")),
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
+            null,
             null
         )
 
@@ -180,6 +182,7 @@ internal class VaktmesterRepositoryTest {
             sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.of(2022, 11, 2, 2, 2, 2, 2), ZoneId.of("Europe/Oslo")),
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
+            null,
             null
         )
 }

@@ -35,6 +35,7 @@ class SøknadDTO(
         tilstandsType = this.tilstandType.rehydrer(),
         aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
         innsending = this.innsendingDTO?.rehydrer(),
+        prosessversjon = null,
     )
 
     class SpråkDTO(val verdi: String) {

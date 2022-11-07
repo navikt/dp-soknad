@@ -17,7 +17,6 @@ import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
-import no.nav.dagpenger.soknad.hendelse.ØnskeOmNyInnsendingHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -31,7 +30,8 @@ class Søknad private constructor(
     private val språk: Språk,
     private val dokumentkrav: Dokumentkrav,
     private var sistEndretAvBruker: ZonedDateTime,
-    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
+    private var prosessversjon: Prosessversjon?
 ) : Aktivitetskontekst, InnsendingObserver {
     private val observers = mutableListOf<SøknadObserver>()
 
@@ -50,7 +50,8 @@ class Søknad private constructor(
         innsending = null,
         språk = språk,
         dokumentkrav = Dokumentkrav(),
-        sistEndretAvBruker = ZonedDateTime.now()
+        sistEndretAvBruker = ZonedDateTime.now(),
+        prosessversjon = null
     )
 
     companion object {
@@ -63,7 +64,8 @@ class Søknad private constructor(
             sistEndretAvBruker: ZonedDateTime,
             tilstandsType: Tilstand.Type,
             aktivitetslogg: Aktivitetslogg,
-            innsending: NyInnsending?
+            innsending: NyInnsending?,
+            prosessversjon: Prosessversjon?
         ): Søknad {
             val tilstand: Tilstand = when (tilstandsType) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
@@ -80,7 +82,8 @@ class Søknad private constructor(
                 språk = språk,
                 dokumentkrav = dokumentkrav,
                 sistEndretAvBruker = sistEndretAvBruker,
-                aktivitetslogg = aktivitetslogg
+                aktivitetslogg = aktivitetslogg,
+                prosessversjon = prosessversjon
             )
         }
 
@@ -92,12 +95,6 @@ class Søknad private constructor(
         kontekst(ønskeOmNySøknadHendelse)
         ønskeOmNySøknadHendelse.info("Ønske om søknad registrert")
         tilstand.håndter(ønskeOmNySøknadHendelse, this)
-    }
-
-    fun håndter(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse) {
-        kontekst(ønskeOmNyInnsendingHendelse)
-        ønskeOmNyInnsendingHendelse.info("Ønske om innsending registrert")
-        tilstand.håndter(ønskeOmNyInnsendingHendelse, this)
     }
 
     fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse) {
@@ -196,9 +193,6 @@ class Søknad private constructor(
         fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) =
             ønskeOmNySøknadHendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse, søknad: Søknad) =
-            ønskeOmNyInnsendingHendelse.`kan ikke håndteres i denne tilstanden`()
-
         fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse, søknad: Søknad) =
             harPåbegyntSøknadHendelse.`kan ikke håndteres i denne tilstanden`()
 
@@ -273,14 +267,15 @@ class Søknad private constructor(
             get() = Tilstand.Type.UnderOpprettelse
 
         override fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) {
-            ønskeOmNySøknadHendelse.behov(Behovtype.NySøknad, "Behov for å starte søknadsprosess")
-        }
-
-        override fun håndter(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse, søknad: Søknad) {
-            ønskeOmNyInnsendingHendelse.behov(Behovtype.NyInnsending, "Behov for å starte ny innsending")
+            ønskeOmNySøknadHendelse.behov(
+                Behovtype.NySøknad,
+                "Behov for å starte søknadsprosess",
+                mapOf("prosessnavn" to ønskeOmNySøknadHendelse.prosessnavn.id)
+            )
         }
 
         override fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse, søknad: Søknad) {
+            søknad.prosessversjon = søknadOpprettetHendelse.prosessversjon()
             søknad.endreTilstand(Påbegynt, søknadOpprettetHendelse)
         }
     }
@@ -451,7 +446,6 @@ class Søknad private constructor(
                     søknadId = this.søknadId,
                     innsending = event
                 )
-
             )
         }
     }

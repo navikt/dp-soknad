@@ -15,6 +15,7 @@ import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Innsending.Dokument.Dokumentvariant
 import no.nav.dagpenger.soknad.Krav
+import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
@@ -172,18 +173,20 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         }
     }
 
-    override fun hentPåbegynteSøknader(): List<Søknad> {
+    override fun hentPåbegynteSøknader(prosessversjon: Prosessversjon): List<Søknad> {
         return using(sessionOf(dataSource)) { session ->
             session.run(
-                queryOf(
-                    //language=PostgreSQL
-                    statement = """
+                queryOf( //language=PostgreSQL
+                    """
                     SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident
                     FROM  soknad_v1
-                    WHERE tilstand = :tilstand
+                    LEFT JOIN soknadmal mal ON soknad_v1.soknadmal = mal.id 
+                    WHERE tilstand = :tilstand AND mal.prosessnavn = :prosessnavn AND mal.prosessversjon = :prosessversjon
                     """.trimIndent(),
                     mapOf(
-                        "tilstand" to Tilstand.Type.Påbegynt
+                        "tilstand" to Tilstand.Type.Påbegynt,
+                        "prosessnavn" to prosessversjon.prosessnavn,
+                        "prosessversjon" to prosessversjon.versjon
                     )
                 ).map(rowToSøknadDTO(session)).asList
             ).map { it.rehydrer() }

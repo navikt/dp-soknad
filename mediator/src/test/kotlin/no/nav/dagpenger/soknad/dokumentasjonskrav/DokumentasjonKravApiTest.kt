@@ -99,6 +99,7 @@ internal class DokumentasjonKravApiTest {
         sistEndretAvBruker = ZonedDateTime.now(),
         tilstandsType = Søknad.Tilstand.Type.Påbegynt,
         aktivitetslogg = Aktivitetslogg(),
+        null,
         null
     )
     private val søknadMediatorMock = mockk<SøknadMediator>().also {

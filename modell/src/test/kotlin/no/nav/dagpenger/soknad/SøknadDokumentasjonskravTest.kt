@@ -18,9 +18,7 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 class SøknadDokumentasjonskravTest {
-
     private lateinit var søknad: Søknad
-
     private val dokumentFaktum =
         Faktum(faktumJson("1", "f1"))
     private val faktaSomSannsynliggjøres =
@@ -39,15 +37,28 @@ class SøknadDokumentasjonskravTest {
         val ident = "12345678901"
         val språk = Språk(verdi = "NB")
         søknad = Søknad(
-            søknadId = søknadId, språk = språk, ident = ident
+            søknadId = søknadId,
+            språk = språk,
+            ident = ident
         )
-        søknad.håndter(ØnskeOmNySøknadHendelse(søknadId, språk.verdi.country, ident))
-        søknad.håndter(SøknadOpprettetHendelse(søknadId, ident))
+        søknad.håndter(
+            ØnskeOmNySøknadHendelse(
+                søknadId,
+                språk.verdi.country,
+                ident,
+                prosessnavn = Prosessnavn("prosessnavn")
+            )
+        )
+        søknad.håndter(SøknadOpprettetHendelse(Prosessversjon(Prosessnavn("prosessnavn"), 1), søknadId, ident))
 
         assertThrows<Aktivitetslogg.AktivitetException> {
             søknad.håndter(
                 DokumentasjonIkkeTilgjengelig(
-                    søknadId, ident, "1", valg = Krav.Svar.SvarValg.SEND_SENERE, begrunnelse = null
+                    søknadId,
+                    ident,
+                    "1",
+                    valg = Krav.Svar.SvarValg.SEND_SENERE,
+                    begrunnelse = null
                 )
             )
         }
@@ -58,7 +69,9 @@ class SøknadDokumentasjonskravTest {
 
         søknad.håndter(
             SøkeroppgaveHendelse(
-                søknadId, ident, setOf(sannsynliggjøring),
+                søknadId,
+                ident,
+                setOf(sannsynliggjøring)
             )
         )
 
@@ -73,7 +86,11 @@ class SøknadDokumentasjonskravTest {
 
         søknad.håndter(
             DokumentasjonIkkeTilgjengelig(
-                søknadId, ident, "1", valg = Krav.Svar.SvarValg.SEND_SENERE, begrunnelse = "Har ikke"
+                søknadId,
+                ident,
+                "1",
+                valg = Krav.Svar.SvarValg.SEND_SENERE,
+                begrunnelse = "Har ikke"
             )
         )
 
@@ -85,13 +102,12 @@ class SøknadDokumentasjonskravTest {
                 assertEquals(0, krav.svar.filer.size)
             }
         }
-
         val testFil = Krav.Fil(
             filnavn = "test.jpg",
             urn = URN.rfc8141().parse("urn:sid:1"),
             storrelse = 0,
             tidspunkt = ZonedDateTime.now(),
-            bundlet = false,
+            bundlet = false
         )
         søknad.håndter(
             LeggTilFil(
@@ -123,7 +139,7 @@ class SøknadDokumentasjonskravTest {
                     urn = URN.rfc8141().parse("urn:sid:2"),
                     storrelse = 0,
                     tidspunkt = ZonedDateTime.now(),
-                    bundlet = false,
+                    bundlet = false
                 )
             )
         )
@@ -154,7 +170,6 @@ class SøknadDokumentasjonskravTest {
                 assertEquals(1, krav.svar.filer.size)
             }
         }
-
         val bundleUrn = URN.rfc8141().parse("urn:sid:bundle")
         søknad.håndter(
             DokumentKravSammenstilling(
@@ -204,7 +219,6 @@ class SøknadDokumentasjonskravTest {
 }
 
 internal class TestSøknadInspektør2(søknad: Søknad) : SøknadVisitor {
-
     lateinit var søknadId: UUID
     lateinit var gjeldendetilstand: Søknad.Tilstand.Type
     lateinit var dokumentkrav: Dokumentkrav

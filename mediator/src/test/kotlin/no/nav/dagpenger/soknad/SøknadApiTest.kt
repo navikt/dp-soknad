@@ -14,7 +14,6 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import no.nav.dagpenger.soknad.Søknadsprosess.NySøknadsProsess
-import no.nav.dagpenger.soknad.Søknadsprosess.PåbegyntSøknadsProsess
 import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
@@ -41,19 +40,20 @@ internal class SøknadApiTest {
         val defaultSpråk = slot<String>()
         val søknadMediatorMock = mockk<SøknadMediator>().also {
             every {
-                it.hentEllerOpprettSøknadsprosess(
+                it.opprettSøknadsprosess(
                     defaultDummyFodselsnummer,
-                    capture(egenvalgtSpråk)
+                    capture(egenvalgtSpråk),
+                    Prosessnavn("Dagpenger")
                 )
             } returns NySøknadsProsess()
             every {
-                it.hentEllerOpprettSøknadsprosess(
+                it.opprettSøknadsprosess(
                     "12345678910",
-                    capture(defaultSpråk)
+                    capture(defaultSpråk),
+                    Prosessnavn("Dagpenger")
                 )
-            } returns PåbegyntSøknadsProsess(
-                UUID.randomUUID()
-            )
+            } returns NySøknadsProsess()
+            every { it.prosessnavn(any()) } returns Prosessnavn("Dagpenger")
         }
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -75,7 +75,7 @@ internal class SøknadApiTest {
                 token = TestApplication.getTokenXToken("12345678910"),
                 httpMethod = HttpMethod.Post
             ).apply {
-                assertEquals(HttpStatusCode.OK, this.status)
+                assertEquals(HttpStatusCode.Created, this.status)
                 assertNotNull(this.headers[HttpHeaders.Location])
                 assertEquals("NB", defaultSpråk.captured)
             }
@@ -210,7 +210,6 @@ internal class SøknadApiTest {
     @Test
     fun `Skal avvise uautoriserte pga tokenx pid ikke eier søknad`() {
         val søknadId = UUID.randomUUID()
-
         val mockSøknadMediator = mockk<SøknadMediator>().also { søknadMediator ->
             every { søknadMediator.hentEier(søknadId) } returns "hubba"
         }
@@ -421,10 +420,10 @@ internal class SøknadApiTest {
     @Test
     fun `Skal kunne hente søknadmal`() {
         val meditatorMock = mockk<SøknadMediator>().also {
-            every { it.hentNyesteMal("Dagpenger") } returns
+            every { it.prosessnavn("Dagpenger") } returns (Prosessnavn("Dagpenger"))
+            every { it.hentNyesteMal(Prosessnavn("Dagpenger")) } returns
                 SøknadMal(
-                    prosessnavn = "Dagpenger",
-                    prosessversjon = 1,
+                    prosessversjon = Prosessversjon(Prosessnavn("Dagpenger"), 1),
                     mal = objectMapper.readTree(testSøknadMalMelding())
                 )
         }

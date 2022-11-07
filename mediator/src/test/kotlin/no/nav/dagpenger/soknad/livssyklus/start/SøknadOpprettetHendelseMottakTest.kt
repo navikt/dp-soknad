@@ -5,6 +5,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -13,9 +14,9 @@ import java.util.UUID
 
 internal class SøknadOpprettetHendelseMottakTest {
     private val mediatorMock = mockk<SøknadMediator>().also {
+        every { it.prosessversjon(any(), any()) } returns Prosessversjon("test", 1)
         every { it.behandle(any() as SøknadOpprettetHendelse) } just Runs
     }
-
     private val testRapid = TestRapid().also { rapidsConnection ->
         SøknadOpprettetHendelseMottak(rapidsConnection, mediatorMock)
     }
@@ -33,7 +34,6 @@ internal class SøknadOpprettetHendelseMottakTest {
     }
 
     companion object {
-
         // language=JSON
         fun nySøknadBehovsløsning(søknadUuid: String) = """
         {
@@ -54,8 +54,16 @@ internal class SøknadOpprettetHendelseMottakTest {
               "time": "2022-03-30T12:19:08.418821"
             }
           ],
-          "@løsning": {"NySøknad": "$søknadUuid"}
-        }""".trimMargin()
+          "@løsning": {
+            "NySøknad": {
+              "prosessversjon": {
+                "navn": "test",
+                "versjon": 123
+              }
+            }
+          }
+        }
+        """.trimMargin()
 
         // language=JSON
         fun nySøknadBehovUtenLøsning(søknadUuid: String) = """
@@ -77,6 +85,7 @@ internal class SøknadOpprettetHendelseMottakTest {
               "time": "2022-03-30T12:19:08.418821"
             }
           ]
-        }""".trimMargin()
+        }
+        """.trimMargin()
     }
 }

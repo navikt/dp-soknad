@@ -6,21 +6,24 @@ import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import no.nav.dagpenger.soknad.Prosessnavn
+import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.mal.SøknadMalRepository.SøknadMalObserver
 import org.postgresql.util.PGobject
 import javax.sql.DataSource
 
 interface SøknadMalRepository {
     fun lagre(søknadMal: SøknadMal): Int
-    fun hentNyesteMal(prosessnavn: String): SøknadMal
+    fun hentNyesteMal(prosessnavn: Prosessnavn): SøknadMal
     fun addObserver(søknadMalObserver: SøknadMalObserver): Boolean
+    fun prosessnavn(prosessnavn: String): Prosessnavn
+    fun prosessversjon(prosessnavn: String, versjon: Int): Prosessversjon
     fun interface SøknadMalObserver {
         fun nyMal(søknadMal: SøknadMal)
     }
 }
 
 class SøknadMalPostgresRepository(private val dataSource: DataSource) : SøknadMalRepository {
-
     private val observers = mutableListOf<SøknadMalObserver>()
 
     override fun lagre(søknadMal: SøknadMal): Int {
@@ -31,8 +34,8 @@ class SøknadMalPostgresRepository(private val dataSource: DataSource) : Søknad
                         //language=PostgreSQL
                         "INSERT INTO soknadmal (prosessnavn, prosessversjon, mal) VALUES (:prosessnavn, :prosessversjon, :mal) ON CONFLICT DO NOTHING ",
                         mapOf(
-                            "prosessnavn" to søknadMal.prosessnavn,
-                            "prosessversjon" to søknadMal.prosessversjon,
+                            "prosessnavn" to søknadMal.prosessversjon.prosessnavn.id,
+                            "prosessversjon" to søknadMal.prosessversjon.versjon,
                             "mal" to PGobject().apply {
                                 this.type = "jsonb"
                                 this.value = søknadMal.mal.toString()
@@ -46,21 +49,50 @@ class SøknadMalPostgresRepository(private val dataSource: DataSource) : Søknad
         }
     }
 
-    override fun hentNyesteMal(prosessnavn: String): SøknadMal = using(sessionOf(dataSource)) { session: Session ->
+    override fun hentNyesteMal(prosessnavn: Prosessnavn): SøknadMal = using(sessionOf(dataSource)) { session: Session ->
         session.run(
             queryOf(
                 //language=PostgreSQL
-                "SELECT * FROM soknadmal where prosessnavn = :prosessnavn ORDER BY prosessversjon DESC LIMIT 1",
-                mapOf("prosessnavn" to prosessnavn)
+                "SELECT * FROM soknadmal WHERE prosessnavn = :prosessnavn ORDER BY prosessversjon DESC LIMIT 1",
+                mapOf("prosessnavn" to prosessnavn.id)
             ).map { row ->
                 SøknadMal(
-                    row.string("prosessnavn"),
-                    row.int("prosessversjon"),
+                    Prosessversjon(
+                        Prosessnavn(row.string("prosessnavn")),
+                        row.int("prosessversjon")
+                    ),
                     objectMapper.readTree(row.binaryStream("mal"))
                 )
             }.asSingle
         )
     } ?: throw IngenMalFunnetException()
+
+    override fun prosessnavn(prosessnavn: String) = using(sessionOf(dataSource)) { session ->
+        session.run(
+            queryOf( // language=PostgreSQL
+                "SELECT prosessnavn FROM soknadmal WHERE prosessnavn = ?",
+                prosessnavn
+            ).map {
+                Prosessnavn(it.string("prosessnavn"))
+            }.asSingle
+        )
+    } ?: throw IllegalArgumentException("Kjenner ikke til prosessnavn=$prosessnavn")
+
+    override fun prosessversjon(prosessnavn: String, versjon: Int): Prosessversjon =
+        using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf( // language=PostgreSQL
+                    "SELECT prosessnavn, prosessversjon FROM soknadmal WHERE prosessnavn = ?, prosessversjon = ?",
+                    prosessnavn,
+                    versjon
+                ).map {
+                    Prosessversjon(
+                        Prosessnavn(it.string("prosessnavn")),
+                        it.int("prosessversjon")
+                    )
+                }.asSingle
+            )
+        } ?: throw IllegalArgumentException("Kjenner ikke til prosessnavn=$prosessnavn, prosessversjon=$versjon")
 
     companion object {
         private val objectMapper = jacksonObjectMapper()
@@ -69,6 +101,6 @@ class SøknadMalPostgresRepository(private val dataSource: DataSource) : Søknad
     override fun addObserver(søknadMalObserver: SøknadMalObserver) = observers.add(søknadMalObserver)
 }
 
-data class SøknadMal(val prosessnavn: String, val prosessversjon: Int, val mal: JsonNode)
+data class SøknadMal(val prosessversjon: Prosessversjon, val mal: JsonNode)
 
 class IngenMalFunnetException(override val message: String? = "Fant ingen søknadmal") : RuntimeException(message)

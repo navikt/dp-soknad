@@ -34,10 +34,17 @@ internal class SøknadOpprettetHendelseMottak(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val behov = packet["@behov"].single().asText()
-        val søknadID = packet["@løsning"][behov].asUUID()
-        withLoggingContext("søknadId" to søknadID.toString()) {
+        val søknadID = packet["søknad_uuid"].asUUID()
+
+        withLoggingContext(
+            "søknadId" to søknadID.toString()
+        ) {
+            val prosessversjon = mediator.prosessversjon(
+                packet["@løsning"][behov]["prosessversjon"]["navn"].asText(),
+                packet["@løsning"][behov]["prosessversjon"]["versjon"].asInt()
+            )
             val søknadOpprettetHendelse =
-                SøknadOpprettetHendelse(søknadID, packet["ident"].asText())
+                SøknadOpprettetHendelse(prosessversjon, søknadID, packet["ident"].asText())
             logger.info { "Fått løsning for '$behov' for $søknadID" }
             mediator.behandle(søknadOpprettetHendelse)
         }

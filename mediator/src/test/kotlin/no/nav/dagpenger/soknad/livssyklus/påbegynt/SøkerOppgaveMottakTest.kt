@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
 import io.ktor.server.plugins.NotFoundException
 import io.mockk.mockk
+import no.nav.dagpenger.soknad.Prosessnavn
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.db.Postgres
 import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
@@ -41,7 +42,7 @@ class SøkerOppgaveMottakTest {
             testRapid.reset()
             val søknadUuid = UUID.randomUUID()
             val ident = "01234567891"
-            søknadMediator.behandle(ØnskeOmNySøknadHendelse(søknadUuid, ident, språkVerdi))
+            søknadMediator.behandle(ØnskeOmNySøknadHendelse(søknadUuid, ident, språkVerdi, prosessnavn = Prosessnavn("prosessnavn")))
             testRapid.sendTestMessage(nySøknad(søknadUuid, ident))
             søknadMediator.hentSøkerOppgave(søknadUuid).also {
                 assertDoesNotThrow {

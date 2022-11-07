@@ -142,7 +142,8 @@ class StatusApiTest {
         sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.now(), ZoneId.of("Europe/Oslo")),
         tilstandsType = tilstand,
         aktivitetslogg = Aktivitetslogg(),
-        innsending = innsending
+        innsending = innsending,
+        prosessversjon = null
     )
 
     private fun innsending(
