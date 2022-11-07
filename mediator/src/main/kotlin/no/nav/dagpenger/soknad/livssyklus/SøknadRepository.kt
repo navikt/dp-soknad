@@ -15,4 +15,6 @@ interface SøknadRepository {
             søknad.erPåbegynt()
         }
     }
+
+    fun hentPåbegynteSøknader(): List<Søknad>
 }

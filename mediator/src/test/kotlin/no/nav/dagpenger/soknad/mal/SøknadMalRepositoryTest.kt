@@ -9,6 +9,7 @@ import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -22,12 +23,15 @@ class SøknadMalRepositoryTest {
     fun `søknadmal skal lagres`() {
         withMigratedDb {
             SøknadMalPostgresRepository(PostgresDataSourceBuilder.dataSource).let { repo ->
+                var observertMal: SøknadMal? = null
+                repo.addObserver { mal -> observertMal = mal }
                 val expectedMal = SøknadMal("prosessnavn", 123, jacksonObjectMapper().createObjectNode())
                 assertEquals(1, repo.lagre(expectedMal))
                 assertAntallMalerIBasen(1)
 
                 assertEquals(0, repo.lagre(expectedMal))
                 assertAntallMalerIBasen(1)
+                assertNotNull(observertMal)
 
                 val versjon2 = expectedMal.copy(prosessversjon = 456)
                 assertEquals(1, repo.lagre(versjon2))

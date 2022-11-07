@@ -36,6 +36,7 @@ class Søknad private constructor(
     private val observers = mutableListOf<SøknadObserver>()
 
     fun søknadUUID() = søknadId
+    fun ident() = ident
 
     init {
         innsending?.addObserver(this)

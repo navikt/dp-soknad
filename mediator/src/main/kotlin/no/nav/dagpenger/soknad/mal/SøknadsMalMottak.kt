@@ -9,9 +9,8 @@ import no.nav.helse.rapids_rivers.River
 
 class SøknadsMalMottak(
     rapidsConnection: RapidsConnection,
-    private val søknadMalRepository: SøknadMalRepository
-) :
-    River.PacketListener {
+    private val søknadMalRepository: SøknadMalRepository,
+) : River.PacketListener {
 
     init {
         River(rapidsConnection).apply {

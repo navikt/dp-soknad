@@ -172,6 +172,24 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         }
     }
 
+    override fun hentPåbegynteSøknader(): List<Søknad> {
+        return using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf(
+                    //language=PostgreSQL
+                    statement = """
+                    SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident
+                    FROM  soknad_v1
+                    WHERE tilstand = :tilstand
+                    """.trimIndent(),
+                    mapOf(
+                        "tilstand" to Tilstand.Type.Påbegynt
+                    )
+                ).map(rowToSøknadDTO(session)).asList
+            ).map { it.rehydrer() }
+        }
+    }
+
     override fun lagre(søknad: Søknad) {
         DokumentkravLogger(søknad, "lagre")
         val visitor = SøknadPersistenceVisitor(søknad)
