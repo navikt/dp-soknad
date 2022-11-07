@@ -185,7 +185,7 @@ internal class SøknadPostgresRepositoryTest {
                                 "type3"
                             )
                         ),
-                        kravId = "kravId" // todo fixme
+                        kravId = "kravId"
                     )
                 ),
                 ettersendinger = mutableListOf(),
@@ -223,6 +223,7 @@ internal class SøknadPostgresRepositoryTest {
                         ) {
                             assertEquals(1, dokumenter.size)
                             assertEquals("brevkode-vedlegg", dokumenter.first().brevkode)
+                            assertEquals("kravId", dokumenter.first().kravId)
                             assertEquals(1, dokumenter.first().varianter.size)
                         }
                     })
@@ -316,7 +317,7 @@ internal class SøknadPostgresRepositoryTest {
                             "type2"
                         )
                     ),
-                    kravId = "kravId" // todo fixme
+                    kravId = null
                 ),
                 listOf(
                     Innsending.Dokument(
@@ -338,7 +339,7 @@ internal class SøknadPostgresRepositoryTest {
                                 "type4"
                             )
                         ),
-                        kravId = "kravId" // todo fixme
+                        kravId = "kravId"
                     )
                 ),
                 mutableListOf(

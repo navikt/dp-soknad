@@ -187,6 +187,7 @@ private class ApiDokumentkravResponse(
 
     companion object {
         fun Set<Krav>.toApiKrav(): List<ApiDokumentKrav> = map {
+            it.innsendt()
             ApiDokumentKrav(
                 id = it.id,
                 beskrivendeId = it.beskrivendeId,

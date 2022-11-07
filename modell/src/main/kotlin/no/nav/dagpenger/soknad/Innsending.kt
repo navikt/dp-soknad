@@ -173,8 +173,7 @@ abstract class Innsending protected constructor(
                 brevkode = metadata.brevkode(innsending),
                 tittel = metadata.tittel,
                 varianter = hendelse.dokumentvarianter(),
-                kravId = "THIS IS A SMELL"
-
+                kravId = null
             )
             innsending.endreTilstand(
                 AvventerMidlertidligJournalføring,
@@ -261,7 +260,7 @@ abstract class Innsending protected constructor(
 
     data class Dokument(
         val uuid: UUID = UUID.randomUUID(),
-        val kravId: String,
+        val kravId: String?,
         val brevkode: String?,
         val varianter: List<Dokumentvariant>,
         val tittel: String? = null
