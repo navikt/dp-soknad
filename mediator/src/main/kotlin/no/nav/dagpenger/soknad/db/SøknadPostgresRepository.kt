@@ -226,7 +226,7 @@ private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.Dokumenter
                 uuid = dokumentUUID,
                 brevkode = row.string("brevkode"),
                 varianter = varianter,
-                kravId = "kravid" // todo må vi utvide dokument_v1?
+                kravId = row.stringOrNull("kravid")
             )
             when (dokumentUUID == hovedDokumentUUID) {
                 true -> dokumenter.hovedDokument = dokument
@@ -485,14 +485,15 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queries.add(
                 queryOf( //language=PostgreSQL
                     """
-                    INSERT INTO dokument_v1 (dokument_uuid, innsending_uuid, brevkode)
-                    VALUES (:dokument_uuid, :innsending_uuid, :brevkode)
-                    ON CONFLICT (dokument_uuid) DO UPDATE SET brevkode = :brevkode
+                    INSERT INTO dokument_v1 (dokument_uuid, innsending_uuid, brevkode, kravid)
+                    VALUES (:dokument_uuid, :innsending_uuid, :brevkode, :kravId)
+                    ON CONFLICT (dokument_uuid) DO UPDATE SET brevkode = :brevkode, kravid = :kravId
                     """.trimIndent(),
                     mapOf(
                         "dokument_uuid" to dokument.uuid,
                         "innsending_uuid" to innsendingId,
-                        "brevkode" to dokument.brevkode
+                        "brevkode" to dokument.brevkode,
+                        "kravId" to dokument.kravId
                     )
                 )
             )
