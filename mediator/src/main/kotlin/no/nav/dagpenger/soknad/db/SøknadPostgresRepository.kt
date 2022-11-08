@@ -381,7 +381,8 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                    VALUES (:uuid, :person_ident, :tilstand, :spraak, :opprettet, :sistEndretAvBruker, 
                         (SELECT id FROM soknadmal WHERE prosessnavn = :prosessnavn AND prosessversjon = :prosessversjon))
                    ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
-                                                sist_endret_av_bruker = :sistEndretAvBruker
+                                                sist_endret_av_bruker = :sistEndretAvBruker, 
+                                                soknadmal=(SELECT id FROM soknadmal WHERE prosessnavn = :prosessnavn AND prosessversjon = :prosessversjon)
                 """.trimIndent(),
                 mapOf(
                     "uuid" to søknadId,
