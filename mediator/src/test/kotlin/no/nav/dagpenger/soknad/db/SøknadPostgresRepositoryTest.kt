@@ -28,7 +28,10 @@ import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
+import no.nav.dagpenger.soknad.mal.SøknadMal
+import no.nav.dagpenger.soknad.mal.SøknadMalPostgresRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
+import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -73,6 +76,7 @@ internal class SøknadPostgresRepositoryTest {
     private val now = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.SECONDS)
     val ident = "12345678910"
     private val prosessversjon = Prosessversjon("Dagpenger", 1)
+    private val mal = SøknadMal(prosessversjon, objectMapper.createObjectNode())
     val søknad = Søknad.rehydrer(
         søknadId = søknadId,
         ident = ident,
@@ -375,6 +379,9 @@ internal class SøknadPostgresRepositoryTest {
         )
 
         withMigratedDb {
+            SøknadMalPostgresRepository(dataSource).let{ søknadMalPostgresRepository ->
+                søknadMalPostgresRepository.lagre(mal)
+            }
             SøknadPostgresRepository(dataSource).let { søknadPostgresRepository ->
                 søknadPostgresRepository.lagre(søknad)
 
@@ -676,6 +683,9 @@ internal class SøknadPostgresRepositoryTest {
         )
 
         withMigratedDb {
+            SøknadMalPostgresRepository(dataSource).let { søknadMalPostgresRepository ->
+                søknadMalPostgresRepository.lagre(mal)
+            }
             SøknadPostgresRepository(dataSource).let { repository ->
                 repository.lagre(innsendtSøknad)
                 repository.lagre(påbegyntSøknad)

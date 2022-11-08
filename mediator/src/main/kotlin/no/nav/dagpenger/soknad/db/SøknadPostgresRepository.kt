@@ -32,6 +32,7 @@ import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.KravDTO.KravTil
 import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SannsynliggjøringDTO
 import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SvarDTO
 import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SvarDTO.SvarValgDTO
+import no.nav.dagpenger.soknad.serder.SøknadDTO.ProsessversjonDTO
 import no.nav.dagpenger.soknad.toMap
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import no.nav.helse.rapids_rivers.asLocalDateTime
@@ -169,7 +170,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 sistEndretAvBruker = row.zonedDateTime("sist_endret_av_bruker").withZoneSameInstant(tidssone),
                 innsendingDTO = session.hentInnsending(søknadsId),
                 aktivitetslogg = session.hentAktivitetslogg(søknadsId),
-                prosessversjon = SøknadDTO.ProsessversjonDTO("Dagpenger", 1)//TODO fiks
+                prosessversjon = session.hentProsessversjon(søknadsId)
             )
         }
     }
@@ -303,6 +304,22 @@ internal fun Session.hentAktivitetslogg(søknadId: UUID): AktivitetsloggDTO? = r
     }.asSingle
 )
 
+internal fun Session.hentProsessversjon(søknadId: UUID): ProsessversjonDTO? = run(
+    queryOf( //language=PostgreSQL
+        """
+                    SELECT prosessnavn, prosessversjon
+                    FROM  soknadmal
+                    JOIN soknad_v1 soknad ON soknad.soknadmal = soknadmal.id 
+                    WHERE soknad.uuid = :soknadId
+                    """.trimIndent(),
+        mapOf(
+            "soknadId" to søknadId,
+        )
+    ).map { row ->
+        ProsessversjonDTO(prosessnavn = row.string("prosessnavn"), versjon = row.int("prosessversjon"))
+    }.asSingle
+)
+
 private class DokumentkravLogger(søknad: Søknad, val action: String) : SøknadVisitor {
 
     private val logger = KotlinLogging.logger { }
@@ -360,9 +377,10 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queryOf(
                 // language=PostgreSQL
                 """
-                INSERT INTO soknad_v1(uuid, person_ident, tilstand, spraak, opprettet, sist_endret_av_bruker)
-                VALUES (:uuid, :person_ident, :tilstand, :spraak, :opprettet, :sistEndretAvBruker)
-                ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
+                   INSERT INTO soknad_v1(uuid, person_ident, tilstand, spraak, opprettet, sist_endret_av_bruker, soknadmal)
+                   VALUES (:uuid, :person_ident, :tilstand, :spraak, :opprettet, :sistEndretAvBruker, 
+                        (SELECT id FROM soknadmal WHERE prosessnavn = :prosessnavn AND prosessversjon = :prosessversjon))
+                   ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
                                                 sist_endret_av_bruker = :sistEndretAvBruker
                 """.trimIndent(),
                 mapOf(
@@ -371,7 +389,9 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                     "tilstand" to tilstand.tilstandType.name,
                     "spraak" to språk.verdi.toLanguageTag(),
                     "opprettet" to opprettet,
-                    "sistEndretAvBruker" to sistEndretAvBruker
+                    "sistEndretAvBruker" to sistEndretAvBruker,
+                    "prosessnavn" to prosessversjon?.prosessnavn?.id,
+                    "prosessversjon" to prosessversjon?.versjon
                 )
             )
         )
