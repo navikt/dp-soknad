@@ -19,6 +19,7 @@ import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Krav
+import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
@@ -179,7 +180,8 @@ private class ApiDokumentkravResponse(
         tilstand: Søknad.Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime
+        sistEndretAvBruker: ZonedDateTime,
+        prosessversjon: Prosessversjon?
     ) {
         soknad_uuid = søknadId
         krav = dokumentkrav.aktiveDokumentKrav().toApiKrav()

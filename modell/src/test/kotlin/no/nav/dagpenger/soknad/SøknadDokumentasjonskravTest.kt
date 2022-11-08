@@ -235,7 +235,8 @@ internal class TestSøknadInspektør2(søknad: Søknad) : SøknadVisitor {
         tilstand: Søknad.Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime
+        sistEndretAvBruker: ZonedDateTime,
+        prosessversjon: Prosessversjon
     ) {
         this.søknadId = søknadId
         this.dokumentkrav = dokumentkrav

@@ -13,6 +13,7 @@ import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.NyInnsending
+import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
@@ -71,6 +72,7 @@ internal class SøknadPostgresRepositoryTest {
     private val opprettet = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.SECONDS)
     private val now = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.SECONDS)
     val ident = "12345678910"
+    private val prosessversjon = Prosessversjon("Dagpenger", 1)
     val søknad = Søknad.rehydrer(
         søknadId = søknadId,
         ident = ident,
@@ -83,7 +85,7 @@ internal class SøknadPostgresRepositoryTest {
         tilstandsType = Påbegynt,
         aktivitetslogg = Aktivitetslogg(),
         null,
-        null
+        prosessversjon
     )
 
     @Test
@@ -112,7 +114,7 @@ internal class SøknadPostgresRepositoryTest {
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             null,
-            null
+            prosessversjon
         )
 
         withMigratedDb {
@@ -193,7 +195,7 @@ internal class SøknadPostgresRepositoryTest {
                 ettersendinger = mutableListOf(),
                 metadata = Innsending.Metadata("04-02-03", "en tittel")
             ),
-            prosessversjon = null
+            prosessversjon = prosessversjon
         )
 
         withMigratedDb {
@@ -369,7 +371,7 @@ internal class SøknadPostgresRepositoryTest {
                 ),
                 Innsending.Metadata("04-02-03")
             ),
-            prosessversjon = null
+            prosessversjon = prosessversjon
         )
 
         withMigratedDb {
@@ -447,7 +449,7 @@ internal class SøknadPostgresRepositoryTest {
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             innsending = null,
-            prosessversjon = null
+            prosessversjon = prosessversjon
         )
 
         withMigratedDb {
@@ -627,7 +629,7 @@ internal class SøknadPostgresRepositoryTest {
             tilstandsType = Innsendt,
             aktivitetslogg = Aktivitetslogg(),
             null,
-            null
+            prosessversjon
         )
 
         withMigratedDb {
@@ -637,6 +639,49 @@ internal class SøknadPostgresRepositoryTest {
                 val hentetPåbegyntSøknad = repository.hentPåbegyntSøknad(ident)
                 assertNotNull(hentetPåbegyntSøknad)
                 assertDeepEquals(søknad, hentetPåbegyntSøknad)
+            }
+        }
+    }
+
+    @Test
+    fun `Skal kunne hente ut alle påbegynte søknader`() {
+        val søknadIdForInnsendt = UUID.randomUUID()
+        val påbegyntSøknad = Søknad.rehydrer(
+            søknadId = søknadIdForInnsendt,
+            ident = ident,
+            opprettet = ZonedDateTime.now(),
+            språk = Språk("NO"),
+            dokumentkrav = Dokumentkrav.rehydrer(
+                krav = setOf(krav)
+            ),
+            sistEndretAvBruker = now,
+            tilstandsType = Påbegynt,
+            aktivitetslogg = Aktivitetslogg(),
+            null,
+            prosessversjon
+        )
+        val innsendtSøknad = Søknad.rehydrer(
+            søknadId = søknadIdForInnsendt,
+            ident = ident,
+            opprettet = ZonedDateTime.now(),
+            språk = Språk("NO"),
+            dokumentkrav = Dokumentkrav.rehydrer(
+                krav = setOf(krav)
+            ),
+            sistEndretAvBruker = now,
+            tilstandsType = Innsendt,
+            aktivitetslogg = Aktivitetslogg(),
+            null,
+            prosessversjon
+        )
+
+        withMigratedDb {
+            SøknadPostgresRepository(dataSource).let { repository ->
+                repository.lagre(innsendtSøknad)
+                repository.lagre(påbegyntSøknad)
+                repository.lagre(søknad)
+                val påbegynteSøknader = repository.hentPåbegynteSøknader(Prosessversjon("Dagpenger", 1))
+                assertEquals(2, påbegynteSøknader.size)
             }
         }
     }
@@ -656,7 +701,8 @@ internal class SøknadPostgresRepositoryTest {
                 tilstand: Søknad.Tilstand,
                 språk: Språk,
                 dokumentkrav: Dokumentkrav,
-                sistEndretAvBruker: ZonedDateTime
+                sistEndretAvBruker: ZonedDateTime,
+                prosessversjon: Prosessversjon?
             ) {
                 this.dokumentKrav = dokumentkrav
             }

@@ -41,6 +41,7 @@ interface SøknadVisitor : TilstandVisitor, AktivitetsloggVisitor, DokumentkravV
         språk: Språk,
         dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime,
+        prosessversjon: Prosessversjon?
     ) {
     }
 }

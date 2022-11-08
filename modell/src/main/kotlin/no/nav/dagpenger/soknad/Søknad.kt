@@ -411,7 +411,8 @@ class Søknad private constructor(
             tilstand = tilstand,
             språk = språk,
             dokumentkrav = dokumentkrav,
-            sistEndretAvBruker = sistEndretAvBruker
+            sistEndretAvBruker = sistEndretAvBruker,
+            prosessversjon = prosessversjon
         )
         tilstand.accept(visitor)
         aktivitetslogg.accept(visitor)

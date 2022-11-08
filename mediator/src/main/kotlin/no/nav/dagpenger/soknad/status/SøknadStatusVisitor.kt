@@ -5,6 +5,7 @@ import no.nav.dagpenger.soknad.Innsending.Dokument
 import no.nav.dagpenger.soknad.Innsending.InnsendingType
 import no.nav.dagpenger.soknad.Innsending.Metadata
 import no.nav.dagpenger.soknad.Innsending.TilstandType
+import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadVisitor
@@ -33,7 +34,8 @@ class SøknadStatusVisitor(søknad: Søknad) : SøknadVisitor {
         tilstand: Søknad.Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime
+        sistEndretAvBruker: ZonedDateTime,
+        prosessversjon: Prosessversjon?
     ) {
         søknadOpprettet = opprettet.toLocalDateTime()
         søknadTilstand = tilstand.tilstandType

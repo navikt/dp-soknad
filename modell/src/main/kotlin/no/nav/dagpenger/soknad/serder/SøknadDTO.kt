@@ -7,6 +7,8 @@ import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Krav.Svar
+import no.nav.dagpenger.soknad.Prosessnavn
+import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
@@ -23,7 +25,8 @@ class SøknadDTO(
     val sistEndretAvBruker: ZonedDateTime,
     val innsendingDTO: InnsendingDTO?,
     var aktivitetslogg: AktivitetsloggDTO? = null,
-    val opprettet: ZonedDateTime
+    val opprettet: ZonedDateTime,
+    val prosessversjon: ProsessversjonDTO
 ) {
     fun rehydrer(): Søknad = Søknad.rehydrer(
         søknadId = this.søknadsId,
@@ -35,13 +38,23 @@ class SøknadDTO(
         tilstandsType = this.tilstandType.rehydrer(),
         aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
         innsending = this.innsendingDTO?.rehydrer(),
-        prosessversjon = null,
+        prosessversjon = this.prosessversjon.rehydrer(),
     )
 
     class SpråkDTO(val verdi: String) {
         constructor(språk: Locale) : this(språk.toLanguageTag())
 
         fun rehydrer() = Språk(verdi)
+    }
+
+    data class ProsessversjonDTO(
+        val prosessnavn: String,
+        val versjon: Int
+    ){
+        fun rehydrer() = Prosessversjon(
+            prosessnavn = Prosessnavn(this.prosessnavn),
+            versjon = this.versjon
+        )
     }
 
     data class DokumentkravDTO(

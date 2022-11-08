@@ -168,7 +168,8 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 ),
                 sistEndretAvBruker = row.zonedDateTime("sist_endret_av_bruker").withZoneSameInstant(tidssone),
                 innsendingDTO = session.hentInnsending(søknadsId),
-                aktivitetslogg = session.hentAktivitetslogg(søknadsId)
+                aktivitetslogg = session.hentAktivitetslogg(søknadsId),
+                prosessversjon = SøknadDTO.ProsessversjonDTO("Dagpenger", 1)//TODO fiks
             )
         }
     }
@@ -344,7 +345,8 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         tilstand: Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime
+        sistEndretAvBruker: ZonedDateTime,
+        prosessversjon: Prosessversjon?
     ) {
         this.søknadId = søknadId
         queries.add(
