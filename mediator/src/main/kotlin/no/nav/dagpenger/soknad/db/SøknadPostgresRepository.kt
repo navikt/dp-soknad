@@ -180,14 +180,14 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             session.run(
                 queryOf( //language=PostgreSQL
                     """
-                    SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident
+                    SELECT uuid, tilstand, spraak, sist_endret_av_bruker, soknad_v1.opprettet, person_ident
                     FROM  soknad_v1
                     LEFT JOIN soknadmal mal ON soknad_v1.soknadmal = mal.id 
                     WHERE tilstand = :tilstand AND mal.prosessnavn = :prosessnavn AND mal.prosessversjon = :prosessversjon
                     """.trimIndent(),
                     mapOf(
-                        "tilstand" to Tilstand.Type.Påbegynt,
-                        "prosessnavn" to prosessversjon.prosessnavn,
+                        "tilstand" to Tilstand.Type.Påbegynt.toString(),
+                        "prosessnavn" to prosessversjon.prosessnavn.id,
                         "prosessversjon" to prosessversjon.versjon
                     )
                 ).map(rowToSøknadDTO(session)).asList
