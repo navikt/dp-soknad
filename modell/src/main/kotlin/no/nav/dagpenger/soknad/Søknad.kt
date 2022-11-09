@@ -350,7 +350,9 @@ class Søknad private constructor(
         }
 
         override fun håndter(hendelse: MigrertProsessHendelse, søknad: Søknad) {
+            val forrigeVersjon = requireNotNull(søknad.prosessversjon)
             søknad.prosessversjon = hendelse.prosessversjon
+            søknad.migrert(søknad.ident, forrigeVersjon)
         }
     }
 
@@ -414,6 +416,13 @@ class Søknad private constructor(
     private fun slettet(ident: String) {
         observers.forEach {
             it.søknadSlettet(SøknadSlettetEvent(søknadId, ident))
+        }
+    }
+
+    private fun migrert(ident: String, forrigeProsessversjon: Prosessversjon){
+        val gjeldendeVersjon = requireNotNull(this.prosessversjon){"Kan ikke migrere søknad uten prosessversjon"}
+        observers.forEach {
+            it.søknadMigrert(SøknadObserver.SøknadMigrertEvent(søknadId, ident, forrigeProsessversjon, gjeldendeVersjon))
         }
     }
 

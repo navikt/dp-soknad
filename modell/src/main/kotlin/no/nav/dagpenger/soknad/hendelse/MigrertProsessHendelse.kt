@@ -7,7 +7,7 @@ import java.util.UUID
 class MigrertProsessHendelse(
     val søknadId: UUID,
     ident: String,
-    aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
-    val prosessversjon: Prosessversjon
+    val prosessversjon: Prosessversjon,
+    aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 ): SøknadHendelse(søknadId, ident, aktivitetslogg) {
 }

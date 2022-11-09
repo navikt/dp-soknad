@@ -22,6 +22,7 @@ import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.InnsendingMetadataMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
+import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
@@ -317,12 +318,30 @@ internal class SøknadTest {
         )
     }
 
+    @Test
+    fun `Oppdaterer prosessversjon`(){
+        håndterØnskeOmNySøknadHendelse()
+        håndterNySøknadOpprettet()
+        håndterMigrertProsessHendelse()
+
+        assertEquals(2, testSøknadObserver.sisteVersjon?.versjon)
+
+    }
+
     private fun håndterNySøknadOpprettet() {
         søknad.håndter(SøknadOpprettetHendelse(Prosessversjon("navn", 1), inspektør.søknadId, testIdent))
     }
 
     private fun håndterSlettet() {
         søknad.håndter(SlettSøknadHendelse(inspektør.søknadId, testIdent))
+    }
+
+    private fun håndterMigrertProsessHendelse(){
+        søknad.håndter(MigrertProsessHendelse(
+            inspektør.søknadId,
+            testIdent,
+            Prosessversjon("navn", 2)
+        ))
     }
 
     private fun håndterInnsendingMetadata() {

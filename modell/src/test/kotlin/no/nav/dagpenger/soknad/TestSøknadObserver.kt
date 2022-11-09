@@ -5,6 +5,7 @@ import no.nav.dagpenger.soknad.SøknadObserver.SøknadEndretTilstandEvent
 class TestSøknadObserver : SøknadObserver {
 
     internal var slettet: Boolean = false
+    internal var sisteVersjon: Prosessversjon? = null
     internal val tilstander = mutableListOf<Søknad.Tilstand.Type>().also {
         it.add(Søknad.Tilstand.Type.UnderOpprettelse)
     }
@@ -23,5 +24,9 @@ class TestSøknadObserver : SøknadObserver {
 
     override fun søknadSlettet(event: SøknadObserver.SøknadSlettetEvent) {
         slettet = true
+    }
+
+    override fun søknadMigrert(event: SøknadObserver.SøknadMigrertEvent) {
+        sisteVersjon = event.gjeldendeProsessversjon
     }
 }
