@@ -10,7 +10,6 @@ import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
-import no.nav.dagpenger.soknad.db.SøknadPostgresRepository.PersistentSøkerOppgave
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
@@ -27,7 +26,7 @@ class SøknadDataRepositoryTest {
             val søknadCache = SøknadDataPostgresRepository(dataSource)
             val søknadUuid = UUID.randomUUID()
             lagrePersonMedSøknad(søknadUuid)
-            val søknad = PersistentSøkerOppgave(søknad(søknadUuid))
+            val søknad = SøkerOppgaveMelding(søknad(søknadUuid))
             søknadCache.lagre(søknad)
             val rehydrertSøknad = søknadCache.hentSøkerOppgave(søknadUuid)
             assertEquals(søknad.søknadUUID(), rehydrertSøknad.søknadUUID())
@@ -50,9 +49,9 @@ class SøknadDataRepositoryTest {
         withMigratedDb {
             lagrePersonMedSøknad(søknadUuid)
             val søknadCache = SøknadDataPostgresRepository(dataSource)
-            søknadCache.lagre(PersistentSøkerOppgave(søknad(søknadUuid)))
+            søknadCache.lagre(SøkerOppgaveMelding(søknad(søknadUuid)))
             søknadCache.lagre(
-                PersistentSøkerOppgave(
+                SøkerOppgaveMelding(
                     søknad(
                         søknadUuid,
                         seksjoner = "oppdatert første gang"
@@ -60,7 +59,7 @@ class SøknadDataRepositoryTest {
                 )
             )
             søknadCache.lagre(
-                PersistentSøkerOppgave(
+                SøkerOppgaveMelding(
                     søknad(
                         søknadUuid,
                         seksjoner = "oppdatert andre gang"
@@ -93,8 +92,8 @@ class SøknadDataRepositoryTest {
             val eier2 = "12345678901"
             lagrePersonMedSøknad(søknadUuid1, eier1)
             lagrePersonMedSøknad(søknadUuid2, eier2)
-            val søknad1 = PersistentSøkerOppgave(søknad(søknadUuid1, fødselsnummer = eier1))
-            val søknad2 = PersistentSøkerOppgave(søknad(søknadUuid2, fødselsnummer = eier2))
+            val søknad1 = SøkerOppgaveMelding(søknad(søknadUuid1, fødselsnummer = eier1))
+            val søknad2 = SøkerOppgaveMelding(søknad(søknadUuid2, fødselsnummer = eier2))
 
             søknadCache.lagre(søknad1)
             søknadCache.lagre(søknad2)

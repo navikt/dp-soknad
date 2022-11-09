@@ -1,31 +1,13 @@
 package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
-import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
 import mu.withLoggingContext
-import no.nav.dagpenger.soknad.Faktum
-import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDateTime
-import java.util.UUID
-
-interface SøkerOppgave {
-    fun søknadUUID(): UUID
-    fun eier(): String
-    fun toJson(): String
-    fun sannsynliggjøringer(): Set<Sannsynliggjøring>
-
-    object Keys {
-        val SEKSJONER = "seksjoner"
-        val SØKNAD_UUID = "søknad_uuid"
-        val FØDSELSNUMMER = "fødselsnummer"
-        val FERDIG = "ferdig"
-    }
-}
 
 internal class SøkerOppgaveMottak(
     rapidsConnection: RapidsConnection,
@@ -52,7 +34,7 @@ internal class SøkerOppgaveMottak(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val søkerOppgave = SøkerOppgaveMelding(packet)
+        val søkerOppgave = SøkerOppgaveMelding(packet.toJson())
         withLoggingContext(
             "søknadId" to søkerOppgave.søknadUUID().toString(),
             "packetId" to packet.id,
@@ -68,39 +50,4 @@ internal class SøkerOppgaveMottak(
         }
         søknadMediator.behandle(søkerOppgave)
     }
-}
-
-internal open class SøkerOppgaveMelding(private val jsonMessage: JsonMessage) : SøkerOppgave {
-    override fun søknadUUID(): UUID = UUID.fromString(jsonMessage[SøkerOppgave.Keys.SØKNAD_UUID].asText())
-    override fun eier(): String = jsonMessage[SøkerOppgave.Keys.FØDSELSNUMMER].asText()
-    override fun toJson(): String = jsonMessage.toJson()
-    override fun sannsynliggjøringer(): Set<Sannsynliggjøring> {
-        val seksjoner = jsonMessage[SøkerOppgave.Keys.SEKSJONER]
-        val sannsynliggjøringer = mutableMapOf<String, Sannsynliggjøring>()
-        val fakta: List<Faktum> = seksjoner.findValues("fakta").flatMap<JsonNode, Faktum> { fakta ->
-            fakta.fold(mutableListOf()) { acc, faktum ->
-                when (faktum["type"].asText()) {
-                    "generator" -> faktum["svar"]?.forEach { svarliste ->
-                        svarliste.forEach { generertFaktum ->
-                            acc.add(grunnleggendeFaktum(generertFaktum))
-                        }
-                    }
-                    else -> acc.add(grunnleggendeFaktum(faktum))
-                }
-                acc
-            }
-        }.filter { it.sannsynliggjøresAv.isNotEmpty() }
-
-        fakta.forEach { faktum ->
-            faktum.sannsynliggjøresAv.forEach { sannsynliggjøring ->
-                sannsynliggjøringer.getOrPut(
-                    sannsynliggjøring.id
-                ) { Sannsynliggjøring(sannsynliggjøring.id, sannsynliggjøring) }.sannsynliggjør(faktum)
-            }
-        }
-
-        return sannsynliggjøringer.values.toSet()
-    }
-
-    private fun grunnleggendeFaktum(faktum: JsonNode): Faktum = Faktum(faktum)
 }

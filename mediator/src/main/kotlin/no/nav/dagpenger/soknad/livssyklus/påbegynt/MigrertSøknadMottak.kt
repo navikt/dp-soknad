@@ -51,7 +51,7 @@ private class MigrertSøkerOppgave(
     private val ident: String,
     packet: JsonMessage
 ) :
-    SøkerOppgaveMelding(packet) {
+    SøkerOppgaveMelding(packet.toJson()) {
     override fun søknadUUID() = søknadId
     override fun eier() = ident
 }

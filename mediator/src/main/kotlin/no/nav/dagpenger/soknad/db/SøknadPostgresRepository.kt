@@ -1,6 +1,5 @@
 package no.nav.dagpenger.soknad.db
 
-import com.fasterxml.jackson.databind.JsonNode
 import de.slub.urn.URN
 import kotliquery.Query
 import kotliquery.Row
@@ -15,13 +14,11 @@ import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Innsending.Dokument.Dokumentvariant
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Prosessversjon
-import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand
 import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
-import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.serder.AktivitetsloggDTO
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.soknad.serder.InnsendingDTO
@@ -201,16 +198,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                     transactionalSession.run(it.asUpdate)
                 }
             }
-        }
-    }
-
-    internal class PersistentSøkerOppgave(private val søknad: JsonNode) : SøkerOppgave {
-        override fun søknadUUID(): UUID = UUID.fromString(søknad[SøkerOppgave.Keys.SØKNAD_UUID].asText())
-        override fun eier(): String = søknad[SøkerOppgave.Keys.FØDSELSNUMMER].asText()
-        override fun toJson(): String = søknad.toString()
-
-        override fun sannsynliggjøringer(): Set<Sannsynliggjøring> {
-            TODO("not implemented")
         }
     }
 }
