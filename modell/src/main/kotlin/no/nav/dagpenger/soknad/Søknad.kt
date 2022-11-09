@@ -11,6 +11,7 @@ import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.InnsendingMetadataMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
+import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
@@ -181,6 +182,11 @@ class Søknad private constructor(
         tilstand.håndter(hendelse, this)
     }
 
+    fun håndter(hendelse: MigrertProsessHendelse) {
+        kontekst(hendelse)
+        tilstand.håndter(hendelse, this)
+    }
+
     fun addObserver(søknadObserver: SøknadObserver) {
         observers.add(søknadObserver)
     }
@@ -238,6 +244,10 @@ class Søknad private constructor(
         }
 
         fun håndter(hendelse: DokumentKravSammenstilling, søknad: Søknad) {
+            hendelse.`kan ikke håndteres i denne tilstanden`()
+        }
+
+        fun håndter(hendelse: MigrertProsessHendelse, søknad: Søknad){
             hendelse.`kan ikke håndteres i denne tilstanden`()
         }
 
@@ -337,6 +347,10 @@ class Søknad private constructor(
 
         override fun håndter(dokumentKravSammenstilling: DokumentKravSammenstilling, søknad: Søknad) {
             søknad.dokumentkrav.håndter(dokumentKravSammenstilling)
+        }
+
+        override fun håndter(hendelse: MigrertProsessHendelse, søknad: Søknad) {
+            søknad.prosessversjon = hendelse.prosessversjon
         }
     }
 

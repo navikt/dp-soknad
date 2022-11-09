@@ -11,6 +11,7 @@ import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.InnsendingMetadataMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
+import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
@@ -139,6 +140,12 @@ internal class SøknadMediator(
     fun behandle(innsendingMetadataMottattHendelse: InnsendingMetadataMottattHendelse) {
         behandle(innsendingMetadataMottattHendelse) { søknad ->
             søknad.håndter(innsendingMetadataMottattHendelse)
+        }
+    }
+
+    fun behandle(hendelse: MigrertProsessHendelse){
+        behandle(hendelse) { søknad ->
+            søknad.håndter(hendelse)
         }
     }
 
