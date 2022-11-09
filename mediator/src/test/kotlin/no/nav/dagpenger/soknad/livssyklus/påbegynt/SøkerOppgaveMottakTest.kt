@@ -11,7 +11,6 @@ import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -28,7 +27,6 @@ class SøkerOppgaveMottakTest {
     }
 
     @Test
-    @Disabled
     fun `lese svar fra kafka`() {
         Postgres.withMigratedDb {
             val søknadMediator = SøknadMediator(
