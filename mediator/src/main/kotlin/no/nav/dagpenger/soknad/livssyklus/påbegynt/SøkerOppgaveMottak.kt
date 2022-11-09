@@ -65,11 +65,14 @@ internal class SøkerOppgaveMottak(
             "opprettet" to packet["@opprettet"].asLocalDateTime().toString()
         ) {
             logger.info { "Mottatt pakke ${packet["@event_name"].asText()}" }
-            if (søkerOppgave.søknadUUID().toString() == "8d2d3a08-61f2-4168-a4c9-0132715dc553") {
+            if (listOf("600e2f1c-9e2c-40ed-993f-1b875735d197", "8d2d3a08-61f2-4168-a4c9-0132715dc553").contains(
+                    søkerOppgave.søknadUUID().toString()
+                )
+            ) {
                 return
             }
-            søknadMediator.behandle(søkerOppgave)
         }
+        søknadMediator.behandle(søkerOppgave)
     }
 }
 
