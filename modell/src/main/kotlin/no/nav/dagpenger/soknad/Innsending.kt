@@ -209,9 +209,9 @@ abstract class Innsending protected constructor(
         override val tilstandType = TilstandType.AvventerJournalføring
 
         override fun håndter(hendelse: JournalførtHendelse, innsending: Innsending) {
-            // TODO: Legg til sjekk om at det er DENNE søknaden som er journalført.
-            // journalførtHendelse.journalpostId() == innsending.journalpost.id
-            innsending.endreTilstand(Journalført, hendelse)
+            if (hendelse.journalpostId() == innsending.journalpostId) {
+                innsending.endreTilstand(Journalført, hendelse)
+            }
         }
     }
 
