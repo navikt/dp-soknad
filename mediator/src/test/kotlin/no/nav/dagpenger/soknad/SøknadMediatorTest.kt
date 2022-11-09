@@ -35,151 +35,152 @@ internal class SøknadMediatorTest {
         private const val testIdent = "12345678913"
         private const val testJournalpostId = "123455PDS"
         private val språkVerdi = "NO"
+    }
 
-        private lateinit var mediator: SøknadMediator
-        private val testRapid = TestRapid()
+    private lateinit var mediator: SøknadMediator
+    private val testRapid = TestRapid()
 
-        private object TestSøknadRepository : SøknadRepository {
+    private object TestSøknadRepository : SøknadRepository {
 
-            private val søknader = mutableListOf<Søknad>()
+        private val søknader = mutableListOf<Søknad>()
 
-            override fun hentEier(søknadId: UUID): String? {
-                TODO("Not yet implemented")
-            }
-
-            override fun hent(søknadId: UUID): Søknad? {
-                return søknader.find { it.søknadUUID() == søknadId }
-            }
-
-            override fun hentSøknader(ident: String): Set<Søknad> {
-                return søknader.toSet()
-            }
-
-            override fun lagre(søknad: Søknad) {
-                søknader.add(søknad)
-            }
-
-            fun clear() {
-                søknader.clear()
-            }
+        override fun hentEier(søknadId: UUID): String? {
+            TODO("Not yet implemented")
         }
 
-        @BeforeEach
-        fun setup() {
-            mediator = SøknadMediator(
-                testRapid,
-                mockk(relaxed = true),
-                mockk(),
-                mockk(),
-                TestSøknadRepository
-            )
-
-            SøkerOppgaveMottak(testRapid, mediator)
-            SøknadOpprettetHendelseMottak(testRapid, mediator)
-            ArkiverbarSøknadMottattHendelseMottak(testRapid, mediator)
-            NyJournalpostMottak(testRapid, mediator)
-            JournalførtMottak(testRapid, mediator)
-            SkjemakodeMottak(testRapid, mediator)
+        override fun hent(søknadId: UUID): Søknad? {
+            return søknader.find { it.søknadUUID() == søknadId }
         }
 
-        @AfterEach
-        fun tearDown() {
-            TestSøknadRepository.clear()
+        override fun hentSøknader(ident: String): Set<Søknad> {
+            return søknader.toSet()
         }
 
-        @Test
-        fun `Søknaden går gjennom livssyklusen med alle tilstander`() {
-            val søknadUuid = UUID.randomUUID()
-            mediator.behandle(ØnskeOmNySøknadHendelse(søknadUuid, testIdent, språkVerdi))
-            assertEquals(1, testRapid.inspektør.size)
-            assertEquals(listOf("NySøknad"), behov(0))
-            assertEquals(UnderOpprettelse, oppdatertInspektør().gjeldendetilstand)
+        override fun lagre(søknad: Søknad) {
+            søknader.add(søknad)
+        }
 
-            testRapid.sendTestMessage(nySøknadBehovsløsning(søknadUuid.toString()))
-            assertEquals(Påbegynt, oppdatertInspektør().gjeldendetilstand)
+        fun clear() {
+            søknader.clear()
+        }
+    }
 
-            testRapid.sendTestMessage(søkerOppgave(søknadUuid.toString().toUUID(), testIdent))
+    @BeforeEach
+    fun setup() {
+        mediator = SøknadMediator(
+            testRapid,
+            mockk(relaxed = true),
+            mockk(),
+            mockk(),
+            TestSøknadRepository
+        )
 
-            mediator.behandle(FaktumSvar(søknadUuid, "1234", "boolean", testIdent, BooleanNode.TRUE))
-            assertTrue("faktum_svar" in testRapid.inspektør.message(1).toString())
+        SøkerOppgaveMottak(testRapid, mediator)
+        SøknadOpprettetHendelseMottak(testRapid, mediator)
+        ArkiverbarSøknadMottattHendelseMottak(testRapid, mediator)
+        NyJournalpostMottak(testRapid, mediator)
+        JournalførtMottak(testRapid, mediator)
+        SkjemakodeMottak(testRapid, mediator)
+    }
 
-            testRapid.sendTestMessage(ferdigSøkerOppgave(søknadUuid.toString().toUUID(), testIdent))
-            mediator.behandle(SøknadInnsendtHendelse(søknadUuid, testIdent))
+    @AfterEach
+    fun tearDown() {
+        TestSøknadRepository.clear()
+    }
 
-            assertEquals(AvventerMetadata, oppdatertInspektør().gjeldendeInnsendingTilstand)
-            assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
+    @Test
+    fun `Søknaden går gjennom livssyklusen med alle tilstander`() {
+        val søknadUuid = UUID.randomUUID()
+        mediator.behandle(ØnskeOmNySøknadHendelse(søknadUuid, testIdent, språkVerdi))
+        assertEquals(1, testRapid.inspektør.size)
+        assertEquals(listOf("NySøknad"), behov(0))
+        assertEquals(UnderOpprettelse, oppdatertInspektør().gjeldendetilstand)
 
-            assertEquals(listOf("InnsendingMetadata"), behov(2))
+        testRapid.sendTestMessage(nySøknadBehovsløsning(søknadUuid.toString()))
+        assertEquals(Påbegynt, oppdatertInspektør().gjeldendetilstand)
 
-            testRapid.sendTestMessage(
-                innsendingBrevkodeLøsning(
-                    testIdent,
-                    søknadId(),
-                    innsendingId()
-                )
+        testRapid.sendTestMessage(søkerOppgave(søknadUuid.toString().toUUID(), testIdent))
+
+        mediator.behandle(FaktumSvar(søknadUuid, "1234", "boolean", testIdent, BooleanNode.TRUE))
+        assertTrue("faktum_svar" in testRapid.inspektør.message(1).toString())
+
+        testRapid.sendTestMessage(ferdigSøkerOppgave(søknadUuid.toString().toUUID(), testIdent))
+        mediator.behandle(SøknadInnsendtHendelse(søknadUuid, testIdent))
+
+        assertEquals(AvventerMetadata, oppdatertInspektør().gjeldendeInnsendingTilstand)
+        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
+
+        assertEquals(listOf("InnsendingMetadata"), behov(2))
+
+        testRapid.sendTestMessage(
+            innsendingBrevkodeLøsning(
+                testIdent,
+                søknadId(),
+                innsendingId()
             )
+        )
 
-            assertEquals(AvventerArkiverbarSøknad, oppdatertInspektør().gjeldendeInnsendingTilstand)
-            assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
-            assertEquals(listOf("ArkiverbarSøknad"), behov(3))
+        assertEquals(AvventerArkiverbarSøknad, oppdatertInspektør().gjeldendeInnsendingTilstand)
+        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(listOf("ArkiverbarSøknad"), behov(3))
 
-            testRapid.sendTestMessage(
-                arkiverbarsøknadLøsning(
-                    testIdent,
-                    søknadId(),
-                    innsendingId()
-                )
+        testRapid.sendTestMessage(
+            arkiverbarsøknadLøsning(
+                testIdent,
+                søknadId(),
+                innsendingId()
             )
-            assertEquals(AvventerMidlertidligJournalføring, oppdatertInspektør().gjeldendeInnsendingTilstand)
-            assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
+        )
+        assertEquals(AvventerMidlertidligJournalføring, oppdatertInspektør().gjeldendeInnsendingTilstand)
+        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
 
-            testRapid.sendTestMessage(
-                nyJournalpostLøsning(
-                    ident = testIdent,
-                    søknadUuid = søknadId(),
-                    innsendingId(),
-                    journalpostId = testJournalpostId
-                )
+        testRapid.sendTestMessage(
+            nyJournalpostLøsning(
+                ident = testIdent,
+                søknadUuid = søknadId(),
+                innsendingId(),
+                journalpostId = testJournalpostId
             )
-            assertEquals(AvventerJournalføring, oppdatertInspektør().gjeldendeInnsendingTilstand)
-            assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
+        )
+        assertEquals(AvventerJournalføring, oppdatertInspektør().gjeldendeInnsendingTilstand)
+        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
 
-            testRapid.sendTestMessage(
-                søknadJournalførtHendelse(
-                    søknadUuid,
-                    ident = testIdent,
-                    journalpostId = testJournalpostId
-                )
+        testRapid.sendTestMessage(
+            søknadJournalførtHendelse(
+                søknadUuid,
+                ident = testIdent,
+                journalpostId = testJournalpostId
             )
-            assertEquals(Journalført, oppdatertInspektør().gjeldendeInnsendingTilstand)
-            assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
+        )
+        assertEquals(Journalført, oppdatertInspektør().gjeldendeInnsendingTilstand)
+        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
 
-            // Verifiser at det er mulig å hente en komplett aktivitetslogg
-            mediator.hentSøknader(testIdent).first().let {
-                with(TestSøknadhåndtererInspektør(it).aktivitetslogg["aktiviteter"]!!) {
-                    assertEquals("Ønske om søknad registrert", first()["melding"])
-                    assertEquals("Søknad journalført", last()["melding"])
-                }
+        // Verifiser at det er mulig å hente en komplett aktivitetslogg
+        mediator.hentSøknader(testIdent).first().let {
+            with(TestSøknadhåndtererInspektør(it).aktivitetslogg["aktiviteter"]!!) {
+                assertEquals("Ønske om søknad registrert", first()["melding"])
+                assertEquals("Søknad journalført", last()["melding"])
             }
         }
+    }
 
-        @Test
-        @Disabled("TODO: Vi må finne ut hvordan vi håndtere at Quiz har nye versjoner først")
-        fun `Hvis man har en søknad (påbegynt) fra før skal det fortsettes på denne`() {
-            val opprinneligSøknad = mediator.hentEllerOpprettSøknadsprosess(testIdent, språkVerdi)
+    @Test
+    @Disabled("TODO: Vi må finne ut hvordan vi håndtere at Quiz har nye versjoner først")
+    fun `Hvis man har en søknad (påbegynt) fra før skal det fortsettes på denne`() {
+        val opprinneligSøknad = mediator.hentEllerOpprettSøknadsprosess(testIdent, språkVerdi)
 
-            val hentetSøknad = mediator.hentEllerOpprettSøknadsprosess(testIdent, språkVerdi)
-            assertEquals(opprinneligSøknad.getSøknadsId(), hentetSøknad.getSøknadsId())
-        }
+        val hentetSøknad = mediator.hentEllerOpprettSøknadsprosess(testIdent, språkVerdi)
+        assertEquals(opprinneligSøknad.getSøknadsId(), hentetSøknad.getSøknadsId())
+    }
 
-        private fun innsendingId() = oppdatertInspektør(testIdent).gjeldendeInnsendingId
+    private fun innsendingId() = oppdatertInspektør(testIdent).gjeldendeInnsendingId
 
-        private fun innsendingBrevkodeLøsning(
-            ident: String,
-            søknadUuid: String,
-            innsendingId: UUID
-        ) = //language=JSON
-            """
+    private fun innsendingBrevkodeLøsning(
+        ident: String,
+        søknadUuid: String,
+        innsendingId: UUID
+    ) = //language=JSON
+        """
 {
   "@event_name": "behov",
   "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
@@ -206,27 +207,27 @@ internal class SøknadMediatorTest {
     }
   }
 }
-            """.trimIndent()
+        """.trimIndent()
 
-        @Test
-        fun `Hva skjer om en får JournalførtHendelse som ikke er tilknyttet en søknad`() {
-            testRapid.sendTestMessage(
-                journalførtHendelse(
-                    ident = testIdent,
-                    journalpostId = "UKJENT"
-                )
+    @Test
+    fun `Hva skjer om en får JournalførtHendelse som ikke er tilknyttet en søknad`() {
+        testRapid.sendTestMessage(
+            journalførtHendelse(
+                ident = testIdent,
+                journalpostId = "UKJENT"
             )
-        }
+        )
+    }
 
-        private fun søknadId(ident: String = testIdent) = oppdatertInspektør(ident).gjeldendeSøknadId
+    private fun søknadId(ident: String = testIdent) = oppdatertInspektør(ident).gjeldendeSøknadId
 
-        private fun behov(indeks: Int) = testRapid.inspektør.message(indeks)["@behov"].map { it.asText() }
+    private fun behov(indeks: Int) = testRapid.inspektør.message(indeks)["@behov"].map { it.asText() }
 
-        private fun oppdatertInspektør(ident: String = testIdent) =
-            TestSøknadhåndtererInspektør(mediator.hentSøknader(ident).first())
+    private fun oppdatertInspektør(ident: String = testIdent) =
+        TestSøknadhåndtererInspektør(mediator.hentSøknader(ident).first())
 
-        // language=JSON
-        private fun søkerOppgave(søknadUuid: UUID, ident: String) = """{
+    // language=JSON
+    private fun søkerOppgave(søknadUuid: UUID, ident: String) = """{
       "@event_name": "søker_oppgave",
       "fødselsnummer": $ident,
       "versjon_id": 0,
@@ -242,10 +243,10 @@ internal class SøknadMediatorTest {
         }
       ]
     }
-        """.trimIndent()
+    """.trimIndent()
 
-        // language=JSON
-        private fun ferdigSøkerOppgave(søknadUuid: UUID, ident: String) = """{
+    // language=JSON
+    private fun ferdigSøkerOppgave(søknadUuid: UUID, ident: String) = """{
       "@event_name": "søker_oppgave",
       "fødselsnummer": $ident,
       "versjon_id": 0,
@@ -261,10 +262,10 @@ internal class SøknadMediatorTest {
         }
       ]
     }
-        """.trimIndent()
+    """.trimIndent()
 
-        // language=JSON
-        private fun nySøknadBehovsløsning(søknadUuid: String, ident: String = testIdent) = """
+    // language=JSON
+    private fun nySøknadBehovsløsning(søknadUuid: String, ident: String = testIdent) = """
     {
       "@event_name": "behov",
       "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
@@ -287,8 +288,8 @@ internal class SøknadMediatorTest {
     }
     """.trimMargin()
 
-        // language=JSON
-        private fun arkiverbarsøknadLøsning(ident: String, søknadUuid: String, innsendingId: UUID) = """
+    // language=JSON
+    private fun arkiverbarsøknadLøsning(ident: String, søknadUuid: String, innsendingId: UUID) = """
 {
   "@event_name": "behov",
   "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
@@ -330,9 +331,9 @@ internal class SøknadMediatorTest {
 }
     """.trimMargin()
 
-        // language=JSON
-        private fun nyJournalpostLøsning(ident: String, søknadUuid: String, innsendingId: UUID, journalpostId: String) =
-            """
+    // language=JSON
+    private fun nyJournalpostLøsning(ident: String, søknadUuid: String, innsendingId: UUID, journalpostId: String) =
+        """
     {
       "@event_name": "behov",
       "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
@@ -358,8 +359,8 @@ internal class SøknadMediatorTest {
 }
     """.trimMargin()
 
-        // language=JSON
-        private fun søknadJournalførtHendelse(søknadUuid: UUID, ident: String, journalpostId: String) = """
+    // language=JSON
+    private fun søknadJournalførtHendelse(søknadUuid: UUID, ident: String, journalpostId: String) = """
     {
       "@id": "7d1938c6-f1ae-435d-8d83-c7f200b9cc2b",
       "@opprettet": "2022-04-04T10:39:58.621716",
@@ -379,7 +380,7 @@ internal class SøknadMediatorTest {
     }
     """.trimMargin()
 
-        private fun journalførtHendelse(ident: String, journalpostId: String) = """
+    private fun journalførtHendelse(ident: String, journalpostId: String) = """
     {
       "@id": "7d1938c6-f1ae-435d-8d83-c7f200b9cc2b",
       "@opprettet": "2022-04-04T10:39:58.621716",
@@ -394,5 +395,4 @@ internal class SøknadMediatorTest {
       "@event_name": "innsending_ferdigstilt",
       "system_read_count": 0,
     """.trimMargin()
-    }
 }
