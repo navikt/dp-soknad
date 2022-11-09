@@ -35,7 +35,7 @@ class SøknadDataPostgresRepository(private val dataSource: DataSource) : Søkna
                         "eier" to søkerOppgave.eier(),
                         "data" to PGobject().also {
                             it.type = "jsonb"
-                            it.value = søkerOppgave.asJson()
+                            it.value = søkerOppgave.toJson()
                         }
                     )
                 ).asUpdate

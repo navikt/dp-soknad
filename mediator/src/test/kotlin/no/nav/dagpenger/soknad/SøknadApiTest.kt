@@ -186,7 +186,7 @@ internal class SøknadApiTest {
         // language=JSON
         val frontendformat = """{"id":"blabla"}"""
         val søkerOppgave = mockk<SøkerOppgave>().also {
-            every { it.asFrontendformat() } returns objectMapper.readTree(frontendformat)
+            every { it.toJson() } returns frontendformat
         }
         val mockSøknadMediator = mockk<SøknadMediator>().also { søknadMediator ->
             every { søknadMediator.hentSøkerOppgave(testSøknadUuid) } returns søkerOppgave

@@ -1,7 +1,6 @@
 package no.nav.dagpenger.soknad.db
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.ObjectNode
 import de.slub.urn.URN
 import kotliquery.Query
 import kotliquery.Row
@@ -35,9 +34,7 @@ import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SvarDTO.SvarVal
 import no.nav.dagpenger.soknad.serder.SøknadDTO.ProsessversjonDTO
 import no.nav.dagpenger.soknad.toMap
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
-import no.nav.helse.rapids_rivers.asLocalDateTime
 import org.postgresql.util.PGobject
-import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -210,17 +207,8 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
     internal class PersistentSøkerOppgave(private val søknad: JsonNode) : SøkerOppgave {
         override fun søknadUUID(): UUID = UUID.fromString(søknad[SøkerOppgave.Keys.SØKNAD_UUID].asText())
         override fun eier(): String = søknad[SøkerOppgave.Keys.FØDSELSNUMMER].asText()
-        override fun opprettet(): LocalDateTime = søknad[SøkerOppgave.Keys.OPPRETTET].asLocalDateTime()
-        override fun ferdig(): Boolean = søknad[SøkerOppgave.Keys.FERDIG].asBoolean()
+        override fun toJson(): String = søknad.toString()
 
-        override fun asFrontendformat(): JsonNode {
-            søknad as ObjectNode
-            val kopiAvSøknad = søknad.deepCopy()
-            kopiAvSøknad.remove(SøkerOppgave.Keys.FØDSELSNUMMER)
-            return kopiAvSøknad
-        }
-
-        override fun asJson(): String = søknad.toString()
         override fun sannsynliggjøringer(): Set<Sannsynliggjøring> {
             TODO("not implemented")
         }
@@ -311,9 +299,9 @@ internal fun Session.hentProsessversjon(søknadId: UUID): ProsessversjonDTO? = r
                     FROM  soknadmal
                     JOIN soknad_v1 soknad ON soknad.soknadmal = soknadmal.id 
                     WHERE soknad.uuid = :soknadId
-                    """.trimIndent(),
+        """.trimIndent(),
         mapOf(
-            "soknadId" to søknadId,
+            "soknadId" to søknadId
         )
     ).map { row ->
         ProsessversjonDTO(prosessnavn = row.string("prosessnavn"), versjon = row.int("prosessversjon"))

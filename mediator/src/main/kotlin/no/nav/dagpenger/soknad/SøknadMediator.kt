@@ -143,9 +143,10 @@ internal class SøknadMediator(
         }
     }
 
-    fun behandle(hendelse: MigrertProsessHendelse){
+    fun behandle(hendelse: MigrertProsessHendelse, søkerOppgave: SøkerOppgave) {
         behandle(hendelse) { søknad ->
             søknad.håndter(hendelse)
+            søknadDataRepository.lagre(søkerOppgave)
         }
     }
 

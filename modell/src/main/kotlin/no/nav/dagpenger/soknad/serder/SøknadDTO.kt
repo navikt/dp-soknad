@@ -38,7 +38,7 @@ class SøknadDTO(
         tilstandsType = this.tilstandType.rehydrer(),
         aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
         innsending = this.innsendingDTO?.rehydrer(),
-        prosessversjon = this.prosessversjon?.rehydrer(),
+        prosessversjon = this.prosessversjon?.rehydrer()
     )
 
     class SpråkDTO(val verdi: String) {
@@ -50,7 +50,7 @@ class SøknadDTO(
     data class ProsessversjonDTO(
         val prosessnavn: String,
         val versjon: Int
-    ){
+    ) {
         fun rehydrer() = Prosessversjon(
             prosessnavn = Prosessnavn(this.prosessnavn),
             versjon = this.versjon
@@ -137,7 +137,6 @@ class SøknadDTO(
                 val tidspunkt: ZonedDateTime,
                 val bundlet: Boolean
             ) {
-
                 fun rehydrer() = Krav.Fil(
                     filnavn = this.filnavn,
                     urn = this.urn,

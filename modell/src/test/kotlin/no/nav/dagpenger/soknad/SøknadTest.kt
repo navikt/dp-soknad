@@ -319,13 +319,12 @@ internal class SøknadTest {
     }
 
     @Test
-    fun `Oppdaterer prosessversjon`(){
+    fun `Oppdaterer prosessversjon`() {
         håndterØnskeOmNySøknadHendelse()
         håndterNySøknadOpprettet()
         håndterMigrertProsessHendelse()
 
         assertEquals(2, testSøknadObserver.sisteVersjon?.versjon)
-
     }
 
     private fun håndterNySøknadOpprettet() {
@@ -336,12 +335,14 @@ internal class SøknadTest {
         søknad.håndter(SlettSøknadHendelse(inspektør.søknadId, testIdent))
     }
 
-    private fun håndterMigrertProsessHendelse(){
-        søknad.håndter(MigrertProsessHendelse(
-            inspektør.søknadId,
-            testIdent,
-            Prosessversjon("navn", 2)
-        ))
+    private fun håndterMigrertProsessHendelse() {
+        søknad.håndter(
+            MigrertProsessHendelse(
+                inspektør.søknadId,
+                testIdent,
+                Prosessversjon("navn", 2)
+            )
+        )
     }
 
     private fun håndterInnsendingMetadata() {

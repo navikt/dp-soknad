@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.server.plugins.NotFoundException
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.Prosessnavn
@@ -42,16 +43,25 @@ class SøkerOppgaveMottakTest {
             testRapid.reset()
             val søknadUuid = UUID.randomUUID()
             val ident = "01234567891"
-            søknadMediator.behandle(ØnskeOmNySøknadHendelse(søknadUuid, ident, språkVerdi, prosessnavn = Prosessnavn("prosessnavn")))
+            søknadMediator.behandle(
+                ØnskeOmNySøknadHendelse(
+                    søknadUuid,
+                    ident,
+                    språkVerdi,
+                    prosessnavn = Prosessnavn("prosessnavn")
+                )
+            )
             testRapid.sendTestMessage(nySøknad(søknadUuid, ident))
             søknadMediator.hentSøkerOppgave(søknadUuid).also {
                 assertDoesNotThrow {
-                    val seksjoner = it.asFrontendformat()["seksjoner"]
-                    assertEquals(1, seksjoner.size())
-                    assertEquals(0, seksjoner[0]["fakta"].size())
-                    assertEquals(ident, it.eier())
-                    assertEquals(søknadUuid, it.søknadUUID())
-                    assertEquals(false, it.asFrontendformat()["ferdig"].asBoolean())
+                    with(jacksonObjectMapper().readTree(it.toJson())) {
+                        val seksjoner = this["seksjoner"]
+                        assertEquals(1, seksjoner.size())
+                        assertEquals(0, seksjoner[0]["fakta"].size())
+                        assertEquals(ident, it.eier())
+                        assertEquals(søknadUuid, it.søknadUUID())
+                        assertEquals(false, this["ferdig"].asBoolean())
+                    }
                 }
             }
             assertDoesNotThrow {

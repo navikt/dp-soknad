@@ -247,7 +247,7 @@ class Søknad private constructor(
             hendelse.`kan ikke håndteres i denne tilstanden`()
         }
 
-        fun håndter(hendelse: MigrertProsessHendelse, søknad: Søknad){
+        fun håndter(hendelse: MigrertProsessHendelse, søknad: Søknad) {
             hendelse.`kan ikke håndteres i denne tilstanden`()
         }
 
@@ -419,8 +419,8 @@ class Søknad private constructor(
         }
     }
 
-    private fun migrert(ident: String, forrigeProsessversjon: Prosessversjon){
-        val gjeldendeVersjon = requireNotNull(this.prosessversjon){"Kan ikke migrere søknad uten prosessversjon"}
+    private fun migrert(ident: String, forrigeProsessversjon: Prosessversjon) {
+        val gjeldendeVersjon = requireNotNull(this.prosessversjon) { "Kan ikke migrere søknad uten prosessversjon" }
         observers.forEach {
             it.søknadMigrert(SøknadObserver.SøknadMigrertEvent(søknadId, ident, forrigeProsessversjon, gjeldendeVersjon))
         }

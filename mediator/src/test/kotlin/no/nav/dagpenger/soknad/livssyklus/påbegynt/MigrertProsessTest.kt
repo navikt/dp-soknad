@@ -12,26 +12,22 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class MigrertProsessTest {
-
     private val søknadUUID = UUID.randomUUID()
     private val ident = "123"
     private val mediatorMock = mockk<SøknadMediator>()
-
     private val testRapid = TestRapid().also { rapidsConnection ->
         MigrertSøknadMottak(rapidsConnection, mediatorMock)
     }
 
     @Test
     fun `skal lese migrert melding`() {
-
         every {
-            mediatorMock.behandle(any<MigrertProsessHendelse>())
+            mediatorMock.behandle(any<MigrertProsessHendelse>(), any())
         } just Runs
 
         testRapid.sendTestMessage(melding)
 
-        verify { mediatorMock.behandle(any<MigrertProsessHendelse>()) }
-
+        verify { mediatorMock.behandle(any<MigrertProsessHendelse>(), any()) }
     }
 
     //language=JSON

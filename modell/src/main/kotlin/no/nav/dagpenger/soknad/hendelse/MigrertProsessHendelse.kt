@@ -9,5 +9,4 @@ class MigrertProsessHendelse(
     ident: String,
     val prosessversjon: Prosessversjon,
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
-): SøknadHendelse(søknadId, ident, aktivitetslogg) {
-}
+) : SøknadHendelse(søknadId, ident, aktivitetslogg)

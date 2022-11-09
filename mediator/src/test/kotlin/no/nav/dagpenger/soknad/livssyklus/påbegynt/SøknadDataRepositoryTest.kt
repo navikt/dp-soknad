@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.server.plugins.NotFoundException
 import kotliquery.queryOf
 import kotliquery.sessionOf
@@ -14,6 +15,7 @@ import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID
@@ -27,11 +29,12 @@ class SøknadDataRepositoryTest {
             lagrePersonMedSøknad(søknadUuid)
             val søknad = PersistentSøkerOppgave(søknad(søknadUuid))
             søknadCache.lagre(søknad)
-
             val rehydrertSøknad = søknadCache.hentSøkerOppgave(søknadUuid)
             assertEquals(søknad.søknadUUID(), rehydrertSøknad.søknadUUID())
             assertEquals(søknad.eier(), rehydrertSøknad.eier())
-            assertEquals(søknad.asFrontendformat(), rehydrertSøknad.asFrontendformat())
+            with(jacksonObjectMapper()) {
+                assertEquals(readTree(søknad.toJson()), readTree(rehydrertSøknad.toJson()))
+            }
 
             assertEquals(1, søknadCache.besvart(søknadUuid))
             søknadCache.lagre(søknad)
@@ -64,15 +67,11 @@ class SøknadDataRepositoryTest {
                     )
                 )
             )
-
             val rehydrertSøknad = søknadCache.hentSøkerOppgave(søknadUuid)
 
             assertEquals(søknadUuid, rehydrertSøknad.søknadUUID())
             assertEquals("12345678910", rehydrertSøknad.eier())
-            assertEquals(
-                "oppdatert andre gang",
-                rehydrertSøknad.asFrontendformat()[SøkerOppgave.Keys.SEKSJONER].asText()
-            )
+            assertTrue(rehydrertSøknad.toJson().contains("oppdatert andre gang"))
         }
     }
 

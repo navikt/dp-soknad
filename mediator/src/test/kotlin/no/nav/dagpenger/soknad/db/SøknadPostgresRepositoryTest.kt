@@ -203,6 +203,9 @@ internal class SøknadPostgresRepositoryTest {
         )
 
         withMigratedDb {
+            SøknadMalPostgresRepository(dataSource).let { søknadMalPostgresRepository ->
+                søknadMalPostgresRepository.lagre(mal)
+            }
             SøknadPostgresRepository(dataSource).let { søknadPostgresRepository ->
                 søknadPostgresRepository.lagre(søknad)
 
@@ -379,7 +382,7 @@ internal class SøknadPostgresRepositoryTest {
         )
 
         withMigratedDb {
-            SøknadMalPostgresRepository(dataSource).let{ søknadMalPostgresRepository ->
+            SøknadMalPostgresRepository(dataSource).let { søknadMalPostgresRepository ->
                 søknadMalPostgresRepository.lagre(mal)
             }
             SøknadPostgresRepository(dataSource).let { søknadPostgresRepository ->
@@ -640,6 +643,10 @@ internal class SøknadPostgresRepositoryTest {
         )
 
         withMigratedDb {
+            SøknadMalPostgresRepository(dataSource).let { søknadMalPostgresRepository ->
+                søknadMalPostgresRepository.lagre(mal)
+            }
+
             SøknadPostgresRepository(dataSource).let { repository ->
                 repository.lagre(innsendtSøknad)
                 repository.lagre(søknad)

@@ -7,7 +7,7 @@ interface SøknadObserver {
     fun innsendingTilstandEndret(event: SøknadInnsendingEndretTilstandEvent) {}
 
     fun søknadSlettet(event: SøknadSlettetEvent) {}
-    fun søknadMigrert(event: SøknadMigrertEvent){}
+    fun søknadMigrert(event: SøknadMigrertEvent) {}
 
     data class SøknadEndretTilstandEvent(
         val søknadId: UUID,
@@ -29,6 +29,6 @@ interface SøknadObserver {
         val søknkadId: UUID,
         val ident: String,
         val forrigeProsessversjon: Prosessversjon,
-        val gjeldendeProsessversjon: Prosessversjon,
+        val gjeldendeProsessversjon: Prosessversjon
     )
 }
