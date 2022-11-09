@@ -65,6 +65,9 @@ internal class SøkerOppgaveMottak(
             "opprettet" to packet["@opprettet"].asLocalDateTime().toString()
         ) {
             logger.info { "Mottatt pakke ${packet["@event_name"].asText()}" }
+            if (søkerOppgave.søknadUUID().toString() == "8d2d3a08-61f2-4168-a4c9-0132715dc553") {
+                return
+            }
             søknadMediator.behandle(søkerOppgave)
         }
     }
