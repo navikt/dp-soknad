@@ -34,11 +34,11 @@ class MigrertProsessTest {
     private val melding = """
         {
         "@event_name": "behov",
-        "@behov": ["MigrertProsess"],
+        "@behov": ["MigrerProsess"],
         "søknad_uuid": "$søknadUUID",
         "ident": "$ident",
         "@løsning": {
-           "MigrertProsess": 
+           "MigrerProsess": 
               {
                "prosessnavn": "Dagpenger",
                 "versjon": 1,

@@ -8,13 +8,12 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import java.util.UUID
 
 internal class MigrertSøknadMottak(
     rapidsConnection: RapidsConnection,
     private val mediator: SøknadMediator
 ) : River.PacketListener {
-    private val behov = "MigrertProsess"
+    private val behov = "MigrerProsess"
 
     init {
         River(rapidsConnection).apply {
@@ -34,6 +33,7 @@ internal class MigrertSøknadMottak(
         val ident = packet["ident"].asText()
         val prosessnavn = packet["@løsning"][behov]["prosessnavn"].asText()
         val versjon = packet["@løsning"][behov]["versjon"].asInt()
+        val data = packet["@løsning"][behov]["data"]
 
         mediator.behandle(
             MigrertProsessHendelse(
@@ -41,17 +41,7 @@ internal class MigrertSøknadMottak(
                 ident,
                 prosessversjon = Prosessversjon(prosessnavn, versjon)
             ),
-            MigrertSøkerOppgave(søknadId, ident, packet)
+            SøkerOppgaveMelding(data)
         )
     }
-}
-
-private class MigrertSøkerOppgave(
-    private val søknadId: UUID,
-    private val ident: String,
-    packet: JsonMessage
-) :
-    SøkerOppgaveMelding(packet.toJson()) {
-    override fun søknadUUID() = søknadId
-    override fun eier() = ident
 }
