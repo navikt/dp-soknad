@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import kotlin.concurrent.fixedRateTimer
+import kotlin.time.Duration.Companion.minutes
 
 internal object SlettSøknaderJob {
     private val logger = KotlinLogging.logger {}
@@ -14,8 +15,8 @@ internal object SlettSøknaderJob {
         fixedRateTimer(
             name = "Sletterutine for søknader som ligger til sletting",
             daemon = true,
-            initialDelay = 1.Minutt,
-            period = 5.Minutt,
+            initialDelay = 1.minutes.inWholeMilliseconds,
+            period = 5.minutes.inWholeMilliseconds,
             action = {
                 try {
                     vaktmesterRepository.slett()
@@ -25,6 +26,4 @@ internal object SlettSøknaderJob {
             }
         )
     }
-
-    private val Int.Minutt get() = this * 1000L
 }
