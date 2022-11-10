@@ -14,7 +14,7 @@ class SøknadMigrering constructor(
     private val rapid: RapidsConnection
 ) {
     init {
-        søknadMalRepository.addObserver { søknadMal -> migrer(søknadMal) }
+        søknadMalRepository.addObserver(::migrer)
     }
 
     private fun migrer(søknadMal: SøknadMal) {
