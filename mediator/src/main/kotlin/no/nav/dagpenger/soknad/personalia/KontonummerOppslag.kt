@@ -7,12 +7,14 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.jackson.jackson
 import mu.KotlinLogging
 
@@ -38,15 +40,17 @@ internal class KontonummerOppslag(
     }
 
     suspend fun hentKontonummer(fnr: String): Kontonummer {
-        return runCatching {
+        return try {
             dpProxyClient.post("$dpProxyUrl/proxy/v1/kontonummer") {
                 header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
                 header(HttpHeaders.ContentType, "application/json")
                 header(HttpHeaders.Accept, "application/json")
                 setBody(mapOf("fnr" to fnr))
-            }.body<Kontonummer>()
-        }.getOrElse { t ->
-            logger.error(t) { "Fikk ikke hentet konto nummer" }
+            }.body()
+        } catch (e: ClientRequestException) {
+            if (e.response.status != HttpStatusCode.NotFound) {
+                logger.error(e) { "Kunne ikke hente kontonummer" }
+            }
             Kontonummer()
         }
     }

@@ -16,7 +16,8 @@ internal class KontonummerOppslagTest {
     fun `tomt kontonummmer dersom bank konto ikke finnes`() {
         val kontonummerOppslag =
             KontonummerOppslag(
-                dpProxyUrl = "http://localhost", tokenProvider = { "token" },
+                dpProxyUrl = "http://localhost",
+                tokenProvider = { "token" },
                 MockEngine() {
                     respondError(HttpStatusCode.NotFound)
                 }
@@ -32,7 +33,8 @@ internal class KontonummerOppslagTest {
     fun `Happy path`() {
         val kontonummerOppslag =
             KontonummerOppslag(
-                dpProxyUrl = "http://localhost", tokenProvider = { "token" },
+                dpProxyUrl = "http://localhost",
+                tokenProvider = { "token" },
                 MockEngine() {
                     //language=JSON
                     respond(
@@ -43,9 +45,7 @@ internal class KontonummerOppslagTest {
                 }
             )
         runBlocking {
-            kontonummerOppslag.hentKontonummer("").let {
-                assertEquals(it.kontonummer, "123")
-            }
+            assertEquals(kontonummerOppslag.hentKontonummer("").kontonummer, "123")
         }
     }
 }
