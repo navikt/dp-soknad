@@ -10,6 +10,7 @@ import no.nav.dagpenger.soknad.livssyklus.NyJournalpostMottak
 import no.nav.dagpenger.soknad.livssyklus.SkjemakodeMottak
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.FerdigstiltSøknadPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.ferdigStiltSøknadRouteBuilder
+import no.nav.dagpenger.soknad.livssyklus.påbegynt.MigrertSøknadMottak
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak
 import no.nav.dagpenger.soknad.mal.SøknadMalPostgresRepository
@@ -75,6 +76,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         JournalførtMottak(rapidsConnection, it)
         SøkerOppgaveMottak(rapidsConnection, it)
         SkjemakodeMottak(rapidsConnection, it)
+        MigrertSøknadMottak(rapidsConnection, it)
     }
 
     init {
