@@ -131,22 +131,19 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         )
     }
 
-    override fun hentSøknader(ident: String): Set<Søknad> {
-        return using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf(
-                    //language=PostgreSQL
-                    statement = """
-                    SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident
-                    FROM  soknad_v1
-                    WHERE person_ident = :ident AND tilstand != 'Slettet'
-                    """.trimIndent(),
-                    paramMap = mapOf(
-                        "ident" to ident
-                    )
-                ).map(rowToSøknadDTO(session)).asList
-            ).map { it.rehydrer() }.toSet()
-        }
+    override fun hentSøknader(ident: String): Set<Søknad> = using(sessionOf(dataSource)) { session ->
+        session.run(
+            queryOf( //language=PostgreSQL
+                """
+                SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident
+                FROM  soknad_v1
+                WHERE person_ident = :ident AND tilstand != 'Slettet'
+                """.trimIndent(),
+                mapOf(
+                    "ident" to ident
+                )
+            ).map(rowToSøknadDTO(session)).asList
+        ).map { it.rehydrer() }.toSet()
     }
 
     private fun rowToSøknadDTO(session: Session): (Row) -> SøknadDTO {
@@ -296,10 +293,9 @@ internal fun Session.hentProsessversjon(søknadId: UUID): ProsessversjonDTO? = r
 )
 
 private class DokumentkravLogger(søknad: Søknad, val action: String) : SøknadVisitor {
-
     private val logger = KotlinLogging.logger { }
-
     private val kravene = mutableSetOf<Krav>()
+
     init {
         søknad.accept(this)
     }
