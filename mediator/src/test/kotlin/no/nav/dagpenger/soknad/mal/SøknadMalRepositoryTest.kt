@@ -88,13 +88,10 @@ class SøknadMalRepositoryTest {
     fun `henter ut prosessversjon`() {
         withMigratedDb {
             SøknadMalPostgresRepository(PostgresDataSourceBuilder.dataSource).let { repo ->
-                repo.lagre(
-                    SøknadMal(
-                        Prosessversjon("test", 1),
-                        objectMapper.createObjectNode()
-                    )
-                )
+                repo.lagre(SøknadMal(Prosessversjon("test", 1), objectMapper.createObjectNode()))
                 assertEquals(Prosessnavn("test"), repo.prosessnavn("test"))
+                assertEquals(Prosessnavn("test"), repo.prosessversjon("test", 1).prosessnavn)
+                assertEquals(1, repo.prosessversjon("test", 1).versjon)
             }
         }
     }

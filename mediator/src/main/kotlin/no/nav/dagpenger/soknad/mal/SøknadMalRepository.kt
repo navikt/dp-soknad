@@ -82,7 +82,7 @@ class SøknadMalPostgresRepository(private val dataSource: DataSource) : Søknad
         using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf( // language=PostgreSQL
-                    "SELECT prosessnavn, prosessversjon FROM soknadmal WHERE prosessnavn = ?, prosessversjon = ?",
+                    "SELECT prosessnavn, prosessversjon FROM soknadmal WHERE prosessnavn = ? AND prosessversjon = ?",
                     prosessnavn,
                     versjon
                 ).map {
