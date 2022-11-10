@@ -25,6 +25,7 @@ class SøknadMigrering constructor(
 
         søknader.forEach {
             rapid.publish(MigreringsBehov(it.søknadUUID(), it.ident()).asMessage().toString())
+            logger.info { "Publiserer behov for Migrering for søknadId=$it." }
         }
     }
 
