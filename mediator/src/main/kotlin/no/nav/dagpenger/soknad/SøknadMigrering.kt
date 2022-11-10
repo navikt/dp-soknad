@@ -24,7 +24,7 @@ class SøknadMigrering constructor(
         logger.info { "Fant ${søknader.size} søknader som skal migreres" }
 
         søknader.forEach {
-            rapid.publish(MigreringsBehov(it.søknadUUID(), it.ident()).asMessage().toString())
+            rapid.publish(MigreringsBehov(it.søknadUUID(), it.ident()).asMessage().toJson())
             logger.info { "Publiserer behov for Migrering for søknadId=$it." }
         }
     }
