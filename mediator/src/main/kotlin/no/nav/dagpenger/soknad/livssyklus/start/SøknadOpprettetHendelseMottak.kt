@@ -3,7 +3,6 @@ package no.nav.dagpenger.soknad.livssyklus.start
 import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
 import mu.withLoggingContext
-import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyInnsending
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NySøknad
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
@@ -22,12 +21,12 @@ internal class SøknadOpprettetHendelseMottak(
         private val sikkerLogger = KotlinLogging.logger("tjenestekall.SøknadOpprettetHendelseMottak")
     }
 
-    private val behov = listOf(NySøknad.name, NyInnsending.name)
+    private val behov = NySøknad.name
 
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "behov") }
-            validate { it.demandAllOrAny("@behov", behov) }
+            validate { it.demandAllOrAny("@behov", listOf(behov)) }
             validate { it.requireKey("søknad_uuid", "ident", "@løsning") }
             validate { it.requireKey("@løsning") }
         }.register(this)
