@@ -697,7 +697,7 @@ internal class SøknadPostgresRepositoryTest {
                 repository.lagre(innsendtSøknad)
                 repository.lagre(påbegyntSøknad)
                 repository.lagre(søknad)
-                val påbegynteSøknader = repository.hentPåbegynteSøknader(Prosessversjon("Dagpenger", 1))
+                val påbegynteSøknader = repository.hentPåbegynteSøknader(Prosessversjon("Dagpenger", 2))
                 assertEquals(2, påbegynteSøknader.size)
             }
         }

@@ -174,7 +174,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                     SELECT uuid, tilstand, spraak, sist_endret_av_bruker, soknad_v1.opprettet, person_ident
                     FROM  soknad_v1
                     LEFT JOIN soknadmal mal ON soknad_v1.soknadmal = mal.id 
-                    WHERE tilstand = :tilstand AND mal.prosessnavn = :prosessnavn AND mal.prosessversjon = :prosessversjon
+                    WHERE tilstand = :tilstand AND mal.prosessnavn = :prosessnavn AND mal.prosessversjon < :prosessversjon
                     """.trimIndent(),
                     mapOf(
                         "tilstand" to Tilstand.Type.Påbegynt.toString(),
