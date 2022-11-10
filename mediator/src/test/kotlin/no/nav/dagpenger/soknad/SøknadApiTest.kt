@@ -84,7 +84,6 @@ internal class SøknadApiTest {
 
     @Test
     fun `Ettersending til søknad uautentisert`() {
-        val testSøknadUuid = UUID.randomUUID()
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk()
