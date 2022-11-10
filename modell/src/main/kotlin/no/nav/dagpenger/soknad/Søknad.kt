@@ -11,13 +11,13 @@ import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.InnsendingMetadataMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
+import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
-import no.nav.dagpenger.soknad.hendelse.ØnskeOmNyInnsendingHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -31,11 +31,13 @@ class Søknad private constructor(
     private val språk: Språk,
     private val dokumentkrav: Dokumentkrav,
     private var sistEndretAvBruker: ZonedDateTime,
-    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
+    private var prosessversjon: Prosessversjon?
 ) : Aktivitetskontekst, InnsendingObserver {
     private val observers = mutableListOf<SøknadObserver>()
 
     fun søknadUUID() = søknadId
+    fun ident() = ident
 
     init {
         innsending?.addObserver(this)
@@ -49,7 +51,8 @@ class Søknad private constructor(
         innsending = null,
         språk = språk,
         dokumentkrav = Dokumentkrav(),
-        sistEndretAvBruker = ZonedDateTime.now()
+        sistEndretAvBruker = ZonedDateTime.now(),
+        prosessversjon = null
     )
 
     companion object {
@@ -62,7 +65,8 @@ class Søknad private constructor(
             sistEndretAvBruker: ZonedDateTime,
             tilstandsType: Tilstand.Type,
             aktivitetslogg: Aktivitetslogg,
-            innsending: NyInnsending?
+            innsending: NyInnsending?,
+            prosessversjon: Prosessversjon?
         ): Søknad {
             val tilstand: Tilstand = when (tilstandsType) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
@@ -79,7 +83,8 @@ class Søknad private constructor(
                 språk = språk,
                 dokumentkrav = dokumentkrav,
                 sistEndretAvBruker = sistEndretAvBruker,
-                aktivitetslogg = aktivitetslogg
+                aktivitetslogg = aktivitetslogg,
+                prosessversjon = prosessversjon
             )
         }
 
@@ -91,12 +96,6 @@ class Søknad private constructor(
         kontekst(ønskeOmNySøknadHendelse)
         ønskeOmNySøknadHendelse.info("Ønske om søknad registrert")
         tilstand.håndter(ønskeOmNySøknadHendelse, this)
-    }
-
-    fun håndter(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse) {
-        kontekst(ønskeOmNyInnsendingHendelse)
-        ønskeOmNyInnsendingHendelse.info("Ønske om innsending registrert")
-        tilstand.håndter(ønskeOmNyInnsendingHendelse, this)
     }
 
     fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse) {
@@ -183,6 +182,11 @@ class Søknad private constructor(
         tilstand.håndter(hendelse, this)
     }
 
+    fun håndter(hendelse: MigrertProsessHendelse) {
+        kontekst(hendelse)
+        tilstand.håndter(hendelse, this)
+    }
+
     fun addObserver(søknadObserver: SøknadObserver) {
         observers.add(søknadObserver)
     }
@@ -194,9 +198,6 @@ class Søknad private constructor(
 
         fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) =
             ønskeOmNySøknadHendelse.`kan ikke håndteres i denne tilstanden`()
-
-        fun håndter(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse, søknad: Søknad) =
-            ønskeOmNyInnsendingHendelse.`kan ikke håndteres i denne tilstanden`()
 
         fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse, søknad: Søknad) =
             harPåbegyntSøknadHendelse.`kan ikke håndteres i denne tilstanden`()
@@ -246,6 +247,10 @@ class Søknad private constructor(
             hendelse.`kan ikke håndteres i denne tilstanden`()
         }
 
+        fun håndter(hendelse: MigrertProsessHendelse, søknad: Søknad) {
+            hendelse.`kan ikke håndteres i denne tilstanden`()
+        }
+
         private fun Hendelse.`kan ikke håndteres i denne tilstanden`() =
             this.warn("Kan ikke håndtere ${this.javaClass.simpleName} i tilstand $tilstandType")
 
@@ -272,14 +277,15 @@ class Søknad private constructor(
             get() = Tilstand.Type.UnderOpprettelse
 
         override fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) {
-            ønskeOmNySøknadHendelse.behov(Behovtype.NySøknad, "Behov for å starte søknadsprosess")
-        }
-
-        override fun håndter(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse, søknad: Søknad) {
-            ønskeOmNyInnsendingHendelse.behov(Behovtype.NyInnsending, "Behov for å starte ny innsending")
+            ønskeOmNySøknadHendelse.behov(
+                Behovtype.NySøknad,
+                "Behov for å starte søknadsprosess",
+                mapOf("prosessnavn" to ønskeOmNySøknadHendelse.prosessnavn.id)
+            )
         }
 
         override fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse, søknad: Søknad) {
+            søknad.prosessversjon = søknadOpprettetHendelse.prosessversjon()
             søknad.endreTilstand(Påbegynt, søknadOpprettetHendelse)
         }
     }
@@ -341,6 +347,12 @@ class Søknad private constructor(
 
         override fun håndter(dokumentKravSammenstilling: DokumentKravSammenstilling, søknad: Søknad) {
             søknad.dokumentkrav.håndter(dokumentKravSammenstilling)
+        }
+
+        override fun håndter(hendelse: MigrertProsessHendelse, søknad: Søknad) {
+            val forrigeVersjon = søknad.prosessversjon ?: Prosessversjon("pre-migrering", 0)
+            søknad.prosessversjon = hendelse.prosessversjon
+            søknad.migrert(søknad.ident, forrigeVersjon)
         }
     }
 
@@ -407,6 +419,20 @@ class Søknad private constructor(
         }
     }
 
+    private fun migrert(ident: String, forrigeProsessversjon: Prosessversjon) {
+        val gjeldendeVersjon = requireNotNull(this.prosessversjon) { "Kan ikke migrere søknad uten ny prosessversjon" }
+        observers.forEach {
+            it.søknadMigrert(
+                SøknadObserver.SøknadMigrertEvent(
+                    søknadId,
+                    ident,
+                    forrigeProsessversjon,
+                    gjeldendeVersjon
+                )
+            )
+        }
+    }
+
     fun accept(visitor: SøknadVisitor) {
         visitor.visitSøknad(
             søknadId = søknadId,
@@ -415,7 +441,8 @@ class Søknad private constructor(
             tilstand = tilstand,
             språk = språk,
             dokumentkrav = dokumentkrav,
-            sistEndretAvBruker = sistEndretAvBruker
+            sistEndretAvBruker = sistEndretAvBruker,
+            prosessversjon = prosessversjon
         )
         tilstand.accept(visitor)
         aktivitetslogg.accept(visitor)
@@ -450,7 +477,6 @@ class Søknad private constructor(
                     søknadId = this.søknadId,
                     innsending = event
                 )
-
             )
         }
     }

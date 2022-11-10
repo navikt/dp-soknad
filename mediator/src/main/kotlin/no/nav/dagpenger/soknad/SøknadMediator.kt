@@ -11,6 +11,7 @@ import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.InnsendingMetadataMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
+import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
@@ -18,7 +19,6 @@ import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
-import no.nav.dagpenger.soknad.hendelse.ØnskeOmNyInnsendingHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.FerdigstiltSøknadRepository
@@ -50,12 +50,6 @@ internal class SøknadMediator(
     fun behandle(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         behandle(ønskeOmNySøknadHendelse) { søknad ->
             søknad.håndter(ønskeOmNySøknadHendelse)
-        }
-    }
-
-    private fun behandle(ønskeOmNyInnsendingHendelse: ØnskeOmNyInnsendingHendelse) {
-        behandle(ønskeOmNyInnsendingHendelse) { søknad ->
-            søknad.håndter(ønskeOmNyInnsendingHendelse)
         }
     }
 
@@ -149,36 +143,19 @@ internal class SøknadMediator(
         }
     }
 
-    internal fun hentEllerOpprettSøknadsprosess(
-        ident: String,
-        språk: String,
-        prosesstype: Prosesstype = Prosesstype.Søknad
-    ): Søknadsprosess {
-        return when (prosesstype) {
-            Prosesstype.Søknad -> {
-                return hentEllerOpprettNyDagpengesøknad(ident, språk)
-            }
-            Prosesstype.Innsending -> Søknadsprosess.NySøknadsProsess().also {
-                behandle(ØnskeOmNyInnsendingHendelse(it.getSøknadsId(), ident, språk))
-            }
+    fun behandle(hendelse: MigrertProsessHendelse, søkerOppgave: SøkerOppgave) {
+        behandle(hendelse) { søknad ->
+            søknad.håndter(hendelse)
+            søknadDataRepository.lagre(søkerOppgave)
         }
     }
 
-    private fun hentEllerOpprettNyDagpengesøknad(ident: String, språk: String): Søknadsprosess {
-        return Søknadsprosess.NySøknadsProsess().also {
-            behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident, språk))
-        }
-
-        // @todo: Vi må finne ut hvordan vi håndtere at Quiz har nye versjoner først
-        /** return if (påbegyntSøknad == null) {
-         Søknadsprosess.NySøknadsProsess().also {
-         behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident, språk))
-         }
-         } else {
-         Søknadsprosess.PåbegyntSøknadsProsess(påbegyntSøknad.søknadUUID()).also {
-         behandle(HarPåbegyntSøknadHendelse(ident, it.getSøknadsId()))
-         }
-         } **/
+    internal fun opprettSøknadsprosess(
+        ident: String,
+        språk: String,
+        prosessnavn: Prosessnavn
+    ) = Søknadsprosess.NySøknadsProsess().also {
+        behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident, språk, prosessnavn))
     }
 
     private fun behandle(hendelse: SøknadHendelse, håndter: (Søknad) -> Unit) = try {
@@ -206,7 +183,6 @@ internal class SøknadMediator(
         val søknad = hent(hendelse.søknadID())
         return when (hendelse) {
             is ØnskeOmNySøknadHendelse -> søknad ?: Søknad(hendelse.søknadID(), hendelse.språk(), hendelse.ident())
-            is ØnskeOmNyInnsendingHendelse -> søknad ?: Søknad(hendelse.søknadID(), hendelse.språk(), hendelse.ident())
             else -> søknad ?: hendelse.severe("Søknaden finnes ikke")
         }
     }

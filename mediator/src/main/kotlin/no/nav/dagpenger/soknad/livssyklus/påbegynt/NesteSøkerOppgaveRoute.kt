@@ -1,8 +1,9 @@
 package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
-import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import mu.withLoggingContext
@@ -24,7 +25,7 @@ internal fun Route.nesteSøkeroppgaveRoute(søknadMediator: SøknadMediator) {
         ) {
             validator.valider(id, ident)
             val søkerOppgave: SøkerOppgave = hentNesteSøkerOppgave(søknadMediator, id, sistLagret)
-            call.respond(HttpStatusCode.OK, søkerOppgave.asFrontendformat())
+            call.respondText(ContentType.Application.Json, HttpStatusCode.OK) { søkerOppgave.toJson() }
         }
     }
 }

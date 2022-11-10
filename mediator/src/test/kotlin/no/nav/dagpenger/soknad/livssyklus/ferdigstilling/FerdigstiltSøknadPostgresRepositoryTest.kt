@@ -110,6 +110,7 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
                 sistEndretAvBruker = ZonedDateTime.now(),
                 tilstandsType = Påbegynt,
                 aktivitetslogg = Aktivitetslogg(),
+                null,
                 null
             )
         )

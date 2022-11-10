@@ -7,6 +7,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
@@ -50,7 +51,8 @@ private class PåbegynteSøknadVisitor(søknad: Søknad) : SøknadVisitor {
         tilstand: Søknad.Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime
+        sistEndretAvBruker: ZonedDateTime,
+        prosessversjon: Prosessversjon?
     ) {
         påbegyntSøknad = PåbegyntSøknad(
             uuid = søknadId,

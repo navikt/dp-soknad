@@ -31,7 +31,6 @@ abstract class SøknadHendelse protected constructor(
     ident: String,
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 ) : Hendelse(ident = ident, aktivitetslogg = aktivitetslogg) {
-
     fun søknadID() = søknadID
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst {

@@ -178,7 +178,8 @@ class MineSøknaderApiTest {
         sistEndretAvBruker = ZonedDateTime.of(sistEndretAvBruker, ZoneId.of("Europe/Oslo")),
         tilstandsType = tilstand,
         aktivitetslogg = Aktivitetslogg(),
-        innsending = innsending
+        innsending = innsending,
+        prosessversjon = null
     )
 
     private fun innsending(

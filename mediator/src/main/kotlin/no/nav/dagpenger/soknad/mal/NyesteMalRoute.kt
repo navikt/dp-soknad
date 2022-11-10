@@ -8,7 +8,7 @@ import no.nav.dagpenger.soknad.SøknadMediator
 
 internal fun Route.nyesteMalRoute(søknadMediator: SøknadMediator) {
     get("/mal") {
-        val nyesteMal = søknadMediator.hentNyesteMal("Dagpenger")
+        val nyesteMal = søknadMediator.hentNyesteMal(søknadMediator.prosessnavn("Dagpenger"))
         call.respond(nyesteMal.mal)
     }
 }

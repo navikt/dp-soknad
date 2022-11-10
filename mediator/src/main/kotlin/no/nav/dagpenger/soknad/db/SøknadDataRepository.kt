@@ -6,7 +6,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Metrics
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
-import no.nav.dagpenger.soknad.utils.serder.objectMapper
+import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMelding
 import org.postgresql.util.PGobject
 import java.util.UUID
 import javax.sql.DataSource
@@ -35,7 +35,7 @@ class SøknadDataPostgresRepository(private val dataSource: DataSource) : Søkna
                         "eier" to søkerOppgave.eier(),
                         "data" to PGobject().also {
                             it.type = "jsonb"
-                            it.value = søkerOppgave.asJson()
+                            it.value = søkerOppgave.toJson()
                         }
                     )
                 ).asUpdate
@@ -64,7 +64,7 @@ class SøknadDataPostgresRepository(private val dataSource: DataSource) : Søkna
                         "nyereEnn" to nyereEnn
                     )
                 ).map { row ->
-                    SøknadPostgresRepository.PersistentSøkerOppgave(objectMapper.readTree(row.binaryStream("soknad_data")))
+                    SøkerOppgaveMelding(row.binaryStream("soknad_data"))
                 }.asSingle
             ) ?: throw NotFoundException("Fant ikke søker_oppgave for søknad med id $søknadUUID med nyereEnn=$nyereEnn")
                 .also { Metrics.søknadDataTimeouts.inc() }

@@ -22,6 +22,7 @@ import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.InnsendingMetadataMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
+import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
@@ -92,7 +93,14 @@ internal class SøknadTest {
             assertNotNull(this)
             assertEquals(LocalDate.now(), this.toLocalDate())
         }
-        assertBehov(Behovtype.NySøknad, mapOf("søknad_uuid" to inspektør.søknadId.toString(), "ident" to testIdent))
+        assertBehov(
+            Behovtype.NySøknad,
+            mapOf(
+                "prosessnavn" to "prosessnavn",
+                "søknad_uuid" to inspektør.søknadId.toString(),
+                "ident" to testIdent
+            )
+        )
         håndterNySøknadOpprettet()
         håndterFaktumOppdatering()
         håndterSøkerOppgaveHendelse(
@@ -231,7 +239,6 @@ internal class SøknadTest {
         assertBehovContains(
             Behovtype.DokumentkravSvar
         ) { behovParametre ->
-
             assertEquals("2", behovParametre["id"])
             assertEquals("dokument", behovParametre["type"])
             assertEquals("urn:sid:bundle3", behovParametre["urn"])
@@ -311,12 +318,31 @@ internal class SøknadTest {
         )
     }
 
+    @Test
+    fun `Oppdaterer prosessversjon`() {
+        håndterØnskeOmNySøknadHendelse()
+        håndterNySøknadOpprettet()
+        håndterMigrertProsessHendelse()
+
+        assertEquals(2, testSøknadObserver.sisteVersjon?.versjon)
+    }
+
     private fun håndterNySøknadOpprettet() {
-        søknad.håndter(SøknadOpprettetHendelse(inspektør.søknadId, testIdent))
+        søknad.håndter(SøknadOpprettetHendelse(Prosessversjon("navn", 1), inspektør.søknadId, testIdent))
     }
 
     private fun håndterSlettet() {
         søknad.håndter(SlettSøknadHendelse(inspektør.søknadId, testIdent))
+    }
+
+    private fun håndterMigrertProsessHendelse() {
+        søknad.håndter(
+            MigrertProsessHendelse(
+                inspektør.søknadId,
+                testIdent,
+                Prosessversjon("navn", 2)
+            )
+        )
     }
 
     private fun håndterInnsendingMetadata() {
@@ -383,7 +409,14 @@ internal class SøknadTest {
     }
 
     private fun håndterØnskeOmNySøknadHendelse() {
-        søknad.håndter(ØnskeOmNySøknadHendelse(søknadID = UUID.randomUUID(), ident = testIdent, språk = språk))
+        søknad.håndter(
+            ØnskeOmNySøknadHendelse(
+                søknadID = UUID.randomUUID(),
+                ident = testIdent,
+                språk = språk,
+                prosessnavn = Prosessnavn("prosessnavn")
+            )
+        )
     }
 
     private fun håndterLeggtilFil(kravId: String, urn: String) {

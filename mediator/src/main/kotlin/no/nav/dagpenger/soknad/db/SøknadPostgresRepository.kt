@@ -1,7 +1,5 @@
 package no.nav.dagpenger.soknad.db
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.ObjectNode
 import de.slub.urn.URN
 import kotliquery.Query
 import kotliquery.Row
@@ -15,13 +13,12 @@ import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Innsending.Dokument.Dokumentvariant
 import no.nav.dagpenger.soknad.Krav
-import no.nav.dagpenger.soknad.Sannsynliggjøring
+import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand
 import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
-import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.serder.AktivitetsloggDTO
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.soknad.serder.InnsendingDTO
@@ -31,11 +28,10 @@ import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.KravDTO.KravTil
 import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SannsynliggjøringDTO
 import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SvarDTO
 import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SvarDTO.SvarValgDTO
+import no.nav.dagpenger.soknad.serder.SøknadDTO.ProsessversjonDTO
 import no.nav.dagpenger.soknad.toMap
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
-import no.nav.helse.rapids_rivers.asLocalDateTime
 import org.postgresql.util.PGobject
-import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -167,8 +163,29 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 ),
                 sistEndretAvBruker = row.zonedDateTime("sist_endret_av_bruker").withZoneSameInstant(tidssone),
                 innsendingDTO = session.hentInnsending(søknadsId),
-                aktivitetslogg = session.hentAktivitetslogg(søknadsId)
+                aktivitetslogg = session.hentAktivitetslogg(søknadsId),
+                prosessversjon = session.hentProsessversjon(søknadsId)
             )
+        }
+    }
+
+    override fun hentPåbegynteSøknader(prosessversjon: Prosessversjon): List<Søknad> {
+        return using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf( //language=PostgreSQL
+                    """
+                    SELECT uuid, tilstand, spraak, sist_endret_av_bruker, soknad_v1.opprettet, person_ident
+                    FROM  soknad_v1
+                    LEFT JOIN soknadmal mal ON soknad_v1.soknadmal = mal.id 
+                    WHERE tilstand = :tilstand AND mal.prosessnavn = :prosessnavn AND mal.prosessversjon = :prosessversjon
+                    """.trimIndent(),
+                    mapOf(
+                        "tilstand" to Tilstand.Type.Påbegynt.toString(),
+                        "prosessnavn" to prosessversjon.prosessnavn.id,
+                        "prosessversjon" to prosessversjon.versjon
+                    )
+                ).map(rowToSøknadDTO(session)).asList
+            ).map { it.rehydrer() }
         }
     }
 
@@ -181,25 +198,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                     transactionalSession.run(it.asUpdate)
                 }
             }
-        }
-    }
-
-    internal class PersistentSøkerOppgave(private val søknad: JsonNode) : SøkerOppgave {
-        override fun søknadUUID(): UUID = UUID.fromString(søknad[SøkerOppgave.Keys.SØKNAD_UUID].asText())
-        override fun eier(): String = søknad[SøkerOppgave.Keys.FØDSELSNUMMER].asText()
-        override fun opprettet(): LocalDateTime = søknad[SøkerOppgave.Keys.OPPRETTET].asLocalDateTime()
-        override fun ferdig(): Boolean = søknad[SøkerOppgave.Keys.FERDIG].asBoolean()
-
-        override fun asFrontendformat(): JsonNode {
-            søknad as ObjectNode
-            val kopiAvSøknad = søknad.deepCopy()
-            kopiAvSøknad.remove(SøkerOppgave.Keys.FØDSELSNUMMER)
-            return kopiAvSøknad
-        }
-
-        override fun asJson(): String = søknad.toString()
-        override fun sannsynliggjøringer(): Set<Sannsynliggjøring> {
-            TODO("not implemented")
         }
     }
 }
@@ -281,6 +279,22 @@ internal fun Session.hentAktivitetslogg(søknadId: UUID): AktivitetsloggDTO? = r
     }.asSingle
 )
 
+internal fun Session.hentProsessversjon(søknadId: UUID): ProsessversjonDTO? = run(
+    queryOf( //language=PostgreSQL
+        """
+                    SELECT prosessnavn, prosessversjon
+                    FROM  soknadmal
+                    JOIN soknad_v1 soknad ON soknad.soknadmal = soknadmal.id 
+                    WHERE soknad.uuid = :soknadId
+        """.trimIndent(),
+        mapOf(
+            "soknadId" to søknadId
+        )
+    ).map { row ->
+        ProsessversjonDTO(prosessnavn = row.string("prosessnavn"), versjon = row.int("prosessversjon"))
+    }.asSingle
+)
+
 private class DokumentkravLogger(søknad: Søknad, val action: String) : SøknadVisitor {
 
     private val logger = KotlinLogging.logger { }
@@ -323,7 +337,8 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         tilstand: Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime
+        sistEndretAvBruker: ZonedDateTime,
+        prosessversjon: Prosessversjon?
     ) {
         this.søknadId = søknadId
         queries.add(
@@ -337,10 +352,12 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queryOf(
                 // language=PostgreSQL
                 """
-                INSERT INTO soknad_v1(uuid, person_ident, tilstand, spraak, opprettet, sist_endret_av_bruker)
-                VALUES (:uuid, :person_ident, :tilstand, :spraak, :opprettet, :sistEndretAvBruker)
-                ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
-                                                sist_endret_av_bruker = :sistEndretAvBruker
+                   INSERT INTO soknad_v1(uuid, person_ident, tilstand, spraak, opprettet, sist_endret_av_bruker, soknadmal)
+                   VALUES (:uuid, :person_ident, :tilstand, :spraak, :opprettet, :sistEndretAvBruker, 
+                        (SELECT id FROM soknadmal WHERE prosessnavn = :prosessnavn AND prosessversjon = :prosessversjon))
+                   ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
+                                                sist_endret_av_bruker = :sistEndretAvBruker, 
+                                                soknadmal=(SELECT id FROM soknadmal WHERE prosessnavn = :prosessnavn AND prosessversjon = :prosessversjon)
                 """.trimIndent(),
                 mapOf(
                     "uuid" to søknadId,
@@ -348,7 +365,9 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                     "tilstand" to tilstand.tilstandType.name,
                     "spraak" to språk.verdi.toLanguageTag(),
                     "opprettet" to opprettet,
-                    "sistEndretAvBruker" to sistEndretAvBruker
+                    "sistEndretAvBruker" to sistEndretAvBruker,
+                    "prosessnavn" to prosessversjon?.prosessnavn?.id,
+                    "prosessversjon" to prosessversjon?.versjon
                 )
             )
         )

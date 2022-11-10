@@ -1,12 +1,14 @@
 package no.nav.dagpenger.soknad
 
 import com.fasterxml.jackson.databind.node.BooleanNode
+import io.mockk.every
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerArkiverbarSøknad
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerJournalføring
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMetadata
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMidlertidligJournalføring
 import no.nav.dagpenger.soknad.Innsending.TilstandType.Journalført
+import no.nav.dagpenger.soknad.Innsending.TilstandType.Opprettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
@@ -20,14 +22,15 @@ import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak
+import no.nav.dagpenger.soknad.mal.SøknadMalRepository
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.rapids_rivers.toUUID
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import java.time.ZonedDateTime
 import java.util.UUID
 
 internal class SøknadMediatorTest {
@@ -35,13 +38,58 @@ internal class SøknadMediatorTest {
         private const val testIdent = "12345678913"
         private const val testJournalpostId = "123455PDS"
         private val språkVerdi = "NO"
+        private val søknadMedDokumentasjonsKravId = UUID.randomUUID()
+        private fun søknadMedDokumentasjonsKrav(): Søknad {
+            val originalFaktumJson = faktumJson("1", "f1")
+            val dokumentFaktum =
+                Faktum(originalFaktumJson)
+            val originalFaktumSomsannsynliggjøresFakta = faktumJson("2", "f2")
+            val faktaSomSannsynliggjøres =
+                mutableSetOf(
+                    Faktum(originalFaktumSomsannsynliggjøresFakta)
+                )
+            val sannsynliggjøring = Sannsynliggjøring(
+                id = dokumentFaktum.id,
+                faktum = dokumentFaktum,
+                sannsynliggjør = faktaSomSannsynliggjøres
+            )
+            val krav = Krav(
+                sannsynliggjøring
+            )
+            return Søknad.rehydrer(
+                søknadId = søknadMedDokumentasjonsKravId,
+                ident = testIdent,
+                opprettet = ZonedDateTime.now(),
+                språk = Språk("NO"),
+                dokumentkrav = Dokumentkrav.rehydrer(
+                    krav = setOf(krav)
+                ),
+                sistEndretAvBruker = ZonedDateTime.now(),
+                tilstandsType = Innsendt,
+                aktivitetslogg = Aktivitetslogg(),
+                innsending = NyInnsending.rehydrer(
+                    innsendingId = UUID.randomUUID(),
+                    type = Innsending.InnsendingType.NY_DIALOG,
+                    innsendt = ZonedDateTime.now(),
+                    journalpostId = null,
+                    tilstandsType = Opprettet,
+                    hovedDokument = null,
+                    dokumenter = listOf(),
+                    ettersendinger = listOf(),
+                    metadata = Innsending.Metadata(
+                        skjemakode = "hubba",
+                        tittel = "bubba"
+                    )
+                ),
+                prosessversjon = null
+            )
+        }
     }
 
     private lateinit var mediator: SøknadMediator
     private val testRapid = TestRapid()
 
     private object TestSøknadRepository : SøknadRepository {
-
         private val søknader = mutableListOf<Søknad>()
 
         override fun hentEier(søknadId: UUID): String? {
@@ -60,6 +108,10 @@ internal class SøknadMediatorTest {
             søknader.add(søknad)
         }
 
+        override fun hentPåbegynteSøknader(prosessversjon: Prosessversjon): List<Søknad> {
+            TODO("Not yet implemented")
+        }
+
         fun clear() {
             søknader.clear()
         }
@@ -68,11 +120,13 @@ internal class SøknadMediatorTest {
     @BeforeEach
     fun setup() {
         mediator = SøknadMediator(
-            testRapid,
-            mockk(relaxed = true),
-            mockk(),
-            mockk(),
-            TestSøknadRepository
+            rapidsConnection = testRapid,
+            søknadDataRepository = mockk(relaxed = true),
+            søknadMalRepository = mockk<SøknadMalRepository>().also {
+                every { it.prosessversjon(any(), any()) } returns Prosessversjon("test", 1)
+            },
+            ferdigstiltSøknadRepository = mockk(),
+            søknadRepository = TestSøknadRepository
         )
 
         SøkerOppgaveMottak(testRapid, mediator)
@@ -91,7 +145,14 @@ internal class SøknadMediatorTest {
     @Test
     fun `Søknaden går gjennom livssyklusen med alle tilstander`() {
         val søknadUuid = UUID.randomUUID()
-        mediator.behandle(ØnskeOmNySøknadHendelse(søknadUuid, testIdent, språkVerdi))
+        mediator.behandle(
+            ØnskeOmNySøknadHendelse(
+                søknadUuid,
+                testIdent,
+                språkVerdi,
+                prosessnavn = Prosessnavn("prosessnavn")
+            )
+        )
         assertEquals(1, testRapid.inspektør.size)
         assertEquals(listOf("NySøknad"), behov(0))
         assertEquals(UnderOpprettelse, oppdatertInspektør().gjeldendetilstand)
@@ -154,7 +215,6 @@ internal class SøknadMediatorTest {
         )
         assertEquals(Journalført, oppdatertInspektør().gjeldendeInnsendingTilstand)
         assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
-
         // Verifiser at det er mulig å hente en komplett aktivitetslogg
         mediator.hentSøknader(testIdent).first().let {
             with(TestSøknadhåndtererInspektør(it).aktivitetslogg["aktiviteter"]!!) {
@@ -162,15 +222,6 @@ internal class SøknadMediatorTest {
                 assertEquals("Søknad journalført", last()["melding"])
             }
         }
-    }
-
-    @Test
-    @Disabled("TODO: Vi må finne ut hvordan vi håndtere at Quiz har nye versjoner først")
-    fun `Hvis man har en søknad (påbegynt) fra før skal det fortsettes på denne`() {
-        val opprinneligSøknad = mediator.hentEllerOpprettSøknadsprosess(testIdent, språkVerdi)
-
-        val hentetSøknad = mediator.hentEllerOpprettSøknadsprosess(testIdent, språkVerdi)
-        assertEquals(opprinneligSøknad.getSøknadsId(), hentetSøknad.getSøknadsId())
     }
 
     private fun innsendingId() = oppdatertInspektør(testIdent).gjeldendeInnsendingId
@@ -284,7 +335,14 @@ internal class SøknadMediatorTest {
           "time": "2022-03-30T12:19:08.418821"
         }
       ],
-      "@løsning": {"NySøknad": "$søknadUuid"}
+      "@løsning": {
+        "NySøknad": {
+          "prosessversjon": {
+            "navn": "prosessnavn",
+            "versjon": 123
+          }
+        }
+      }
     }
     """.trimMargin()
 

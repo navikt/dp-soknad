@@ -6,6 +6,7 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.Configuration
+import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
@@ -20,7 +21,6 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class PåbegyntSøknadApiTest {
-
     @Test
     fun `Skal hente påbegynt søknad`() {
         val expectedIdent = "12345678901"
@@ -32,6 +32,7 @@ class PåbegyntSøknadApiTest {
         ).also {
             it.håndter(
                 SøknadOpprettetHendelse(
+                    Prosessversjon("test", 1),
                     søknadId,
                     expectedIdent
                 )
