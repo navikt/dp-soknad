@@ -1,5 +1,7 @@
 package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
+import mu.KotlinLogging
+import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
@@ -31,17 +33,27 @@ internal class MigrertSøknadMottak(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val søknadId = packet["søknad_uuid"].asUUID()
         val ident = packet["ident"].asText()
-        val prosessnavn = packet["@løsning"][behov]["prosessnavn"].asText()
-        val versjon = packet["@løsning"][behov]["versjon"].asInt()
-        val data = packet["@løsning"][behov]["data"]
+        withLoggingContext(
+            "søknadId" to søknadId.toString()
+        ) {
+            val prosessnavn = packet["@løsning"][behov]["prosessnavn"].asText()
+            val versjon = packet["@løsning"][behov]["versjon"].asInt()
+            val data = packet["@løsning"][behov]["data"]
 
-        mediator.behandle(
-            MigrertProsessHendelse(
-                søknadId,
-                ident,
-                prosessversjon = Prosessversjon(prosessnavn, versjon)
-            ),
-            SøkerOppgaveMelding(data)
-        )
+            logger.info { "Mottok migrert søknad, prosessnavn=$prosessnavn, versjon=$versjon" }
+
+            mediator.behandle(
+                MigrertProsessHendelse(
+                    søknadId,
+                    ident,
+                    prosessversjon = Prosessversjon(prosessnavn, versjon)
+                ),
+                SøkerOppgaveMelding(data)
+            )
+        }
+    }
+
+    private companion object {
+        private val logger = KotlinLogging.logger {}
     }
 }
