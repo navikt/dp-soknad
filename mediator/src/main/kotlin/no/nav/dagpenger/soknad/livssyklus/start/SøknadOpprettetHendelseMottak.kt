@@ -43,7 +43,7 @@ internal class SøknadOpprettetHendelseMottak(
         ) {
             val prosessversjon = try {
                 mediator.prosessversjon(
-                    packet["@løsning"][behov]["prosessversjon"]["navn"].asText(),
+                    packet["@løsning"][behov]["prosessversjon"]["prosessnavn"].asText(),
                     packet["@løsning"][behov]["prosessversjon"]["versjon"].asInt()
                 )
             } catch (e: Exception) {
