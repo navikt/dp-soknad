@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad
 
+import mu.KotlinLogging
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.mal.SøknadMal
 import no.nav.dagpenger.soknad.mal.SøknadMalRepository
@@ -12,13 +13,15 @@ class SøknadMigrering constructor(
     søknadMalRepository: SøknadMalRepository,
     private val rapid: RapidsConnection
 ) {
-
     init {
         søknadMalRepository.addObserver { søknadMal -> migrer(søknadMal) }
     }
 
     private fun migrer(søknadMal: SøknadMal) {
+        logger.info { "Oppdaget ny søknadmal for prosessversjon=${søknadMal.prosessversjon}" }
         val søknader = søknadRepository.hentPåbegynteSøknader(søknadMal.prosessversjon)
+
+        logger.info { "Fant ${søknader.size} søknader som skal migreres" }
 
         søknader.forEach {
             rapid.publish(MigreringsBehov(it.søknadUUID(), it.ident()).asMessage().toString())
@@ -26,7 +29,6 @@ class SøknadMigrering constructor(
     }
 
     private data class MigreringsBehov(private val søknadUUID: UUID, private val ident: String) {
-
         fun asMessage() = JsonMessage.newNeed(
             listOf(
                 "MigrerProsess"
@@ -36,5 +38,9 @@ class SøknadMigrering constructor(
                 "ident" to ident
             )
         )
+    }
+
+    private companion object {
+        val logger = KotlinLogging.logger {}
     }
 }
