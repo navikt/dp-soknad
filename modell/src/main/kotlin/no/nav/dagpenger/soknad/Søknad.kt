@@ -350,7 +350,7 @@ class Søknad private constructor(
         }
 
         override fun håndter(hendelse: MigrertProsessHendelse, søknad: Søknad) {
-            val forrigeVersjon = søknad.prosessversjon ?: Prosessversjon("Dagpenger", 0)
+            val forrigeVersjon = søknad.prosessversjon ?: Prosessversjon("pre-migrering", 0)
             søknad.prosessversjon = hendelse.prosessversjon
             søknad.migrert(søknad.ident, forrigeVersjon)
         }
@@ -419,7 +419,7 @@ class Søknad private constructor(
         }
     }
 
-    private fun migrert(ident: String, forrigeProsessversjon: Prosessversjon?) {
+    private fun migrert(ident: String, forrigeProsessversjon: Prosessversjon) {
         val gjeldendeVersjon = requireNotNull(this.prosessversjon) { "Kan ikke migrere søknad uten ny prosessversjon" }
         observers.forEach {
             it.søknadMigrert(
