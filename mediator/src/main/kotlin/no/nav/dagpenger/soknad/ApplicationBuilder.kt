@@ -19,6 +19,7 @@ import no.nav.dagpenger.soknad.observers.SøknadSlettetObserver
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
 import no.nav.dagpenger.soknad.personalia.personaliaRouteBuilder
+import no.nav.dagpenger.soknad.sletterutine.SlettSøknaderJob
 import no.nav.dagpenger.soknad.sletterutine.UtdaterteSøknaderJob
 import no.nav.dagpenger.soknad.status.BehandlingsstatusHttpClient
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
@@ -92,6 +93,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         runMigration()
         SøknadsMalMottak(rapidsConnection, søknadMalRepository)
         UtdaterteSøknaderJob.sletterutine(søknadMediator)
+        SlettSøknaderJob.sletterutine(søknadMediator)
     }
 
     private fun søknadMediator(): SøknadMediator = søknadMediator

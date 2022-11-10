@@ -15,8 +15,8 @@ import java.util.UUID
 import javax.sql.DataSource
 
 internal interface VakmesterLivssyklusRepository {
-    fun slettPåbegynteSøknaderEldreEnn(antallDager: Int): List<Int>?
-    fun slettSlettede(): List<Int>?
+    fun markerUtdaterteTilSletting(antallDager: Int): List<UUID>
+    fun slett(): List<Int>?
 }
 
 private val logger = KotlinLogging.logger {}
@@ -25,33 +25,23 @@ internal class VaktmesterPostgresRepository(
     private val dataSource: DataSource,
     private val søknadMediator: SøknadMediator
 ) : VakmesterLivssyklusRepository {
-    override fun slettPåbegynteSøknaderEldreEnn(antallDager: Int) =
+    override fun markerUtdaterteTilSletting(antallDager: Int) =
         using(sessionOf(dataSource)) { session ->
-            session.medLås(låseNøkkel) {
-                logger.info { "Starter sletting av påbegynte" }
-                session.transaction { transactionalSession ->
-                    val søknaderSomSkalSlettes = hentPåbegynteSøknaderUendretSiden(antallDager, transactionalSession)
+            logger.info { "Markerer utdaterte søknader til sletting" }
+            session.transaction { transactionalSession ->
+                val søknaderSomSkalSlettes = hentPåbegynteSøknaderUendretSiden(antallDager, transactionalSession)
 
-                    søknaderSomSkalSlettes.forEach { søknad ->
-                        emitSlettSøknadEvent(søknad)
-                    }
-
-                    slettSøknader(søknaderSomSkalSlettes, transactionalSession).also {
-                        logger.info { "Avslutter sletting av påbegynte" }
-                    }
+                søknaderSomSkalSlettes.onEach {
+                    emitSlettSøknadEvent(it)
                 }
-            }
+            }.map { it.søknadUuid }
         }
 
-    override fun slettSlettede() = using(sessionOf(dataSource)) { session ->
+    override fun slett() = using(sessionOf(dataSource)) { session ->
         session.medLås(låseNøkkel) {
             logger.info { "Starter sletting av slettede" }
             session.transaction { transactionalSession ->
                 val søknaderSomSkalSlettes = hentSlettede(transactionalSession)
-
-                søknaderSomSkalSlettes.forEach { søknad ->
-                    emitSlettSøknadEvent(søknad)
-                }
 
                 slettSøknader(søknaderSomSkalSlettes, transactionalSession).also {
                     logger.info { "Avslutter sletting av slettede" }
