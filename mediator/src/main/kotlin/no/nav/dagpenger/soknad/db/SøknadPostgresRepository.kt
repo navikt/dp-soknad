@@ -9,6 +9,7 @@ import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Innsending
@@ -74,7 +75,9 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                         "uuid" to søknadId
                     )
                 ).map(rowToSøknadDTO(session)).asSingle
-            )?.rehydrer()
+            )?.rehydrer()?.also {
+                DokumentkravLogger(it, "hent")
+            }
         }
     }
 
@@ -170,6 +173,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
     }
 
     override fun lagre(søknad: Søknad) {
+        DokumentkravLogger(søknad, "lagre")
         val visitor = SøknadPersistenceVisitor(søknad)
         using(sessionOf(dataSource)) { session ->
             session.transaction { transactionalSession ->
@@ -276,6 +280,28 @@ internal fun Session.hentAktivitetslogg(søknadId: UUID): AktivitetsloggDTO? = r
         row.binaryStream("aktivitetslogg").aktivitetslogg()
     }.asSingle
 )
+
+private class DokumentkravLogger(søknad: Søknad, val action: String) : SøknadVisitor {
+
+    private val logger = KotlinLogging.logger { }
+
+    private val kravene = mutableSetOf<Krav>()
+    init {
+        søknad.accept(this)
+    }
+
+    override fun visitKrav(krav: Krav) {
+        kravene.add(krav)
+    }
+
+    override fun postVisitDokumentkrav() {
+        logger.info {
+            kravene.joinToString { krav ->
+                "\n$action krav '${krav.id}' -> bundle '${krav.svar.bundle}'"
+            }
+        }
+    }
+}
 
 private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
     private lateinit var aktivEttersending: UUID
