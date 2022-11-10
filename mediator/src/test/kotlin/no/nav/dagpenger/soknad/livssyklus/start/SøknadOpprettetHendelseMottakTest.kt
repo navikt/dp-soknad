@@ -13,6 +13,7 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
+import kotlin.random.Random
 
 internal class SøknadOpprettetHendelseMottakTest {
     private val mediatorMock = mockk<SøknadMediator>().also {
@@ -43,7 +44,7 @@ internal class SøknadOpprettetHendelseMottakTest {
 
     private companion object {
         private val prosessnavn = "Dagpenger"
-        private val prosessversjon = 1
+        private val prosessversjon = Random.nextInt(0, Int.MAX_VALUE)
 
         fun nySøknadBehovsløsning(søknadUuid: String) = // language=JSON
             """

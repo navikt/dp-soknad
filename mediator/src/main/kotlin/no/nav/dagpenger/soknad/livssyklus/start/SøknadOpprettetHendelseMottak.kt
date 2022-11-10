@@ -40,10 +40,16 @@ internal class SøknadOpprettetHendelseMottak(
         withLoggingContext(
             "søknadId" to søknadID.toString()
         ) {
-            val prosessversjon = mediator.prosessversjon(
-                packet["@løsning"][behov]["prosessversjon"]["prosessnavn"].asText(),
-                packet["@løsning"][behov]["prosessversjon"]["versjon"].asInt()
-            )
+            val prosessversjon = try {
+                mediator.prosessversjon(
+                    packet["@løsning"][behov]["prosessversjon"]["prosessnavn"].asText(),
+                    packet["@løsning"][behov]["prosessversjon"]["versjon"].asInt()
+                )
+            } catch (e: Exception) {
+                logger.warn(e) { "Kunne ikke finne prosessversjon i pakken (se sikkerlogg)" }
+                sikkerLogger.warn(e) { "Kunne ikke finne prosessversjon i pakken ${packet.toJson()} " }
+                throw e
+            }
             val søknadOpprettetHendelse =
                 SøknadOpprettetHendelse(prosessversjon, søknadID, packet["ident"].asText())
             logger.info { "Fått løsning for '$behov' for $søknadID" }
