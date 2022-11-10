@@ -338,7 +338,7 @@ internal class SøknadMediatorTest {
       "@løsning": {
         "NySøknad": {
           "prosessversjon": {
-            "navn": "prosessnavn",
+            "prosessnavn": "prosessnavn",
             "versjon": 123
           }
         }
