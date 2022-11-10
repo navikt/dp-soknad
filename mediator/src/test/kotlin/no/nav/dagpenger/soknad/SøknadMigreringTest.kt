@@ -4,12 +4,14 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.dagpenger.soknad.db.Postgres
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
+import no.nav.dagpenger.soknad.livssyklus.asUUID
 import no.nav.dagpenger.soknad.mal.SøknadMal
 import no.nav.dagpenger.soknad.mal.SøknadMalPostgresRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -51,8 +53,13 @@ internal class SøknadMigreringTest {
             )
             søknadMaler.lagre(versjon(2))
 
-            assertEquals(1, rapid.inspektør.size)
             assertEquals(2, observertMal)
+            assertEquals(1, rapid.inspektør.size)
+
+            with(rapid.inspektør.message(0)) {
+                assertNotNull(get("søknad_uuid").asUUID())
+                assertEquals(ident, get("ident").asText())
+            }
         }
     }
 }
