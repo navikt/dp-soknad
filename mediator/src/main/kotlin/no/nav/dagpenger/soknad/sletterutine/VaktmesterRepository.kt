@@ -8,6 +8,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import java.util.UUID
@@ -15,6 +16,7 @@ import javax.sql.DataSource
 
 internal interface VakmesterLivssyklusRepository {
     fun slettPåbegynteSøknaderEldreEnn(antallDager: Int): List<Int>?
+    fun slettSlettede(): List<Int>?
 }
 
 private val logger = KotlinLogging.logger {}
@@ -23,10 +25,10 @@ internal class VaktmesterPostgresRepository(
     private val dataSource: DataSource,
     private val søknadMediator: SøknadMediator
 ) : VakmesterLivssyklusRepository {
-    override fun slettPåbegynteSøknaderEldreEnn(antallDager: Int): List<Int>? {
-        return using(sessionOf(dataSource)) { session ->
+    override fun slettPåbegynteSøknaderEldreEnn(antallDager: Int) =
+        using(sessionOf(dataSource)) { session ->
             session.medLås(låseNøkkel) {
-                logger.info { "Starter slettejobb" }
+                logger.info { "Starter sletting av påbegynte" }
                 session.transaction { transactionalSession ->
                     val søknaderSomSkalSlettes = hentPåbegynteSøknaderUendretSiden(antallDager, transactionalSession)
 
@@ -35,8 +37,24 @@ internal class VaktmesterPostgresRepository(
                     }
 
                     slettSøknader(søknaderSomSkalSlettes, transactionalSession).also {
-                        logger.info { "Avslutter slettejobb" }
+                        logger.info { "Avslutter sletting av påbegynte" }
                     }
+                }
+            }
+        }
+
+    override fun slettSlettede() = using(sessionOf(dataSource)) { session ->
+        session.medLås(låseNøkkel) {
+            logger.info { "Starter sletting av slettede" }
+            session.transaction { transactionalSession ->
+                val søknaderSomSkalSlettes = hentSlettede(transactionalSession)
+
+                søknaderSomSkalSlettes.forEach { søknad ->
+                    emitSlettSøknadEvent(søknad)
+                }
+
+                slettSøknader(søknaderSomSkalSlettes, transactionalSession).also {
+                    logger.info { "Avslutter sletting av slettede" }
                 }
             }
         }
@@ -47,13 +65,23 @@ internal class VaktmesterPostgresRepository(
 
     private fun hentPåbegynteSøknaderUendretSiden(antallDager: Int, transactionalSession: TransactionalSession) =
         transactionalSession.run( // TODO: Spørringen fører til en full sequential scan, få på noe indeks
-            //language=PostgreSQL
-            queryOf(
+            queryOf( //language=PostgreSQL
                 """
                 SELECT uuid, person_ident
                 FROM soknad_v1
-                    WHERE tilstand = '${Påbegynt.name}'
+                WHERE tilstand = '${Påbegynt.name}'
                     AND sist_endret_av_bruker < (now() - INTERVAL '$antallDager DAY');
+                """.trimIndent()
+            ).map(søknadTilSletting).asList
+        )
+
+    private fun hentSlettede(transactionalSession: TransactionalSession) =
+        transactionalSession.run(
+            queryOf( //language=PostgreSQL
+                """
+                SELECT uuid, person_ident
+                FROM soknad_v1
+                WHERE tilstand = '${Slettet.name}'
                 """.trimIndent()
             ).map(søknadTilSletting).asList
         )
@@ -67,12 +95,16 @@ internal class VaktmesterPostgresRepository(
         )
     }
 
-    private fun slettSøknader(søknadUuider: List<SøknadTilSletting>, transactionalSession: TransactionalSession): List<Int> {
+    private fun slettSøknader(
+        søknadUuider: List<SøknadTilSletting>,
+        transactionalSession: TransactionalSession
+    ): List<Int> {
         val iderTilSletting = søknadUuider.map { listOf(it.søknadUuid) }
         logger.info { "Forsøker å slette ${iderTilSletting.size} søknader. SøknadUUIDer: $iderTilSletting" }
         val raderSlettet = transactionalSession.batchPreparedStatement(
             //language=PostgreSQL
-            "DELETE FROM soknad_v1 WHERE uuid =?", iderTilSletting
+            "DELETE FROM soknad_v1 WHERE uuid =?",
+            iderTilSletting
         )
         logger.info { "Antall søknader slettet: " + raderSlettet.filter { it == 1 }.sum() }
         return raderSlettet
