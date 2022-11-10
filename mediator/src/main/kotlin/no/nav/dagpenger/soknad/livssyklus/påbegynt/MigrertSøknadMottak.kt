@@ -48,7 +48,7 @@ internal class MigrertSøknadMottak(
                     ident,
                     prosessversjon = Prosessversjon(prosessnavn, versjon)
                 ),
-                SøkerOppgaveMelding(data)
+                SøkerOppgaveMelding(data.asText())
             )
         }
     }
