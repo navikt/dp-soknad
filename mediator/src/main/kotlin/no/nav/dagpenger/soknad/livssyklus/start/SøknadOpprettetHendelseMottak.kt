@@ -5,7 +5,6 @@ import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyInnsending
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NySøknad
-import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -20,7 +19,7 @@ internal class SøknadOpprettetHendelseMottak(
 ) : River.PacketListener {
     companion object {
         private val logger = KotlinLogging.logger {}
-        private val sikkerLogger = KotlinLogging.logger("tjenestekall")
+        private val sikkerLogger = KotlinLogging.logger("tjenestekall.SøknadOpprettetHendelseMottak")
     }
 
     private val behov = listOf(NySøknad.name, NyInnsending.name)
@@ -41,19 +40,10 @@ internal class SøknadOpprettetHendelseMottak(
         withLoggingContext(
             "søknadId" to søknadID.toString()
         ) {
-            val prosessversjon = try {
-                mediator.prosessversjon(
-                    packet["@løsning"][behov]["prosessversjon"]["prosessnavn"].asText(),
-                    packet["@løsning"][behov]["prosessversjon"]["versjon"].asInt()
-                )
-            } catch (e: Exception) {
-                logger.warn { "Kunne ikke finne prosessversjon i pakken (se sikkerlogg)" }
-                sikkerLogger.warn { "Kunne ikke finne prosessversjon i pakken ${packet.toJson()} " }
-                Prosessversjon(
-                    "Dagpenger",
-                    238
-                )
-            }
+            val prosessversjon = mediator.prosessversjon(
+                packet["@løsning"][behov]["prosessversjon"]["prosessnavn"].asText(),
+                packet["@løsning"][behov]["prosessversjon"]["versjon"].asInt()
+            )
             val søknadOpprettetHendelse =
                 SøknadOpprettetHendelse(prosessversjon, søknadID, packet["ident"].asText())
             logger.info { "Fått løsning for '$behov' for $søknadID" }
