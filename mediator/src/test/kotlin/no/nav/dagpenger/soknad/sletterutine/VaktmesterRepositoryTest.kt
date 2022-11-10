@@ -9,6 +9,7 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.Søknad.Tilstand
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.SøknadMediator
@@ -43,7 +44,7 @@ internal class VaktmesterRepositoryTest {
     private val syvDager = 7
 
     @Test
-    fun `Søknadsdata for påbegynte søknader uendret de siste 7 dagene`() = withMigratedDb {
+    fun `Låsen hindrer parallel slettinger`() = withMigratedDb {
         val søknadRepository = SøknadPostgresRepository(dataSource)
         val søknadCacheRepository = SøknadDataPostgresRepository(dataSource)
         val søknadMediator = søknadMediator(
@@ -54,14 +55,14 @@ internal class VaktmesterRepositoryTest {
 
         using(sessionOf(dataSource)) { session ->
             session.lås(låseNøkkel)
-            assertNull(vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager))
+            assertNull(vaktmesterRepository.slett())
             session.låsOpp(låseNøkkel)
-            assertNotNull(vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager))
+            assertNotNull(vaktmesterRepository.slett())
         }
     }
 
     @Test
-    fun `Sletter all søknadsdata for påbegynte søknader uendret de siste 7 dagene`() = withMigratedDb {
+    fun `Markerer påbegynte søknader uendret de siste 7 dagene som sletta`() = withMigratedDb {
         val søknadRepository = SøknadPostgresRepository(dataSource)
         val søknadCacheRepository = SøknadDataPostgresRepository(dataSource)
         val søknadMediator = søknadMediator(
@@ -82,8 +83,30 @@ internal class VaktmesterRepositoryTest {
         søknadCacheRepository.lagre(TestSøkerOppgave(gammelPåbegyntSøknadUuid, testPersonIdent, "{}"))
         søknadCacheRepository.lagre(TestSøkerOppgave(nyPåbegyntSøknadUuid, testPersonIdent, "{}"))
 
-        vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(syvDager)
+        vaktmesterRepository.markerUtdaterteTilSletting(syvDager)
         assertAntallSøknadSlettetEvent(1)
+        assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, søknadRepository, testPersonIdent)
+    }
+
+    @Test
+    fun `Sletter all søknadsdata for slettede søknader`() = withMigratedDb {
+        val søknadRepository = SøknadPostgresRepository(dataSource)
+        val søknadCacheRepository = SøknadDataPostgresRepository(dataSource)
+        val søknadMediator = søknadMediator(
+            søknadCacheRepository = søknadCacheRepository,
+            søknadRepository = søknadRepository
+        )
+        val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
+
+        søknadRepository.lagre(gammelPåbegyntSøknad(gammelPåbegyntSøknadUuid, testPersonIdent))
+        søknadRepository.lagre(nyPåbegyntSøknad(nyPåbegyntSøknadUuid, testPersonIdent))
+        søknadRepository.lagre(innsendtSøknad(innsendtSøknadUuid, testPersonIdent))
+        søknadCacheRepository.lagre(TestSøkerOppgave(gammelPåbegyntSøknadUuid, testPersonIdent, "{}"))
+        søknadCacheRepository.lagre(TestSøkerOppgave(nyPåbegyntSøknadUuid, testPersonIdent, "{}"))
+
+        settSlettet(gammelPåbegyntSøknadUuid)
+
+        vaktmesterRepository.slett()
         assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, søknadRepository, testPersonIdent)
         assertCacheSlettet(gammelPåbegyntSøknadUuid, søknadCacheRepository)
         assertFalse(aktivitetsloggFinnes(gammelPåbegyntSøknadUuid))
@@ -99,6 +122,15 @@ internal class VaktmesterRepositoryTest {
                 ).asUpdate
             )
         }
+    }
+
+    private fun settSlettet(uuid: UUID) = using(sessionOf(dataSource)) { session ->
+        session.run(
+            queryOf( //language=PostgreSQL
+                "UPDATE soknad_v1 SET tilstand = '${Tilstand.Type.Slettet}' WHERE uuid = ?",
+                uuid
+            ).asUpdate
+        )
     }
 
     private fun søknadMediator(
@@ -134,7 +166,8 @@ internal class VaktmesterRepositoryTest {
             session.run(
                 //language=PostgreSQL
                 queryOf(
-                    "SELECT COUNT(*) FROM aktivitetslogg_v1 WHERE soknad_uuid = ?", søknadUuid
+                    "SELECT COUNT(*) FROM aktivitetslogg_v1 WHERE soknad_uuid = ?",
+                    søknadUuid
                 ).map { row ->
                     row.int(1)
                 }.asSingle
