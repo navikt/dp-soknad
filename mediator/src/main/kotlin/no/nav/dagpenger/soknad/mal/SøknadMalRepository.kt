@@ -26,27 +26,24 @@ interface SøknadMalRepository {
 class SøknadMalPostgresRepository(private val dataSource: DataSource) : SøknadMalRepository {
     private val observers = mutableListOf<SøknadMalObserver>()
 
-    override fun lagre(søknadMal: SøknadMal): Int {
-        return using(sessionOf(dataSource)) { session: Session ->
-            session.transaction { transactionalSession ->
-                transactionalSession.run(
-                    queryOf(
-                        //language=PostgreSQL
-                        "INSERT INTO soknadmal (prosessnavn, prosessversjon, mal) VALUES (:prosessnavn, :prosessversjon, :mal) ON CONFLICT DO NOTHING ",
-                        mapOf(
-                            "prosessnavn" to søknadMal.prosessversjon.prosessnavn.id,
-                            "prosessversjon" to søknadMal.prosessversjon.versjon,
-                            "mal" to PGobject().apply {
-                                this.type = "jsonb"
-                                this.value = søknadMal.mal.toString()
-                            }
-                        )
-                    ).asUpdate
-                )
-            }
-        }.also {
-            observers.forEach { it.nyMal(søknadMal) }
+    override fun lagre(søknadMal: SøknadMal) = using(sessionOf(dataSource)) { session: Session ->
+        session.transaction { tx ->
+            tx.run(
+                queryOf( //language=PostgreSQL
+                    "INSERT INTO soknadmal (prosessnavn, prosessversjon, mal) VALUES (:prosessnavn, :prosessversjon, :mal) ON CONFLICT DO NOTHING ",
+                    mapOf(
+                        "prosessnavn" to søknadMal.prosessversjon.prosessnavn.id,
+                        "prosessversjon" to søknadMal.prosessversjon.versjon,
+                        "mal" to PGobject().apply {
+                            this.type = "jsonb"
+                            this.value = søknadMal.mal.toString()
+                        }
+                    )
+                ).asUpdate
+            )
         }
+    }.also { nyMal ->
+        if (nyMal == 1) observers.forEach { it.nyMal(søknadMal) }
     }
 
     override fun hentNyesteMal(prosessnavn: Prosessnavn): SøknadMal = using(sessionOf(dataSource)) { session: Session ->
