@@ -183,7 +183,7 @@ internal class SøknadMediator(
         val søknad = hent(hendelse.søknadID())
         return when (hendelse) {
             is ØnskeOmNySøknadHendelse -> søknad ?: Søknad(hendelse.søknadID(), hendelse.språk(), hendelse.ident())
-            else -> søknad ?: hendelse.severe("Søknaden finnes ikke")
+            else -> søknad ?: throw SøknadIkkeFunnet("Søknaden med id ${hendelse.søknadID()} finnes ikke")
         }
     }
 
@@ -207,6 +207,7 @@ internal class SøknadMediator(
         sikkerLogger.info("aktivitetslogg inneholder meldinger: ${hendelse.toLogString()}")
         behovMediator.håndter(hendelse)
     }
+    internal class SøknadIkkeFunnet(message: String) : RuntimeException(message)
 }
 
 enum class Prosesstype {

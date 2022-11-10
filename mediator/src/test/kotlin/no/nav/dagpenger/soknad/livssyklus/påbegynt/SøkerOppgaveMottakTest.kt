@@ -2,13 +2,16 @@ package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.server.plugins.NotFoundException
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import no.nav.dagpenger.soknad.Prosessnavn
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.db.Postgres
 import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
+import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.AfterEach
@@ -71,6 +74,29 @@ class SøkerOppgaveMottakTest {
                 søknadMediator.hentSøkerOppgave(søknadUuid, nyereEnn = 5)
             }
         }
+    }
+
+    @Test
+    fun `søknader som ikke finnes skal ikke behandles`() {
+        val uuidSomIkkeFinnes = UUID.randomUUID()
+        val søknadRepository = mockk<SøknadRepository>().also {
+            every { it.hent(uuidSomIkkeFinnes) } throws SøknadMediator.SøknadIkkeFunnet("ikke funnet")
+        }
+        SøknadMediator(
+            rapidsConnection = testRapid,
+            søknadDataRepository = mockk(),
+            søknadMalRepository = mockk(),
+            ferdigstiltSøknadRepository = mockk(),
+            søknadRepository = søknadRepository
+        )
+            .also {
+                SøkerOppgaveMottak(testRapid, it)
+            }
+
+        testRapid.sendTestMessage(nySøknad(uuidSomIkkeFinnes, "01234567891"))
+
+        verify(exactly = 1) { søknadRepository.hent(uuidSomIkkeFinnes) }
+        verify(exactly = 0) { søknadRepository.lagre(any()) }
     }
 
     //language=JSON
