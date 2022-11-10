@@ -16,8 +16,8 @@ internal object UtdaterteSøknaderJob {
         fixedRateTimer(
             name = "Sletterutine for påbegynte søknader uendret siste $SYV_DAGER",
             daemon = true,
-            initialDelay = 60L,
-            period = 60L,
+            initialDelay = 1.Minutt,
+            period = 5.Minutt,
             action = {
                 try {
                     vaktmesterRepository.slettPåbegynteSøknaderEldreEnn(SYV_DAGER)
@@ -28,4 +28,6 @@ internal object UtdaterteSøknaderJob {
             }
         )
     }
+
+    private val Int.Minutt get() = this * 1000L
 }
