@@ -27,5 +27,5 @@ internal object UtdaterteSøknaderJob {
         )
     }
 
-    private val Int.Minutt get() = this * 1000L
+    private val Int.Minutt get() = this * 1000L * 60L
 }
