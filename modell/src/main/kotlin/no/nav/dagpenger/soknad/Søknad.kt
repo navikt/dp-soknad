@@ -333,7 +333,6 @@ class Søknad private constructor(
         }
 
         override fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse, søknad: Søknad) {
-            søkeroppgaveHendelse.info("Fikk %d sannsynliggjøringer", søkeroppgaveHendelse.sannsynliggjøringer().size)
             søknad.håndter(søkeroppgaveHendelse.sannsynliggjøringer())
         }
 
