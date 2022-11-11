@@ -28,6 +28,7 @@ import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
+import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.mal.SøknadMal
 import no.nav.dagpenger.soknad.mal.SøknadMalPostgresRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
@@ -39,6 +40,8 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
+import java.lang.AssertionError
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
@@ -89,7 +92,8 @@ internal class SøknadPostgresRepositoryTest {
         tilstandsType = Påbegynt,
         aktivitetslogg = Aktivitetslogg(),
         null,
-        prosessversjon
+        prosessversjon,
+        versjon = 1
     )
 
     @Test
@@ -118,7 +122,8 @@ internal class SøknadPostgresRepositoryTest {
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             null,
-            prosessversjon
+            prosessversjon,
+            versjon = 1
         )
 
         withMigratedDb {
@@ -199,7 +204,8 @@ internal class SøknadPostgresRepositoryTest {
                 ettersendinger = mutableListOf(),
                 metadata = Innsending.Metadata("04-02-03", "en tittel")
             ),
-            prosessversjon = prosessversjon
+            prosessversjon = prosessversjon,
+            versjon = 1
         )
 
         withMigratedDb {
@@ -221,7 +227,7 @@ internal class SøknadPostgresRepositoryTest {
 
                 søknadPostgresRepository.hent(søknadId).let { rehydrertSøknad ->
                     assertNotNull(rehydrertSøknad)
-                    assertDeepEquals(rehydrertSøknad, søknad)
+                    assertDeepEquals(rehydrertSøknad, søknad, ignoreFieldNames = setOf("versjon"))
                     rehydrertSøknad?.accept(object : SøknadVisitor {
                         override fun visit(
                             innsendingId: UUID,
@@ -257,7 +263,7 @@ internal class SøknadPostgresRepositoryTest {
                         urn = URN.rfc8141().parse("urn:nav:vedlegg:1-1"),
                         storrelse = 1000,
                         tidspunkt = now,
-                        bundlet = false,
+                        bundlet = false
                     ),
                     Krav.Fil(
                         filnavn = "1-2.jpg",
@@ -378,13 +384,12 @@ internal class SøknadPostgresRepositoryTest {
                 ),
                 Innsending.Metadata("04-02-03")
             ),
-            prosessversjon = prosessversjon
+            prosessversjon = prosessversjon,
+            versjon = 1
         )
 
         withMigratedDb {
-            SøknadMalPostgresRepository(dataSource).let { søknadMalPostgresRepository ->
-                søknadMalPostgresRepository.lagre(mal)
-            }
+            SøknadMalPostgresRepository(dataSource).lagre(mal)
             SøknadPostgresRepository(dataSource).let { søknadPostgresRepository ->
                 søknadPostgresRepository.lagre(søknad)
 
@@ -398,16 +403,16 @@ internal class SøknadPostgresRepositoryTest {
                 assertAntallRader("ettersending_v1", 2)
                 assertAntallRader("dokumentvariant_v1", 4)
 
+                val rehydrert = søknadPostgresRepository.hent(søknadId).also {
+                    assertNotNull(it)
+                    assertDeepEquals(it, søknad, ignoreFieldNames = setOf("versjon"))
+                }!!
+
+                søknadPostgresRepository.lagre(rehydrert)
+
                 søknadPostgresRepository.hent(søknadId).let { rehydrertSøknad ->
                     assertNotNull(rehydrertSøknad)
-                    assertDeepEquals(rehydrertSøknad, søknad)
-                }
-
-                søknadPostgresRepository.lagre(søknad)
-
-                søknadPostgresRepository.hent(søknadId).let { rehydrertSøknad ->
-                    assertNotNull(rehydrertSøknad)
-                    assertDeepEquals(rehydrertSøknad, søknad)
+                    assertDeepEquals(rehydrertSøknad, søknad, ignoreFieldNames = setOf("versjon"))
                     rehydrertSøknad?.accept(object : SøknadVisitor {
                         override fun visit(
                             innsendingId: UUID,
@@ -459,7 +464,8 @@ internal class SøknadPostgresRepositoryTest {
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             innsending = null,
-            prosessversjon = prosessversjon
+            prosessversjon = prosessversjon,
+            versjon = 1
         )
 
         withMigratedDb {
@@ -639,7 +645,8 @@ internal class SøknadPostgresRepositoryTest {
             tilstandsType = Innsendt,
             aktivitetslogg = Aktivitetslogg(),
             null,
-            prosessversjon
+            prosessversjon,
+            versjon = 1
         )
 
         withMigratedDb {
@@ -652,16 +659,15 @@ internal class SøknadPostgresRepositoryTest {
                 repository.lagre(søknad)
                 val hentetPåbegyntSøknad = repository.hentPåbegyntSøknad(ident)
                 assertNotNull(hentetPåbegyntSøknad)
-                assertDeepEquals(søknad, hentetPåbegyntSøknad)
+                assertDeepEquals(hentetPåbegyntSøknad, søknad, ignoreFieldNames = setOf("versjon"))
             }
         }
     }
 
     @Test
     fun `Skal kunne hente ut alle påbegynte søknader`() {
-        val søknadIdForInnsendt = UUID.randomUUID()
         val påbegyntSøknad = Søknad.rehydrer(
-            søknadId = søknadIdForInnsendt,
+            søknadId = UUID.randomUUID(),
             ident = ident,
             opprettet = ZonedDateTime.now(),
             språk = Språk("NO"),
@@ -672,10 +678,11 @@ internal class SøknadPostgresRepositoryTest {
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             null,
-            prosessversjon
+            prosessversjon,
+            versjon = 1
         )
         val innsendtSøknad = Søknad.rehydrer(
-            søknadId = søknadIdForInnsendt,
+            søknadId = UUID.randomUUID(),
             ident = ident,
             opprettet = ZonedDateTime.now(),
             språk = Språk("NO"),
@@ -686,7 +693,37 @@ internal class SøknadPostgresRepositoryTest {
             tilstandsType = Innsendt,
             aktivitetslogg = Aktivitetslogg(),
             null,
-            prosessversjon
+            prosessversjon,
+            versjon = 1
+        )
+
+        withMigratedDb {
+            SøknadMalPostgresRepository(dataSource).lagre(mal)
+            SøknadPostgresRepository(dataSource).let { repository ->
+                repository.lagre(innsendtSøknad)
+                repository.lagre(påbegyntSøknad)
+                repository.lagre(søknad)
+                val påbegynteSøknader = repository.hentPåbegynteSøknader(Prosessversjon("Dagpenger", 2))
+                assertEquals(2, påbegynteSøknader.size)
+            }
+        }
+    }
+
+    @Test
+    fun `dirty updates`() {
+        val id = UUID.randomUUID()
+        val søknad = Søknad.rehydrer(
+            søknadId = id,
+            ident = ident,
+            opprettet = ZonedDateTime.now(),
+            språk = Språk("NO"),
+            dokumentkrav = Dokumentkrav(),
+            sistEndretAvBruker = now,
+            tilstandsType = Innsendt,
+            aktivitetslogg = Aktivitetslogg(),
+            null,
+            prosessversjon,
+            versjon = 1
         )
 
         withMigratedDb {
@@ -694,11 +731,12 @@ internal class SøknadPostgresRepositoryTest {
                 søknadMalPostgresRepository.lagre(mal)
             }
             SøknadPostgresRepository(dataSource).let { repository ->
-                repository.lagre(innsendtSøknad)
-                repository.lagre(påbegyntSøknad)
                 repository.lagre(søknad)
-                val påbegynteSøknader = repository.hentPåbegynteSøknader(Prosessversjon("Dagpenger", 2))
-                assertEquals(2, påbegynteSøknader.size)
+                assertThrows<SøknadRepository.OptimistiskLåsingException> { repository.lagre(søknad) }
+                val persistertSøknad = repository.hent(id) ?: throw AssertionError("Søknaden finnes ikke?")
+                assertDoesNotThrow {
+                    repository.lagre(persistertSøknad)
+                }
             }
         }
     }
@@ -719,7 +757,8 @@ internal class SøknadPostgresRepositoryTest {
                 språk: Språk,
                 dokumentkrav: Dokumentkrav,
                 sistEndretAvBruker: ZonedDateTime,
-                prosessversjon: Prosessversjon?
+                prosessversjon: Prosessversjon?,
+                versjon: Int
             ) {
                 this.dokumentKrav = dokumentkrav
             }

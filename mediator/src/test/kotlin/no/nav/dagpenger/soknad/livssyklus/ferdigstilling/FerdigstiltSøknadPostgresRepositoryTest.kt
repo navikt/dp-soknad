@@ -111,7 +111,8 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
                 tilstandsType = Påbegynt,
                 aktivitetslogg = Aktivitetslogg(),
                 null,
-                null
+                null,
+                versjon = 1
             )
         )
         return søknadId

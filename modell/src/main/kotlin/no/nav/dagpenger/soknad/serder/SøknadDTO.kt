@@ -26,7 +26,8 @@ class SøknadDTO(
     val innsendingDTO: InnsendingDTO?,
     var aktivitetslogg: AktivitetsloggDTO? = null,
     val opprettet: ZonedDateTime,
-    val prosessversjon: ProsessversjonDTO?
+    val prosessversjon: ProsessversjonDTO?,
+    val versjon: Int,
 ) {
     fun rehydrer(): Søknad = Søknad.rehydrer(
         søknadId = this.søknadsId,
@@ -38,7 +39,8 @@ class SøknadDTO(
         tilstandsType = this.tilstandType.rehydrer(),
         aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
         innsending = this.innsendingDTO?.rehydrer(),
-        prosessversjon = this.prosessversjon?.rehydrer()
+        prosessversjon = this.prosessversjon?.rehydrer(),
+        versjon = this.versjon
     )
 
     class SpråkDTO(val verdi: String) {

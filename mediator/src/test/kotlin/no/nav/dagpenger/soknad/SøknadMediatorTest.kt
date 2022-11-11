@@ -81,7 +81,8 @@ internal class SøknadMediatorTest {
                         tittel = "bubba"
                     )
                 ),
-                prosessversjon = null
+                prosessversjon = null,
+                versjon = 1
             )
         }
     }

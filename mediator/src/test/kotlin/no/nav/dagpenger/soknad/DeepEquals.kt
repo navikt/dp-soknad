@@ -6,14 +6,17 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
 object DeepEquals {
-    fun assertDeepEquals(one: Any?, other: Any?) {
-        ModelDeepEquals().assertDeepEquals(one, other, "ROOT")
+    fun assertDeepEquals(one: Any?, other: Any?, ignoreFieldNames: Set<String> = emptySet()) {
+        ModelDeepEquals(ignoreFieldNames).assertDeepEquals(one, other, "ROOT")
     }
 }
 
-private class ModelDeepEquals {
+private class ModelDeepEquals(val ignoreFieldNames: Set<String> = emptySet()) {
     val checkLog = mutableListOf<Pair<Any, Any>>()
     fun assertDeepEquals(one: Any?, other: Any?, fieldName: String) {
+        if (fieldName in ignoreFieldNames) {
+            return
+        }
         if (one == null && other == null) return
         Assertions.assertFalse(one == null || other == null, "For field $fieldName: $one or $other is null")
         requireNotNull(one)

@@ -100,7 +100,8 @@ internal class DokumentasjonKravApiTest {
         tilstandsType = Søknad.Tilstand.Type.Påbegynt,
         aktivitetslogg = Aktivitetslogg(),
         null,
-        null
+        null,
+        versjon = 1
     )
     private val søknadMediatorMock = mockk<SøknadMediator>().also {
         every { it.hent(testSoknadId) } returns søknad

@@ -179,7 +179,8 @@ class MineSøknaderApiTest {
         tilstandsType = tilstand,
         aktivitetslogg = Aktivitetslogg(),
         innsending = innsending,
-        prosessversjon = null
+        prosessversjon = null,
+        versjon = 1
     )
 
     private fun innsending(
