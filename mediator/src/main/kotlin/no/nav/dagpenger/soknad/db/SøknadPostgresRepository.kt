@@ -171,10 +171,11 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             session.run(
                 queryOf( //language=PostgreSQL
                     """
-                    SELECT uuid, tilstand, spraak, sist_endret_av_bruker, soknad_v1.opprettet, person_ident
-                    FROM  soknad_v1
-                    LEFT JOIN soknadmal mal ON soknad_v1.soknadmal = mal.id 
-                    WHERE tilstand = :tilstand AND mal.prosessnavn = :prosessnavn AND mal.prosessversjon < :prosessversjon
+                    SELECT * 
+                    FROM soknad_v1
+                             LEFT JOIN soknadmal mal ON soknad_v1.soknadmal = mal.id
+                    WHERE tilstand = :tilstand
+                      AND ((mal.prosessnavn = :prosessnavn AND :prosessversjon > mal.prosessversjon) OR mal IS NULL) 
                     """.trimIndent(),
                     mapOf(
                         "tilstand" to Tilstand.Type.Påbegynt.toString(),

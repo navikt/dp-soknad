@@ -257,7 +257,7 @@ internal class SøknadPostgresRepositoryTest {
                         urn = URN.rfc8141().parse("urn:nav:vedlegg:1-1"),
                         storrelse = 1000,
                         tidspunkt = now,
-                        bundlet = false,
+                        bundlet = false
                     ),
                     Krav.Fil(
                         filnavn = "1-2.jpg",
@@ -659,9 +659,29 @@ internal class SøknadPostgresRepositoryTest {
 
     @Test
     fun `Skal kunne hente ut alle påbegynte søknader`() {
+        val søknadIdForPreMigrert = UUID.randomUUID()
+        val søknadIdForPåbegynt = UUID.randomUUID()
+        val søknadIdForNy = UUID.randomUUID()
         val søknadIdForInnsendt = UUID.randomUUID()
+
+        val prosessversjon2 = Prosessversjon("Dagpenger", 2)
+        val nyMal = SøknadMal(prosessversjon2, objectMapper.createObjectNode())
+        val preMigrertSøknad = Søknad.rehydrer(
+            søknadId = søknadIdForPreMigrert,
+            ident = ident,
+            opprettet = ZonedDateTime.now(),
+            språk = Språk("NO"),
+            dokumentkrav = Dokumentkrav.rehydrer(
+                krav = setOf(krav)
+            ),
+            sistEndretAvBruker = now,
+            tilstandsType = Påbegynt,
+            aktivitetslogg = Aktivitetslogg(),
+            null,
+            null
+        )
         val påbegyntSøknad = Søknad.rehydrer(
-            søknadId = søknadIdForInnsendt,
+            søknadId = søknadIdForPåbegynt,
             ident = ident,
             opprettet = ZonedDateTime.now(),
             språk = Språk("NO"),
@@ -673,6 +693,20 @@ internal class SøknadPostgresRepositoryTest {
             aktivitetslogg = Aktivitetslogg(),
             null,
             prosessversjon
+        )
+        val nySøknad = Søknad.rehydrer(
+            søknadId = søknadIdForNy,
+            ident = ident,
+            opprettet = ZonedDateTime.now(),
+            språk = Språk("NO"),
+            dokumentkrav = Dokumentkrav.rehydrer(
+                krav = setOf(krav)
+            ),
+            sistEndretAvBruker = now,
+            tilstandsType = Påbegynt,
+            aktivitetslogg = Aktivitetslogg(),
+            null,
+            prosessversjon = prosessversjon2
         )
         val innsendtSøknad = Søknad.rehydrer(
             søknadId = søknadIdForInnsendt,
@@ -692,13 +726,20 @@ internal class SøknadPostgresRepositoryTest {
         withMigratedDb {
             SøknadMalPostgresRepository(dataSource).let { søknadMalPostgresRepository ->
                 søknadMalPostgresRepository.lagre(mal)
+                søknadMalPostgresRepository.lagre(nyMal)
             }
             SøknadPostgresRepository(dataSource).let { repository ->
-                repository.lagre(innsendtSøknad)
+                repository.lagre(preMigrertSøknad)
                 repository.lagre(påbegyntSøknad)
-                repository.lagre(søknad)
-                val påbegynteSøknader = repository.hentPåbegynteSøknader(Prosessversjon("Dagpenger", 2))
-                assertEquals(2, påbegynteSøknader.size)
+                repository.lagre(nySøknad)
+                repository.lagre(innsendtSøknad)
+
+                with(repository.hentPåbegynteSøknader(Prosessversjon("Dagpenger", 2)).map { it.søknadUUID() }) {
+                    assertEquals(2, this.size)
+
+                    assertFalse(this.contains(søknadIdForInnsendt), "Innsendte blir ikke migrert")
+                    assertEquals(listOf(søknadIdForPåbegynt, søknadIdForPreMigrert), this, "Bare søknader uten versjon eller lavere versjon skal migreres")
+                }
             }
         }
     }
