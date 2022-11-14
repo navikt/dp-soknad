@@ -627,16 +627,19 @@ internal class SøknadPostgresRepositoryTest {
     }
 
     @Test
-    fun `Hent påbegynt søknad henter kun ut dagpenge søknad`() {
+    fun `Hent påbegynt søknad henter kun ut dagpenger søknad`() {
         val ident = "12345678901"
-        val ident2 = "12345678902"
+        val ident2 = "1234567890n2"
+        val dagpengerSøknad = søknadMedProssess("Dagpenger")
+        val generellInnsending = søknadMedProssess("Innsending")
+
         val søknadPostgresRepository = mockk<SøknadPostgresRepository>().also {
             every { it.hentSøknader(ident) } returns setOf(
-                dagpengerSøknad(ident),
-                generellInnsending(ident)
+                dagpengerSøknad,
+                generellInnsending
             )
             every { it.hentSøknader(ident2) } returns setOf(
-                generellInnsending(ident2)
+                generellInnsending
             )
             every { it.hentPåbegyntSøknad(any()) } answers { callOriginal() }
         }
@@ -647,35 +650,21 @@ internal class SøknadPostgresRepositoryTest {
         assertNull(søknadPostgresRepository.hentPåbegyntSøknad(ident2))
     }
 
-    private fun dagpengerSøknad(ident: String) = Søknad.rehydrer(
-        søknadId = søknadId,
-        ident = ident,
-        opprettet = ZonedDateTime.now(),
-        språk = Språk("NO"),
-        dokumentkrav = Dokumentkrav.rehydrer(
-            krav = setOf(krav)
-        ),
-        sistEndretAvBruker = now,
-        tilstandsType = Påbegynt,
-        aktivitetslogg = Aktivitetslogg(),
-        null,
-        Prosessversjon(Prosessnavn("Dagpenger"), 2)
-    )
-
-    private fun generellInnsending(ident2: String) = Søknad.rehydrer(
-        søknadId = UUID.randomUUID(),
-        ident = ident2,
-        opprettet = ZonedDateTime.now(),
-        språk = Språk("NO"),
-        dokumentkrav = Dokumentkrav.rehydrer(
-            krav = setOf(krav)
-        ),
-        sistEndretAvBruker = now,
-        tilstandsType = Påbegynt,
-        aktivitetslogg = Aktivitetslogg(),
-        null,
-        Prosessversjon(Prosessnavn("GenerellInnsending"), 2)
-    )
+    private fun søknadMedProssess(prosessNavn: String) =
+        Søknad.rehydrer(
+            søknadId = søknadId,
+            ident = ident,
+            opprettet = ZonedDateTime.now(),
+            språk = Språk("NO"),
+            dokumentkrav = Dokumentkrav.rehydrer(
+                krav = setOf(krav)
+            ),
+            sistEndretAvBruker = now,
+            tilstandsType = Påbegynt,
+            aktivitetslogg = Aktivitetslogg(),
+            null,
+            Prosessversjon(Prosessnavn(prosessNavn), 2)
+        )
 
     @Test
     fun `Skal kunne hente ut en påbegynt søknad`() {
