@@ -162,14 +162,14 @@ data class Krav(
             "faktum.dokument-dagpenger-eos-land" -> Skjemakode.DOKUMENTASJON_AV_ANDRE_YTELSER
             "faktum.dokument-annen-ytelse" -> Skjemakode.DOKUMENTASJON_AV_ANDRE_YTELSER
             "faktum.dokument-okonomiske-goder-tidligere-arbeidsgiver" -> Skjemakode.KOPI_AV_SLUTTAVTALE
-            "faktum.dokument-arbeidsavtale" -> Skjemakode.ARBEIDSAVTALTE
+            "faktum.dokument-arbeidsavtale" -> Skjemakode.ARBEIDSAVTALE
             "faktum.dokument-arbeidsforhold-avskjediget" -> Skjemakode.DOKUMENTASJON_AV_ARBEIDSFORHOLD
             "faktum.dokument-arbeidsforhold-blitt-sagt-opp" -> Skjemakode.DOKUMENTASJON_AV_ARBEIDSFORHOLD
             "faktum.dokument-arbeidsforhold-sagt-opp-selv" -> Skjemakode.DOKUMENTASJON_AV_ARBEIDSFORHOLD
             "faktum.dokument-arbeidsforhold-redusert" -> Skjemakode.DOKUMENTASJON_AV_ARBEIDSFORHOLD
             "faktum.dokument-timelister" -> Skjemakode.TIMELISTER
             "faktum.dokument-brev-fra-bobestyrer-eller-konkursforvalter" -> Skjemakode.BREV_FRA_BOSTYRE_KONKURSFORVALTER
-            "faktum.dokument-ny-arbeidsavtale" -> Skjemakode.ARBEIDSAVTALTE
+            "faktum.dokument-ny-arbeidsavtale" -> Skjemakode.ARBEIDSAVTALE
             "faktum.dokument-permitteringsvarsel" -> Skjemakode.PERMITTERINGSVARSEL
             "faktum.dokument-utdanning-sluttdato" -> Skjemakode.DOKUMENTASJON_AV_SLUTTDATO
             "faktum.dokument-bekreftelse-fra-lege-eller-annen-behandler" -> Skjemakode.DOKUMENTASJON_AV_HELSE_OG_FUNKSJONSNIVÅ
@@ -183,7 +183,7 @@ data class Krav(
 
     private enum class Skjemakode(private val skjemakodeverdi: String) {
         TJENESTEBEVIS("T3"),
-        ARBEIDSAVTALTE("O2"),
+        ARBEIDSAVTALE("O2"),
         TIMELISTER("M6"),
         BREV_FRA_BOSTYRE_KONKURSFORVALTER("M7"),
         DOKUMENTASJON_AV_SLUTTDATO("T2"),
