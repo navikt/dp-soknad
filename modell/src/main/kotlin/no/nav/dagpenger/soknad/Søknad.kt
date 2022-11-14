@@ -90,6 +90,8 @@ class Søknad private constructor(
 
         fun Søknad.erPåbegynt() =
             tilstand.tilstandType == Påbegynt.tilstandType || tilstand.tilstandType == UnderOpprettelse.tilstandType
+
+        fun Søknad.erDagpenger(): Boolean = prosessversjon?.prosessnavn?.id == "Dagpenger"
     }
 
     fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {

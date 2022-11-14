@@ -8,6 +8,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.Søknad.Companion.erDagpenger
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.SøknadMediator
@@ -23,28 +24,28 @@ internal fun Route.mineSoknaderRoute(søknadMediator: SøknadMediator) {
     get("/mine-soknader") {
         val fom = queryParamToFom(call.request.queryParameters["fom"])
 
-        val søknader = søknadMediator.hentSøknader(ident = call.ident())
-        val mineSøknaderDto = lagMineSøknaderDto(søknader, fom)
+        val dagpengeSøknader = søknadMediator.hentSøknader(ident = call.ident()).filter { it.erDagpenger() }
+        val mineSøknaderDto = lagMineSøknaderDto(dagpengeSøknader, fom)
 
         call.respond(HttpStatusCode.OK, mineSøknaderDto)
     }
 }
 
-private fun lagMineSøknaderDto(søknader: Set<Søknad>, fom: LocalDate): MineSoknaderDto {
+private fun lagMineSøknaderDto(søknader: List<Søknad>, fom: LocalDate): MineSoknaderDto {
     var påbegyntSøknad: PåbegyntSøknadDto? = null
     val innsendteSøknader = mutableListOf<InnsendtSøknadDto>()
 
     søknader.map { søknad ->
         val mineSøknaderVisitor = MineSøknaderVisitor(søknad)
         when {
-            mineSøknaderVisitor.søknadTilstand() == Påbegynt && erDagpenger(mineSøknaderVisitor) ->
+            mineSøknaderVisitor.søknadTilstand() == Påbegynt ->
                 påbegyntSøknad = PåbegyntSøknadDto(
                     søknad.søknadUUID(),
                     mineSøknaderVisitor.søknadOpprettet(),
                     mineSøknaderVisitor.sistEndretAvBruker()
                 )
 
-            mineSøknaderVisitor.søknadTilstand() == Innsendt && erDagpenger(mineSøknaderVisitor) -> {
+            mineSøknaderVisitor.søknadTilstand() == Innsendt -> {
                 if (mineSøknaderVisitor.førsteInnsendingTidspunkt() > fom.atStartOfDay()) {
                     innsendteSøknader.add(
                         InnsendtSøknadDto(søknad.søknadUUID(), mineSøknaderVisitor.førsteInnsendingTidspunkt())
@@ -57,9 +58,6 @@ private fun lagMineSøknaderDto(søknader: Set<Søknad>, fom: LocalDate): MineSo
     }
     return MineSoknaderDto(påbegyntSøknad, innsendteSøknader.ifEmpty { null })
 }
-
-private fun erDagpenger(mineSøknaderVisitor: MineSøknaderVisitor) =
-    mineSøknaderVisitor.prosessversjon().prosessnavn.id == "Dagpenger"
 
 data class MineSoknaderDto(val paabegynt: PåbegyntSøknadDto?, val innsendte: List<InnsendtSøknadDto>?)
 

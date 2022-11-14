@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad.livssyklus
 
 import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.Søknad.Companion.erDagpenger
 import no.nav.dagpenger.soknad.Søknad.Companion.erPåbegynt
 import java.util.UUID
 
@@ -13,7 +14,7 @@ interface SøknadRepository {
     fun hentPåbegyntSøknad(personIdent: String): Søknad? {
         val søknader = hentSøknader(personIdent)
         return søknader.firstOrNull { søknad ->
-            søknad.erPåbegynt()
+            søknad.erPåbegynt() && søknad.erDagpenger()
         }
     }
 

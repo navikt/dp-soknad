@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.db
 
 import de.slub.urn.URN
+import io.mockk.every
 import io.mockk.mockk
 import kotliquery.queryOf
 import kotliquery.sessionOf
@@ -13,6 +14,7 @@ import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.NyInnsending
+import no.nav.dagpenger.soknad.Prosessnavn
 import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
@@ -625,6 +627,57 @@ internal class SøknadPostgresRepositoryTest {
     }
 
     @Test
+    fun `Hent påbegynt søknad henter kun ut dagpenge søknad`() {
+        val ident = "12345678901"
+        val ident2 = "12345678902"
+        val søknadPostgresRepository = mockk<SøknadPostgresRepository>().also {
+            every { it.hentSøknader(ident) } returns setOf(
+                dagpengerSøknad(ident),
+                generellInnsending(ident)
+            )
+            every { it.hentSøknader(ident2) } returns setOf(
+                generellInnsending(ident2)
+            )
+            every { it.hentPåbegyntSøknad(any()) } answers { callOriginal() }
+        }
+
+        assertNotNull(søknadPostgresRepository.hentPåbegyntSøknad(ident))
+        assertEquals(søknadPostgresRepository.hentPåbegyntSøknad(ident)!!.søknadUUID(), søknadId)
+
+        assertNull(søknadPostgresRepository.hentPåbegyntSøknad(ident2))
+    }
+
+    private fun dagpengerSøknad(ident: String) = Søknad.rehydrer(
+        søknadId = søknadId,
+        ident = ident,
+        opprettet = ZonedDateTime.now(),
+        språk = Språk("NO"),
+        dokumentkrav = Dokumentkrav.rehydrer(
+            krav = setOf(krav)
+        ),
+        sistEndretAvBruker = now,
+        tilstandsType = Påbegynt,
+        aktivitetslogg = Aktivitetslogg(),
+        null,
+        Prosessversjon(Prosessnavn("Dagpenger"), 2)
+    )
+
+    private fun generellInnsending(ident2: String) = Søknad.rehydrer(
+        søknadId = UUID.randomUUID(),
+        ident = ident2,
+        opprettet = ZonedDateTime.now(),
+        språk = Språk("NO"),
+        dokumentkrav = Dokumentkrav.rehydrer(
+            krav = setOf(krav)
+        ),
+        sistEndretAvBruker = now,
+        tilstandsType = Påbegynt,
+        aktivitetslogg = Aktivitetslogg(),
+        null,
+        Prosessversjon(Prosessnavn("GenerellInnsending"), 2)
+    )
+
+    @Test
     fun `Skal kunne hente ut en påbegynt søknad`() {
         val søknadIdForInnsendt = UUID.randomUUID()
         val innsendtSøknad = Søknad.rehydrer(
@@ -738,7 +791,11 @@ internal class SøknadPostgresRepositoryTest {
                     assertEquals(2, this.size)
 
                     assertFalse(this.contains(søknadIdForInnsendt), "Innsendte blir ikke migrert")
-                    assertEquals(listOf(søknadIdForPåbegynt, søknadIdForPreMigrert), this, "Bare søknader uten versjon eller lavere versjon skal migreres")
+                    assertEquals(
+                        listOf(søknadIdForPåbegynt, søknadIdForPreMigrert),
+                        this,
+                        "Bare søknader uten versjon eller lavere versjon skal migreres"
+                    )
                 }
             }
         }

@@ -21,13 +21,13 @@ private val logger = KotlinLogging.logger {}
 internal fun Route.påbegyntSøknadRoute(søknadMediator: SøknadMediator) {
     get("/paabegynt") {
         try {
-            val påbegyntSøknad = søknadMediator.hentPåbegyntSøknad(call.ident())?.let {
+            val påbegyntDagpengeSøknad = søknadMediator.hentPåbegyntSøknad(call.ident())?.let {
                 PåbegynteSøknadVisitor(it).påbegyntSøknad
             }
 
-            if (påbegyntSøknad != null) {
-                logger.info { "$påbegyntSøknad returnert" }
-                call.respond(HttpStatusCode.OK, påbegyntSøknad)
+            if (påbegyntDagpengeSøknad != null) {
+                logger.info { "$påbegyntDagpengeSøknad returnert" }
+                call.respond(HttpStatusCode.OK, påbegyntDagpengeSøknad)
             } else {
                 call.respond(HttpStatusCode.NotFound)
             }
@@ -40,6 +40,7 @@ internal fun Route.påbegyntSøknadRoute(søknadMediator: SøknadMediator) {
 private class PåbegynteSøknadVisitor(søknad: Søknad) : SøknadVisitor {
 
     lateinit var påbegyntSøknad: PåbegyntSøknad
+
     init {
         søknad.accept(this)
     }
