@@ -144,7 +144,7 @@ internal class DokumentkravTest {
         assertEquals("M6", krav("faktum.dokument-timelister").tilSkjemakode())
         assertEquals("M7", krav("faktum.dokument-brev-fra-bobestyrer-eller-konkursforvalter").tilSkjemakode())
         assertEquals("O2", krav("faktum.dokument-ny-arbeidsavtale").tilSkjemakode())
-        assertEquals("T6", krav("faktum.dokument-permitteringsvarsel").tilSkjemakode())
+        assertEquals("T6", krav("faktum.dokument-arbeidsforhold-permittert").tilSkjemakode())
         assertEquals("T9", krav("faktum.dokument-bekreftelse-fra-lege-eller-annen-behandler").tilSkjemakode())
         assertEquals("Y2", krav("faktum.dokument-fulltid-bekreftelse-fra-relevant-fagpersonell").tilSkjemakode())
         assertEquals("Y2", krav("faktum.dokument-hele-norge-bekreftelse-fra-relevant-fagpersonell").tilSkjemakode())

@@ -170,7 +170,7 @@ data class Krav(
             "faktum.dokument-timelister" -> Skjemakode.TIMELISTER
             "faktum.dokument-brev-fra-bobestyrer-eller-konkursforvalter" -> Skjemakode.BREV_FRA_BOSTYRE_KONKURSFORVALTER
             "faktum.dokument-ny-arbeidsavtale" -> Skjemakode.ARBEIDSAVTALE
-            "faktum.dokument-permitteringsvarsel" -> Skjemakode.PERMITTERINGSVARSEL
+            "faktum.dokument-arbeidsforhold-permittert" -> Skjemakode.PERMITTERINGSVARSEL
             "faktum.dokument-utdanning-sluttdato" -> Skjemakode.DOKUMENTASJON_AV_SLUTTDATO
             "faktum.dokument-bekreftelse-fra-lege-eller-annen-behandler" -> Skjemakode.DOKUMENTASJON_AV_HELSE_OG_FUNKSJONSNIVÅ
             "faktum.dokument-fulltid-bekreftelse-fra-relevant-fagpersonell" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
