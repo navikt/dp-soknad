@@ -163,7 +163,10 @@ data class Krav(
             "faktum.dokument-annen-ytelse" -> Skjemakode.DOKUMENTASJON_AV_ANDRE_YTELSER
             "faktum.dokument-okonomiske-goder-tidligere-arbeidsgiver" -> Skjemakode.KOPI_AV_SLUTTAVTALE
             "faktum.dokument-arbeidsavtale" -> Skjemakode.ARBEIDSAVTALTE
-            "faktum.dokument-dokumentasjon-av-arbeidsforhold" -> Skjemakode.DOKUMENTASJON_AV_ARBEIDSFORHOLD
+            "faktum.dokument-arbeidsforhold-avskjediget" -> Skjemakode.DOKUMENTASJON_AV_ARBEIDSFORHOLD
+            "faktum.dokument-arbeidsforhold-blitt-sagt-opp" -> Skjemakode.DOKUMENTASJON_AV_ARBEIDSFORHOLD
+            "faktum.dokument-arbeidsforhold-sagt-opp-selv" -> Skjemakode.DOKUMENTASJON_AV_ARBEIDSFORHOLD
+            "faktum.dokument-arbeidsforhold-redusert" -> Skjemakode.DOKUMENTASJON_AV_ARBEIDSFORHOLD
             "faktum.dokument-timelister" -> Skjemakode.TIMELISTER
             "faktum.dokument-brev-fra-bobestyrer-eller-konkursforvalter" -> Skjemakode.BREV_FRA_BOSTYRE_KONKURSFORVALTER
             "faktum.dokument-ny-arbeidsavtale" -> Skjemakode.ARBEIDSAVTALTE
