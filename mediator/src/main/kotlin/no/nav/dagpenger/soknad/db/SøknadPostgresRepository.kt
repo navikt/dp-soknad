@@ -202,8 +202,7 @@ private fun Session.hentMetadata(innsendingId: UUID): InnsendingDTO.MetadataDTO?
         mapOf("innsending_uuid" to innsendingId)
     ).map { row ->
         InnsendingDTO.MetadataDTO(
-            skjemakode = row.stringOrNull("skjemakode"),
-            tittel = row.stringOrNull("tittel")
+            skjemakode = row.string("skjemakode")
         )
     }.asSingle
 )
@@ -220,9 +219,9 @@ private fun Session.hentDokumenter(innsendingId: UUID): InnsendingDTO.Dokumenter
             val varianter: List<Dokumentvariant> = this@hentDokumenter.hentVarianter(dokumentUUID)
             val dokument = Innsending.Dokument(
                 uuid = dokumentUUID,
-                brevkode = row.string("brevkode"),
-                varianter = varianter,
-                kravId = row.stringOrNull("kravid")
+                kravId = row.stringOrNull("kravid"),
+                skjemakode = row.string("brevkode"),
+                varianter = varianter
             )
             when (dokumentUUID == hovedDokumentUUID) {
                 true -> dokumenter.hovedDokument = dokument
@@ -480,15 +479,13 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queries.add(
                 queryOf( //language=PostgreSQL
                     """
-                    INSERT INTO metadata (innsending_uuid, skjemakode, tittel)
-                    VALUES (:innsending_uuid, :skjemakode, :tittel)
-                    ON CONFLICT (innsending_uuid) DO UPDATE SET skjemakode=:skjemakode,
-                                                                tittel=:tittel
+                    INSERT INTO metadata (innsending_uuid, skjemakode)
+                    VALUES (:innsending_uuid, :skjemakode)
+                    ON CONFLICT (innsending_uuid) DO UPDATE SET skjemakode=:skjemakode
                     """.trimIndent(),
                     mapOf(
                         "innsending_uuid" to innsendingId,
-                        "skjemakode" to it.skjemakode,
-                        "tittel" to it.tittel
+                        "skjemakode" to it.skjemakode
                     )
                 )
             )
@@ -509,7 +506,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                     mapOf(
                         "dokument_uuid" to dokument.uuid,
                         "innsending_uuid" to innsendingId,
-                        "brevkode" to dokument.brevkode,
+                        "brevkode" to dokument.skjemakode,
                         "kravId" to dokument.kravId
                     )
                 )

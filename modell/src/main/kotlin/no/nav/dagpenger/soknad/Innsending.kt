@@ -157,12 +157,14 @@ abstract class Innsending protected constructor(
         override val tilstandType = TilstandType.AvventerArkiverbarSøknad
 
         override fun entering(hendelse: Hendelse, innsending: Innsending) {
+            val metadata = requireNotNull(innsending.metadata) { "Må ha metadata" }
             hendelse.behov(
                 Aktivitetslogg.Aktivitet.Behov.Behovtype.ArkiverbarSøknad,
                 "Trenger søknad på et arkiverbart format",
                 mapOf(
                     "innsendtTidspunkt" to innsending.innsendt.toString(),
-                    "dokumentasjonKravId" to innsending.dokumenter.map { it.kravId }
+                    "dokumentasjonKravId" to innsending.dokumenter.map { it.kravId },
+                    "skjemakode" to metadata.skjemakode
                 )
             )
         }
@@ -170,10 +172,9 @@ abstract class Innsending protected constructor(
         override fun håndter(hendelse: ArkiverbarSøknadMottattHendelse, innsending: Innsending) {
             val metadata = requireNotNull(innsending.metadata) { "Må ha metadata" }
             innsending.hovedDokument = Dokument(
-                brevkode = metadata.brevkode(innsending),
-                tittel = metadata.tittel,
-                varianter = hendelse.dokumentvarianter(),
-                kravId = null
+                kravId = null,
+                skjemakode = metadata.skjemakode,
+                varianter = hendelse.dokumentvarianter()
             )
             innsending.endreTilstand(
                 AvventerMidlertidligJournalføring,
@@ -261,15 +262,13 @@ abstract class Innsending protected constructor(
     data class Dokument(
         val uuid: UUID = UUID.randomUUID(),
         val kravId: String?,
-        val brevkode: String?,
-        val varianter: List<Dokumentvariant>,
-        val tittel: String? = null
+        val skjemakode: String?,
+        val varianter: List<Dokumentvariant>
     ) {
         fun toMap() = mutableMapOf<String, Any>(
             "varianter" to varianter.map { it.toMap() }
         ).also { map ->
-            brevkode?.let { map["brevkode"] = it }
-            tittel?.let { map["tittel"] = it }
+            skjemakode?.let { map["skjemakode"] = it }
         }
 
         data class Dokumentvariant(
@@ -296,18 +295,7 @@ abstract class Innsending protected constructor(
         }
     }
 
-    data class Metadata(val skjemakode: String? = null, val tittel: String? = null) {
-        init {
-            require(listOf(skjemakode, tittel).any { it != null }) { "Metadata må ha enten skjemakode eller tittel" }
-        }
-
-        internal fun brevkode(innsending: Innsending) = skjemakode?.let {
-            when (innsending.type) {
-                InnsendingType.NY_DIALOG -> "NAV $skjemakode"
-                InnsendingType.ETTERSENDING_TIL_DIALOG -> "NAVe $skjemakode"
-            }
-        }
-    }
+    data class Metadata(val skjemakode: String)
 
     enum class InnsendingType {
         NY_DIALOG,

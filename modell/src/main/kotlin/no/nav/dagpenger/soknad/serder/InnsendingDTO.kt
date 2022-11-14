@@ -87,7 +87,7 @@ data class InnsendingDTO(
         val dokumenter: MutableList<Innsending.Dokument> = mutableListOf()
     )
 
-    data class MetadataDTO(val skjemakode: String?, val tittel: String?) {
-        fun rehydrer(): Innsending.Metadata = Innsending.Metadata(skjemakode, tittel)
+    data class MetadataDTO(val skjemakode: String) {
+        fun rehydrer(): Innsending.Metadata = Innsending.Metadata(skjemakode)
     }
 }

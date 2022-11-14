@@ -46,13 +46,11 @@ internal class SkjemakodeMottak(rapidsConnection: RapidsConnection, private val 
                     innsendingId = innsendingId,
                     søknadID = søknadId,
                     ident = ident,
-                    skjemaKode = packet.skjemakode(),
-                    tittel = packet.tittel()
+                    skjemaKode = packet.skjemakode()
                 )
             )
         }
     }
 
-    private fun JsonMessage.skjemakode(): String? = this["@løsning"][behov]["skjemakode"]?.asText()
-    private fun JsonMessage.tittel(): String? = this["@løsning"][behov]["tittel"]?.asText()
+    private fun JsonMessage.skjemakode(): String = this["@løsning"][behov]["skjemakode"].asText()
 }

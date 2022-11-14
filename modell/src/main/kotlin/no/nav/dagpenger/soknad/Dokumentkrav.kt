@@ -65,8 +65,8 @@ class Dokumentkrav private constructor(
         aktiveDokumentKrav().filterNot { it.innsendt() }.filter { it.besvart() }.filter { it.svar.valg == SEND_NÅ }
             .map { krav ->
                 Innsending.Dokument(
-                    brevkode = krav.tilSkjemakode(),
                     kravId = krav.id,
+                    skjemakode = krav.tilSkjemakode(),
                     varianter = listOf(
                         Innsending.Dokument.Dokumentvariant(
                             filnavn = krav.beskrivendeId,
