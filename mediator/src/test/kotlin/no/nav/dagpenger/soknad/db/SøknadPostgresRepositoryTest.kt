@@ -185,7 +185,8 @@ internal class SøknadPostgresRepositoryTest {
                 dokumenter = listOf(
                     Innsending.Dokument(
                         uuid = UUID.randomUUID(),
-                        brevkode = "brevkode-vedlegg",
+                        kravId = "kravId",
+                        skjemakode = "brevkode-vedlegg",
                         varianter = listOf(
                             Innsending.Dokument.Dokumentvariant(
                                 UUID.randomUUID(),
@@ -194,12 +195,11 @@ internal class SøknadPostgresRepositoryTest {
                                 "variant3",
                                 "type3"
                             )
-                        ),
-                        kravId = "kravId"
+                        )
                     )
                 ),
                 ettersendinger = mutableListOf(),
-                metadata = Innsending.Metadata("04-02-03", "en tittel")
+                metadata = Innsending.Metadata("04-02-03")
             ),
             prosessversjon = prosessversjon
         )
@@ -236,7 +236,7 @@ internal class SøknadPostgresRepositoryTest {
                             metadata: Innsending.Metadata?
                         ) {
                             assertEquals(1, dokumenter.size)
-                            assertEquals("brevkode-vedlegg", dokumenter.first().brevkode)
+                            assertEquals("brevkode-vedlegg", dokumenter.first().skjemakode)
                             assertEquals("kravId", dokumenter.first().kravId)
                             assertEquals(1, dokumenter.first().varianter.size)
                         }
@@ -314,7 +314,8 @@ internal class SøknadPostgresRepositoryTest {
                 Innsending.TilstandType.AvventerArkiverbarSøknad,
                 Innsending.Dokument(
                     uuid = UUID.randomUUID(),
-                    brevkode = "brevkode",
+                    kravId = null,
+                    skjemakode = "brevkode",
                     varianter = listOf(
                         Innsending.Dokument.Dokumentvariant(
                             UUID.randomUUID(),
@@ -330,13 +331,13 @@ internal class SøknadPostgresRepositoryTest {
                             "variant2",
                             "type2"
                         )
-                    ),
-                    kravId = null
+                    )
                 ),
                 listOf(
                     Innsending.Dokument(
                         uuid = UUID.randomUUID(),
-                        brevkode = "brevkode2",
+                        kravId = "kravId",
+                        skjemakode = "brevkode2",
                         varianter = listOf(
                             Innsending.Dokument.Dokumentvariant(
                                 UUID.randomUUID(),
@@ -352,8 +353,7 @@ internal class SøknadPostgresRepositoryTest {
                                 "variant4",
                                 "type4"
                             )
-                        ),
-                        kravId = "kravId"
+                        )
                     )
                 ),
                 mutableListOf(
@@ -365,7 +365,7 @@ internal class SøknadPostgresRepositoryTest {
                         Innsending.TilstandType.Opprettet,
                         null,
                         listOf(),
-                        Innsending.Metadata("0324-23")
+                        Innsending.Metadata(skjemakode = "0324-23")
                     ),
                     Ettersending.rehydrer(
                         UUID.randomUUID(),
@@ -375,10 +375,10 @@ internal class SøknadPostgresRepositoryTest {
                         Innsending.TilstandType.AvventerJournalføring,
                         null,
                         listOf(),
-                        Innsending.Metadata(tittel = "0324-23")
+                        Innsending.Metadata(skjemakode = "0324-23")
                     )
                 ),
-                Innsending.Metadata("04-02-03")
+                Innsending.Metadata(skjemakode = "04-02-03")
             ),
             prosessversjon = prosessversjon
         )

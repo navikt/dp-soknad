@@ -153,6 +153,7 @@ internal class SøknadTest {
             mapOf(
                 "innsendtTidspunkt" to hendelse.innsendtidspunkt().toString(),
                 "dokumentasjonKravId" to listOf("1", "3"),
+                "skjemakode" to "04-01.02",
                 "søknad_uuid" to inspektør.søknadId.toString(),
                 "ident" to testIdent,
                 "type" to "NY_DIALOG",
@@ -172,7 +173,7 @@ internal class SøknadTest {
                     "type" to "PDF"
                 )
             ),
-            "brevkode" to "NAV 04-01.02"
+            "skjemakode" to "04-01.02"
         )
 
         assertBehov(
@@ -189,7 +190,7 @@ internal class SøknadTest {
                                 "type" to "PDF"
                             )
                         ),
-                        "brevkode" to "N6"
+                        "skjemakode" to "N6"
                     ),
                     mapOf(
                         "varianter" to listOf(
@@ -200,7 +201,7 @@ internal class SøknadTest {
                                 "type" to "PDF"
                             )
                         ),
-                        "brevkode" to "N6"
+                        "skjemakode" to "N6"
                     )
                 ),
                 "søknad_uuid" to inspektør.søknadId.toString(),
@@ -254,6 +255,7 @@ internal class SøknadTest {
             mapOf(
                 "innsendtTidspunkt" to ettersendingHendelse.innsendtidspunkt().toString(),
                 "dokumentasjonKravId" to listOf("2"),
+                "skjemakode" to "04-01.02",
                 "søknad_uuid" to inspektør.søknadId.toString(),
                 "ident" to testIdent,
                 "type" to "ETTERSENDING_TIL_DIALOG",
@@ -266,7 +268,7 @@ internal class SøknadTest {
         assertBehov(
             Behovtype.NyJournalpost,
             mapOf(
-                "hovedDokument" to hoveddokument.also { it["brevkode"] = "NAVe 04-01.02" },
+                "hovedDokument" to hoveddokument.also { it["skjemakode"] = "04-01.02" },
                 "dokumenter" to listOf(
                     mapOf(
                         "varianter" to listOf(
@@ -277,7 +279,7 @@ internal class SøknadTest {
                                 "type" to "PDF"
                             )
                         ),
-                        "brevkode" to "N6"
+                        "skjemakode" to "N6"
                     )
                 ),
                 "søknad_uuid" to inspektør.søknadId.toString(),

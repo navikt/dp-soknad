@@ -77,8 +77,7 @@ internal class SøknadMediatorTest {
                     dokumenter = listOf(),
                     ettersendinger = listOf(),
                     metadata = Innsending.Metadata(
-                        skjemakode = "hubba",
-                        tittel = "bubba"
+                        skjemakode = "hubba"
                     )
                 ),
                 prosessversjon = null
