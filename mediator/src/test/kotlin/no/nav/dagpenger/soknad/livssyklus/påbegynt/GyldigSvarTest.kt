@@ -60,6 +60,23 @@ class GyldigSvarTest {
         }
     }
 
+    @ParameterizedTest
+    @CsvSource(
+        """boolean | null""",
+        """localdate | null""",
+        """double | null""",
+        """envalg | null""",
+        """flervalg | null""",
+        """int | null""",
+        """periode | null""",
+        """land | null""",
+        delimiter = '|'
+    )
+    fun `Skal tillate null som svar`(type: String, forventetSvar: String) {
+        val jsonSvar = objectMapper.readTree("""{"type": "$type", "svar": $forventetSvar}""")
+        GyldigSvar(jsonSvar)
+    }
+
     @Test
     fun `Skal kunne opprette et generator svar`() {
         val jsonSvar = objectMapper.readTree(generatorSvar)

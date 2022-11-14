@@ -20,6 +20,7 @@ class GyldigSvar(json: JsonNode) {
     }
 
     private fun validerType() {
+        if (svarAsJson.isNull) return
         when (type) {
             "boolean" -> require(svarAsJson.isBoolean, feilmelding())
             "flervalg" -> require(
