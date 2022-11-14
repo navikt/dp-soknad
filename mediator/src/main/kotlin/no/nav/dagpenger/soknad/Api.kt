@@ -74,6 +74,7 @@ internal fun Application.api(
                     )
                 }
                 is IllegalArgumentException -> {
+                    logger.info(cause) { "Kunne ikke håndtere API kall - Bad request" }
                     call.respond(
                         BadRequest,
                         HttpProblem(title = "Feilet", detail = cause.message, status = 400)
