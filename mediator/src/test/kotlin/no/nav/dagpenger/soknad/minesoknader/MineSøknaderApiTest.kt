@@ -12,6 +12,8 @@ import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Ettersending
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.NyInnsending
+import no.nav.dagpenger.soknad.Prosessnavn
+import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
@@ -44,11 +46,11 @@ class MineSøknaderApiTest {
                         søknadMed(tilstand = Påbegynt, opprettet, sistEndretAvBruker = sistEndretAvBruker),
                         søknadMed(
                             tilstand = Innsendt,
-                            innsending = innsending(innsendtTidspunkt, journalpostId = "123")
+                            innsending = innsending(innsendtTidspunkt, journalpostId = "123"),
                         ),
                         søknadMed(
                             tilstand = Innsendt,
-                            innsending = innsending(innsendtTidspunkt, journalpostId = "456")
+                            innsending = innsending(innsendtTidspunkt, journalpostId = "456"),
                         )
                     )
                 }
@@ -58,6 +60,35 @@ class MineSøknaderApiTest {
             autentisert("$endepunkt?fom=$fom", httpMethod = HttpMethod.Get).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
                 val expectedJson = expectedJson(opprettet, innsendtTidspunkt, sistEndretAvBruker)
+                assertEquals(expectedJson, this.bodyAsText())
+                assertEquals("application/json; charset=UTF-8", this.contentType().toString())
+            }
+        }
+    }
+
+    @Test
+    fun `Skal ikke hente ut generelle innsendinger`() {
+        val opprettet = LocalDateTime.MAX
+        val sistEndretAvBruker = LocalDateTime.MAX
+
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(
+                søknadMediator = mockk<SøknadMediator>().also {
+                    every { it.hentSøknader(TestApplication.defaultDummyFodselsnummer) } returns setOf(
+                        søknadMed(
+                            tilstand = Påbegynt,
+                            opprettet,
+                            sistEndretAvBruker = sistEndretAvBruker,
+                            prosessversjon = Prosessversjon(Prosessnavn("Innsending"), 1)
+                        )
+                    )
+                }
+            )
+        ) {
+            val fom = LocalDate.now()
+            autentisert("$endepunkt?fom=$fom", httpMethod = HttpMethod.Get).apply {
+                assertEquals(HttpStatusCode.OK, this.status)
+                val expectedJson = "{}"
                 assertEquals(expectedJson, this.bodyAsText())
                 assertEquals("application/json; charset=UTF-8", this.contentType().toString())
             }
@@ -93,7 +124,7 @@ class MineSøknaderApiTest {
                     every { it.hentSøknader(TestApplication.defaultDummyFodselsnummer) } returns setOf(
                         søknadMed(
                             tilstand = Innsendt,
-                            innsending = innsending(innsendtTidspunkt, journalpostId = "456")
+                            innsending = innsending(innsendtTidspunkt, journalpostId = "456"),
                         )
                     )
                 }
@@ -121,7 +152,7 @@ class MineSøknaderApiTest {
                     every { it.hentSøknader(TestApplication.defaultDummyFodselsnummer) } returns setOf(
                         søknadMed(
                             tilstand = Innsendt,
-                            innsending = innsending(innsendtTidspunkt, journalpostId = "456")
+                            innsending = innsending(innsendtTidspunkt, journalpostId = "456"),
                         ),
                         gammelInnsendtSøknad(innsendt = fom.minusDays(2))
                     )
@@ -153,7 +184,7 @@ class MineSøknaderApiTest {
 
     private fun gammelInnsendtSøknad(innsendt: LocalDate) = søknadMed(
         tilstand = Innsendt,
-        innsending = innsending(innsendt.minusDays(5).atStartOfDay(), journalpostId = "456")
+        innsending = innsending(innsendt.minusDays(5).atStartOfDay(), journalpostId = "456"),
     )
 
     private fun expectedJson(
@@ -168,7 +199,8 @@ class MineSøknaderApiTest {
         tilstand: Søknad.Tilstand.Type,
         opprettet: LocalDateTime = LocalDateTime.now(),
         innsending: NyInnsending? = null,
-        sistEndretAvBruker: LocalDateTime = LocalDateTime.MAX
+        sistEndretAvBruker: LocalDateTime = LocalDateTime.MAX,
+        prosessversjon: Prosessversjon? = Prosessversjon(Prosessnavn("Dagpenger"), 1)
     ) = Søknad.rehydrer(
         søknadId = søknadUuid,
         ident = TestApplication.defaultDummyFodselsnummer,
@@ -179,7 +211,7 @@ class MineSøknaderApiTest {
         tilstandsType = tilstand,
         aktivitetslogg = Aktivitetslogg(),
         innsending = innsending,
-        prosessversjon = null
+        prosessversjon = prosessversjon
     )
 
     private fun innsending(

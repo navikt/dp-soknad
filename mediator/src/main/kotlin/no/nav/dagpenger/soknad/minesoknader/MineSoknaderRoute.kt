@@ -37,14 +37,14 @@ private fun lagMineSøknaderDto(søknader: Set<Søknad>, fom: LocalDate): MineSo
     søknader.map { søknad ->
         val mineSøknaderVisitor = MineSøknaderVisitor(søknad)
         when {
-            mineSøknaderVisitor.søknadTilstand() == Påbegynt ->
+            mineSøknaderVisitor.søknadTilstand() == Påbegynt && erDagpenger(mineSøknaderVisitor) ->
                 påbegyntSøknad = PåbegyntSøknadDto(
                     søknad.søknadUUID(),
                     mineSøknaderVisitor.søknadOpprettet(),
                     mineSøknaderVisitor.sistEndretAvBruker()
                 )
 
-            mineSøknaderVisitor.søknadTilstand() == Innsendt -> {
+            mineSøknaderVisitor.søknadTilstand() == Innsendt && erDagpenger(mineSøknaderVisitor) -> {
                 if (mineSøknaderVisitor.førsteInnsendingTidspunkt() > fom.atStartOfDay()) {
                     innsendteSøknader.add(
                         InnsendtSøknadDto(søknad.søknadUUID(), mineSøknaderVisitor.førsteInnsendingTidspunkt())
@@ -57,6 +57,9 @@ private fun lagMineSøknaderDto(søknader: Set<Søknad>, fom: LocalDate): MineSo
     }
     return MineSoknaderDto(påbegyntSøknad, innsendteSøknader.ifEmpty { null })
 }
+
+private fun erDagpenger(mineSøknaderVisitor: MineSøknaderVisitor) =
+    mineSøknaderVisitor.prosessversjon().prosessnavn.id == "Dagpenger"
 
 data class MineSoknaderDto(val paabegynt: PåbegyntSøknadDto?, val innsendte: List<InnsendtSøknadDto>?)
 

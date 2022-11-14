@@ -19,6 +19,7 @@ class MineSøknaderVisitor(søknad: Søknad) : SøknadVisitor {
     private var søknadSistEndretAvBruker: LocalDateTime? = null
     private lateinit var søknadTilstand: Søknad.Tilstand.Type
     private val søknadInnsendinger: MutableList<LocalDateTime> = mutableListOf()
+    private lateinit var prosessversjon: Prosessversjon
 
     init {
         søknad.accept(this)
@@ -28,6 +29,7 @@ class MineSøknaderVisitor(søknad: Søknad) : SøknadVisitor {
     fun sistEndretAvBruker() = søknadSistEndretAvBruker
     fun søknadOpprettet() = søknadOpprettet
     fun søknadTilstand() = søknadTilstand
+    fun prosessversjon() = prosessversjon
 
     override fun visitSøknad(
         søknadId: UUID,
@@ -39,9 +41,11 @@ class MineSøknaderVisitor(søknad: Søknad) : SøknadVisitor {
         sistEndretAvBruker: ZonedDateTime,
         prosessversjon: Prosessversjon?
     ) {
+        require(prosessversjon != null) { "Prosessversjon kan ikke være null for søknad $søknadId" }
         søknadOpprettet = opprettet.toLocalDateTime()
         søknadSistEndretAvBruker = sistEndretAvBruker.toLocalDateTime()
         søknadTilstand = tilstand.tilstandType
+        this.prosessversjon = prosessversjon
     }
 
     override fun visit(
