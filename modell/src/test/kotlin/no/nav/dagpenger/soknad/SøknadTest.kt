@@ -87,7 +87,7 @@ internal class SøknadTest {
     }
 
     @Test
-    fun `Søker oppretter søknad og ferdigstiller den`() {
+    fun `Søker oppretter dagpenger søknad og ferdigstiller den`() {
         håndterØnskeOmNySøknadHendelse()
         with(inspektør.opprettet) {
             assertNotNull(this)
@@ -96,7 +96,7 @@ internal class SøknadTest {
         assertBehov(
             Behovtype.NySøknad,
             mapOf(
-                "prosessnavn" to "prosessnavn",
+                "prosessnavn" to "Dagpenger",
                 "søknad_uuid" to inspektør.søknadId.toString(),
                 "ident" to testIdent
             )
@@ -296,6 +296,35 @@ internal class SøknadTest {
         assertEttersendingTilstand(Journalført)
     }
 
+    @Test
+    fun `Opprette generell innsending og journalføre`() {
+        val prosessnavn = Prosessnavn("Innsending")
+        håndterØnskeOmNySøknadHendelse(prosessnavn)
+        with(inspektør.opprettet) {
+            assertNotNull(this)
+            assertEquals(LocalDate.now(), this.toLocalDate())
+        }
+        håndterNySøknadOpprettet(prosessnavn)
+        håndterFaktumOppdatering()
+        håndterSøkerOppgaveHendelse(
+            setOf(
+                sannsynliggjøring("1", "f1-1", "f1-2"),
+            )
+        )
+
+        håndterLeggtilFil("1", "urn:sid:1")
+        håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
+        håndterSendInnSøknad()
+
+        assertTilstander(
+            UnderOpprettelse,
+            Påbegynt,
+            Innsendt
+        )
+
+        assertThrows<AktivitetException> { håndterSendInnSøknad() }
+    }
+
     private fun assertInnsendingTilstand(tilstand: Innsending.TilstandType) {
         assertEquals(tilstand, inspektør.innsending.tilstand)
     }
@@ -329,8 +358,8 @@ internal class SøknadTest {
         assertEquals(2, testSøknadObserver.sisteVersjon?.versjon)
     }
 
-    private fun håndterNySøknadOpprettet() {
-        søknad.håndter(SøknadOpprettetHendelse(Prosessversjon("navn", 1), inspektør.søknadId, testIdent))
+    private fun håndterNySøknadOpprettet(prosessnavn: Prosessnavn = Prosessnavn("Dagpenger")) {
+        søknad.håndter(SøknadOpprettetHendelse(Prosessversjon(prosessnavn.id, 1), inspektør.søknadId, testIdent))
     }
 
     private fun håndterSlettet() {
@@ -410,13 +439,13 @@ internal class SøknadTest {
         }
     }
 
-    private fun håndterØnskeOmNySøknadHendelse() {
+    private fun håndterØnskeOmNySøknadHendelse(prosessnavn: Prosessnavn = Prosessnavn("Dagpenger")) {
         søknad.håndter(
             ØnskeOmNySøknadHendelse(
                 søknadID = UUID.randomUUID(),
                 ident = testIdent,
                 språk = språk,
-                prosessnavn = Prosessnavn("prosessnavn")
+                prosessnavn = prosessnavn
             )
         )
     }

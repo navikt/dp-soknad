@@ -393,8 +393,12 @@ class Søknad private constructor(
         }
 
         override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
-            innsending(søknad).ettersend(søknadInnsendtHendelse, søknad.dokumentkrav)
-            søknad.dokumentkrav.håndter(søknadInnsendtHendelse)
+            if (søknad.erDagpenger()) {
+                innsending(søknad).ettersend(søknadInnsendtHendelse, søknad.dokumentkrav)
+                søknad.dokumentkrav.håndter(søknadInnsendtHendelse)
+            } else {
+                søknadInnsendtHendelse.severe("Kan ikke lage ettersending av prosess ${søknad.prosessversjon?.prosessnavn?.id}")
+            }
         }
 
         private fun innsending(søknad: Søknad) =
