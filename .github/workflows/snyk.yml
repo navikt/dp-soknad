@@ -12,8 +12,4 @@ jobs:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       with:
         command: monitor
-        args: >-
-          --org=teamdagpenger \
-          --all-sub-projects \
-          --configuration-attributes=usage:java-runtime \
-          --remote-repo-url=https://github.com/${{ github.repository }}.git
+        args: --org=teamdagpenger --all-sub-projects --configuration-attributes=usage:java-runtime --remote-repo-url=https://github.com/${{ github.repository }}.git
