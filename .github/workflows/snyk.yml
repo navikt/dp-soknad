@@ -13,7 +13,7 @@ jobs:
       with:
         command: monitor
         args: >-
-          --org=teamdagpenger \
-          --all-sub-projects \
-          --configuration-attributes=usage:java-runtime \
+          --org=teamdagpenger 
+          --all-sub-projects 
+          --configuration-attributes=usage:java-runtime 
           --remote-repo-url=https://github.com/${{ github.repository }}.git
