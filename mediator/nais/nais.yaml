@@ -65,8 +65,8 @@ spec:
       value: {{DP_INNSYN_AUDIENCE}}
     - name: DP_INNSYN_URL
       value: http://dp-innsyn
-    - name: JAVA_OPTS
-      value: -XX:+UseG1GC -XX:MaxRAMPercentage=75.0 -XX:ActiveProcessorCount=2
+    #- name: JAVA_OPTS
+    #  value: -XX:+UseG1GC -XX:MaxRAMPercentage=75.0 -XX:ActiveProcessorCount=2
   gcp:
     sqlInstances:
       - name: dp-soknad-v1
