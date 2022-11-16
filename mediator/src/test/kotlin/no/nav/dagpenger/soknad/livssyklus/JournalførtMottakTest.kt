@@ -17,8 +17,8 @@ import java.util.UUID
 internal class JournalførtMottakTest {
 
     @ParameterizedTest
-    @ValueSource(strings = ["NySøknad", "Ettersending"])
-    fun `Skal behandle innsending_ferdigstilt event for type NySøknad og Ettersending`(type: String) {
+    @ValueSource(strings = ["NySøknad", "Ettersending", "Gjenopptak", "Generell" ])
+    fun `Skal behandle innsending_ferdigstilt event for type NySøknad, Gjenopptak, Ettersending og Generell`(type: String) {
         TestRapid().let { testRapid ->
             val slot = slot<JournalførtHendelse>()
             JournalførtMottak(

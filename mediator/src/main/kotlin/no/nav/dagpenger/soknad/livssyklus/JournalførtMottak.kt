@@ -20,7 +20,7 @@ internal class JournalførtMottak(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "innsending_ferdigstilt") }
-            validate { it.demandAny("type", listOf("NySøknad", "Ettersending")) }
+            validate { it.demandAny("type", listOf("NySøknad", "Ettersending", "Gjenopptak", "Generell")) }
             validate { it.requireKey("fødselsnummer", "journalpostId") }
             validate {
                 it.require("søknadsData") { data ->
