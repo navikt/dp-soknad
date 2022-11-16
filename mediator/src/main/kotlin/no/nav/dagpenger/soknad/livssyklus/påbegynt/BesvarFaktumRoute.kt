@@ -28,7 +28,6 @@ internal fun Route.besvarFaktumRoute(søknadMediator: SøknadMediator) {
             withLoggingContext("søknadId" to søknadUuid.toString()) {
                 validator.valider(søknadUuid, ident)
                 val input = GyldigSvar(call.receive())
-                logger.info { "Besvarer faktum= $faktumId, type=${input.type} svar=${if (input.type !== "tekst") input.svarAsJson.toString() else "Viser ikke svar på fritekst"}" }
                 val faktumSvar = FaktumSvar(
                     søknadUuid = søknadUuid,
                     faktumId = faktumId,
