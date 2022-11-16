@@ -11,6 +11,7 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.status.SøknadStatus.Paabegynt
+import no.nav.dagpenger.soknad.status.SøknadStatus.Ukjent
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
@@ -65,7 +66,7 @@ private suspend fun hentSøknadStatus(
 ): SøknadStatus {
     val behandlingsstatus =
         behandlingsstatusClient.hentBehandlingsstatus(fom = førsteInnsendingTidspunkt, token).behandlingsstatus
-    return SøknadStatus.valueOf(behandlingsstatus)
+    return if (behandlingsstatus != "null") SøknadStatus.valueOf(behandlingsstatus) else Ukjent
 }
 
 data class SøknadStatusDto(
