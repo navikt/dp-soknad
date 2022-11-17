@@ -7,12 +7,16 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.put
+import mu.KotlinLogging
 import mu.withLoggingContext
+import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
+
+private val logger = KotlinLogging.logger {}
 
 internal fun Route.ferdigstillSøknadRoute(søknadMediator: SøknadMediator) {
     val validator = SøknadEierValidator(søknadMediator)
@@ -25,7 +29,12 @@ internal fun Route.ferdigstillSøknadRoute(søknadMediator: SøknadMediator) {
             call.receive<JsonNode>().let {
                 søknadMediator.lagreSøknadsTekst(søknadUuid, it.toString())
             }
-            søknadMediator.behandle(søknadInnsendtHendelse)
+            try {
+                søknadMediator.behandle(søknadInnsendtHendelse)
+            } catch (err: Aktivitetslogg.AktivitetException) {
+                logger.error(err) { "Kunne ikke behandle SøknadInnsendtHendelse, faktum eller dokumentkrav mangler" }
+                throw err
+            }
         }
         call.respond(HttpStatusCode.NoContent)
     }
