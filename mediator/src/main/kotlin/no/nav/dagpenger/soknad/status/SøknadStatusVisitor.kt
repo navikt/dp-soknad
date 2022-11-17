@@ -35,7 +35,8 @@ class SøknadStatusVisitor(søknad: Søknad) : SøknadVisitor {
         språk: Språk,
         dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime,
-        prosessversjon: Prosessversjon?
+        prosessversjon: Prosessversjon?,
+        versjon: Int
     ) {
         søknadOpprettet = opprettet.toLocalDateTime()
         søknadTilstand = tilstand.tilstandType

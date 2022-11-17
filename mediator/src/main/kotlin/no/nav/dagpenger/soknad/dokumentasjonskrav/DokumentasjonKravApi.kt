@@ -181,7 +181,8 @@ private class ApiDokumentkravResponse(
         språk: Språk,
         dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime,
-        prosessversjon: Prosessversjon?
+        prosessversjon: Prosessversjon?,
+        versjon: Int
     ) {
         soknad_uuid = søknadId
         krav = dokumentkrav.aktiveDokumentKrav().toApiKrav()

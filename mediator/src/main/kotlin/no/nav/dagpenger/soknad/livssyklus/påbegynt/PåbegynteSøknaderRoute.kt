@@ -53,7 +53,8 @@ private class PåbegynteSøknadVisitor(søknad: Søknad) : SøknadVisitor {
         språk: Språk,
         dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime,
-        prosessversjon: Prosessversjon?
+        prosessversjon: Prosessversjon?,
+        versjon: Int
     ) {
         påbegyntSøknad = PåbegyntSøknad(
             uuid = søknadId,

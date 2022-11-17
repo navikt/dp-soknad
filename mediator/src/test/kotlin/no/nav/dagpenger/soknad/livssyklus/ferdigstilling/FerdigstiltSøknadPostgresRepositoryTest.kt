@@ -113,7 +113,8 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
                 aktivitetslogg = Aktivitetslogg(),
                 null,
                 null,
-                FerdigSøknadData
+                FerdigSøknadData,
+                0
             )
         )
         return søknadId

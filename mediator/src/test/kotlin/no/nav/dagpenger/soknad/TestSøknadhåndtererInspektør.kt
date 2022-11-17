@@ -24,7 +24,8 @@ internal class TestSøknadhåndtererInspektør(søknadhåndterer: Søknad) : Sø
         språk: Språk,
         dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime,
-        prosessversjon: Prosessversjon?
+        prosessversjon: Prosessversjon?,
+        versjon: Int
     ) {
         this.gjeldendeSøknadId = søknadId.toString()
         this.antallSøknader++

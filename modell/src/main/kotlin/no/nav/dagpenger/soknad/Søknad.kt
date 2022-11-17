@@ -33,7 +33,8 @@ class Søknad private constructor(
     private var sistEndretAvBruker: ZonedDateTime,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
     private var prosessversjon: Prosessversjon?,
-    private var data: Lazy<SøknadData>
+    private var data: Lazy<SøknadData>,
+    private val versjon: Int
 ) : Aktivitetskontekst, InnsendingObserver {
     private val observers = mutableListOf<SøknadObserver>()
 
@@ -54,7 +55,8 @@ class Søknad private constructor(
         dokumentkrav = Dokumentkrav(),
         sistEndretAvBruker = ZonedDateTime.now(),
         prosessversjon = null,
-        data = data
+        data = data,
+        versjon = 0
     )
 
     companion object {
@@ -69,7 +71,8 @@ class Søknad private constructor(
             aktivitetslogg: Aktivitetslogg,
             innsending: NyInnsending?,
             prosessversjon: Prosessversjon?,
-            data: Lazy<SøknadData>
+            data: Lazy<SøknadData>,
+            versjon: Int
         ): Søknad {
             val tilstand: Tilstand = when (tilstandsType) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
@@ -88,7 +91,8 @@ class Søknad private constructor(
                 sistEndretAvBruker = sistEndretAvBruker,
                 aktivitetslogg = aktivitetslogg,
                 prosessversjon = prosessversjon,
-                data = data
+                data = data,
+                versjon = versjon
             )
         }
 
@@ -455,7 +459,8 @@ class Søknad private constructor(
             språk = språk,
             dokumentkrav = dokumentkrav,
             sistEndretAvBruker = sistEndretAvBruker,
-            prosessversjon = prosessversjon
+            prosessversjon = prosessversjon,
+            versjon = versjon
         )
         tilstand.accept(visitor)
         aktivitetslogg.accept(visitor)

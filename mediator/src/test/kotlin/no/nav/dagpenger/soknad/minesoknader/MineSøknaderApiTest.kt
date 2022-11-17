@@ -213,7 +213,8 @@ class MineSøknaderApiTest {
         aktivitetslogg = Aktivitetslogg(),
         innsending = innsending,
         prosessversjon = prosessversjon,
-        data = FerdigSøknadData
+        data = FerdigSøknadData,
+        versjon = 0
     )
 
     private fun innsending(

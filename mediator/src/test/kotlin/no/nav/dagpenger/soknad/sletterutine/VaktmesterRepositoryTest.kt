@@ -240,7 +240,8 @@ internal class VaktmesterRepositoryTest {
             aktivitetslogg = Aktivitetslogg(),
             null,
             null,
-            FerdigSøknadData
+            FerdigSøknadData,
+            0
         )
 
     private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, ident: String) =
@@ -257,7 +258,8 @@ internal class VaktmesterRepositoryTest {
             aktivitetslogg = Aktivitetslogg(),
             null,
             null,
-            FerdigSøknadData
+            FerdigSøknadData,
+            0
         )
 
     private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, ident: String) =
@@ -272,6 +274,7 @@ internal class VaktmesterRepositoryTest {
             aktivitetslogg = Aktivitetslogg(),
             null,
             null,
-            FerdigSøknadData
+            FerdigSøknadData,
+            0
         )
 }

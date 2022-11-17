@@ -35,6 +35,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID
 import javax.sql.DataSource
+import kotlin.properties.Delegates
 
 class SøknadPostgresRepository(private val dataSource: DataSource) :
     SøknadRepository {
@@ -62,7 +63,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 queryOf(
                     //language=PostgreSQL
                     statement = """
-                    SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident
+                    SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident, versjon
                     FROM  soknad_v1
                     WHERE uuid = :uuid AND tilstand != 'Slettet'
                     """.trimIndent(),
@@ -132,7 +133,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         session.run(
             queryOf( //language=PostgreSQL
                 """
-                SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident
+                SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident, versjon
                 FROM  soknad_v1
                 WHERE person_ident = :ident AND tilstand != 'Slettet'
                 """.trimIndent(),
@@ -149,7 +150,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             SøknadDTO(
                 søknadsId = søknadsId,
                 ident = row.string("person_ident"),
-                opprettet = row.norskZonedDateTime("opprettet"),
                 tilstandType = SøknadDTO.TilstandDTO.rehydrer(row.string("tilstand")),
                 språkDTO = SøknadDTO.SpråkDTO(row.string("spraak")),
                 dokumentkrav = SøknadDTO.DokumentkravDTO(
@@ -158,10 +158,12 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 sistEndretAvBruker = row.zonedDateTime("sist_endret_av_bruker").withZoneSameInstant(tidssone),
                 innsendingDTO = session.hentInnsending(søknadsId),
                 aktivitetslogg = session.hentAktivitetslogg(søknadsId),
+                opprettet = row.norskZonedDateTime("opprettet"),
                 prosessversjon = session.hentProsessversjon(søknadsId),
                 data = lazy {
                     SøknadDataPostgresRepository(dataSource).hentSøkerOppgave(søknadsId)
-                }
+                },
+                versjon = row.int("versjon")
             )
         }
     }
@@ -193,6 +195,14 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         val visitor = SøknadPersistenceVisitor(søknad)
         using(sessionOf(dataSource)) { session ->
             session.transaction { transactionalSession ->
+                val dbVersjon = transactionalSession.hentVersjon(visitor.søknadId)
+                if (dbVersjon != null && dbVersjon != visitor.versjon) {
+                    throw SøknadRepository.OptimistiskLåsingException(
+                        søknadId = visitor.søknadId,
+                        databaseVersjon = dbVersjon,
+                        nyVersjon = visitor.versjon
+                    )
+                }
                 visitor.queries().forEach {
                     transactionalSession.run(it.asUpdate)
                 }
@@ -201,6 +211,16 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
     }
 }
 
+private fun Session.hentVersjon(søknadsId: UUID) = run(
+    queryOf( // language=PostgreSQL
+        "SELECT versjon FROM soknad_v1 WHERE uuid = :uuid",
+        mapOf(
+            "uuid" to søknadsId
+        )
+    ).map {
+        it.intOrNull("versjon")
+    }.asSingle
+)
 private fun Session.hentMetadata(innsendingId: UUID): InnsendingDTO.MetadataDTO? = run(
     queryOf( //language=PostgreSQL
         "SELECT * FROM metadata WHERE innsending_uuid = :innsending_uuid",
@@ -297,7 +317,8 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
     private lateinit var aktivEttersending: UUID
     private var ettersending: Boolean = false
     private val ettersendinger: MutableMap<UUID, MutableSet<UUID>> = mutableMapOf()
-    private lateinit var søknadId: UUID
+    lateinit var søknadId: UUID
+    var versjon by Delegates.notNull<Int>()
     private val queries = mutableListOf<Query>()
 
     init {
@@ -314,9 +335,11 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         språk: Språk,
         dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime,
-        prosessversjon: Prosessversjon?
+        prosessversjon: Prosessversjon?,
+        versjon: Int
     ) {
         this.søknadId = søknadId
+        this.versjon = versjon
         queries.add(
             queryOf(
                 // language=PostgreSQL
@@ -328,12 +351,15 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queryOf(
                 // language=PostgreSQL
                 """
-                   INSERT INTO soknad_v1(uuid, person_ident, tilstand, spraak, opprettet, sist_endret_av_bruker, soknadmal)
+                   INSERT INTO soknad_v1(uuid, person_ident, tilstand, spraak, opprettet, sist_endret_av_bruker, soknadmal, endret, versjon)
                    VALUES (:uuid, :person_ident, :tilstand, :spraak, :opprettet, :sistEndretAvBruker, 
-                        (SELECT id FROM soknadmal WHERE prosessnavn = :prosessnavn AND prosessversjon = :prosessversjon))
+                        (SELECT id FROM soknadmal WHERE prosessnavn = :prosessnavn AND prosessversjon = :prosessversjon),
+                        (NOW() AT TIME ZONE 'utc'::TEXT), :nyVersjon)
                    ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
                                                 sist_endret_av_bruker = :sistEndretAvBruker, 
-                                                soknadmal=(SELECT id FROM soknadmal WHERE prosessnavn = :prosessnavn AND prosessversjon = :prosessversjon)
+                                                soknadmal=(SELECT id FROM soknadmal WHERE prosessnavn = :prosessnavn AND prosessversjon = :prosessversjon),
+                                                endret = (NOW() AT TIME ZONE 'utc'::TEXT),
+                                                versjon = :nyVersjon
                 """.trimIndent(),
                 mapOf(
                     "uuid" to søknadId,
@@ -343,7 +369,8 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                     "opprettet" to opprettet,
                     "sistEndretAvBruker" to sistEndretAvBruker,
                     "prosessnavn" to prosessversjon?.prosessnavn?.id,
-                    "prosessversjon" to prosessversjon?.versjon
+                    "prosessversjon" to prosessversjon?.versjon,
+                    "nyVersjon" to (versjon + 1)
                 )
             )
         )

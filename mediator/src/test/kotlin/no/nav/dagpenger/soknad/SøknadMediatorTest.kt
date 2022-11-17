@@ -82,7 +82,8 @@ internal class SøknadMediatorTest {
                     )
                 ),
                 prosessversjon = null,
-                data = FerdigSøknadData
+                data = FerdigSøknadData,
+                versjon = 0
             )
         }
     }

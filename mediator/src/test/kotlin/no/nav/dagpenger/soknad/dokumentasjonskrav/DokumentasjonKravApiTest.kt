@@ -102,7 +102,8 @@ internal class DokumentasjonKravApiTest {
         aktivitetslogg = Aktivitetslogg(),
         null,
         null,
-        FerdigSøknadData
+        FerdigSøknadData,
+        0
     )
     private val søknadMediatorMock = mockk<SøknadMediator>().also {
         every { it.hent(testSoknadId) } returns søknad

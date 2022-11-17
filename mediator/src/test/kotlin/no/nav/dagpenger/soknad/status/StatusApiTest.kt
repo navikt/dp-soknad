@@ -174,7 +174,8 @@ class StatusApiTest {
         aktivitetslogg = Aktivitetslogg(),
         innsending = innsending,
         prosessversjon = null,
-        data = FerdigSøknadData
+        data = FerdigSøknadData,
+        versjon = 0
     )
 
     private fun innsending(

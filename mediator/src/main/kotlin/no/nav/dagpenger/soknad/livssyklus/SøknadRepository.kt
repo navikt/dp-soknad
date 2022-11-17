@@ -21,4 +21,7 @@ interface SøknadRepository {
 
     fun hentPåbegynteSøknader(prosessversjon: Prosessversjon): List<Søknad>
     fun opprett(søknadID: UUID, språk: Språk, ident: String): Søknad
+
+    class OptimistiskLåsingException(val søknadId: UUID, val databaseVersjon: Int, val nyVersjon: Int) :
+        RuntimeException("Kunne ikke oppdatere søknadId: $søknadId database versjon: '$databaseVersjon' ny versjon: '$nyVersjon'")
 }
