@@ -182,7 +182,11 @@ internal class SøknadMediator(
     private fun hentEllerOpprettSøknad(hendelse: SøknadHendelse): Søknad {
         val søknad = hent(hendelse.søknadID())
         return when (hendelse) {
-            is ØnskeOmNySøknadHendelse -> søknad ?: Søknad(hendelse.søknadID(), hendelse.språk(), hendelse.ident())
+            is ØnskeOmNySøknadHendelse -> søknad ?: søknadRepository.opprett(
+                hendelse.søknadID(),
+                hendelse.språk(),
+                hendelse.ident()
+            )
             else -> søknad ?: throw SøknadIkkeFunnet("Søknaden med id ${hendelse.søknadID()} finnes ikke")
         }
     }

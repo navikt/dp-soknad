@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad
 
+import FerdigSøknadData
 import com.fasterxml.jackson.databind.node.BooleanNode
 import io.mockk.every
 import io.mockk.mockk
@@ -80,7 +81,8 @@ internal class SøknadMediatorTest {
                         skjemakode = "hubba"
                     )
                 ),
-                prosessversjon = null
+                prosessversjon = null,
+                data = FerdigSøknadData
             )
         }
     }
@@ -110,6 +112,9 @@ internal class SøknadMediatorTest {
         override fun hentPåbegynteSøknader(prosessversjon: Prosessversjon): List<Søknad> {
             TODO("Not yet implemented")
         }
+
+        override fun opprett(søknadID: UUID, språk: Språk, ident: String) =
+            Søknad(søknadID, språk, ident, data = FerdigSøknadData)
 
         fun clear() {
             søknader.clear()
@@ -231,32 +236,32 @@ internal class SøknadMediatorTest {
         innsendingId: UUID
     ) = //language=JSON
         """
-{
-  "@event_name": "behov",
-  "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
-  "@behov": [
-    "InnsendingMetadata"
-  ],
-  "ident": "$ident",
-  "søknad_uuid": "$søknadUuid",
-  "innsendingId": "$innsendingId",
-  "ArkiverbarSøknad": {},
-  "@id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
-  "@opprettet": "2022-03-30T12:19:08.418821",
-  "system_read_count": 0,
-  "system_participating_services": [
-    {
-      "id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
-      "time": "2022-03-30T12:19:08.418821"
-    }
-  ],
-  "@løsning": {
-    "InnsendingMetadata": {
-      "tittel": "Søknad om dagpenger",
-      "skjemakode": "04.04-01"
-    }
-  }
-}
+        {
+          "@event_name": "behov",
+          "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
+          "@behov": [
+            "InnsendingMetadata"
+          ],
+          "ident": "$ident",
+          "søknad_uuid": "$søknadUuid",
+          "innsendingId": "$innsendingId",
+          "ArkiverbarSøknad": {},
+          "@id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
+          "@opprettet": "2022-03-30T12:19:08.418821",
+          "system_read_count": 0,
+          "system_participating_services": [
+            {
+              "id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
+              "time": "2022-03-30T12:19:08.418821"
+            }
+          ],
+          "@løsning": {
+            "InnsendingMetadata": {
+              "tittel": "Søknad om dagpenger",
+              "skjemakode": "04.04-01"
+            }
+          }
+        }
         """.trimIndent()
 
     @Test
@@ -414,7 +419,7 @@ internal class SøknadMediatorTest {
         "NyJournalpost": "$journalpostId"
       }
 }
-    """.trimMargin()
+        """.trimMargin()
 
     // language=JSON
     private fun søknadJournalførtHendelse(søknadUuid: UUID, ident: String, journalpostId: String) = """

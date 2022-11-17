@@ -12,6 +12,7 @@ import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
+import no.nav.dagpenger.soknad.SøknadData
 import java.time.ZonedDateTime
 import java.util.Locale
 import java.util.UUID
@@ -26,7 +27,8 @@ class SøknadDTO(
     val innsendingDTO: InnsendingDTO?,
     var aktivitetslogg: AktivitetsloggDTO? = null,
     val opprettet: ZonedDateTime,
-    val prosessversjon: ProsessversjonDTO?
+    val prosessversjon: ProsessversjonDTO?,
+    val data: Lazy<SøknadData>
 ) {
     fun rehydrer(): Søknad = Søknad.rehydrer(
         søknadId = this.søknadsId,
@@ -38,7 +40,8 @@ class SøknadDTO(
         tilstandsType = this.tilstandType.rehydrer(),
         aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
         innsending = this.innsendingDTO?.rehydrer(),
-        prosessversjon = this.prosessversjon?.rehydrer()
+        prosessversjon = this.prosessversjon?.rehydrer(),
+        data = data
     )
 
     class SpråkDTO(val verdi: String) {

@@ -3,11 +3,12 @@ package no.nav.dagpenger.soknad.livssyklus.påbegynt
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.Sannsynliggjøring
+import no.nav.dagpenger.soknad.SøknadData
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import java.io.InputStream
 import java.util.UUID
 
-interface SøkerOppgave {
+interface SøkerOppgave : SøknadData {
     fun søknadUUID(): UUID
     fun eier(): String
     fun toJson(): String
@@ -56,6 +57,8 @@ internal open class SøkerOppgaveMelding(private val jsonMessage: JsonNode) : S�
 
         return sannsynliggjøringer.values.toSet()
     }
+
+    override fun erFerdig() = jsonMessage["ferdig"].asBoolean()
 
     private fun grunnleggendeFaktum(faktum: JsonNode): Faktum = Faktum(faktum)
 }

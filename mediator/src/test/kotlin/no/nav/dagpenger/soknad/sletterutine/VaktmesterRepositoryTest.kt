@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.sletterutine
 
+import FerdigSøknadData
 import de.slub.urn.URN
 import io.ktor.server.plugins.NotFoundException
 import io.mockk.mockk
@@ -49,18 +50,15 @@ internal class VaktmesterRepositoryTest {
     private val syvDager = 7
     private val dokumentFaktum =
         Faktum(faktumJson("1", "f1"))
-
     private val faktaSomSannsynliggjøres =
         mutableSetOf(
             Faktum(faktumJson("2", "f2"))
         )
-
     private val sannsynliggjøring = Sannsynliggjøring(
         id = dokumentFaktum.id,
         faktum = dokumentFaktum,
         sannsynliggjør = faktaSomSannsynliggjøres
     )
-
     private val krav = Krav(
         sannsynliggjøring
     ).also {
@@ -241,7 +239,8 @@ internal class VaktmesterRepositoryTest {
             tilstandsType = Innsendt,
             aktivitetslogg = Aktivitetslogg(),
             null,
-            null
+            null,
+            FerdigSøknadData
         )
 
     private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, ident: String) =
@@ -257,7 +256,8 @@ internal class VaktmesterRepositoryTest {
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             null,
-            null
+            null,
+            FerdigSøknadData
         )
 
     private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, ident: String) =
@@ -271,6 +271,7 @@ internal class VaktmesterRepositoryTest {
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             null,
-            null
+            null,
+            FerdigSøknadData
         )
 }

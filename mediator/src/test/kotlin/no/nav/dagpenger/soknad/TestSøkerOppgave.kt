@@ -12,6 +12,9 @@ internal class TestSøkerOppgave(private val søknadUUID: UUID, private val eier
 
     override fun toJson(): String = json
     override fun sannsynliggjøringer(): Set<Sannsynliggjøring> = emptySet()
+    override fun erFerdig(): Boolean {
+        TODO("Not yet implemented")
+    }
 }
 
 internal fun faktumJson(id: String, beskrivendeId: String, generertAv: String? = null) = jacksonObjectMapper().readTree(

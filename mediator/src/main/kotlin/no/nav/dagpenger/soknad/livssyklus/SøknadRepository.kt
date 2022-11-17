@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.livssyklus
 
 import no.nav.dagpenger.soknad.Prosessversjon
+import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Companion.erDagpenger
 import no.nav.dagpenger.soknad.Søknad.Companion.erPåbegynt
@@ -19,4 +20,5 @@ interface SøknadRepository {
     }
 
     fun hentPåbegynteSøknader(prosessversjon: Prosessversjon): List<Søknad>
+    fun opprett(søknadID: UUID, språk: Språk, ident: String): Søknad
 }

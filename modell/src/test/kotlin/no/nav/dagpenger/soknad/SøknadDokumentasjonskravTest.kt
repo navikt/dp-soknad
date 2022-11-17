@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import de.slub.urn.URN
+import no.nav.dagpenger.soknad.helpers.FerdigSøknadData
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
@@ -39,7 +40,8 @@ class SøknadDokumentasjonskravTest {
         søknad = Søknad(
             søknadId = søknadId,
             språk = språk,
-            ident = ident
+            ident = ident,
+            data = FerdigSøknadData
         )
         søknad.håndter(
             ØnskeOmNySøknadHendelse(

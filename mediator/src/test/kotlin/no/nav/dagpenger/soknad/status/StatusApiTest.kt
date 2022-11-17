@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.status
 
+import FerdigSøknadData
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -172,7 +173,8 @@ class StatusApiTest {
         tilstandsType = tilstand,
         aktivitetslogg = Aktivitetslogg(),
         innsending = innsending,
-        prosessversjon = null
+        prosessversjon = null,
+        data = FerdigSøknadData
     )
 
     private fun innsending(
