@@ -158,7 +158,10 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 sistEndretAvBruker = row.zonedDateTime("sist_endret_av_bruker").withZoneSameInstant(tidssone),
                 innsendingDTO = session.hentInnsending(søknadsId),
                 aktivitetslogg = session.hentAktivitetslogg(søknadsId),
-                prosessversjon = session.hentProsessversjon(søknadsId)
+                prosessversjon = session.hentProsessversjon(søknadsId),
+                data = lazy {
+                    SøknadDataPostgresRepository(dataSource).hentSøkerOppgave(søknadsId)
+                }
             )
         }
     }
@@ -183,6 +186,8 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             ).map { it.rehydrer() }
         }
     }
+
+    override fun opprett(søknadID: UUID, språk: Språk, ident: String) = Søknad(søknadID, språk, ident)
 
     override fun lagre(søknad: Søknad) {
         val visitor = SøknadPersistenceVisitor(søknad)

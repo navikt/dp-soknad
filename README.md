@@ -15,8 +15,8 @@ Gradle brukes som byggverktøy og er bundlet inn.
 Legg til i app manifest:
 
 ```
- - name: JAVA_OPTS
-   value: -agentpath:/opt/cprof/profiler_java_agent.so=-cprof_service=dp-soknad,-cprof_enable_heap_sampling=true,-logtostderr,-minloglevel=0,-cprof_project_id=teamdagpenger-dev-885f
+  - name: JAVA_OPTS
+    value: -agentpath:/opt/cprof/profiler_java_agent.so=-cprof_service=dp-quiz-mediator,-cprof_enable_heap_sampling=true,-logtostderr,-minloglevel=0,-cprof_project_id=teamdagpenger-prod-9042
  ```
 
 # Henvendelser

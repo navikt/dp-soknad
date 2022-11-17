@@ -15,6 +15,7 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
+import no.nav.dagpenger.soknad.helpers.FerdigSøknadData
 import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
@@ -69,7 +70,12 @@ internal class SøknadTest {
 
     @BeforeEach
     internal fun setUp() {
-        søknad = Søknad(UUID.randomUUID(), Språk(språk), testIdent)
+        søknad = Søknad(
+            UUID.randomUUID(),
+            Språk(språk),
+            testIdent,
+            FerdigSøknadData
+        )
         testSøknadObserver = TestSøknadObserver().also { søknad.addObserver(it) }
         plantUmlObservatør = PlantUmlObservatør().also { søknad.addObserver(it) }
     }
@@ -157,7 +163,7 @@ internal class SøknadTest {
                 "søknad_uuid" to inspektør.søknadId.toString(),
                 "ident" to testIdent,
                 "type" to "NY_DIALOG",
-                "innsendingId" to inspektør.innsendingId.toString(),
+                "innsendingId" to inspektør.innsendingId.toString()
             )
         )
         håndterArkiverbarSøknad()
@@ -247,7 +253,6 @@ internal class SøknadTest {
             assertEquals(inspektør.søknadId.toString(), behovParametre["søknad_uuid"])
             assertEquals(testIdent, behovParametre["ident"])
         }
-
         val ettersendingHendelse = håndterSendInnSøknad()
 
         assertBehov(
@@ -259,7 +264,7 @@ internal class SøknadTest {
                 "søknad_uuid" to inspektør.søknadId.toString(),
                 "ident" to testIdent,
                 "type" to "ETTERSENDING_TIL_DIALOG",
-                "innsendingId" to ettersendinger().innsendingId.toString(),
+                "innsendingId" to ettersendinger().innsendingId.toString()
             )
         )
 
@@ -308,7 +313,7 @@ internal class SøknadTest {
         håndterFaktumOppdatering()
         håndterSøkerOppgaveHendelse(
             setOf(
-                sannsynliggjøring("1", "f1-1", "f1-2"),
+                sannsynliggjøring("1", "f1-1", "f1-2")
             )
         )
 
@@ -334,6 +339,7 @@ internal class SøknadTest {
     }
 
     private fun ettersendinger() = inspektør.ettersendinger.last()
+
     @Test
     fun `Slett søknad for person`() {
         håndterØnskeOmNySøknadHendelse()

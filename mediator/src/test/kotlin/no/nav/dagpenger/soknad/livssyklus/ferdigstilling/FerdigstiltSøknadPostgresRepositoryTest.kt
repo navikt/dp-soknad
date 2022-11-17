@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.livssyklus.ferdigstilling
 
+import FerdigSøknadData
 import io.ktor.server.plugins.NotFoundException
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
@@ -111,7 +112,8 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
                 tilstandsType = Påbegynt,
                 aktivitetslogg = Aktivitetslogg(),
                 null,
-                null
+                null,
+                FerdigSøknadData
             )
         )
         return søknadId

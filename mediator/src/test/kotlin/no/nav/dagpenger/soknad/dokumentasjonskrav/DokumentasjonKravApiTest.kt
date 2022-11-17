@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.dokumentasjonskrav
 
+import FerdigSøknadData
 import de.slub.urn.URN
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
@@ -67,7 +68,7 @@ internal class DokumentasjonKravApiTest {
         URN.rfc8141().parse("urn:nav:1"),
         89900,
         ZonedDateTime.now(),
-        bundlet = false,
+        bundlet = false
     )
     private val dokumentKrav = Dokumentkrav().also {
         it.håndter(setOf(sannsynliggjøring1, sannsynliggjøring2))
@@ -100,7 +101,8 @@ internal class DokumentasjonKravApiTest {
         tilstandsType = Søknad.Tilstand.Type.Påbegynt,
         aktivitetslogg = Aktivitetslogg(),
         null,
-        null
+        null,
+        FerdigSøknadData
     )
     private val søknadMediatorMock = mockk<SøknadMediator>().also {
         every { it.hent(testSoknadId) } returns søknad
@@ -316,7 +318,7 @@ internal class DokumentasjonKravApiTest {
                             urn = URN.rfc8141().parse("urn:vedlegg:1111/123234"),
                             storrelse = 50000,
                             tidspunkt = tidspunkt,
-                            bundlet = false,
+                            bundlet = false
                         ),
                         this.fil
                     )

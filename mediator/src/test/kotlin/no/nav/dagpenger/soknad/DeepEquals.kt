@@ -14,6 +14,7 @@ object DeepEquals {
 private class ModelDeepEquals {
     val checkLog = mutableListOf<Pair<Any, Any>>()
     fun assertDeepEquals(one: Any?, other: Any?, fieldName: String) {
+        if (one is Lazy<*> && other is Lazy<*>) return
         if (one == null && other == null) return
         Assertions.assertFalse(one == null || other == null, "For field $fieldName: $one or $other is null")
         requireNotNull(one)

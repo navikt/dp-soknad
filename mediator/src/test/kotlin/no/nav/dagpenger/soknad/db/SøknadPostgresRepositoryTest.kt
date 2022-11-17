@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.db
 
+import FerdigSøknadData
 import de.slub.urn.URN
 import io.mockk.every
 import io.mockk.mockk
@@ -91,7 +92,8 @@ internal class SøknadPostgresRepositoryTest {
         tilstandsType = Påbegynt,
         aktivitetslogg = Aktivitetslogg(),
         null,
-        prosessversjon
+        prosessversjon,
+        data = FerdigSøknadData
     )
 
     @Test
@@ -120,7 +122,8 @@ internal class SøknadPostgresRepositoryTest {
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             null,
-            prosessversjon
+            prosessversjon,
+            data = FerdigSøknadData
         )
 
         withMigratedDb {
@@ -201,7 +204,8 @@ internal class SøknadPostgresRepositoryTest {
                 ettersendinger = mutableListOf(),
                 metadata = Innsending.Metadata("04-02-03")
             ),
-            prosessversjon = prosessversjon
+            prosessversjon = prosessversjon,
+            data = FerdigSøknadData
         )
 
         withMigratedDb {
@@ -380,7 +384,8 @@ internal class SøknadPostgresRepositoryTest {
                 ),
                 Innsending.Metadata(skjemakode = "04-02-03")
             ),
-            prosessversjon = prosessversjon
+            prosessversjon = prosessversjon,
+            data = FerdigSøknadData
         )
 
         withMigratedDb {
@@ -461,7 +466,8 @@ internal class SøknadPostgresRepositoryTest {
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             innsending = null,
-            prosessversjon = prosessversjon
+            prosessversjon = prosessversjon,
+            data = FerdigSøknadData
         )
 
         withMigratedDb {
@@ -632,7 +638,6 @@ internal class SøknadPostgresRepositoryTest {
         val ident2 = "1234567890n2"
         val dagpengerSøknad = søknadMedProssess("Dagpenger")
         val generellInnsending = søknadMedProssess("Innsending")
-
         val søknadPostgresRepository = mockk<SøknadPostgresRepository>().also {
             every { it.hentSøknader(ident) } returns setOf(
                 dagpengerSøknad,
@@ -663,7 +668,8 @@ internal class SøknadPostgresRepositoryTest {
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             null,
-            Prosessversjon(Prosessnavn(prosessNavn), 2)
+            Prosessversjon(Prosessnavn(prosessNavn), 2),
+            data = FerdigSøknadData
         )
 
     @Test
@@ -681,7 +687,8 @@ internal class SøknadPostgresRepositoryTest {
             tilstandsType = Innsendt,
             aktivitetslogg = Aktivitetslogg(),
             null,
-            prosessversjon
+            prosessversjon,
+            data = FerdigSøknadData
         )
 
         withMigratedDb {
@@ -705,7 +712,6 @@ internal class SøknadPostgresRepositoryTest {
         val søknadIdForPåbegynt = UUID.randomUUID()
         val søknadIdForNy = UUID.randomUUID()
         val søknadIdForInnsendt = UUID.randomUUID()
-
         val prosessversjon2 = Prosessversjon("Dagpenger", 2)
         val nyMal = SøknadMal(prosessversjon2, objectMapper.createObjectNode())
         val preMigrertSøknad = Søknad.rehydrer(
@@ -720,7 +726,8 @@ internal class SøknadPostgresRepositoryTest {
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             null,
-            null
+            null,
+            data = FerdigSøknadData
         )
         val påbegyntSøknad = Søknad.rehydrer(
             søknadId = søknadIdForPåbegynt,
@@ -734,7 +741,8 @@ internal class SøknadPostgresRepositoryTest {
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             null,
-            prosessversjon
+            prosessversjon,
+            data = FerdigSøknadData
         )
         val nySøknad = Søknad.rehydrer(
             søknadId = søknadIdForNy,
@@ -748,7 +756,8 @@ internal class SøknadPostgresRepositoryTest {
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             null,
-            prosessversjon = prosessversjon2
+            prosessversjon = prosessversjon2,
+            data = FerdigSøknadData
         )
         val innsendtSøknad = Søknad.rehydrer(
             søknadId = søknadIdForInnsendt,
@@ -762,7 +771,8 @@ internal class SøknadPostgresRepositoryTest {
             tilstandsType = Innsendt,
             aktivitetslogg = Aktivitetslogg(),
             null,
-            prosessversjon
+            prosessversjon,
+            data = FerdigSøknadData
         )
 
         withMigratedDb {

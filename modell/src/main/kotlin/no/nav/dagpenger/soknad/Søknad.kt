@@ -32,7 +32,8 @@ class Søknad private constructor(
     private val dokumentkrav: Dokumentkrav,
     private var sistEndretAvBruker: ZonedDateTime,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
-    private var prosessversjon: Prosessversjon?
+    private var prosessversjon: Prosessversjon?,
+    private var data: Lazy<SøknadData>
 ) : Aktivitetskontekst, InnsendingObserver {
     private val observers = mutableListOf<SøknadObserver>()
 
@@ -43,7 +44,7 @@ class Søknad private constructor(
         innsending?.addObserver(this)
     }
 
-    constructor(søknadId: UUID, språk: Språk, ident: String) : this(
+    constructor(søknadId: UUID, språk: Språk, ident: String, data: Lazy<SøknadData> = lazy { throw IllegalStateException("Mangler søknadsdata") }) : this(
         søknadId = søknadId,
         ident = ident,
         opprettet = ZonedDateTime.now(),
@@ -52,7 +53,8 @@ class Søknad private constructor(
         språk = språk,
         dokumentkrav = Dokumentkrav(),
         sistEndretAvBruker = ZonedDateTime.now(),
-        prosessversjon = null
+        prosessversjon = null,
+        data = data
     )
 
     companion object {
@@ -66,7 +68,8 @@ class Søknad private constructor(
             tilstandsType: Tilstand.Type,
             aktivitetslogg: Aktivitetslogg,
             innsending: NyInnsending?,
-            prosessversjon: Prosessversjon?
+            prosessversjon: Prosessversjon?,
+            data: Lazy<SøknadData>
         ): Søknad {
             val tilstand: Tilstand = when (tilstandsType) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
@@ -84,7 +87,8 @@ class Søknad private constructor(
                 dokumentkrav = dokumentkrav,
                 sistEndretAvBruker = sistEndretAvBruker,
                 aktivitetslogg = aktivitetslogg,
-                prosessversjon = prosessversjon
+                prosessversjon = prosessversjon,
+                data = data
             )
         }
 
@@ -297,6 +301,10 @@ class Søknad private constructor(
             get() = Tilstand.Type.Påbegynt
 
         override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
+            if (!søknad.data.value.erFerdig()) {
+                // @todo: Oversette validringsfeil til frontend. Mulig lage et eller annet som frontend kan tolke
+                søknadInnsendtHendelse.severe("Alle faktum må være besvart")
+            }
             if (!søknad.dokumentkrav.ferdigBesvart()) {
                 // @todo: Oversette validringsfeil til frontend. Mulig lage et eller annet som frontend kan tolke
                 søknadInnsendtHendelse.severe("Alle dokumentkrav må være besvart")
