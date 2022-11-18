@@ -167,6 +167,12 @@ internal class SøknadMediatorTest {
         testRapid.sendTestMessage(søkerOppgave(søknadUuid.toString().toUUID(), testIdent))
 
         mediator.behandle(FaktumSvar(søknadUuid, "1234", "boolean", testIdent, BooleanNode.TRUE))
+        val partisjonsnøkkel = testRapid.inspektør.key(1)
+        assertEquals(
+            testIdent,
+            partisjonsnøkkel,
+            "Partisjonsnøkkel for faktum_svar skal være ident '$testIdent' var '$partisjonsnøkkel"
+        )
         assertTrue("faktum_svar" in testRapid.inspektør.message(1).toString())
 
         testRapid.sendTestMessage(ferdigSøkerOppgave(søknadUuid.toString().toUUID(), testIdent))

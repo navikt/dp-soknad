@@ -9,7 +9,7 @@ internal class FaktumSvar(
     private val søknadUuid: UUID,
     private val faktumId: String,
     private val type: String,
-    private val eier: String,
+    private val ident: String,
     private val svar: JsonNode,
     private val besvart: LocalDateTime = LocalDateTime.now()
 ) {
@@ -18,7 +18,7 @@ internal class FaktumSvar(
     private val id = UUID.randomUUID()
 
     fun søknadUuid() = søknadUuid
-    fun eier() = eier
+    fun ident() = ident
     fun besvart() = besvart
 
     fun toJson() = JsonMessage.newMessage(

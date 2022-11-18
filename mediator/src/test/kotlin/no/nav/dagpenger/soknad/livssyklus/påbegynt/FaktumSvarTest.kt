@@ -15,7 +15,7 @@ internal class FaktumSvarTest {
             søknadUuid = UUID.randomUUID(),
             faktumId = "1",
             type = "localdate",
-            eier = "1234567890",
+            ident = "1234567890",
             svar = BooleanNode.TRUE
         ).toJson().also {
             val content = jackson.readTree(it)
