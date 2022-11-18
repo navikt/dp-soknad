@@ -29,10 +29,10 @@ spec:
      pool: {{ kafka_pool }}
   resources:
     limits:
-      cpu: "1024m"
+      cpu: "2024m"
       memory: "512Mi"
     requests:
-      cpu: "512m"
+      cpu: "1024m"
       memory: "512Mi"
   {{ ingresses }}
   tokenx:
@@ -65,7 +65,8 @@ spec:
       value: {{DP_INNSYN_AUDIENCE}}
     - name: DP_INNSYN_URL
       value: http://dp-innsyn
-    #- name: JAVA_OPTS
+    - name: JAVA_OPTS
+      value: -XX:ActiveProcessorCount=2
     #  value: -XX:+UseG1GC -XX:MaxRAMPercentage=75.0 -XX:ActiveProcessorCount=2
   gcp:
     sqlInstances:
