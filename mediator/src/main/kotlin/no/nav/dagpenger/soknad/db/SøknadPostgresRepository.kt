@@ -134,7 +134,8 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 """
                 SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident
                 FROM  soknad_v1
-                WHERE person_ident = :ident AND tilstand != 'Slettet'
+                WHERE person_ident = :ident AND tilstand != 'Slettet' 
+                ORDER BY sist_endret_av_bruker DESC
                 """.trimIndent(),
                 mapOf(
                     "ident" to ident

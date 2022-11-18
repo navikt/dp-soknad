@@ -791,7 +791,7 @@ internal class SøknadPostgresRepositoryTest {
 
                     assertFalse(this.contains(søknadIdForInnsendt), "Innsendte blir ikke migrert")
                     assertEquals(
-                        listOf(søknadIdForPåbegynt, søknadIdForPreMigrert),
+                        listOf(søknadIdForPreMigrert, søknadIdForPåbegynt),
                         this,
                         "Bare søknader uten versjon eller lavere versjon skal migreres"
                     )
