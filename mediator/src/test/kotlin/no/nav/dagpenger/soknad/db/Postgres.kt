@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad.db
 
 import com.zaxxer.hikari.HikariDataSource
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
+import org.flywaydb.core.internal.configuration.ConfigUtils
 import org.testcontainers.containers.PostgreSQLContainer
 
 internal object Postgres {
@@ -19,6 +20,7 @@ internal object Postgres {
     }
 
     fun setup() {
+        System.setProperty(ConfigUtils.CLEAN_DISABLED, "false")
         System.setProperty(PostgresDataSourceBuilder.DB_HOST_KEY, instance.host)
         System.setProperty(
             PostgresDataSourceBuilder.DB_PORT_KEY,
@@ -41,6 +43,7 @@ internal object Postgres {
         System.clearProperty(PostgresDataSourceBuilder.DB_HOST_KEY)
         System.clearProperty(PostgresDataSourceBuilder.DB_PORT_KEY)
         System.clearProperty(PostgresDataSourceBuilder.DB_DATABASE_KEY)
+        System.clearProperty(ConfigUtils.CLEAN_DISABLED)
     }
 
     fun withCleanDb(block: () -> Unit) {
