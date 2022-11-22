@@ -39,7 +39,8 @@ private val logger = KotlinLogging.logger {}
 internal fun Application.api(
     søknadRouteBuilder: Route.() -> Unit,
     personaliaRouteBuilder: Route.() -> Unit,
-    ferdigstiltRouteBuilder: Route.() -> Unit
+    ferdigstiltRouteBuilder: Route.() -> Unit,
+    søknadDataRouteBuilder: Route.() -> Unit
 ) {
     install(CallLogging) {
         callIdMdc("call-id")
@@ -133,6 +134,7 @@ internal fun Application.api(
         }
         authenticate("azureAd") {
             ferdigstiltRouteBuilder()
+            søknadDataRouteBuilder()
         }
     }
 }

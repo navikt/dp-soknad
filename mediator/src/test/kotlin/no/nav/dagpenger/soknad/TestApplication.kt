@@ -13,6 +13,7 @@ import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.mockk
+import no.nav.dagpenger.soknad.data.søknadData
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.ferdigStiltSøknadRouteBuilder
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
@@ -64,11 +65,15 @@ object TestApplication {
 
         return fun Application.() {
             api(
-                søknadApiRouteBuilder(søknadMediator, behandlingsstatusClient),
+                søknadApiRouteBuilder(
+                    søknadMediator = søknadMediator,
+                    behandlingsstatusClient = behandlingsstatusClient
+                ),
                 personaliaRouteBuilder(
                     personOppslag, kontonummerOppslag
                 ),
-                ferdigStiltSøknadRouteBuilder(mockk(relaxed = true))
+                ferdigStiltSøknadRouteBuilder(mockk(relaxed = true)),
+                søknadDataRouteBuilder = søknadData(søknadMediator),
             )
         }
     }

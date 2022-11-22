@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad
 
 import SøknadMetrikkObserver
 import no.nav.dagpenger.pdl.createPersonOppslag
+import no.nav.dagpenger.soknad.data.søknadData
 import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
@@ -47,7 +48,8 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
             ),
             ferdigstiltRouteBuilder = ferdigStiltSøknadRouteBuilder(
                 ferdigstiltRepository
-            )
+            ),
+            søknadDataRouteBuilder = søknadData(mediator = søknadMediator)
         )
     }.build()
 
