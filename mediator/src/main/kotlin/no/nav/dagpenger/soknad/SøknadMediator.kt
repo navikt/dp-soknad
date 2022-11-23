@@ -2,14 +2,11 @@ package no.nav.dagpenger.soknad
 
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.db.SøknadDataRepository
-import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
-import no.nav.dagpenger.soknad.hendelse.InnsendingMetadataMottattHendelse
-import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettFil
@@ -17,8 +14,8 @@ import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
-import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
+import no.nav.dagpenger.soknad.hendelse.innsending.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.FerdigstiltSøknadRepository
@@ -71,24 +68,6 @@ internal class SøknadMediator(
         }
     }
 
-    fun behandle(arkiverbarSøknadMottattHendelse: ArkiverbarSøknadMottattHendelse) {
-        behandle(arkiverbarSøknadMottattHendelse) { søknad ->
-            søknad.håndter(arkiverbarSøknadMottattHendelse)
-        }
-    }
-
-    fun behandle(søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse) {
-        behandle(søknadMidlertidigJournalførtHendelse) { søknad ->
-            søknad.håndter(søknadMidlertidigJournalførtHendelse)
-        }
-    }
-
-    fun behandle(journalførtHendelse: JournalførtHendelse) {
-        behandle(journalførtHendelse) { søknad ->
-            søknad.håndter(journalførtHendelse)
-        }
-    }
-
     fun behandle(slettSøknadHendelse: SlettSøknadHendelse) {
         behandle(slettSøknadHendelse) { søknad ->
             søknad.håndter(slettSøknadHendelse)
@@ -137,12 +116,6 @@ internal class SøknadMediator(
         }
     }
 
-    fun behandle(innsendingMetadataMottattHendelse: InnsendingMetadataMottattHendelse) {
-        behandle(innsendingMetadataMottattHendelse) { søknad ->
-            søknad.håndter(innsendingMetadataMottattHendelse)
-        }
-    }
-
     fun behandle(hendelse: MigrertProsessHendelse, søkerOppgave: SøkerOppgave) {
         behandle(hendelse) { søknad ->
             søknad.håndter(hendelse)
@@ -187,6 +160,7 @@ internal class SøknadMediator(
                 hendelse.språk(),
                 hendelse.ident()
             )
+
             else -> søknad ?: throw SøknadIkkeFunnet("Søknaden med id ${hendelse.søknadID()} finnes ikke")
         }
     }
@@ -211,6 +185,7 @@ internal class SøknadMediator(
         sikkerLogger.info("aktivitetslogg inneholder meldinger: ${hendelse.toLogString()}")
         behovMediator.håndter(hendelse)
     }
+
     internal class SøknadIkkeFunnet(message: String) : RuntimeException(message)
 }
 

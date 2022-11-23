@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad.hendelse
+package no.nav.dagpenger.soknad.hendelse.innsending
 
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Innsending.Dokument.Dokumentvariant
@@ -6,13 +6,11 @@ import java.util.UUID
 
 class ArkiverbarSøknadMottattHendelse(
     innsendingId: UUID,
-    søknadID: UUID,
     ident: String,
     private val dokumentvarianter: List<Dokumentvariant>,
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 ) : InnsendingHendelse(
     innsendingId,
-    søknadID,
     ident,
     aktivitetslogg
 ) {

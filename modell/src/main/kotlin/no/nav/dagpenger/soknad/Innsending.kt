@@ -1,17 +1,17 @@
 package no.nav.dagpenger.soknad
 
 import de.slub.urn.URN
-import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
-import no.nav.dagpenger.soknad.hendelse.InnsendingMetadataMottattHendelse
-import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
-import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
-import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
+import no.nav.dagpenger.soknad.hendelse.innsending.ArkiverbarSøknadMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.innsending.InnsendingMetadataMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.innsending.JournalførtHendelse
+import no.nav.dagpenger.soknad.hendelse.innsending.SøknadMidlertidigJournalførtHendelse
+import no.nav.dagpenger.soknad.innsending.meldinger.NyInnsendingHendelse
 import java.time.ZonedDateTime
 import java.util.UUID
 
 abstract class Innsending protected constructor(
-    private val innsendingId: UUID,
+    internal val innsendingId: UUID,
     private val type: InnsendingType,
     private val innsendt: ZonedDateTime,
     private var journalpostId: String?,
@@ -24,11 +24,11 @@ abstract class Innsending protected constructor(
     protected val observers = mutableListOf<InnsendingObserver>()
 
     companion object {
-        fun ny(innsendt: ZonedDateTime, dokumentkrav: Dokumentkrav) =
+        fun ny(innsendt: ZonedDateTime, dokumentkrav: List<Dokument>) =
             NyInnsending(InnsendingType.NY_DIALOG, innsendt, dokumentkrav)
     }
 
-    fun håndter(hendelse: SøknadInnsendtHendelse) {
+    fun håndter(hendelse: NyInnsendingHendelse) {
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
     }
@@ -38,14 +38,24 @@ abstract class Innsending protected constructor(
     }
 
     fun håndter(hendelse: ArkiverbarSøknadMottattHendelse) {
+        kontekst(hendelse)
+        hendelse.info("Arkiverbar søknad mottatt")
+        if (!hendelse.valider()) {
+            hendelse.warn("Ikke gyldig dokumentlokasjon")
+            return
+        }
         innsendinger.forEach { it._håndter(hendelse) }
     }
 
     fun håndter(hendelse: SøknadMidlertidigJournalførtHendelse) {
+        kontekst(hendelse)
+        hendelse.info("Søknad midlertidig journalført")
         innsendinger.forEach { it._håndter(hendelse) }
     }
 
     fun håndter(hendelse: JournalførtHendelse) {
+        kontekst(hendelse)
+        hendelse.info("Søknad journalført")
         innsendinger.forEach { it._håndter(hendelse) }
     }
 
@@ -102,7 +112,7 @@ abstract class Innsending protected constructor(
 
         fun entering(hendelse: Hendelse, innsending: Innsending) {}
 
-        fun håndter(hendelse: SøknadInnsendtHendelse, innsending: Innsending) =
+        fun håndter(hendelse: NyInnsendingHendelse, innsending: Innsending) =
             hendelse.`kan ikke håndteres i denne tilstanden`()
 
         fun håndter(hendelse: InnsendingMetadataMottattHendelse, innsending: Innsending) =
@@ -131,7 +141,7 @@ abstract class Innsending protected constructor(
     protected object Opprettet : Tilstand {
         override val tilstandType = TilstandType.Opprettet
 
-        override fun håndter(hendelse: SøknadInnsendtHendelse, innsending: Innsending) {
+        override fun håndter(hendelse: NyInnsendingHendelse, innsending: Innsending) {
             innsending.endreTilstand(AvventerMetadata, hendelse)
         }
     }

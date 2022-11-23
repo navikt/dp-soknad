@@ -16,9 +16,9 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
-import no.nav.dagpenger.soknad.livssyklus.JournalførtMottak
-import no.nav.dagpenger.soknad.livssyklus.NyJournalpostMottak
-import no.nav.dagpenger.soknad.livssyklus.SkjemakodeMottak
+import no.nav.dagpenger.soknad.innsending.tjenester.JournalførtMottak
+import no.nav.dagpenger.soknad.innsending.tjenester.NyJournalpostMottak
+import no.nav.dagpenger.soknad.innsending.tjenester.SkjemakodeMottak
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak

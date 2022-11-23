@@ -6,9 +6,9 @@ import no.nav.dagpenger.soknad.data.søknadData
 import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
-import no.nav.dagpenger.soknad.livssyklus.JournalførtMottak
-import no.nav.dagpenger.soknad.livssyklus.NyJournalpostMottak
-import no.nav.dagpenger.soknad.livssyklus.SkjemakodeMottak
+import no.nav.dagpenger.soknad.innsending.tjenester.JournalførtMottak
+import no.nav.dagpenger.soknad.innsending.tjenester.NyJournalpostMottak
+import no.nav.dagpenger.soknad.innsending.tjenester.SkjemakodeMottak
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.FerdigstiltSøknadPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.ferdigStiltSøknadRouteBuilder
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.MigrertSøknadMottak

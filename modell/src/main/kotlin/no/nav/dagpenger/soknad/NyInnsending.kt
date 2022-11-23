@@ -13,7 +13,7 @@ class NyInnsending private constructor(
     hovedDokument: Dokument? = null,
     dokumenter: List<Dokument>,
     metadata: Metadata?,
-    private val ettersendinger: MutableList<Ettersending>
+     // private val ettersendinger: MutableList<Ettersending>
 ) : Innsending(
     innsendingId,
     type,
@@ -27,7 +27,7 @@ class NyInnsending private constructor(
     internal constructor(
         type: InnsendingType,
         innsendt: ZonedDateTime,
-        dokumentkrav: Dokumentkrav,
+        dokumentkrav: List<Dokument>,
         metadata: Metadata? = null
     ) : this(
         innsendingId = UUID.randomUUID(),
@@ -35,7 +35,7 @@ class NyInnsending private constructor(
         innsendt = innsendt,
         journalpostId = null,
         tilstand = Opprettet,
-        dokumenter = dokumentkrav.tilDokument(),
+        dokumenter = dokumentkrav,
         ettersendinger = mutableListOf(),
         metadata = metadata
     )
@@ -81,7 +81,7 @@ class NyInnsending private constructor(
         ettersendinger.forEach { it.addObserver(innsendingObserver) }
     }
 
-    fun ettersend(hendelse: SøknadInnsendtHendelse, dokumentkrav: Dokumentkrav) {
+    fun ettersend(hendelse: SøknadInnsendtHendelse, dokumentkrav: List<Dokument>) {
         Ettersending(
             InnsendingType.ETTERSENDING_TIL_DIALOG,
             hendelse.innsendtidspunkt(),

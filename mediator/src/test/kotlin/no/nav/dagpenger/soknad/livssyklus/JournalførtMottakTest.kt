@@ -6,7 +6,8 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
+import no.nav.dagpenger.soknad.hendelse.innsending.JournalførtHendelse
+import no.nav.dagpenger.soknad.innsending.tjenester.JournalførtMottak
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue

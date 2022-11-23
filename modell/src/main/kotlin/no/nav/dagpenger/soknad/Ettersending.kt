@@ -25,7 +25,7 @@ class Ettersending private constructor(
     internal constructor(
         type: InnsendingType,
         innsendt: ZonedDateTime,
-        dokumentkrav: Dokumentkrav,
+        dokumentkrav: List<Dokument>,
         metadata: Metadata? = null
     ) : this(
         innsendingId = UUID.randomUUID(),
@@ -33,7 +33,7 @@ class Ettersending private constructor(
         innsendt = innsendt,
         journalpostId = null,
         tilstand = Opprettet,
-        dokumenter = dokumentkrav.tilDokument(),
+        dokumenter = dokumentkrav,
         metadata = metadata
     )
 

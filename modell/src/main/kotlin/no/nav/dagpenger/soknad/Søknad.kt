@@ -2,21 +2,17 @@ package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.SøknadObserver.SøknadSlettetEvent
-import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
-import no.nav.dagpenger.soknad.hendelse.InnsendingMetadataMottattHendelse
-import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
-import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import java.time.ZonedDateTime
@@ -27,7 +23,7 @@ class Søknad private constructor(
     private val ident: String,
     private val opprettet: ZonedDateTime,
     private var tilstand: Tilstand,
-    private var innsending: NyInnsending?,
+    // private var innsending: NyInnsending?,
     private val språk: Språk,
     private val dokumentkrav: Dokumentkrav,
     private var sistEndretAvBruker: ZonedDateTime,
@@ -44,7 +40,12 @@ class Søknad private constructor(
         innsending?.addObserver(this)
     }
 
-    constructor(søknadId: UUID, språk: Språk, ident: String, data: Lazy<SøknadData> = lazy { throw IllegalStateException("Mangler søknadsdata") }) : this(
+    constructor(
+        søknadId: UUID,
+        språk: Språk,
+        ident: String,
+        data: Lazy<SøknadData> = lazy { throw IllegalStateException("Mangler søknadsdata") }
+    ) : this(
         søknadId = søknadId,
         ident = ident,
         opprettet = ZonedDateTime.now(),
@@ -122,34 +123,6 @@ class Søknad private constructor(
         tilstand.håndter(søknadInnsendtHendelse, this)
     }
 
-    fun håndter(innsendingMetadataMottattHendelse: InnsendingMetadataMottattHendelse) {
-        kontekst(innsendingMetadataMottattHendelse)
-        innsendingMetadataMottattHendelse.info("Brevkode mottatt")
-        tilstand.håndter(innsendingMetadataMottattHendelse, this)
-    }
-
-    fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse) {
-        kontekst(arkiverbarSøknadMotattHendelse)
-        arkiverbarSøknadMotattHendelse.info("Arkiverbar søknad mottatt")
-        if (!arkiverbarSøknadMotattHendelse.valider()) {
-            arkiverbarSøknadMotattHendelse.warn("Ikke gyldig dokumentlokasjon")
-            return
-        }
-        tilstand.håndter(arkiverbarSøknadMotattHendelse, this)
-    }
-
-    fun håndter(søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse) {
-        kontekst(søknadMidlertidigJournalførtHendelse)
-        søknadMidlertidigJournalførtHendelse.info("Søknad midlertidig journalført")
-        tilstand.håndter(søknadMidlertidigJournalførtHendelse, this)
-    }
-
-    fun håndter(journalførtHendelse: JournalførtHendelse) {
-        kontekst(journalførtHendelse)
-        journalførtHendelse.info("Søknad journalført")
-        tilstand.håndter(journalførtHendelse, this)
-    }
-
     fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse) {
         kontekst(faktumOppdatertHendelse)
         tilstand.håndter(faktumOppdatertHendelse, this)
@@ -213,18 +186,6 @@ class Søknad private constructor(
 
         fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) =
             søknadInnsendtHendelse.`kan ikke håndteres i denne tilstanden`()
-
-        fun håndter(innsendingMetadataMottattHendelse: InnsendingMetadataMottattHendelse, søknad: Søknad) =
-            innsendingMetadataMottattHendelse.`kan ikke håndteres i denne tilstanden`()
-
-        fun håndter(arkiverbarSøknadMotattHendelse: ArkiverbarSøknadMottattHendelse, søknad: Søknad) =
-            arkiverbarSøknadMotattHendelse.`kan ikke håndteres i denne tilstanden`()
-
-        fun håndter(søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse, søknad: Søknad) =
-            søknadMidlertidigJournalførtHendelse.`kan ikke håndteres i denne tilstanden`()
-
-        fun håndter(journalførtHendelse: JournalførtHendelse, søknad: Søknad) =
-            journalførtHendelse.`kan ikke håndteres i denne tilstanden`()
 
         fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse, søknad: Søknad): Unit =
             faktumOppdatertHendelse.severe("Kan ikke oppdatere faktum for søknader i tilstand ${tilstandType.name}")
@@ -309,20 +270,16 @@ class Søknad private constructor(
                 // @todo: Oversette validringsfeil til frontend. Mulig lage et eller annet som frontend kan tolke
                 søknadInnsendtHendelse.severe("Alle dokumentkrav må være besvart")
             }
-            val krav = søknad.dokumentkrav.aktiveDokumentKrav()
-            val besvarte = krav.filter { it.besvart() }
-            val innsendte = besvarte.filter { it.svar.valg == Krav.Svar.SvarValg.SEND_NÅ }
-            val innsending = Innsending.ny(
-                søknadInnsendtHendelse.innsendtidspunkt(),
-                // TODO: Klassifisering til NAV skjemakode
-                dokumentkrav = søknad.dokumentkrav
-            ).also {
-                it.addObserver(søknad)
-            }
-            søknadInnsendtHendelse.info("Innsending ${innsending.toSpesifikkKontekst()} opprettet med ${krav.size} dokumentkrav, ${besvarte.size} besvarte, ${innsendte.size} innsendte")
-            søknad.innsending = innsending.also {
-                it.håndter(søknadInnsendtHendelse)
-            }
+            // TODO: ta med inn i innsending søknadInnsendtHendelse.info("Innsending ${innsending.toSpesifikkKontekst()} opprettet med ${krav.size} dokumentkrav, ${besvarte.size} besvarte, ${innsendte.size} innsendte")
+            søknadInnsendtHendelse.behov(
+                Behovtype.NyInnsending,
+                "Søknad innsendt, trenger ny innsending",
+                mapOf(
+                    "innsendtTidspunkt" to søknadInnsendtHendelse.innsendtidspunkt(),
+                    "dokumentkrav" to søknad.dokumentkrav.tilDokument().map { it.toMap() }
+                )
+            )
+
             søknad.dokumentkrav.håndter(søknadInnsendtHendelse)
             søknad.endreTilstand(Innsendt, søknadInnsendtHendelse)
         }
@@ -369,14 +326,6 @@ class Søknad private constructor(
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.Innsendt
 
-        override fun håndter(hendelse: InnsendingMetadataMottattHendelse, søknad: Søknad) {
-            innsending(søknad).håndter(hendelse)
-        }
-
-        override fun håndter(hendelse: ArkiverbarSøknadMottattHendelse, søknad: Søknad) {
-            innsending(søknad).håndter(hendelse)
-        }
-
         override fun håndter(leggTilFil: LeggTilFil, søknad: Søknad) {
             søknad.dokumentkrav.håndter(leggTilFil)
         }
@@ -389,24 +338,22 @@ class Søknad private constructor(
             søknad.dokumentkrav.håndter(dokumentKravSammenstilling)
         }
 
-        override fun håndter(
-            hendelse: SøknadMidlertidigJournalførtHendelse,
-            søknad: Søknad
-        ) {
-            innsending(søknad).håndter(hendelse)
-        }
-
-        override fun håndter(hendelse: JournalførtHendelse, søknad: Søknad) {
-            innsending(søknad).håndter(hendelse)
-        }
-
         override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
-            if (søknad.erDagpenger()) {
-                innsending(søknad).ettersend(søknadInnsendtHendelse, søknad.dokumentkrav)
-                søknad.dokumentkrav.håndter(søknadInnsendtHendelse)
-            } else {
+            if (!søknad.erDagpenger()) {
                 søknadInnsendtHendelse.severe("Kan ikke lage ettersending av prosess ${søknad.prosessversjon?.prosessnavn?.id}")
+                return
             }
+
+            søknad.dokumentkrav.håndter(søknadInnsendtHendelse)
+
+            søknadInnsendtHendelse.behov(
+                Behovtype.NyEttersending,
+                "Søknad ettersend, trenger ny ettersending",
+                mapOf(
+                    "innsendtTidspunkt" to søknadInnsendtHendelse.innsendtidspunkt(),
+                    "dokumentkrav" to søknad.dokumentkrav.tilDokument().map { it.toMap() },
+                )
+            )
         }
 
         private fun innsending(søknad: Søknad) =
