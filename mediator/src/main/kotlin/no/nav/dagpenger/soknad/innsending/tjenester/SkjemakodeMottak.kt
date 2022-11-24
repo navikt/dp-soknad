@@ -5,6 +5,7 @@ import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.InnsendingMetadata
 import no.nav.dagpenger.soknad.hendelse.innsending.InnsendingMetadataMottattHendelse
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
+import no.nav.dagpenger.soknad.utils.asUUID
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection

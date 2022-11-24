@@ -10,7 +10,7 @@ import no.nav.dagpenger.soknad.innsending.meldinger.NyInnsendingHendelse
 import java.time.ZonedDateTime
 import java.util.UUID
 
-abstract class Innsending protected constructor(
+class Innsending private constructor(
     internal val innsendingId: UUID,
     private val type: InnsendingType,
     private val innsendt: ZonedDateTime,
@@ -20,12 +20,60 @@ abstract class Innsending protected constructor(
     private val dokumenter: List<Dokument>,
     internal var metadata: Metadata?
 ) : Aktivitetskontekst {
-    protected open val innsendinger get() = (listOf(this))
-    protected val observers = mutableListOf<InnsendingObserver>()
+    private val innsendinger get() = (listOf(this))
+    private val observers = mutableListOf<InnsendingObserver>()
+
+    internal constructor(
+        type: InnsendingType,
+        innsendt: ZonedDateTime,
+        dokumentkrav: List<Dokument>,
+        metadata: Metadata? = null
+    ) : this(
+        innsendingId = UUID.randomUUID(),
+        type = type,
+        innsendt = innsendt,
+        journalpostId = null,
+        tilstand = Opprettet,
+        dokumenter = dokumentkrav,
+        metadata = metadata
+    )
 
     companion object {
         fun ny(innsendt: ZonedDateTime, dokumentkrav: List<Dokument>) =
-            NyInnsending(InnsendingType.NY_DIALOG, innsendt, dokumentkrav)
+            Innsending(InnsendingType.NY_DIALOG, innsendt, dokumentkrav)
+
+        fun ettersending(innsendt: ZonedDateTime, dokumentkrav: List<Dokument>) =
+            Innsending(InnsendingType.ETTERSENDING_TIL_DIALOG, innsendt, dokumentkrav)
+
+        fun rehydrer(
+            innsendingId: UUID,
+            type: InnsendingType,
+            innsendt: ZonedDateTime,
+            journalpostId: String?,
+            tilstandsType: TilstandType,
+            hovedDokument: Dokument? = null,
+            dokumenter: List<Dokument>,
+            metadata: Metadata?
+        ): Innsending {
+            val tilstand: Tilstand = when (tilstandsType) {
+                TilstandType.Opprettet -> Opprettet
+                TilstandType.AvventerMetadata -> AvventerMetadata
+                TilstandType.AvventerArkiverbarSøknad -> AvventerArkiverbarSøknad
+                TilstandType.AvventerMidlertidligJournalføring -> AvventerMidlertidligJournalføring
+                TilstandType.AvventerJournalføring -> AvventerJournalføring
+                TilstandType.Journalført -> Journalført
+            }
+            return Innsending(
+                innsendingId,
+                type,
+                innsendt,
+                journalpostId,
+                tilstand,
+                hovedDokument,
+                dokumenter,
+                metadata
+            )
+        }
     }
 
     fun håndter(hendelse: NyInnsendingHendelse) {
@@ -107,7 +155,7 @@ abstract class Innsending protected constructor(
         }
     }
 
-    protected interface Tilstand : Aktivitetskontekst {
+    private interface Tilstand : Aktivitetskontekst {
         val tilstandType: TilstandType
 
         fun entering(hendelse: Hendelse, innsending: Innsending) {}
@@ -138,7 +186,7 @@ abstract class Innsending protected constructor(
         }
     }
 
-    protected object Opprettet : Tilstand {
+    private object Opprettet : Tilstand {
         override val tilstandType = TilstandType.Opprettet
 
         override fun håndter(hendelse: NyInnsendingHendelse, innsending: Innsending) {
@@ -146,7 +194,7 @@ abstract class Innsending protected constructor(
         }
     }
 
-    protected object AvventerMetadata : Tilstand {
+    private object AvventerMetadata : Tilstand {
         override val tilstandType = TilstandType.AvventerMetadata
 
         override fun entering(hendelse: Hendelse, innsending: Innsending) {
@@ -163,7 +211,7 @@ abstract class Innsending protected constructor(
         }
     }
 
-    protected object AvventerArkiverbarSøknad : Tilstand {
+    private object AvventerArkiverbarSøknad : Tilstand {
         override val tilstandType = TilstandType.AvventerArkiverbarSøknad
 
         override fun entering(hendelse: Hendelse, innsending: Innsending) {
@@ -193,7 +241,7 @@ abstract class Innsending protected constructor(
         }
     }
 
-    protected object AvventerMidlertidligJournalføring : Tilstand {
+    private object AvventerMidlertidligJournalføring : Tilstand {
         override val tilstandType = TilstandType.AvventerMidlertidligJournalføring
 
         override fun entering(hendelse: Hendelse, innsending: Innsending) {
@@ -216,7 +264,7 @@ abstract class Innsending protected constructor(
         }
     }
 
-    protected object AvventerJournalføring : Tilstand {
+    private object AvventerJournalføring : Tilstand {
         override val tilstandType = TilstandType.AvventerJournalføring
 
         override fun håndter(hendelse: JournalførtHendelse, innsending: Innsending) {
@@ -226,11 +274,11 @@ abstract class Innsending protected constructor(
         }
     }
 
-    protected object Journalført : Tilstand {
+    private object Journalført : Tilstand {
         override val tilstandType = TilstandType.Journalført
     }
 
-    open fun accept(visitor: InnsendingVisitor) {
+    fun accept(visitor: InnsendingVisitor) {
         visitor.visit(
             innsendingId,
             type,
@@ -256,7 +304,7 @@ abstract class Innsending protected constructor(
         )
     )
 
-    open fun addObserver(innsendingObserver: InnsendingObserver) {
+    fun addObserver(innsendingObserver: InnsendingObserver) {
         observers.add(innsendingObserver)
     }
 

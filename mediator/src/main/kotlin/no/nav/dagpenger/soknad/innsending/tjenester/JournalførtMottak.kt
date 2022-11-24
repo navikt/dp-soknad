@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.hendelse.innsending.JournalførtHendelse
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
+import no.nav.dagpenger.soknad.utils.asUUID
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -47,7 +48,7 @@ internal class JournalførtMottak(
          */
         val søknadID = packet["søknadsData"]["søknad_uuid"].asUUID()
         withLoggingContext(
-            "søknadId" to søknadID.toString(),
+            "søknadId" to søknadID.toString()
         ) {
             val journalførtHendelse = JournalførtHendelse(søknadID, journalpostId, ident)
             logger.info { "Fått løsning for innsending_ferdigstilt for $journalpostId" }

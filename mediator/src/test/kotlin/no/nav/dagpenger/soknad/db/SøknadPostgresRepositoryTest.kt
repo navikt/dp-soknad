@@ -10,11 +10,9 @@ import kotliquery.using
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.DeepEquals.assertDeepEquals
 import no.nav.dagpenger.soknad.Dokumentkrav
-import no.nav.dagpenger.soknad.Ettersending
 import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Krav
-import no.nav.dagpenger.soknad.NyInnsending
 import no.nav.dagpenger.soknad.Prosessnavn
 import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Sannsynliggjøring
@@ -120,7 +118,7 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
-            prosessversjon,
+            prosessversjon = prosessversjon,
             data = FerdigSøknadData
         )
 
@@ -564,7 +562,7 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
-            Prosessversjon(Prosessnavn(prosessNavn), 2),
+            prosessversjon = Prosessversjon(Prosessnavn(prosessNavn), 2),
             data = FerdigSøknadData
         )
 
@@ -582,7 +580,7 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now,
             tilstandsType = Innsendt,
             aktivitetslogg = Aktivitetslogg(),
-            prosessversjon,
+            prosessversjon = prosessversjon,
             data = FerdigSøknadData
         )
 
@@ -648,7 +646,6 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
-            null,
             prosessversjon = prosessversjon2,
             data = FerdigSøknadData
         )
@@ -663,8 +660,7 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now,
             tilstandsType = Innsendt,
             aktivitetslogg = Aktivitetslogg(),
-            null,
-            prosessversjon,
+            prosessversjon = prosessversjon,
             data = FerdigSøknadData
         )
 

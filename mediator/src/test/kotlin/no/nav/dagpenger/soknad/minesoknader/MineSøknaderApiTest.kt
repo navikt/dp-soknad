@@ -10,9 +10,7 @@ import io.mockk.mockk
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.Dokumentkrav
-import no.nav.dagpenger.soknad.Ettersending
 import no.nav.dagpenger.soknad.Innsending
-import no.nav.dagpenger.soknad.NyInnsending
 import no.nav.dagpenger.soknad.Prosessnavn
 import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Språk
@@ -199,7 +197,7 @@ class MineSøknaderApiTest {
     private fun søknadMed(
         tilstand: Søknad.Tilstand.Type,
         opprettet: LocalDateTime = LocalDateTime.now(),
-        innsending: NyInnsending? = null,
+        innsending: Innsending? = null,
         sistEndretAvBruker: LocalDateTime = LocalDateTime.MAX,
         prosessversjon: Prosessversjon? = Prosessversjon(Prosessnavn("Dagpenger"), 1)
     ) = Søknad.rehydrer(
@@ -211,16 +209,14 @@ class MineSøknaderApiTest {
         sistEndretAvBruker = ZonedDateTime.of(sistEndretAvBruker, ZoneId.of("Europe/Oslo")),
         tilstandsType = tilstand,
         aktivitetslogg = Aktivitetslogg(),
-        innsending = innsending,
         prosessversjon = prosessversjon,
         data = FerdigSøknadData
     )
 
     private fun innsending(
         innsendtTidspunkt: LocalDateTime,
-        journalpostId: String,
-        ettersending: List<Ettersending> = emptyList()
-    ) = NyInnsending.rehydrer(
+        journalpostId: String
+    ) = Innsending.rehydrer(
         innsendingId = UUID.randomUUID(),
         type = Innsending.InnsendingType.NY_DIALOG,
         innsendt = ZonedDateTime.of(innsendtTidspunkt, ZoneId.of("Europe/Oslo")),
@@ -228,7 +224,6 @@ class MineSøknaderApiTest {
         tilstandsType = Innsending.TilstandType.Journalført,
         hovedDokument = null,
         dokumenter = emptyList(),
-        ettersendinger = ettersending,
         metadata = Innsending.Metadata("04-02-03")
     )
 }

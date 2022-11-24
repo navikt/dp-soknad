@@ -14,9 +14,7 @@ import io.mockk.mockk
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.Dokumentkrav
-import no.nav.dagpenger.soknad.Ettersending
 import no.nav.dagpenger.soknad.Innsending
-import no.nav.dagpenger.soknad.NyInnsending
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
@@ -80,8 +78,7 @@ class StatusApiTest {
         val opprettet = LocalDateTime.MAX
         val innsendt = LocalDateTime.of(2022, 1, 1, 12, 15, 30)
         val ettersendt = innsendt.plusDays(1)
-        val ettersending = ettersending(ettersendt, "456")
-        val innsending = innsending(innsendt, "123", listOf(ettersending))
+        val innsending = innsending(innsendt, "123")
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -90,7 +87,12 @@ class StatusApiTest {
                     every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet, innsending)
                 },
                 behandlingsstatusClient = mockk<BehandlingsstatusClient>().also {
-                    coEvery { it.hentBehandlingsstatus(any(), any()) } returns BehandlingsstatusDto(behandlingsstatus = "UnderBehandling")
+                    coEvery {
+                        it.hentBehandlingsstatus(
+                            any(),
+                            any()
+                        )
+                    } returns BehandlingsstatusDto(behandlingsstatus = "UnderBehandling")
                 }
             )
         ) {
@@ -108,8 +110,7 @@ class StatusApiTest {
         val opprettet = LocalDateTime.MAX
         val innsendt = LocalDateTime.of(2022, 1, 1, 12, 15, 30)
         val ettersendt = innsendt.plusDays(1)
-        val ettersending = ettersending(ettersendt, "456")
-        val innsending = innsending(innsendt, "123", listOf(ettersending))
+        val innsending = innsending(innsendt, "123")
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -118,7 +119,12 @@ class StatusApiTest {
                     every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet, innsending)
                 },
                 behandlingsstatusClient = mockk<BehandlingsstatusClient>().also {
-                    coEvery { it.hentBehandlingsstatus(any(), any()) } returns BehandlingsstatusDto(behandlingsstatus = "null")
+                    coEvery {
+                        it.hentBehandlingsstatus(
+                            any(),
+                            any()
+                        )
+                    } returns BehandlingsstatusDto(behandlingsstatus = "null")
                 }
             )
         ) {
@@ -162,7 +168,7 @@ class StatusApiTest {
     private fun søknadMed(
         tilstand: Søknad.Tilstand.Type,
         opprettet: LocalDateTime = LocalDateTime.now(),
-        innsending: NyInnsending? = null
+        innsending: Innsending? = null
     ) = Søknad.rehydrer(
         søknadId = søknadUuid,
         ident = TestApplication.defaultDummyFodselsnummer,
@@ -172,31 +178,14 @@ class StatusApiTest {
         sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.now(), ZoneId.of("Europe/Oslo")),
         tilstandsType = tilstand,
         aktivitetslogg = Aktivitetslogg(),
-        innsending = innsending,
         prosessversjon = null,
         data = FerdigSøknadData
     )
 
     private fun innsending(
         innsendtTidspunkt: LocalDateTime,
-        journalpostId: String,
-        ettersending: List<Ettersending> = emptyList()
-    ) = NyInnsending.rehydrer(
-        innsendingId = UUID.randomUUID(),
-        type = Innsending.InnsendingType.NY_DIALOG,
-        innsendt = ZonedDateTime.of(innsendtTidspunkt, ZoneId.of("Europe/Oslo")),
-        journalpostId = journalpostId,
-        tilstandsType = Innsending.TilstandType.Journalført,
-        hovedDokument = null,
-        dokumenter = emptyList(),
-        ettersendinger = ettersending,
-        metadata = Innsending.Metadata("04-02-03")
-    )
-
-    private fun ettersending(
-        innsendtTidspunkt: LocalDateTime,
-        journalpostId: String,
-    ) = Ettersending.rehydrer(
+        journalpostId: String
+    ) = Innsending.rehydrer(
         innsendingId = UUID.randomUUID(),
         type = Innsending.InnsendingType.NY_DIALOG,
         innsendt = ZonedDateTime.of(innsendtTidspunkt, ZoneId.of("Europe/Oslo")),

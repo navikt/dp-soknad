@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad
 import de.slub.urn.RFC
 import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.DokumentkravSvar
+import no.nav.dagpenger.soknad.Innsending.Dokument
 import no.nav.dagpenger.soknad.Krav.Companion.aktive
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.IKKE_BESVART
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SEND_NÅ
@@ -61,14 +62,14 @@ class Dokumentkrav private constructor(
         }
     }
 
-    internal fun tilDokument(): List<Innsending.Dokument> =
+    internal fun tilDokument(): List<Dokument> =
         aktiveDokumentKrav().filterNot { it.innsendt() }.filter { it.besvart() }.filter { it.svar.valg == SEND_NÅ }
             .map { krav ->
-                Innsending.Dokument(
+                Dokument(
                     kravId = krav.id,
                     skjemakode = krav.tilSkjemakode(),
                     varianter = listOf(
-                        Innsending.Dokument.Dokumentvariant(
+                        Dokument.Dokumentvariant(
                             filnavn = krav.beskrivendeId,
                             urn = krav.svar.bundle.toString(),
                             variant = "ARKIV", // TODO: hent filtype fra bundle
@@ -139,7 +140,6 @@ data class Krav(
                 "type" to "dokument",
                 "urn" to hendelse.urn().toString(),
                 "lastOppTidsstempel" to LocalDateTime.now()
-
             )
         )
         this.svar.håndter(hendelse)

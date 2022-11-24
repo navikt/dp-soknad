@@ -6,16 +6,17 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.innsending.ArkiverbarSøknadMottattHendelse
+import no.nav.dagpenger.soknad.innsending.InnsendingMediator
+import no.nav.dagpenger.soknad.innsending.tjenester.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 internal class ArkiverbarSøknadMottattHendelseMottakTest {
-    val slot = slot<ArkiverbarSøknadMottattHendelse>()
+    private val slot = slot<ArkiverbarSøknadMottattHendelse>()
 
-    private val mediatorMock = mockk<SøknadMediator>().also {
+    private val mediatorMock = mockk<InnsendingMediator>().also {
         every { it.behandle(capture(slot)) } just Runs
     }
 
