@@ -26,7 +26,7 @@ internal class InnsendingMediator(
 
     private val behovMediator = BehovMediator(rapidsConnection, sikkerLogger)
 
-    fun håndter(nyInnsendingHendelse: NyInnsendingHendelse) {
+    fun behandle(nyInnsendingHendelse: NyInnsendingHendelse) {
         behandle(nyInnsendingHendelse) { innsending ->
             innsending.håndter(nyInnsendingHendelse)
         }

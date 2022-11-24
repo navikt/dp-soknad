@@ -119,6 +119,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         InnsendingDTO(
             innsendingId = innsendingId,
             type = type,
+            ident = "",
             innsendt = row.norskZonedDateTime("innsendt"),
             journalpostId = row.stringOrNull("journalpost_id"),
             tilstand = InnsendingDTO.TilstandDTO.rehydrer(row.string("tilstand")),
@@ -165,10 +166,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 },
                 innsendinger = lazy {
                     object : InnsendingRepository {
-                        override fun opprett(innsendingId: UUID, ident: String): Innsending {
-                            TODO("Not yet implemented")
-                        }
-
                         override fun hent(innsendingId: UUID): Innsending? {
                             TODO("Not yet implemented")
                         }
@@ -463,7 +460,8 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         )
     }
 
-    override fun visit(
+    // TODO: Ta med inn i lagring av innsendinger
+    fun visit(
         innsendingId: UUID,
         innsending: Innsending.InnsendingType,
         tilstand: Innsending.TilstandType,
@@ -576,28 +574,6 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                     )
                 )
             )
-        }
-    }
-
-    override fun preVisitEttersendinger() {
-        ettersending = true
-    }
-
-    override fun postVisitEttersendinger() {
-        ettersending = false
-        ettersendinger.forEach { (innsending, ettersendinger) ->
-            ettersendinger.forEach { ettersending ->
-                queries.add(
-                    queryOf(
-                        //language=PostgreSQL
-                        "INSERT INTO ettersending_v1 (innsending_uuid, ettersending_uuid) VALUES (:innsending_uuid, :ettersending_uuid) ON CONFLICT DO NOTHING",
-                        mapOf(
-                            "innsending_uuid" to innsending,
-                            "ettersending_uuid" to ettersending
-                        )
-                    )
-                )
-            }
         }
     }
 }

@@ -46,7 +46,6 @@ internal class NyJournalpostMottak(
             val søknadMidlertidigJournalførtHendelse =
                 SøknadMidlertidigJournalførtHendelse(
                     innsendingId,
-                    søknadID,
                     packet["ident"].asText(),
                     journalpostId
                 )

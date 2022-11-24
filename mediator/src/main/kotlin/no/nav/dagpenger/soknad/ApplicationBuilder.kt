@@ -83,10 +83,6 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     private val innsendingMediator = InnsendingMediator(
         rapidsConnection = rapidsConnection,
         innsendingRepository = object : InnsendingRepository {
-            override fun opprett(innsendingId: UUID, ident: String): Innsending {
-                TODO("Not yet implemented")
-            }
-
             override fun hent(innsendingId: UUID): Innsending? {
                 TODO("Not yet implemented")
             }

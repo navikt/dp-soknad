@@ -5,8 +5,8 @@ import java.util.UUID
 
 class JournalførtHendelse(
     innsendingId: UUID,
-    private val journalpostId: String,
     ident: String,
+    private val journalpostId: String,
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 ) : InnsendingHendelse(
     innsendingId,

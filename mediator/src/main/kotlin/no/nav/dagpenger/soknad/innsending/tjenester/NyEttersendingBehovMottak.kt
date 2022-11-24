@@ -44,7 +44,7 @@ internal class NyEttersendingBehovMottak(rapidsConnection: RapidsConnection, pri
             logger.info { "Mottatt løsning for $behov for $innsendingId med skjemakode=${packet.skjemakode()}" }
 
             val hendelse = NyInnsendingMelding(packet).hendelse()
-            mediator.håndter(hendelse)
+            mediator.behandle(hendelse)
 
             packet["@løsning"] = mapOf(
                 behov to mapOf(

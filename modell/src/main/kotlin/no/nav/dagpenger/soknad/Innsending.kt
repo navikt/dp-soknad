@@ -11,7 +11,8 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 class Innsending private constructor(
-    internal val innsendingId: UUID,
+    val innsendingId: UUID,
+    private val ident: String,
     private val type: InnsendingType,
     private val innsendt: ZonedDateTime,
     private var journalpostId: String?,
@@ -25,11 +26,13 @@ class Innsending private constructor(
 
     internal constructor(
         type: InnsendingType,
+        ident: String,
         innsendt: ZonedDateTime,
         dokumentkrav: List<Dokument>,
         metadata: Metadata? = null
     ) : this(
         innsendingId = UUID.randomUUID(),
+        ident = ident,
         type = type,
         innsendt = innsendt,
         journalpostId = null,
@@ -39,15 +42,16 @@ class Innsending private constructor(
     )
 
     companion object {
-        fun ny(innsendt: ZonedDateTime, dokumentkrav: List<Dokument>) =
-            Innsending(InnsendingType.NY_DIALOG, innsendt, dokumentkrav)
+        fun ny(innsendt: ZonedDateTime, ident: String, dokumentkrav: List<Dokument>) =
+            Innsending(InnsendingType.NY_DIALOG, ident, innsendt, dokumentkrav)
 
-        fun ettersending(innsendt: ZonedDateTime, dokumentkrav: List<Dokument>) =
-            Innsending(InnsendingType.ETTERSENDING_TIL_DIALOG, innsendt, dokumentkrav)
+        fun ettersending(innsendt: ZonedDateTime, ident: String, dokumentkrav: List<Dokument>) =
+            Innsending(InnsendingType.ETTERSENDING_TIL_DIALOG, ident, innsendt, dokumentkrav)
 
         fun rehydrer(
             innsendingId: UUID,
             type: InnsendingType,
+            ident: String,
             innsendt: ZonedDateTime,
             journalpostId: String?,
             tilstandsType: TilstandType,
@@ -65,6 +69,7 @@ class Innsending private constructor(
             }
             return Innsending(
                 innsendingId,
+                ident,
                 type,
                 innsendt,
                 journalpostId,
@@ -300,7 +305,8 @@ class Innsending private constructor(
         kontekstType = "innsending",
         mapOf(
             "type" to type.name,
-            "innsendingId" to innsendingId.toString()
+            "innsendingId" to innsendingId.toString(),
+            "ident" to ident
         )
     )
 

@@ -6,8 +6,7 @@ import java.util.UUID
 
 class InnsendingMetadataMottattHendelse(
     innsendingId: UUID,
-    val søknadID: UUID,
-    val ident: String,
+    ident: String,
     skjemaKode: String,
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 ) : InnsendingHendelse(innsendingId, ident, aktivitetslogg) {

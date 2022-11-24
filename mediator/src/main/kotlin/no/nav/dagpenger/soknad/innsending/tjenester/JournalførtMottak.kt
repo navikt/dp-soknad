@@ -50,7 +50,7 @@ internal class JournalførtMottak(
         withLoggingContext(
             "søknadId" to søknadID.toString()
         ) {
-            val journalførtHendelse = JournalførtHendelse(søknadID, journalpostId, ident)
+            val journalførtHendelse = JournalførtHendelse(søknadID, ident, journalpostId)
             logger.info { "Fått løsning for innsending_ferdigstilt for $journalpostId" }
             mediator.behandle(journalførtHendelse)
         }

@@ -5,7 +5,6 @@ import java.util.UUID
 
 class SøknadMidlertidigJournalførtHendelse(
     innsendingId: UUID,
-    søknadID: UUID,
     ident: String,
     private val journalpostId: String,
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg()

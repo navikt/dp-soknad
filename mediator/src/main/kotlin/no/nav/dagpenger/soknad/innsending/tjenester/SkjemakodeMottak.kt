@@ -45,7 +45,6 @@ internal class SkjemakodeMottak(rapidsConnection: RapidsConnection, private val 
             mediator.behandle(
                 InnsendingMetadataMottattHendelse(
                     innsendingId = innsendingId,
-                    søknadID = søknadId,
                     ident = ident,
                     skjemaKode = packet.skjemakode()
                 )

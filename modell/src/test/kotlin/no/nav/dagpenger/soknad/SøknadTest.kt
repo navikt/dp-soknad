@@ -362,16 +362,6 @@ internal class SøknadTest {
         assertThrows<AktivitetException> { håndterSendInnSøknad() }
     }
 
-    private fun assertInnsendingTilstand(tilstand: Innsending.TilstandType) {
-        assertEquals(tilstand, inspektør.innsending.tilstand)
-    }
-
-    private fun assertEttersendingTilstand(tilstand: Innsending.TilstandType) {
-        assertEquals(tilstand, ettersendinger().tilstand)
-    }
-
-    private fun ettersendinger() = inspektør.ettersendinger.last()
-
     @Test
     fun `Slett søknad for person`() {
         håndterØnskeOmNySøknadHendelse()

@@ -24,15 +24,17 @@ interface InnsendingVisitor {
         hovedDokument: Dokument?,
         dokumenter: List<Dokument>,
         metadata: Metadata? = null
-    ) {}
+    ) {
+    }
 }
+
 interface DokumentkravVisitor {
     fun preVisitDokumentkrav() {}
     fun visitKrav(krav: Krav) {}
     fun postVisitDokumentkrav() {}
 }
 
-interface SøknadVisitor : TilstandVisitor, AktivitetsloggVisitor, DokumentkravVisitor, InnsendingVisitor {
+interface SøknadVisitor : TilstandVisitor, AktivitetsloggVisitor, DokumentkravVisitor {
     fun visitSøknad(
         søknadId: UUID,
         ident: String,

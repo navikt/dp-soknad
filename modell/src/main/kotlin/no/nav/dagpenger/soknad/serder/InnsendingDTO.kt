@@ -7,6 +7,7 @@ import java.util.UUID
 data class InnsendingDTO(
     val innsendingId: UUID,
     val type: InnsendingTypeDTO,
+    val ident: String,
     val innsendt: ZonedDateTime,
     var journalpostId: String?,
     var tilstand: TilstandDTO,
@@ -19,6 +20,7 @@ data class InnsendingDTO(
         return Innsending.rehydrer(
             innsendingId = this.innsendingId,
             type = this.type.rehydrer(),
+            ident = ident,
             innsendt = this.innsendt,
             journalpostId = this.journalpostId,
             tilstandsType = this.tilstand.rehydrer(),
