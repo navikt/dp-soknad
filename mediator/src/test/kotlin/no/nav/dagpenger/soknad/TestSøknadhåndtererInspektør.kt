@@ -20,6 +20,7 @@ internal class TestSøknadhåndtererInspektør(søknadhåndterer: Søknad) : Sø
         søknadId: UUID,
         ident: String,
         opprettet: ZonedDateTime,
+        innsendt: ZonedDateTime?,
         tilstand: Søknad.Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,

@@ -7,4 +7,5 @@ interface InnsendingRepository {
     fun opprett(innsendingId: UUID, ident: String): Innsending
     fun hent(innsendingId: UUID): Innsending?
     fun lagre(innsending: Innsending)
+    fun finnFor(søknadsId: UUID): List<Innsending>
 }

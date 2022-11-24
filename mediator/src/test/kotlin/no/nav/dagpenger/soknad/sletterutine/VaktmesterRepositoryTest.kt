@@ -10,6 +10,7 @@ import kotliquery.using
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
+import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
@@ -72,6 +73,7 @@ internal class VaktmesterRepositoryTest {
             )
         )
     }
+    private val tomInnsending = lazy { emptyList<Innsending>() }
 
     @Test
     fun `Låsen hindrer parallel slettinger`() = withMigratedDb {
@@ -233,13 +235,15 @@ internal class VaktmesterRepositoryTest {
             søknadId = journalførtSøknadId,
             ident = ident,
             opprettet = ZonedDateTime.now(),
+            null,
             språk = språk,
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.of(2022, 11, 2, 2, 2, 2, 2), ZoneId.of("Europe/Oslo")),
             tilstandsType = Innsendt,
             aktivitetslogg = Aktivitetslogg(),
             prosessversjon = null,
-            data = FerdigSøknadData
+            data = FerdigSøknadData,
+            tomInnsending
         )
 
     private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, ident: String) =
@@ -247,6 +251,7 @@ internal class VaktmesterRepositoryTest {
             søknadId = gammelPåbegyntSøknadId,
             ident = ident,
             opprettet = ZonedDateTime.now(),
+            null,
             språk = språk,
             dokumentkrav = Dokumentkrav.rehydrer(
                 setOf(krav)
@@ -255,7 +260,8 @@ internal class VaktmesterRepositoryTest {
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             prosessversjon = null,
-            data = FerdigSøknadData
+            data = FerdigSøknadData,
+            tomInnsending
         )
 
     private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, ident: String) =
@@ -263,12 +269,14 @@ internal class VaktmesterRepositoryTest {
             søknadId = nyPåbegyntSøknadId,
             ident = ident,
             opprettet = ZonedDateTime.now(),
+            null,
             språk = språk,
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.of(2022, 11, 2, 2, 2, 2, 2), ZoneId.of("Europe/Oslo")),
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             prosessversjon = null,
-            data = FerdigSøknadData
+            data = FerdigSøknadData,
+            tomInnsending
         )
 }

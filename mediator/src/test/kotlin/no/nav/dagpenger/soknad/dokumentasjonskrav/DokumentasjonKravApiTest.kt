@@ -95,13 +95,15 @@ internal class DokumentasjonKravApiTest {
         søknadId = testSoknadId,
         ident = defaultDummyFodselsnummer,
         opprettet = ZonedDateTime.now(),
+        innsendt = null,
         språk = Språk("NO"),
         dokumentkrav = dokumentKrav,
         sistEndretAvBruker = ZonedDateTime.now(),
         tilstandsType = Søknad.Tilstand.Type.Påbegynt,
         aktivitetslogg = Aktivitetslogg(),
         prosessversjon = null,
-        data = FerdigSøknadData
+        data = FerdigSøknadData,
+        innsendinger = lazy { emptyList() }
     )
     private val søknadMediatorMock = mockk<SøknadMediator>().also {
         every { it.hent(testSoknadId) } returns søknad

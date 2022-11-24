@@ -17,6 +17,7 @@ import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand
 import no.nav.dagpenger.soknad.SøknadVisitor
+import no.nav.dagpenger.soknad.innsending.InnsendingRepository
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.serder.AktivitetsloggDTO
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
@@ -161,6 +162,25 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 prosessversjon = session.hentProsessversjon(søknadsId),
                 data = lazy {
                     SøknadDataPostgresRepository(dataSource).hentSøkerOppgave(søknadsId)
+                },
+                innsendinger = lazy {
+                    object : InnsendingRepository {
+                        override fun opprett(innsendingId: UUID, ident: String): Innsending {
+                            TODO("Not yet implemented")
+                        }
+
+                        override fun hent(innsendingId: UUID): Innsending? {
+                            TODO("Not yet implemented")
+                        }
+
+                        override fun lagre(innsending: Innsending) {
+                            TODO("Not yet implemented")
+                        }
+
+                        override fun finnFor(søknadsId: UUID): List<Innsending> {
+                            TODO("Not yet implemented")
+                        }
+                    }.finnFor(søknadsId)
                 }
             )
         }
@@ -310,6 +330,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         søknadId: UUID,
         ident: String,
         opprettet: ZonedDateTime,
+        innsendt: ZonedDateTime?,
         tilstand: Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,

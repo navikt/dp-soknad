@@ -45,11 +45,11 @@ class MineSøknaderApiTest {
                         søknadMed(tilstand = Påbegynt, opprettet, sistEndretAvBruker = sistEndretAvBruker),
                         søknadMed(
                             tilstand = Innsendt,
-                            innsending = innsending(innsendtTidspunkt, journalpostId = "123"),
+                            innsendt = innsendtTidspunkt.atZone(ZoneId.of("Europe/Oslo")),
                         ),
                         søknadMed(
                             tilstand = Innsendt,
-                            innsending = innsending(innsendtTidspunkt, journalpostId = "456"),
+                            innsendt = innsendtTidspunkt.atZone(ZoneId.of("Europe/Oslo")),
                         )
                     )
                 }
@@ -123,7 +123,7 @@ class MineSøknaderApiTest {
                     every { it.hentSøknader(TestApplication.defaultDummyFodselsnummer) } returns setOf(
                         søknadMed(
                             tilstand = Innsendt,
-                            innsending = innsending(innsendtTidspunkt, journalpostId = "456"),
+                            innsendt = innsendtTidspunkt.atZone(ZoneId.of("Europe/Oslo")),
                         )
                     )
                 }
@@ -151,7 +151,7 @@ class MineSøknaderApiTest {
                     every { it.hentSøknader(TestApplication.defaultDummyFodselsnummer) } returns setOf(
                         søknadMed(
                             tilstand = Innsendt,
-                            innsending = innsending(innsendtTidspunkt, journalpostId = "456"),
+                            innsendt = innsendtTidspunkt.atZone(ZoneId.of("Europe/Oslo")),
                         ),
                         gammelInnsendtSøknad(innsendt = fom.minusDays(2))
                     )
@@ -183,13 +183,13 @@ class MineSøknaderApiTest {
 
     private fun gammelInnsendtSøknad(innsendt: LocalDate) = søknadMed(
         tilstand = Innsendt,
-        innsending = innsending(innsendt.minusDays(5).atStartOfDay(), journalpostId = "456"),
+        innsendt = innsendt.minusDays(5).atStartOfDay().atZone(ZoneId.of("Europe/Oslo")),
     )
 
     private fun expectedJson(
         opprettet: LocalDateTime?,
         innsendtTidspunkt: LocalDateTime?,
-        sistEndretAvBruker: LocalDateTime
+        sistEndretAvBruker: LocalDateTime,
     ) =
         //language=JSON
         """{"paabegynt":{"soknadUuid":"$søknadUuid","opprettet":"$opprettet","sistEndretAvBruker":"$sistEndretAvBruker"},"innsendte":[{"soknadUuid":"$søknadUuid","forstInnsendt":"$innsendtTidspunkt"},{"soknadUuid":"$søknadUuid","forstInnsendt":"$innsendtTidspunkt"}]}"""
@@ -197,25 +197,27 @@ class MineSøknaderApiTest {
     private fun søknadMed(
         tilstand: Søknad.Tilstand.Type,
         opprettet: LocalDateTime = LocalDateTime.now(),
-        innsending: Innsending? = null,
+        innsendt: ZonedDateTime? = null,
         sistEndretAvBruker: LocalDateTime = LocalDateTime.MAX,
-        prosessversjon: Prosessversjon? = Prosessversjon(Prosessnavn("Dagpenger"), 1)
+        prosessversjon: Prosessversjon? = Prosessversjon(Prosessnavn("Dagpenger"), 1),
     ) = Søknad.rehydrer(
         søknadId = søknadUuid,
         ident = TestApplication.defaultDummyFodselsnummer,
         opprettet = ZonedDateTime.of(opprettet, ZoneId.of("Europe/Oslo")),
+        innsendt = innsendt,
         språk = Språk("NO"),
         dokumentkrav = Dokumentkrav(),
         sistEndretAvBruker = ZonedDateTime.of(sistEndretAvBruker, ZoneId.of("Europe/Oslo")),
         tilstandsType = tilstand,
         aktivitetslogg = Aktivitetslogg(),
         prosessversjon = prosessversjon,
-        data = FerdigSøknadData
+        data = FerdigSøknadData,
+        innsendinger = lazy { emptyList() }
     )
 
     private fun innsending(
         innsendtTidspunkt: LocalDateTime,
-        journalpostId: String
+        journalpostId: String,
     ) = Innsending.rehydrer(
         innsendingId = UUID.randomUUID(),
         type = Innsending.InnsendingType.NY_DIALOG,

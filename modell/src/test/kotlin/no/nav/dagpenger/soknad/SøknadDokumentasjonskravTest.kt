@@ -41,7 +41,8 @@ class SøknadDokumentasjonskravTest {
             søknadId = søknadId,
             språk = språk,
             ident = ident,
-            data = FerdigSøknadData
+            data = FerdigSøknadData,
+            innsendinger = lazy { emptyList() }
         )
         søknad.håndter(
             ØnskeOmNySøknadHendelse(
@@ -234,6 +235,7 @@ internal class TestSøknadInspektør2(søknad: Søknad) : SøknadVisitor {
         søknadId: UUID,
         ident: String,
         opprettet: ZonedDateTime,
+        innsendt: ZonedDateTime?,
         tilstand: Søknad.Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,

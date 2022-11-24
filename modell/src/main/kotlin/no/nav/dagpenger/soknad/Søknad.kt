@@ -22,6 +22,7 @@ class Søknad private constructor(
     private val søknadId: UUID,
     private val ident: String,
     private val opprettet: ZonedDateTime,
+    private val innsendt: ZonedDateTime?,
     private var tilstand: Tilstand,
     private val språk: Språk,
     private val dokumentkrav: Dokumentkrav,
@@ -29,6 +30,7 @@ class Søknad private constructor(
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
     private var prosessversjon: Prosessversjon?,
     private var data: Lazy<SøknadData>,
+    private var innsendinger: Lazy<List<Innsending>>,
 ) : Aktivitetskontekst, InnsendingObserver {
     private val observers = mutableListOf<SøknadObserver>()
 
@@ -40,16 +42,19 @@ class Søknad private constructor(
         språk: Språk,
         ident: String,
         data: Lazy<SøknadData> = lazy { throw IllegalStateException("Mangler søknadsdata") },
+        innsendinger: Lazy<List<Innsending>> = lazy { throw IllegalStateException("Mangler innsendinger") },
     ) : this(
         søknadId = søknadId,
         ident = ident,
         opprettet = ZonedDateTime.now(),
+        innsendt = null,
         tilstand = UnderOpprettelse,
         språk = språk,
         dokumentkrav = Dokumentkrav(),
         sistEndretAvBruker = ZonedDateTime.now(),
         prosessversjon = null,
-        data = data
+        data = data,
+        innsendinger = innsendinger
     )
 
     companion object {
@@ -57,6 +62,7 @@ class Søknad private constructor(
             søknadId: UUID,
             ident: String,
             opprettet: ZonedDateTime,
+            innsendt: ZonedDateTime?,
             språk: Språk,
             dokumentkrav: Dokumentkrav,
             sistEndretAvBruker: ZonedDateTime,
@@ -64,6 +70,7 @@ class Søknad private constructor(
             aktivitetslogg: Aktivitetslogg,
             prosessversjon: Prosessversjon?,
             data: Lazy<SøknadData>,
+            innsendinger: Lazy<List<Innsending>>,
         ): Søknad {
             val tilstand: Tilstand = when (tilstandsType) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
@@ -75,13 +82,15 @@ class Søknad private constructor(
                 søknadId = søknadId,
                 ident = ident,
                 opprettet = opprettet,
+                innsendt = innsendt,
                 tilstand = tilstand,
                 språk = språk,
                 dokumentkrav = dokumentkrav,
                 sistEndretAvBruker = sistEndretAvBruker,
                 aktivitetslogg = aktivitetslogg,
                 prosessversjon = prosessversjon,
-                data = data
+                data = data,
+                innsendinger = innsendinger
             )
         }
 
@@ -386,6 +395,7 @@ class Søknad private constructor(
             søknadId = søknadId,
             ident = ident,
             opprettet = opprettet,
+            innsendt = innsendt,
             tilstand = tilstand,
             språk = språk,
             dokumentkrav = dokumentkrav,

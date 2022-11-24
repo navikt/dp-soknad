@@ -59,7 +59,9 @@ internal class SøknadTest {
             søknadId,
             Språk(språk),
             testIdent,
-            FerdigSøknadData
+            FerdigSøknadData,
+            innsendinger = lazy { emptyList() }
+
         )
         testSøknadObserver = TestSøknadObserver().also { søknad.addObserver(it) }
         plantUmlObservatør = PlantUmlObservatør().also { søknad.addObserver(it) }

@@ -14,7 +14,6 @@ import io.mockk.mockk
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.Dokumentkrav
-import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
@@ -76,15 +75,13 @@ class StatusApiTest {
     @Test
     fun `Søknad med tilstand Innsendt og status UnderBehandling`() {
         val opprettet = LocalDateTime.MAX
-        val innsendt = LocalDateTime.of(2022, 1, 1, 12, 15, 30)
-        val ettersendt = innsendt.plusDays(1)
-        val innsending = innsending(innsendt, "123")
+        val innsendt = LocalDateTime.of(2022, 1, 1, 12, 15, 30).atZone(ZoneId.of("Europe/Oslo"))
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
-                    every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet, innsending)
+                    every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet, innsendt)
                 },
                 behandlingsstatusClient = mockk<BehandlingsstatusClient>().also {
                     coEvery {
@@ -98,7 +95,7 @@ class StatusApiTest {
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
-                val expectedJson = """{"status":"$UnderBehandling","opprettet":"$opprettet","innsendt":"$innsendt"}"""
+                val expectedJson = """{"status":"$UnderBehandling","opprettet":"$opprettet","innsendt":"${innsendt.toLocalDateTime()}"}"""
                 assertEquals(expectedJson, this.bodyAsText())
                 assertEquals("application/json; charset=UTF-8", this.contentType().toString())
             }
@@ -108,15 +105,13 @@ class StatusApiTest {
     @Test
     fun `Søknad med tilstand Innsendt og status null gir Ukjent`() {
         val opprettet = LocalDateTime.MAX
-        val innsendt = LocalDateTime.of(2022, 1, 1, 12, 15, 30)
-        val ettersendt = innsendt.plusDays(1)
-        val innsending = innsending(innsendt, "123")
+        val innsendt = LocalDateTime.of(2022, 1, 1, 12, 15, 30).atZone(ZoneId.of("Europe/Oslo"))
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
-                    every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet, innsending)
+                    every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet, innsendt)
                 },
                 behandlingsstatusClient = mockk<BehandlingsstatusClient>().also {
                     coEvery {
@@ -130,7 +125,7 @@ class StatusApiTest {
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
-                val expectedJson = """{"status":"$Ukjent","opprettet":"$opprettet","innsendt":"$innsendt"}"""
+                val expectedJson = """{"status":"$Ukjent","opprettet":"$opprettet","innsendt":"${innsendt.toLocalDateTime()}"}"""
                 assertEquals(expectedJson, this.bodyAsText())
                 assertEquals("application/json; charset=UTF-8", this.contentType().toString())
             }
@@ -168,31 +163,19 @@ class StatusApiTest {
     private fun søknadMed(
         tilstand: Søknad.Tilstand.Type,
         opprettet: LocalDateTime = LocalDateTime.now(),
-        innsending: Innsending? = null
+        innsendt: ZonedDateTime? = null
     ) = Søknad.rehydrer(
         søknadId = søknadUuid,
         ident = TestApplication.defaultDummyFodselsnummer,
         opprettet = ZonedDateTime.of(opprettet, ZoneId.of("Europe/Oslo")),
+        innsendt = innsendt,
         språk = Språk("NO"),
         dokumentkrav = Dokumentkrav(),
         sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.now(), ZoneId.of("Europe/Oslo")),
         tilstandsType = tilstand,
         aktivitetslogg = Aktivitetslogg(),
         prosessversjon = null,
-        data = FerdigSøknadData
-    )
-
-    private fun innsending(
-        innsendtTidspunkt: LocalDateTime,
-        journalpostId: String
-    ) = Innsending.rehydrer(
-        innsendingId = UUID.randomUUID(),
-        type = Innsending.InnsendingType.NY_DIALOG,
-        innsendt = ZonedDateTime.of(innsendtTidspunkt, ZoneId.of("Europe/Oslo")),
-        journalpostId = journalpostId,
-        tilstandsType = Innsending.TilstandType.Journalført,
-        hovedDokument = null,
-        dokumenter = emptyList(),
-        metadata = Innsending.Metadata("04-02-03")
+        data = FerdigSøknadData,
+        innsendinger = lazy { emptyList() }
     )
 }

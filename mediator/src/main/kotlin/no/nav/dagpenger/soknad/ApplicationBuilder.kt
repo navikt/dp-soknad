@@ -94,6 +94,10 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
             override fun lagre(innsending: Innsending) {
                 TODO("Not yet implemented")
             }
+
+            override fun finnFor(søknadsId: UUID): List<Innsending> {
+                TODO("Not yet implemented")
+            }
         }
     ).also {
         ArkiverbarSøknadMottattHendelseMottak(rapidsConnection, it)

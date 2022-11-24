@@ -4,11 +4,6 @@ import FerdigSøknadData
 import com.fasterxml.jackson.databind.node.BooleanNode
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerArkiverbarSøknad
-import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerJournalføring
-import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMetadata
-import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMidlertidligJournalføring
-import no.nav.dagpenger.soknad.Innsending.TilstandType.Journalført
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
@@ -31,7 +26,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.ZonedDateTime
 import java.util.UUID
 
 internal class SøknadMediatorTest {
@@ -39,39 +33,6 @@ internal class SøknadMediatorTest {
         private const val testIdent = "12345678913"
         private const val testJournalpostId = "123455PDS"
         private val språkVerdi = "NO"
-        private val søknadMedDokumentasjonsKravId = UUID.randomUUID()
-        private fun søknadMedDokumentasjonsKrav(): Søknad {
-            val originalFaktumJson = faktumJson("1", "f1")
-            val dokumentFaktum =
-                Faktum(originalFaktumJson)
-            val originalFaktumSomsannsynliggjøresFakta = faktumJson("2", "f2")
-            val faktaSomSannsynliggjøres =
-                mutableSetOf(
-                    Faktum(originalFaktumSomsannsynliggjøresFakta)
-                )
-            val sannsynliggjøring = Sannsynliggjøring(
-                id = dokumentFaktum.id,
-                faktum = dokumentFaktum,
-                sannsynliggjør = faktaSomSannsynliggjøres
-            )
-            val krav = Krav(
-                sannsynliggjøring
-            )
-            return Søknad.rehydrer(
-                søknadId = søknadMedDokumentasjonsKravId,
-                ident = testIdent,
-                opprettet = ZonedDateTime.now(),
-                språk = Språk("NO"),
-                dokumentkrav = Dokumentkrav.rehydrer(
-                    krav = setOf(krav)
-                ),
-                sistEndretAvBruker = ZonedDateTime.now(),
-                tilstandsType = Innsendt,
-                aktivitetslogg = Aktivitetslogg(),
-                prosessversjon = null,
-                data = FerdigSøknadData
-            )
-        }
     }
 
     private lateinit var søknadMediator: SøknadMediator
@@ -171,97 +132,8 @@ internal class SøknadMediatorTest {
         testRapid.sendTestMessage(ferdigSøkerOppgave(søknadUuid.toString().toUUID(), testIdent))
         søknadMediator.behandle(SøknadInnsendtHendelse(søknadUuid, testIdent))
 
-        assertEquals(AvventerMetadata, oppdatertInspektør().gjeldendeInnsendingTilstand)
         assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
-
-        assertEquals(listOf("InnsendingMetadata"), behov(2))
-
-        testRapid.sendTestMessage(
-            innsendingBrevkodeLøsning(
-                testIdent,
-                søknadId(),
-                innsendingId()
-            )
-        )
-
-        assertEquals(AvventerArkiverbarSøknad, oppdatertInspektør().gjeldendeInnsendingTilstand)
-        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
-        assertEquals(listOf("ArkiverbarSøknad"), behov(3))
-
-        testRapid.sendTestMessage(
-            arkiverbarsøknadLøsning(
-                testIdent,
-                søknadId(),
-                innsendingId()
-            )
-        )
-        assertEquals(AvventerMidlertidligJournalføring, oppdatertInspektør().gjeldendeInnsendingTilstand)
-        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
-
-        testRapid.sendTestMessage(
-            nyJournalpostLøsning(
-                ident = testIdent,
-                søknadUuid = søknadId(),
-                innsendingId(),
-                journalpostId = testJournalpostId
-            )
-        )
-        assertEquals(AvventerJournalføring, oppdatertInspektør().gjeldendeInnsendingTilstand)
-        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
-
-        testRapid.sendTestMessage(
-            søknadJournalførtHendelse(
-                søknadUuid,
-                ident = testIdent,
-                journalpostId = testJournalpostId
-            )
-        )
-        assertEquals(Journalført, oppdatertInspektør().gjeldendeInnsendingTilstand)
-        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
-        // Verifiser at det er mulig å hente en komplett aktivitetslogg
-        søknadMediator.hentSøknader(testIdent).first().let {
-            with(TestSøknadhåndtererInspektør(it).aktivitetslogg["aktiviteter"]!!) {
-                assertEquals("Ønske om søknad registrert", first()["melding"])
-                assertEquals("Søknad journalført", last()["melding"])
-            }
-        }
     }
-
-    private fun innsendingId() = oppdatertInspektør(testIdent).gjeldendeInnsendingId
-
-    private fun innsendingBrevkodeLøsning(
-        ident: String,
-        søknadUuid: String,
-        innsendingId: UUID
-    ) = //language=JSON
-        """
-        {
-          "@event_name": "behov",
-          "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
-          "@behov": [
-            "InnsendingMetadata"
-          ],
-          "ident": "$ident",
-          "søknad_uuid": "$søknadUuid",
-          "innsendingId": "$innsendingId",
-          "ArkiverbarSøknad": {},
-          "@id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
-          "@opprettet": "2022-03-30T12:19:08.418821",
-          "system_read_count": 0,
-          "system_participating_services": [
-            {
-              "id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
-              "time": "2022-03-30T12:19:08.418821"
-            }
-          ],
-          "@løsning": {
-            "InnsendingMetadata": {
-              "tittel": "Søknad om dagpenger",
-              "skjemakode": "04.04-01"
-            }
-          }
-        }
-        """.trimIndent()
 
     @Test
     fun `Hva skjer om en får JournalførtHendelse som ikke er tilknyttet en søknad`() {
@@ -272,8 +144,6 @@ internal class SøknadMediatorTest {
             )
         )
     }
-
-    private fun søknadId(ident: String = testIdent) = oppdatertInspektør(ident).gjeldendeSøknadId
 
     private fun behov(indeks: Int) = testRapid.inspektør.message(indeks)["@behov"].map { it.asText() }
 
@@ -350,97 +220,6 @@ internal class SøknadMediatorTest {
     """.trimMargin()
 
     // language=JSON
-    private fun arkiverbarsøknadLøsning(ident: String, søknadUuid: String, innsendingId: UUID) = """
-{
-  "@event_name": "behov",
-  "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
-  "@behov": [
-    "ArkiverbarSøknad"
-  ],
-  "ident": "$ident",
-  "søknad_uuid": "$søknadUuid",
-  "innsendingId": "$innsendingId",  
-  "ArkiverbarSøknad": {},
-  "@id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
-  "@opprettet": "2022-03-30T12:19:08.418821",
-  "system_read_count": 0,
-  "system_participating_services": [
-    {
-      "id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
-      "time": "2022-03-30T12:19:08.418821"
-    }
-  ],
-  "@løsning": {
-    "ArkiverbarSøknad": [
-      {
-        "metainfo": {
-          "innhold": "netto.pdf",
-          "filtype": "PDF",          "variant": "NETTO"
-        },
-        "urn": "urn:vedlegg:soknadId/netto.pdf"
-      },
-      {
-        "metainfo": {
-          "innhold": "brutto.pdf",
-          "filtype": "PDF",
-          "variant": "BRUTTO"
-        },
-        "urn": "urn:vedlegg:soknadId/brutto.pdf"
-      }
-    ]
-  }
-}
-    """.trimMargin()
-
-    // language=JSON
-    private fun nyJournalpostLøsning(ident: String, søknadUuid: String, innsendingId: UUID, journalpostId: String) =
-        """
-    {
-      "@event_name": "behov",
-      "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
-      "@behov": [
-        "NyJournalpost"
-      ],
-      "ident": "$ident",
-      "søknad_uuid": "$søknadUuid",
-      "innsendingId": "$innsendingId",
-      "NyJournalpost": {},
-      "@id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
-      "@opprettet": "2022-03-30T12:19:08.418821",
-      "system_read_count": 0,
-      "system_participating_services": [
-        {
-          "id": "cf3f3303-121d-4d6d-be0b-5b2808679a79",
-          "time": "2022-03-30T12:19:08.418821"
-        }
-      ],
-      "@løsning": {
-        "NyJournalpost": "$journalpostId"
-      }
-}
-        """.trimMargin()
-
-    // language=JSON
-    private fun søknadJournalførtHendelse(søknadUuid: UUID, ident: String, journalpostId: String) = """
-    {
-      "@id": "7d1938c6-f1ae-435d-8d83-c7f200b9cc2b",
-      "@opprettet": "2022-04-04T10:39:58.621716",
-      "journalpostId": "$journalpostId",
-      "datoRegistrert": "2022-04-04T10:39:58.586548",
-      "skjemaKode": "test",
-      "tittel": "Tittel",
-      "type": "NySøknad",
-      "fødselsnummer": "$ident",
-      "aktørId": "1234455",
-      "fagsakId": "1234",
-      "@event_name": "innsending_ferdigstilt",
-      "system_read_count": 0,
-      "søknadsData": {
-        "søknad_uuid": "$søknadUuid"
-      }
-    }
-    """.trimMargin()
-
     private fun journalførtHendelse(ident: String, journalpostId: String) = """
     {
       "@id": "7d1938c6-f1ae-435d-8d83-c7f200b9cc2b",

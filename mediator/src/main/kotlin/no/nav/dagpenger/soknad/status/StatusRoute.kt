@@ -47,11 +47,11 @@ private suspend fun createSøknadStatusDto(
         SøknadStatusDto(
             status = hentSøknadStatus(
                 behandlingsstatusClient,
-                førsteInnsendingTidspunkt = statusVisitor.førsteInnsendingTidspunkt().toLocalDate(),
+                førsteInnsendingTidspunkt = statusVisitor.søknadInnsendt().toLocalDate(),
                 token
             ),
             opprettet = statusVisitor.søknadOpprettet(),
-            innsendt = statusVisitor.førsteInnsendingTidspunkt()
+            innsendt = statusVisitor.søknadInnsendt().toLocalDateTime()
         )
     }
 

@@ -106,13 +106,15 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
                 søknadId = søknadId,
                 ident = "12345678910",
                 opprettet = ZonedDateTime.now(),
+                innsendt = null,
                 språk = Språk(språkVerdi),
                 dokumentkrav = Dokumentkrav(),
                 sistEndretAvBruker = ZonedDateTime.now(),
                 tilstandsType = Påbegynt,
                 aktivitetslogg = Aktivitetslogg(),
                 prosessversjon = null,
-                data = FerdigSøknadData
+                data = FerdigSøknadData,
+                innsendinger = lazy { emptyList() }
             )
         )
         return søknadId

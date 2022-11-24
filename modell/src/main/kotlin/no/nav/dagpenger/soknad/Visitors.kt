@@ -37,6 +37,7 @@ interface SøknadVisitor : TilstandVisitor, AktivitetsloggVisitor, DokumentkravV
         søknadId: UUID,
         ident: String,
         opprettet: ZonedDateTime,
+        innsendt: ZonedDateTime?,
         tilstand: Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,
