@@ -24,7 +24,6 @@ class SøknadDTO(
     val språkDTO: SpråkDTO,
     var dokumentkrav: DokumentkravDTO,
     val sistEndretAvBruker: ZonedDateTime,
-    val innsendingDTO: InnsendingDTO?,
     var aktivitetslogg: AktivitetsloggDTO? = null,
     val opprettet: ZonedDateTime,
     val prosessversjon: ProsessversjonDTO?,
@@ -39,7 +38,6 @@ class SøknadDTO(
         sistEndretAvBruker = this.sistEndretAvBruker,
         tilstandsType = this.tilstandType.rehydrer(),
         aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
-        innsending = this.innsendingDTO?.rehydrer(),
         prosessversjon = this.prosessversjon?.rehydrer(),
         data = data
     )

@@ -2,7 +2,6 @@ package no.nav.dagpenger.soknad.innsending.tjenester
 
 import mu.KotlinLogging
 import mu.withLoggingContext
-import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.innsending.JournalførtHendelse
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
 import no.nav.helse.rapids_rivers.JsonMessage

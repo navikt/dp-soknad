@@ -7,7 +7,7 @@ import java.time.ZonedDateTime
 
 class NyInnsendingMelding(packet: JsonMessage) {
     private val innsendt: ZonedDateTime = packet["innsendtTidspunkt"].asZonedDateTime()
-    private val dokumentkrav: List<Innsending.Dokument> = listOf()// TODO: faktisk map dette ut
+    private val dokumentkrav: List<Innsending.Dokument> = listOf() // TODO: faktisk map dette ut
     private val innsending = Innsending.ny(innsendt, dokumentkrav)
     private val ident = packet["ident"].asText()
 

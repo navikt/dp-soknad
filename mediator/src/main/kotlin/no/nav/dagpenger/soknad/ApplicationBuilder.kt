@@ -5,7 +5,9 @@ import no.nav.dagpenger.pdl.createPersonOppslag
 import no.nav.dagpenger.soknad.data.søknadData
 import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
-import no.nav.dagpenger.soknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
+import no.nav.dagpenger.soknad.innsending.InnsendingMediator
+import no.nav.dagpenger.soknad.innsending.InnsendingRepository
+import no.nav.dagpenger.soknad.innsending.tjenester.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.dagpenger.soknad.innsending.tjenester.JournalførtMottak
 import no.nav.dagpenger.soknad.innsending.tjenester.NyJournalpostMottak
 import no.nav.dagpenger.soknad.innsending.tjenester.SkjemakodeMottak
@@ -28,6 +30,7 @@ import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.runMigration
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import java.util.UUID
 
 internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnection.StatusListener {
 
@@ -73,12 +76,30 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         )
     ).also {
         SøknadOpprettetHendelseMottak(rapidsConnection, it)
+        SøkerOppgaveMottak(rapidsConnection, it)
+        MigrertSøknadMottak(rapidsConnection, it)
+    }
+
+    private val innsendingMediator = InnsendingMediator(
+        rapidsConnection = rapidsConnection,
+        innsendingRepository = object : InnsendingRepository {
+            override fun opprett(innsendingId: UUID, ident: String): Innsending {
+                TODO("Not yet implemented")
+            }
+
+            override fun hent(innsendingId: UUID): Innsending? {
+                TODO("Not yet implemented")
+            }
+
+            override fun lagre(innsending: Innsending) {
+                TODO("Not yet implemented")
+            }
+        }
+    ).also {
         ArkiverbarSøknadMottattHendelseMottak(rapidsConnection, it)
         NyJournalpostMottak(rapidsConnection, it)
         JournalførtMottak(rapidsConnection, it)
-        SøkerOppgaveMottak(rapidsConnection, it)
         SkjemakodeMottak(rapidsConnection, it)
-        MigrertSøknadMottak(rapidsConnection, it)
     }
 
     init {

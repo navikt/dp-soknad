@@ -2,9 +2,7 @@ package no.nav.dagpenger.soknad.innsending.tjenester
 
 import mu.KotlinLogging
 import mu.withLoggingContext
-import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyEttersending
-import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyInnsending
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
 import no.nav.dagpenger.soknad.innsending.meldinger.NyInnsendingMelding
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -43,8 +41,6 @@ internal class NyEttersendingBehovMottak(rapidsConnection: RapidsConnection, pri
             "innsendingId" to innsendingId.toString()
         ) {
             logger.info { "Mottatt løsning for $behov for $innsendingId med skjemakode=${packet.skjemakode()}" }
-
-
 
             val hendelse = NyInnsendingMelding(packet).hendelse()
             mediator.håndter(hendelse)

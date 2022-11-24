@@ -51,8 +51,8 @@ internal class InnsendingMediator(
     }
 
     fun behandle(journalførtHendelse: JournalførtHendelse) {
-        behandle(journalførtHendelse) { søknad ->
-            søknad.håndter(journalførtHendelse)
+        behandle(journalførtHendelse) { innsending ->
+            innsending.håndter(journalførtHendelse)
         }
     }
 

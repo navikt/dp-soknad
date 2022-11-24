@@ -23,34 +23,28 @@ class Søknad private constructor(
     private val ident: String,
     private val opprettet: ZonedDateTime,
     private var tilstand: Tilstand,
-    // private var innsending: NyInnsending?,
     private val språk: Språk,
     private val dokumentkrav: Dokumentkrav,
     private var sistEndretAvBruker: ZonedDateTime,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
     private var prosessversjon: Prosessversjon?,
-    private var data: Lazy<SøknadData>
+    private var data: Lazy<SøknadData>,
 ) : Aktivitetskontekst, InnsendingObserver {
     private val observers = mutableListOf<SøknadObserver>()
 
     fun søknadUUID() = søknadId
     fun ident() = ident
 
-    init {
-        innsending?.addObserver(this)
-    }
-
     constructor(
         søknadId: UUID,
         språk: Språk,
         ident: String,
-        data: Lazy<SøknadData> = lazy { throw IllegalStateException("Mangler søknadsdata") }
+        data: Lazy<SøknadData> = lazy { throw IllegalStateException("Mangler søknadsdata") },
     ) : this(
         søknadId = søknadId,
         ident = ident,
         opprettet = ZonedDateTime.now(),
         tilstand = UnderOpprettelse,
-        innsending = null,
         språk = språk,
         dokumentkrav = Dokumentkrav(),
         sistEndretAvBruker = ZonedDateTime.now(),
@@ -68,9 +62,8 @@ class Søknad private constructor(
             sistEndretAvBruker: ZonedDateTime,
             tilstandsType: Tilstand.Type,
             aktivitetslogg: Aktivitetslogg,
-            innsending: NyInnsending?,
             prosessversjon: Prosessversjon?,
-            data: Lazy<SøknadData>
+            data: Lazy<SøknadData>,
         ): Søknad {
             val tilstand: Tilstand = when (tilstandsType) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
@@ -83,7 +76,6 @@ class Søknad private constructor(
                 ident = ident,
                 opprettet = opprettet,
                 tilstand = tilstand,
-                innsending = innsending,
                 språk = språk,
                 dokumentkrav = dokumentkrav,
                 sistEndretAvBruker = sistEndretAvBruker,
@@ -341,7 +333,6 @@ class Søknad private constructor(
         override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
             if (!søknad.erDagpenger()) {
                 søknadInnsendtHendelse.severe("Kan ikke lage ettersending av prosess ${søknad.prosessversjon?.prosessnavn?.id}")
-                return
             }
 
             søknad.dokumentkrav.håndter(søknadInnsendtHendelse)
@@ -355,9 +346,6 @@ class Søknad private constructor(
                 )
             )
         }
-
-        private fun innsending(søknad: Søknad) =
-            requireNotNull(søknad.innsending) { "Forventet at innsending er laget i tilstand $tilstandType" }
     }
 
     private object Slettet : Tilstand {
@@ -407,7 +395,7 @@ class Søknad private constructor(
         tilstand.accept(visitor)
         aktivitetslogg.accept(visitor)
         dokumentkrav.accept(visitor)
-        innsending?.accept(visitor)
+        // innsending?.accept(visitor)
     }
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst =

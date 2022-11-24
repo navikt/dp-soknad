@@ -157,7 +157,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                     session.hentDokumentKrav(søknadsId)
                 ),
                 sistEndretAvBruker = row.zonedDateTime("sist_endret_av_bruker").withZoneSameInstant(tidssone),
-                innsendingDTO = session.hentInnsending(søknadsId),
                 aktivitetslogg = session.hentAktivitetslogg(søknadsId),
                 prosessversjon = session.hentProsessversjon(søknadsId),
                 data = lazy {

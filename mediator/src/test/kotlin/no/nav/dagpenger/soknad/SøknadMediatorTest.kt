@@ -9,13 +9,13 @@ import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerJournalføring
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMetadata
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMidlertidligJournalføring
 import no.nav.dagpenger.soknad.Innsending.TilstandType.Journalført
-import no.nav.dagpenger.soknad.Innsending.TilstandType.Opprettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
-import no.nav.dagpenger.soknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
+import no.nav.dagpenger.soknad.innsending.InnsendingMediator
+import no.nav.dagpenger.soknad.innsending.tjenester.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.dagpenger.soknad.innsending.tjenester.JournalførtMottak
 import no.nav.dagpenger.soknad.innsending.tjenester.NyJournalpostMottak
 import no.nav.dagpenger.soknad.innsending.tjenester.SkjemakodeMottak
@@ -68,26 +68,14 @@ internal class SøknadMediatorTest {
                 sistEndretAvBruker = ZonedDateTime.now(),
                 tilstandsType = Innsendt,
                 aktivitetslogg = Aktivitetslogg(),
-                innsending = NyInnsending.rehydrer(
-                    innsendingId = UUID.randomUUID(),
-                    type = Innsending.InnsendingType.NY_DIALOG,
-                    innsendt = ZonedDateTime.now(),
-                    journalpostId = null,
-                    tilstandsType = Opprettet,
-                    hovedDokument = null,
-                    dokumenter = listOf(),
-                    ettersendinger = listOf(),
-                    metadata = Innsending.Metadata(
-                        skjemakode = "hubba"
-                    )
-                ),
                 prosessversjon = null,
                 data = FerdigSøknadData
             )
         }
     }
 
-    private lateinit var mediator: SøknadMediator
+    private lateinit var søknadMediator: SøknadMediator
+    private lateinit var innsendingMediator: InnsendingMediator
     private val testRapid = TestRapid()
 
     private object TestSøknadRepository : SøknadRepository {
@@ -123,7 +111,7 @@ internal class SøknadMediatorTest {
 
     @BeforeEach
     fun setup() {
-        mediator = SøknadMediator(
+        søknadMediator = SøknadMediator(
             rapidsConnection = testRapid,
             søknadDataRepository = mockk(relaxed = true),
             søknadMalRepository = mockk<SøknadMalRepository>().also {
@@ -133,12 +121,17 @@ internal class SøknadMediatorTest {
             søknadRepository = TestSøknadRepository
         )
 
-        SøkerOppgaveMottak(testRapid, mediator)
-        SøknadOpprettetHendelseMottak(testRapid, mediator)
-        ArkiverbarSøknadMottattHendelseMottak(testRapid, mediator)
-        NyJournalpostMottak(testRapid, mediator)
-        JournalførtMottak(testRapid, mediator)
-        SkjemakodeMottak(testRapid, mediator)
+        innsendingMediator = InnsendingMediator(
+            rapidsConnection = testRapid,
+            innsendingRepository = mockk()
+        )
+
+        SøkerOppgaveMottak(testRapid, søknadMediator)
+        SøknadOpprettetHendelseMottak(testRapid, søknadMediator)
+        ArkiverbarSøknadMottattHendelseMottak(testRapid, innsendingMediator)
+        NyJournalpostMottak(testRapid, innsendingMediator)
+        JournalførtMottak(testRapid, innsendingMediator)
+        SkjemakodeMottak(testRapid, innsendingMediator)
     }
 
     @AfterEach
@@ -149,7 +142,7 @@ internal class SøknadMediatorTest {
     @Test
     fun `Søknaden går gjennom livssyklusen med alle tilstander`() {
         val søknadUuid = UUID.randomUUID()
-        mediator.behandle(
+        søknadMediator.behandle(
             ØnskeOmNySøknadHendelse(
                 søknadUuid,
                 testIdent,
@@ -166,7 +159,7 @@ internal class SøknadMediatorTest {
 
         testRapid.sendTestMessage(søkerOppgave(søknadUuid.toString().toUUID(), testIdent))
 
-        mediator.behandle(FaktumSvar(søknadUuid, "1234", "boolean", testIdent, BooleanNode.TRUE))
+        søknadMediator.behandle(FaktumSvar(søknadUuid, "1234", "boolean", testIdent, BooleanNode.TRUE))
         val partisjonsnøkkel = testRapid.inspektør.key(1)
         assertEquals(
             testIdent,
@@ -176,7 +169,7 @@ internal class SøknadMediatorTest {
         assertTrue("faktum_svar" in testRapid.inspektør.message(1).toString())
 
         testRapid.sendTestMessage(ferdigSøkerOppgave(søknadUuid.toString().toUUID(), testIdent))
-        mediator.behandle(SøknadInnsendtHendelse(søknadUuid, testIdent))
+        søknadMediator.behandle(SøknadInnsendtHendelse(søknadUuid, testIdent))
 
         assertEquals(AvventerMetadata, oppdatertInspektør().gjeldendeInnsendingTilstand)
         assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
@@ -226,7 +219,7 @@ internal class SøknadMediatorTest {
         assertEquals(Journalført, oppdatertInspektør().gjeldendeInnsendingTilstand)
         assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
         // Verifiser at det er mulig å hente en komplett aktivitetslogg
-        mediator.hentSøknader(testIdent).first().let {
+        søknadMediator.hentSøknader(testIdent).first().let {
             with(TestSøknadhåndtererInspektør(it).aktivitetslogg["aktiviteter"]!!) {
                 assertEquals("Ønske om søknad registrert", first()["melding"])
                 assertEquals("Søknad journalført", last()["melding"])
@@ -285,7 +278,7 @@ internal class SøknadMediatorTest {
     private fun behov(indeks: Int) = testRapid.inspektør.message(indeks)["@behov"].map { it.asText() }
 
     private fun oppdatertInspektør(ident: String = testIdent) =
-        TestSøknadhåndtererInspektør(mediator.hentSøknader(ident).first())
+        TestSøknadhåndtererInspektør(søknadMediator.hentSøknader(ident).first())
 
     // language=JSON
     private fun søkerOppgave(søknadUuid: UUID, ident: String) = """{

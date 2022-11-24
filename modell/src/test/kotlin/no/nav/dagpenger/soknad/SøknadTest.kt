@@ -4,30 +4,19 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Aktivitetslogg.AktivitetException
-import no.nav.dagpenger.soknad.Innsending.InnsendingType
-import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerArkiverbarSøknad
-import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerJournalføring
-import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMetadata
-import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMidlertidligJournalføring
-import no.nav.dagpenger.soknad.Innsending.TilstandType.Journalført
-import no.nav.dagpenger.soknad.Innsending.TilstandType.Opprettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.helpers.FerdigSøknadData
-import no.nav.dagpenger.soknad.hendelse.innsending.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
-import no.nav.dagpenger.soknad.hendelse.innsending.InnsendingMetadataMottattHendelse
-import no.nav.dagpenger.soknad.hendelse.innsending.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
-import no.nav.dagpenger.soknad.hendelse.innsending.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -85,7 +74,7 @@ internal class SøknadTest {
         håndterØnskeOmNySøknadHendelse()
         håndterNySøknadOpprettet()
         håndterSendInnSøknad()
-        håndterArkiverbarSøknad()
+        // håndterArkiverbarSøknad()
 
         assertThrows<AktivitetException> {
             håndterFaktumOppdatering()
@@ -134,171 +123,171 @@ internal class SøknadTest {
             Innsendt
         )
 
-        assertInnsendingTilstand(
-            AvventerMetadata
-        )
-
-        assertBehov(
-            Behovtype.InnsendingMetadata,
-            mapOf(
-                "søknad_uuid" to inspektør.søknadId.toString(),
-                "ident" to testIdent,
-                "type" to "NY_DIALOG",
-                "innsendingId" to inspektør.innsendingId.toString()
-            )
-        )
-
-        håndterInnsendingMetadata()
-
-        assertInnsendingTilstand(
-            AvventerArkiverbarSøknad
-        )
-
-        assertBehov(
-            Behovtype.ArkiverbarSøknad,
-            mapOf(
-                "innsendtTidspunkt" to hendelse.innsendtidspunkt().toString(),
-                "dokumentasjonKravId" to listOf("1", "3"),
-                "skjemakode" to "04-01.02",
-                "søknad_uuid" to inspektør.søknadId.toString(),
-                "ident" to testIdent,
-                "type" to "NY_DIALOG",
-                "innsendingId" to inspektør.innsendingId.toString()
-            )
-        )
-        håndterArkiverbarSøknad()
-        assertInnsendingTilstand(
-            AvventerMidlertidligJournalføring
-        )
-        val hoveddokument = mutableMapOf(
-            "varianter" to listOf(
-                mapOf<String, Any>(
-                    "filnavn" to "",
-                    "urn" to "urn:dokument:1",
-                    "variant" to "ARKIV",
-                    "type" to "PDF"
-                )
-            ),
-            "skjemakode" to "04-01.02"
-        )
-
-        assertBehov(
-            Behovtype.NyJournalpost,
-            mapOf(
-                "hovedDokument" to hoveddokument,
-                "dokumenter" to listOf(
-                    mapOf(
-                        "varianter" to listOf(
-                            mapOf<String, Any>(
-                                "filnavn" to "f1-1",
-                                "urn" to "urn:sid:bundle1",
-                                "variant" to "ARKIV",
-                                "type" to "PDF"
-                            )
-                        ),
-                        "skjemakode" to "N6"
-                    ),
-                    mapOf(
-                        "varianter" to listOf(
-                            mapOf<String, Any>(
-                                "filnavn" to "f3-1",
-                                "urn" to "urn:sid:bundle2",
-                                "variant" to "ARKIV",
-                                "type" to "PDF"
-                            )
-                        ),
-                        "skjemakode" to "N6"
-                    )
-                ),
-                "søknad_uuid" to inspektør.søknadId.toString(),
-                "ident" to testIdent,
-                "type" to "NY_DIALOG",
-                "innsendingId" to inspektør.innsendingId.toString()
-            )
-        )
-        håndterMidlertidigJournalførtSøknad()
-        assertInnsendingTilstand(
-            AvventerJournalføring
-        )
-        håndterJournalførtSøknad()
-        assertInnsendingTilstand(
-            Journalført
-        )
-        assertTilstander(
-            UnderOpprettelse,
-            Påbegynt,
-            Innsendt
-        )
-
-        assertInnsendingTilstander(
-            Opprettet,
-            AvventerMetadata,
-            AvventerArkiverbarSøknad,
-            AvventerMidlertidligJournalføring,
-            AvventerJournalføring,
-            Journalført
-        )
-
-        assertPuml("Søker oppretter søknad og ferdigstiller den")
-        // Ettersending
-        håndterLeggtilFil("2", "urn:sid:2")
-        håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle3")
-        assertBehovContains(
-            Behovtype.DokumentkravSvar
-        ) { behovParametre ->
-            assertEquals("2", behovParametre["id"])
-            assertEquals("dokument", behovParametre["type"])
-            assertEquals("urn:sid:bundle3", behovParametre["urn"])
-            assertNotNull(behovParametre["lastOppTidsstempel"])
-            assertEquals(inspektør.søknadId.toString(), behovParametre["søknad_uuid"])
-            assertEquals(testIdent, behovParametre["ident"])
-        }
-        val ettersendingHendelse = håndterSendInnSøknad()
-
-        assertBehov(
-            Behovtype.ArkiverbarSøknad,
-            mapOf(
-                "innsendtTidspunkt" to ettersendingHendelse.innsendtidspunkt().toString(),
-                "dokumentasjonKravId" to listOf("2"),
-                "skjemakode" to "04-01.02",
-                "søknad_uuid" to inspektør.søknadId.toString(),
-                "ident" to testIdent,
-                "type" to "ETTERSENDING_TIL_DIALOG",
-                "innsendingId" to ettersendinger().innsendingId.toString()
-            )
-        )
-
-        håndterArkiverbarSøknad(ettersendinger().innsendingId)
-
-        assertBehov(
-            Behovtype.NyJournalpost,
-            mapOf(
-                "hovedDokument" to hoveddokument.also { it["skjemakode"] = "04-01.02" },
-                "dokumenter" to listOf(
-                    mapOf(
-                        "varianter" to listOf(
-                            mapOf<String, Any>(
-                                "filnavn" to "f2-1",
-                                "urn" to "urn:sid:bundle3",
-                                "variant" to "ARKIV",
-                                "type" to "PDF"
-                            )
-                        ),
-                        "skjemakode" to "N6"
-                    )
-                ),
-                "søknad_uuid" to inspektør.søknadId.toString(),
-                "ident" to testIdent,
-                "type" to InnsendingType.ETTERSENDING_TIL_DIALOG.name,
-                "innsendingId" to ettersendinger().innsendingId.toString()
-            )
-        )
-
-        håndterMidlertidigJournalførtSøknad(ettersendinger().innsendingId)
-        assertEttersendingTilstand(AvventerJournalføring)
-
-        håndterJournalførtSøknad()
-        assertEttersendingTilstand(Journalført)
+//        assertInnsendingTilstand(
+//            AvventerMetadata
+//        )
+//
+//        assertBehov(
+//            Behovtype.InnsendingMetadata,
+//            mapOf(
+//                "søknad_uuid" to inspektør.søknadId.toString(),
+//                "ident" to testIdent,
+//                "type" to "NY_DIALOG",
+//                "innsendingId" to inspektør.innsendingId.toString()
+//            )
+//        )
+//
+//        håndterInnsendingMetadata()
+//
+//        assertInnsendingTilstand(
+//            AvventerArkiverbarSøknad
+//        )
+//
+//        assertBehov(
+//            Behovtype.ArkiverbarSøknad,
+//            mapOf(
+//                "innsendtTidspunkt" to hendelse.innsendtidspunkt().toString(),
+//                "dokumentasjonKravId" to listOf("1", "3"),
+//                "skjemakode" to "04-01.02",
+//                "søknad_uuid" to inspektør.søknadId.toString(),
+//                "ident" to testIdent,
+//                "type" to "NY_DIALOG",
+//                "innsendingId" to inspektør.innsendingId.toString()
+//            )
+//        )
+//        håndterArkiverbarSøknad()
+//        assertInnsendingTilstand(
+//            AvventerMidlertidligJournalføring
+//        )
+//        val hoveddokument = mutableMapOf(
+//            "varianter" to listOf(
+//                mapOf<String, Any>(
+//                    "filnavn" to "",
+//                    "urn" to "urn:dokument:1",
+//                    "variant" to "ARKIV",
+//                    "type" to "PDF"
+//                )
+//            ),
+//            "skjemakode" to "04-01.02"
+//        )
+//
+//        assertBehov(
+//            Behovtype.NyJournalpost,
+//            mapOf(
+//                "hovedDokument" to hoveddokument,
+//                "dokumenter" to listOf(
+//                    mapOf(
+//                        "varianter" to listOf(
+//                            mapOf<String, Any>(
+//                                "filnavn" to "f1-1",
+//                                "urn" to "urn:sid:bundle1",
+//                                "variant" to "ARKIV",
+//                                "type" to "PDF"
+//                            )
+//                        ),
+//                        "skjemakode" to "N6"
+//                    ),
+//                    mapOf(
+//                        "varianter" to listOf(
+//                            mapOf<String, Any>(
+//                                "filnavn" to "f3-1",
+//                                "urn" to "urn:sid:bundle2",
+//                                "variant" to "ARKIV",
+//                                "type" to "PDF"
+//                            )
+//                        ),
+//                        "skjemakode" to "N6"
+//                    )
+//                ),
+//                "søknad_uuid" to inspektør.søknadId.toString(),
+//                "ident" to testIdent,
+//                "type" to "NY_DIALOG",
+//                "innsendingId" to inspektør.innsendingId.toString()
+//            )
+//        )
+//        håndterMidlertidigJournalførtSøknad()
+//        assertInnsendingTilstand(
+//            AvventerJournalføring
+//        )
+//        håndterJournalførtSøknad()
+//        assertInnsendingTilstand(
+//            Journalført
+//        )
+//        assertTilstander(
+//            UnderOpprettelse,
+//            Påbegynt,
+//            Innsendt
+//        )
+//
+//        assertInnsendingTilstander(
+//            Opprettet,
+//            AvventerMetadata,
+//            AvventerArkiverbarSøknad,
+//            AvventerMidlertidligJournalføring,
+//            AvventerJournalføring,
+//            Journalført
+//        )
+//
+//        assertPuml("Søker oppretter søknad og ferdigstiller den")
+//        // Ettersending
+//        håndterLeggtilFil("2", "urn:sid:2")
+//        håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle3")
+//        assertBehovContains(
+//            Behovtype.DokumentkravSvar
+//        ) { behovParametre ->
+//            assertEquals("2", behovParametre["id"])
+//            assertEquals("dokument", behovParametre["type"])
+//            assertEquals("urn:sid:bundle3", behovParametre["urn"])
+//            assertNotNull(behovParametre["lastOppTidsstempel"])
+//            assertEquals(inspektør.søknadId.toString(), behovParametre["søknad_uuid"])
+//            assertEquals(testIdent, behovParametre["ident"])
+//        }
+//        val ettersendingHendelse = håndterSendInnSøknad()
+//
+//        assertBehov(
+//            Behovtype.ArkiverbarSøknad,
+//            mapOf(
+//                "innsendtTidspunkt" to ettersendingHendelse.innsendtidspunkt().toString(),
+//                "dokumentasjonKravId" to listOf("2"),
+//                "skjemakode" to "04-01.02",
+//                "søknad_uuid" to inspektør.søknadId.toString(),
+//                "ident" to testIdent,
+//                "type" to "ETTERSENDING_TIL_DIALOG",
+//                "innsendingId" to ettersendinger().innsendingId.toString()
+//            )
+//        )
+//
+//        håndterArkiverbarSøknad(ettersendinger().innsendingId)
+//
+//        assertBehov(
+//            Behovtype.NyJournalpost,
+//            mapOf(
+//                "hovedDokument" to hoveddokument.also { it["skjemakode"] = "04-01.02" },
+//                "dokumenter" to listOf(
+//                    mapOf(
+//                        "varianter" to listOf(
+//                            mapOf<String, Any>(
+//                                "filnavn" to "f2-1",
+//                                "urn" to "urn:sid:bundle3",
+//                                "variant" to "ARKIV",
+//                                "type" to "PDF"
+//                            )
+//                        ),
+//                        "skjemakode" to "N6"
+//                    )
+//                ),
+//                "søknad_uuid" to inspektør.søknadId.toString(),
+//                "ident" to testIdent,
+//                "type" to InnsendingType.ETTERSENDING_TIL_DIALOG.name,
+//                "innsendingId" to ettersendinger().innsendingId.toString()
+//            )
+//        )
+//
+//        håndterMidlertidigJournalførtSøknad(ettersendinger().innsendingId)
+//        assertEttersendingTilstand(AvventerJournalføring)
+//
+//        håndterJournalførtSøknad()
+//        assertEttersendingTilstand(Journalført)
     }
 
     @Test
@@ -382,47 +371,47 @@ internal class SøknadTest {
         )
     }
 
-    private fun håndterInnsendingMetadata() {
-        søknad.håndter(
-            InnsendingMetadataMottattHendelse(
-                inspektør.innsendingId,
-                inspektør.søknadId,
-                testIdent,
-                "04-01.02"
-            )
-        )
-    }
-
-    private fun håndterArkiverbarSøknad(innsendingId: UUID = inspektør.innsendingId) {
-        søknad.håndter(
-            ArkiverbarSøknadMottattHendelse(
-                innsendingId,
-                testIdent,
-                "urn:dokument:1".lagTestDokument()
-            )
-        )
-    }
-
-    private fun håndterMidlertidigJournalførtSøknad(innsendingId: UUID = inspektør.innsendingId) {
-        søknad.håndter(
-            SøknadMidlertidigJournalførtHendelse(
-                innsendingId,
-                inspektør.søknadId,
-                testIdent,
-                testJournalpostId
-            )
-        )
-    }
-
-    private fun håndterJournalførtSøknad() {
-        søknad.håndter(
-            JournalførtHendelse(
-                inspektør.søknadId,
-                testJournalpostId,
-                testIdent
-            )
-        )
-    }
+//    private fun håndterInnsendingMetadata() {
+//        søknad.håndter(
+//            InnsendingMetadataMottattHendelse(
+//                inspektør.innsendingId,
+//                inspektør.søknadId,
+//                testIdent,
+//                "04-01.02"
+//            )
+//        )
+//    }
+//
+//    private fun håndterArkiverbarSøknad(innsendingId: UUID = inspektør.innsendingId) {
+//        søknad.håndter(
+//            ArkiverbarSøknadMottattHendelse(
+//                innsendingId,
+//                testIdent,
+//                "urn:dokument:1".lagTestDokument()
+//            )
+//        )
+//    }
+//
+//    private fun håndterMidlertidigJournalførtSøknad(innsendingId: UUID = inspektør.innsendingId) {
+//        søknad.håndter(
+//            SøknadMidlertidigJournalførtHendelse(
+//                innsendingId,
+//                inspektør.søknadId,
+//                testIdent,
+//                testJournalpostId
+//            )
+//        )
+//    }
+//
+//    private fun håndterJournalførtSøknad() {
+//        søknad.håndter(
+//            JournalførtHendelse(
+//                inspektør.søknadId,
+//                testJournalpostId,
+//                testIdent
+//            )
+//        )
+//    }
 
     private fun håndterFaktumOppdatering() {
         søknad.håndter(FaktumOppdatertHendelse(inspektør.søknadId, testIdent))
