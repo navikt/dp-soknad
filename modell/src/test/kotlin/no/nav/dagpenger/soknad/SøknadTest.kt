@@ -1,6 +1,5 @@
 package no.nav.dagpenger.soknad
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Aktivitetslogg.AktivitetException
@@ -30,7 +29,6 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 private const val testIdent = "12345678912"
-private const val testJournalpostId = "J123"
 
 internal class SøknadTest {
     private lateinit var søknad: Søknad
@@ -38,10 +36,6 @@ internal class SøknadTest {
     private lateinit var plantUmlObservatør: PlantUmlObservatør
     private val inspektør get() = TestSøknadInspektør(søknad)
     private val språk = "NO"
-
-    private companion object {
-        val objectMapper = jacksonObjectMapper().writerWithDefaultPrettyPrinter()
-    }
 
     private fun sannsynliggjøring(
         sannsynliggjøringId: String,
@@ -57,10 +51,12 @@ internal class SøknadTest {
         )
     }
 
+    private val søknadId = UUID.randomUUID()
+
     @BeforeEach
     internal fun setUp() {
         søknad = Søknad(
-            UUID.randomUUID(),
+            søknadId,
             Språk(språk),
             testIdent,
             FerdigSøknadData
@@ -79,6 +75,11 @@ internal class SøknadTest {
         assertThrows<AktivitetException> {
             håndterFaktumOppdatering()
         }
+    }
+
+    @Test
+    fun hubba() {
+        assertEquals(mapOf("1" to "1"), mutableMapOf("1" to "1"))
     }
 
     @Test
@@ -121,6 +122,46 @@ internal class SøknadTest {
             UnderOpprettelse,
             Påbegynt,
             Innsendt
+        )
+
+        assertBehov(
+            behovtype = Behovtype.NyInnsending,
+            forventetDetaljer = mapOf(
+                "innsendtTidspunkt" to hendelse.innsendtidspunkt(),
+                "dokumentkrav" to listOf<Map<String, Any>>(
+                    Innsending.Dokument(
+                        uuid = UUID.randomUUID(),
+                        kravId = "",
+                        skjemakode = "N6",
+                        varianter = listOf(
+                            Innsending.Dokument.Dokumentvariant(
+                                uuid = UUID.randomUUID(),
+                                filnavn = "f1-1",
+                                urn = "urn:sid:bundle1",
+                                variant = "ARKIV",
+                                type = "PDF"
+                            )
+                        )
+                    ).toMap(),
+                    Innsending.Dokument(
+                        uuid = UUID.randomUUID(),
+                        kravId = "",
+                        skjemakode = "N6",
+                        varianter = listOf(
+                            Innsending.Dokument.Dokumentvariant(
+                                uuid = UUID.randomUUID(),
+                                filnavn = "f3-1",
+                                urn = "urn:sid:bundle2",
+                                variant = "ARKIV",
+                                type = "PDF"
+                            )
+                        )
+                    ).toMap(),
+
+                ),
+                "søknad_uuid" to søknadId.toString(),
+                "ident" to testIdent,
+            )
         )
 
 //        assertInnsendingTilstand(
@@ -486,10 +527,6 @@ internal class SøknadTest {
         assertEquals(tilstander.asList(), testSøknadObserver.tilstander)
     }
 
-    private fun assertInnsendingTilstander(vararg tilstander: Innsending.TilstandType) {
-        assertEquals(tilstander.asList(), testSøknadObserver.innsendTilstander)
-    }
-
     private fun assertPuml(tittel: String) {
         plantUmlObservatør.verify(tittel)
     }
@@ -500,20 +537,8 @@ internal class SøknadTest {
         } ?: throw AssertionError("Fant ikke behov $behovtype")
 
         assertEquals(
-            objectMapper.writeValueAsString(forventetDetaljer),
-            objectMapper.writeValueAsString(behov.detaljer() + behov.kontekst())
+            forventetDetaljer,
+            behov.detaljer() + behov.kontekst()
         )
     }
-
-    private fun assertBehovContains(behovtype: Behovtype, block: (Map<String, Any>) -> Unit) {
-        val behov = inspektør.aktivitetslogg.behov().findLast {
-            it.type == behovtype
-        } ?: throw AssertionError("Fant ikke behov $behovtype")
-
-        block(behov.detaljer() + behov.kontekst())
-    }
 }
-
-private fun String.lagTestDokument() = listOf(
-    Innsending.Dokument.Dokumentvariant(filnavn = "", urn = this, variant = "ARKIV", type = "PDF")
-)

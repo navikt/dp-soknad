@@ -91,8 +91,7 @@ internal class SøknadPostgresRepositoryTest {
         sistEndretAvBruker = now,
         tilstandsType = Påbegynt,
         aktivitetslogg = Aktivitetslogg(),
-        null,
-        prosessversjon,
+        prosessversjon = prosessversjon,
         data = FerdigSøknadData
     )
 
@@ -121,7 +120,6 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
-            null,
             prosessversjon,
             data = FerdigSøknadData
         )
@@ -178,32 +176,6 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now.minusDays(1),
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
-            innsending = NyInnsending.rehydrer(
-                innsendingId = UUID.randomUUID(),
-                type = Innsending.InnsendingType.NY_DIALOG,
-                innsendt = now,
-                journalpostId = "123123",
-                tilstandsType = Innsending.TilstandType.AvventerArkiverbarSøknad,
-                hovedDokument = null,
-                dokumenter = listOf(
-                    Innsending.Dokument(
-                        uuid = UUID.randomUUID(),
-                        kravId = "kravId",
-                        skjemakode = "brevkode-vedlegg",
-                        varianter = listOf(
-                            Innsending.Dokument.Dokumentvariant(
-                                UUID.randomUUID(),
-                                "filnavn3",
-                                "urn:burn:turn3",
-                                "variant3",
-                                "type3"
-                            )
-                        )
-                    )
-                ),
-                ettersendinger = mutableListOf(),
-                metadata = Innsending.Metadata("04-02-03")
-            ),
             prosessversjon = prosessversjon,
             data = FerdigSøknadData
         )
@@ -310,80 +282,6 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now.minusDays(1),
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
-            innsending = NyInnsending.rehydrer(
-                UUID.randomUUID(),
-                Innsending.InnsendingType.NY_DIALOG,
-                now,
-                "123123",
-                Innsending.TilstandType.AvventerArkiverbarSøknad,
-                Innsending.Dokument(
-                    uuid = UUID.randomUUID(),
-                    kravId = null,
-                    skjemakode = "brevkode",
-                    varianter = listOf(
-                        Innsending.Dokument.Dokumentvariant(
-                            UUID.randomUUID(),
-                            "filnavn1",
-                            "urn:burn:turn1",
-                            "variant1",
-                            "type1"
-                        ),
-                        Innsending.Dokument.Dokumentvariant(
-                            UUID.randomUUID(),
-                            "filnavn2",
-                            "urn:burn:turn2",
-                            "variant2",
-                            "type2"
-                        )
-                    )
-                ),
-                listOf(
-                    Innsending.Dokument(
-                        uuid = UUID.randomUUID(),
-                        kravId = "kravId",
-                        skjemakode = "brevkode2",
-                        varianter = listOf(
-                            Innsending.Dokument.Dokumentvariant(
-                                UUID.randomUUID(),
-                                "filnavn3",
-                                "urn:burn:turn3",
-                                "variant3",
-                                "type3"
-                            ),
-                            Innsending.Dokument.Dokumentvariant(
-                                UUID.randomUUID(),
-                                "filnavn4",
-                                "urn:burn:turn4",
-                                "variant4",
-                                "type4"
-                            )
-                        )
-                    )
-                ),
-                mutableListOf(
-                    Ettersending.rehydrer(
-                        UUID.randomUUID(),
-                        Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG,
-                        now,
-                        null,
-                        Innsending.TilstandType.Opprettet,
-                        null,
-                        listOf(),
-                        Innsending.Metadata(skjemakode = "0324-23")
-                    ),
-                    Ettersending.rehydrer(
-                        UUID.randomUUID(),
-                        Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG,
-                        now,
-                        null,
-                        Innsending.TilstandType.AvventerJournalføring,
-                        null,
-                        listOf(),
-                        Innsending.Metadata(skjemakode = "0324-23")
-                    )
-                ),
-                Innsending.Metadata(skjemakode = "04-02-03")
-            ),
             prosessversjon = prosessversjon,
             data = FerdigSøknadData
         )
@@ -465,7 +363,6 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now.minusDays(1),
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
-            innsending = null,
             prosessversjon = prosessversjon,
             data = FerdigSøknadData
         )
@@ -667,7 +564,6 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
-            null,
             Prosessversjon(Prosessnavn(prosessNavn), 2),
             data = FerdigSøknadData
         )
@@ -686,7 +582,6 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now,
             tilstandsType = Innsendt,
             aktivitetslogg = Aktivitetslogg(),
-            null,
             prosessversjon,
             data = FerdigSøknadData
         )
@@ -725,8 +620,7 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
-            null,
-            null,
+            prosessversjon = null,
             data = FerdigSøknadData
         )
         val påbegyntSøknad = Søknad.rehydrer(
@@ -740,8 +634,7 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
-            null,
-            prosessversjon,
+            prosessversjon = prosessversjon,
             data = FerdigSøknadData
         )
         val nySøknad = Søknad.rehydrer(
