@@ -26,12 +26,13 @@ internal class InnsendingMediatorTest {
     private val rapid = TestRapid()
     private val repository = InMemoryInnsendingRepository()
     private val mediator = InnsendingMediator(rapid, repository)
-    private val ident = "123123123"
     private val innsendingObserver = TestInnsendingObserver()
+    private val ident = "123123123"
+    private val søknadId = UUID.randomUUID()
 
     @Test
     fun `Oppretter innsending`() {
-        val innsending = Innsending.ny(ZonedDateTime.now(), ident, listOf())
+        val innsending = Innsending.ny(ZonedDateTime.now(), ident, søknadId, listOf())
         innsending.addObserver(innsendingObserver)
 
         mediator.behandle(NyInnsendingHendelse(innsending, ident))
@@ -50,7 +51,7 @@ internal class InnsendingMediatorTest {
     fun `Håndterer metadata`() {
         val innsendt = ZonedDateTime.now()
         val skjemaKode = "04.04-04"
-        val innsending = Innsending.ny(innsendt, ident, listOf())
+        val innsending = Innsending.ny(innsendt, ident, søknadId, listOf())
         innsending.addObserver(innsendingObserver)
 
         mediator.behandle(NyInnsendingHendelse(innsending, ident))
@@ -77,7 +78,7 @@ internal class InnsendingMediatorTest {
     fun `Håndterer ArkiverbarSøknadHendelse`() {
         val innsendt = ZonedDateTime.now()
         val skjemaKode = "04.04-04"
-        val innsending = Innsending.ny(innsendt, ident, listOf())
+        val innsending = Innsending.ny(innsendt, ident, søknadId, listOf())
         innsending.addObserver(innsendingObserver)
 
         mediator.behandle(NyInnsendingHendelse(innsending, ident))
@@ -112,7 +113,7 @@ internal class InnsendingMediatorTest {
         val innsendt = ZonedDateTime.now()
         val skjemaKode = "04.04-04"
         val journalpostId = "123"
-        val innsending = Innsending.ny(innsendt, ident, listOf())
+        val innsending = Innsending.ny(innsendt, ident, søknadId, listOf())
         innsending.addObserver(innsendingObserver)
 
         mediator.behandle(NyInnsendingHendelse(innsending, ident))
@@ -146,7 +147,7 @@ internal class InnsendingMediatorTest {
         val innsendt = ZonedDateTime.now()
         val skjemaKode = "04.04-04"
         val journalpostId = "123"
-        val innsending = Innsending.ny(innsendt, ident, listOf())
+        val innsending = Innsending.ny(innsendt, ident, søknadId, listOf())
         innsending.addObserver(innsendingObserver)
 
         mediator.behandle(NyInnsendingHendelse(innsending, ident))

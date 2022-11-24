@@ -13,6 +13,7 @@ import java.util.UUID
 class Innsending private constructor(
     val innsendingId: UUID,
     private val ident: String,
+    private val søknadId: UUID,
     private val type: InnsendingType,
     private val innsendt: ZonedDateTime,
     private var journalpostId: String?,
@@ -27,12 +28,14 @@ class Innsending private constructor(
     internal constructor(
         type: InnsendingType,
         ident: String,
+        søknadId: UUID,
         innsendt: ZonedDateTime,
         dokumentkrav: List<Dokument>,
         metadata: Metadata? = null
     ) : this(
         innsendingId = UUID.randomUUID(),
         ident = ident,
+        søknadId = søknadId,
         type = type,
         innsendt = innsendt,
         journalpostId = null,
@@ -42,16 +45,17 @@ class Innsending private constructor(
     )
 
     companion object {
-        fun ny(innsendt: ZonedDateTime, ident: String, dokumentkrav: List<Dokument>) =
-            Innsending(InnsendingType.NY_DIALOG, ident, innsendt, dokumentkrav)
+        fun ny(innsendt: ZonedDateTime, ident: String, søknadId: UUID, dokumentkrav: List<Dokument>) =
+            Innsending(InnsendingType.NY_DIALOG, ident, søknadId, innsendt, dokumentkrav)
 
-        fun ettersending(innsendt: ZonedDateTime, ident: String, dokumentkrav: List<Dokument>) =
-            Innsending(InnsendingType.ETTERSENDING_TIL_DIALOG, ident, innsendt, dokumentkrav)
+        fun ettersending(innsendt: ZonedDateTime, ident: String, søknadId: UUID, dokumentkrav: List<Dokument>) =
+            Innsending(InnsendingType.ETTERSENDING_TIL_DIALOG, ident, søknadId, innsendt, dokumentkrav)
 
         fun rehydrer(
             innsendingId: UUID,
             type: InnsendingType,
             ident: String,
+            søknadId: UUID,
             innsendt: ZonedDateTime,
             journalpostId: String?,
             tilstandsType: TilstandType,
@@ -70,6 +74,7 @@ class Innsending private constructor(
             return Innsending(
                 innsendingId,
                 ident,
+                søknadId,
                 type,
                 innsendt,
                 journalpostId,
@@ -306,6 +311,7 @@ class Innsending private constructor(
         mapOf(
             "type" to type.name,
             "innsendingId" to innsendingId.toString(),
+            "søknad_uuid" to søknadId.toString(),
             "ident" to ident
         )
     )

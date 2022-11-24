@@ -120,6 +120,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             innsendingId = innsendingId,
             type = type,
             ident = "",
+            søknadId = UUID.randomUUID(),
             innsendt = row.norskZonedDateTime("innsendt"),
             journalpostId = row.stringOrNull("journalpost_id"),
             tilstand = InnsendingDTO.TilstandDTO.rehydrer(row.string("tilstand")),
