@@ -24,7 +24,7 @@ object Cucumber {
 object Dagpenger {
 
     object Biblioteker {
-        const val version = "2021.12.14-13.01.6400e5680cb5"
+        const val version = "2022.11.24-14.34.528555d5f3df"
         const val stsKlient = "com.github.navikt.dp-biblioteker:sts-klient:$version"
         const val ktorUtils = "com.github.navikt.dp-biblioteker:ktor-utils:$version"
 
@@ -45,8 +45,8 @@ object Dagpenger {
     }
 
     const val Grunnbeløp = "com.github.navikt:dp-grunnbelop:2022.05.20-09.36.a361a7eb490e"
-    const val Streams = "com.github.navikt:dagpenger-streams:2022.06.19-20.52.d37841b711ec"
-    const val Events = "com.github.navikt:dagpenger-events:2021.12.14-09.45.e24e8c813b27"
+    const val Streams = "com.github.navikt:dagpenger-streams:2022.11.23-13.03.cdf78b1c92f9"
+    const val Events = "com.github.navikt:dagpenger-events:2022.11.23-12.45.96e145a02427"
 }
 
 object Database {
@@ -103,7 +103,7 @@ object Kafka {
     fun library(name: String) = "org.apache.kafka:kafka-$name:$version"
 
     object Confluent {
-        const val version = "6.2.0"
+        const val version = "7.3.0"
         const val avroStreamSerdes = "io.confluent:kafka-streams-avro-serde:$version"
         fun library(name: String) = "io.confluent:$name:$version"
     }
@@ -178,7 +178,7 @@ object Log4j2 {
     const val version = "2.19.0"
     const val api = "org.apache.logging.log4j:log4j-api:$version"
     const val core = "org.apache.logging.log4j:log4j-core:$version"
-    const val slf4j = "org.apache.logging.log4j:log4j-slf4j-impl:$version"
+    const val slf4j = "org.apache.logging.log4j:log4j-slf4j2-impl:$version"
 
     fun library(name: String) = "org.apache.logging.log4j:log4j-$name:$version"
 
@@ -245,7 +245,7 @@ object Spotless {
 }
 
 object Shadow {
-    const val version = "7.0.0"
+    const val version = "7.1.2"
     const val shadow = "com.github.johnrengelman.shadow"
 }
 

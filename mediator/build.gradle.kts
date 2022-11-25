@@ -19,11 +19,11 @@ dependencies {
     implementation(Ktor2.Server.library("content-negotiation"))
     implementation("io.prometheus:simpleclient_caffeine:0.16.0")
     implementation("io.ktor:ktor-serialization-jackson:${Ktor2.version}")
-    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2022.10.22-09.05.6fcf3395aa4f")
-    implementation("com.github.navikt.dp-biblioteker:pdl-klient:2022.10.22-09.05.6fcf3395aa4f")
+    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:${Dagpenger.Biblioteker.version}")
+    implementation("com.github.navikt.dp-biblioteker:pdl-klient:${Dagpenger.Biblioteker.version}")
     implementation("com.github.navikt:pam-geography:2.15")
 
-    implementation("com.fasterxml.jackson.module:jackson-module-blackbird:2.14.0")
+    implementation("com.fasterxml.jackson.module:jackson-module-blackbird:${Jackson.version}")
     // DB
     implementation(Database.Flyway)
     implementation(Database.HikariCP)
