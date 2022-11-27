@@ -16,12 +16,12 @@ internal object SlettSøknaderJob {
             name = "Sletterutine for søknader som ligger til sletting",
             daemon = true,
             initialDelay = 1.minutes.inWholeMilliseconds,
-            period = 5.minutes.inWholeMilliseconds,
+            period = 15.minutes.inWholeMilliseconds,
             action = {
                 try {
                     vaktmesterRepository.slett()
                 } catch (e: Exception) {
-                    logger.error { "Sletting av søknader feilet: $e" }
+                    logger.error(e) { "Sletting av søknader feilet" }
                 }
             }
         )
