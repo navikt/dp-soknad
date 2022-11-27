@@ -28,8 +28,9 @@ internal class BehandlingsstatusHttpClient(
     private val tokenProvider: (token: String, audience: String) -> String = exchangeToOboToken,
     engine: HttpClientEngine = CIO.create()
 ) : BehandlingsstatusClient {
-    companion object {
-        private val logger = KotlinLogging.logger {}
+    private companion object {
+        val logger = KotlinLogging.logger {}
+        val sikkerlogg = KotlinLogging.logger("tjenestekall.BehandlingsstatusClient")
     }
 
     private val httpClient = HttpClient(engine) {
@@ -50,6 +51,7 @@ internal class BehandlingsstatusHttpClient(
             }.body()
         } catch (e: Exception) {
             logger.error { "Feil under henting av behandlingsstatus. Behandlingsstatus settes til ukjent: ${e.message}" }
+            sikkerlogg.error(e) { "Feil under henting av behandlingsstatus. Behandlingsstatus settes til ukjent." }
             return BehandlingsstatusDto("Ukjent")
         }
     }
