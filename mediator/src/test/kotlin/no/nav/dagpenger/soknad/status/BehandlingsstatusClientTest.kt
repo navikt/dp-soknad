@@ -72,4 +72,25 @@ class BehandlingsstatusClientTest {
             )
         }
     }
+    @Test
+    fun `InternalServerError resulterer i fjasbehandlingsstatus`() {
+        runBlocking {
+            val behandlingsstatusClient = BehandlingsstatusHttpClient(
+                baseUrl,
+                innsynAudience,
+                testTokenProvider,
+                engine = MockEngine {
+                    respond(
+                        content = """{"foo":"UnderBehandling"}""".trimMargin(),
+                        headers = headersOf(HttpHeaders.ContentType, "application/json")
+                    )
+                }
+            )
+
+            assertEquals(
+                BehandlingsstatusDto("Ukjent"),
+                behandlingsstatusClient.hentBehandlingsstatus(LocalDate.now(), subjectToken)
+            )
+        }
+    }
 }

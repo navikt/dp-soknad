@@ -10,6 +10,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
@@ -45,6 +46,7 @@ internal class BehandlingsstatusHttpClient(
     }
 
     override suspend fun hentBehandlingsstatus(fom: LocalDate, subjectToken: String): BehandlingsstatusDto {
+        var rawBody: String? = null
         val url = "$baseUrl/behandlingsstatus?fom=$fom"
         logger.info { "Henter behandlingsstatus med fom=$fom" }
         return try {
@@ -52,10 +54,13 @@ internal class BehandlingsstatusHttpClient(
                 header(HttpHeaders.XRequestId, MDC.get("call-id"))
                 addBearerToken(subjectToken)
                 contentType(ContentType.Application.Json)
-            }.body()
+            }.run {
+                rawBody = this.bodyAsText()
+                this.body()
+            }
         } catch (e: Exception) {
-            logger.error { "Feil under henting av behandlingsstatus. Behandlingsstatus settes til ukjent: ${e.message}" }
-            sikkerlogg.error(e) { "Feil under henting av behandlingsstatus. Behandlingsstatus settes til ukjent." }
+            logger.error(e) { "Feil under henting av behandlingsstatus. Behandlingsstatus settes til ukjent" }
+            sikkerlogg.error(e) { "Feil under henting av behandlingsstatus. Behandlingsstatus settes til ukjent. Raw=$rawBody" }
             return BehandlingsstatusDto("Ukjent")
         }
     }
