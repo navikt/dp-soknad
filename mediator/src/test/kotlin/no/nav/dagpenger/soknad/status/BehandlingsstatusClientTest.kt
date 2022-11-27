@@ -10,7 +10,9 @@ import io.ktor.http.headersOf
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.slf4j.MDC
 import java.time.LocalDate
+import java.util.UUID
 
 class BehandlingsstatusClientTest {
 
@@ -23,6 +25,8 @@ class BehandlingsstatusClientTest {
     fun `Får deserialisert til BehandlingsstatusDto`() {
         val fom = LocalDate.now()
 
+        val callId = UUID.randomUUID().toString()
+        MDC.put("call-id", callId)
         runBlocking {
             val behandlingsstatusClient = BehandlingsstatusHttpClient(
                 baseUrl,
@@ -35,6 +39,7 @@ class BehandlingsstatusClientTest {
                         "Bearer ${testTokenProvider.invoke(subjectToken, innsynAudience)}",
                         request.headers[HttpHeaders.Authorization]
                     )
+                    assertEquals(callId, request.headers[HttpHeaders.XRequestId])
                     respond(
                         content = """{"behandlingsstatus":"UnderBehandling"}""".trimMargin(),
                         headers = headersOf(HttpHeaders.ContentType, "application/json")

@@ -9,6 +9,7 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
@@ -16,6 +17,7 @@ import io.ktor.serialization.jackson.jackson
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.Configuration.tokenXClient
+import org.slf4j.MDC
 import java.time.LocalDate
 
 internal interface BehandlingsstatusClient {
@@ -44,8 +46,10 @@ internal class BehandlingsstatusHttpClient(
 
     override suspend fun hentBehandlingsstatus(fom: LocalDate, subjectToken: String): BehandlingsstatusDto {
         val url = "$baseUrl/behandlingsstatus?fom=$fom"
+        logger.info { "Henter behandlingsstatus med fom=$fom" }
         return try {
             httpClient.get(url) {
+                header(HttpHeaders.XRequestId, MDC.get("call-id"))
                 addBearerToken(subjectToken)
                 contentType(ContentType.Application.Json)
             }.body()
