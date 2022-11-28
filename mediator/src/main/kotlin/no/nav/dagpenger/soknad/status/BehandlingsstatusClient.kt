@@ -72,7 +72,7 @@ internal class BehandlingsstatusHttpClient(
 
 internal data class BehandlingsstatusDto(
     @JsonProperty("behandlingsstatus")
-    val behandlingsstatus: String
+    val behandlingsstatus: String?
 )
 
 private val exchangeToOboToken = { token: String, audience: String ->
