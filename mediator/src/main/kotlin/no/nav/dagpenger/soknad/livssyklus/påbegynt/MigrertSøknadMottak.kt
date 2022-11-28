@@ -36,7 +36,8 @@ internal class MigrertSøknadMottak(
         withLoggingContext(
             "søknadId" to søknadId.toString()
         ) {
-            if (søknadId.toString() == "4242402d-93ca-47e4-8a52-6c1b7642bb29") return
+            if (søknadId.toString() == "d8a4f6ef-bd07-4824-8e98-66b399e986df") return
+
             val prosessnavn = packet["@løsning"][behov]["prosessnavn"].asText()
             val versjon = packet["@løsning"][behov]["versjon"].asInt()
             val data = packet["@løsning"][behov]["data"]
