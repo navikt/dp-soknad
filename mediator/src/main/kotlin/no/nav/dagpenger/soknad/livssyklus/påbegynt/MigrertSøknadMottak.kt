@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.SøknadMediator.SøknadIkkeFunnet
 import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
 import no.nav.dagpenger.soknad.livssyklus.asUUID
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -36,22 +37,24 @@ internal class MigrertSøknadMottak(
         withLoggingContext(
             "søknadId" to søknadId.toString()
         ) {
-            if (søknadId.toString() == "d8a4f6ef-bd07-4824-8e98-66b399e986df") return
-
             val prosessnavn = packet["@løsning"][behov]["prosessnavn"].asText()
             val versjon = packet["@løsning"][behov]["versjon"].asInt()
             val data = packet["@løsning"][behov]["data"]
 
             logger.info { "Mottok migrert søknad, prosessnavn=$prosessnavn, versjon=$versjon" }
 
-            mediator.behandle(
-                MigrertProsessHendelse(
-                    søknadId,
-                    ident,
-                    prosessversjon = Prosessversjon(prosessnavn, versjon)
-                ),
-                SøkerOppgaveMelding(data.asText())
-            )
+            try {
+                mediator.behandle(
+                    MigrertProsessHendelse(
+                        søknadId,
+                        ident,
+                        prosessversjon = Prosessversjon(prosessnavn, versjon)
+                    ),
+                    SøkerOppgaveMelding(data.asText())
+                )
+            } catch (e: SøknadIkkeFunnet) {
+                logger.warn(e) { "Fant ikke søknad som har blitt migrert" }
+            }
         }
     }
 
