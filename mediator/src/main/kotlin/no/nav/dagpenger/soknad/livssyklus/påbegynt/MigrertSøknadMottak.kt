@@ -16,6 +16,7 @@ internal class MigrertSøknadMottak(
     rapidsConnection: RapidsConnection,
     private val mediator: SøknadMediator
 ) : River.PacketListener {
+    private val skipManglendeSøknader = false
     private val behov = "MigrerProsess"
 
     init {
@@ -54,6 +55,7 @@ internal class MigrertSøknadMottak(
                 )
             } catch (e: SøknadIkkeFunnet) {
                 logger.warn(e) { "Fant ikke søknad som har blitt migrert" }
+                if (!skipManglendeSøknader) throw e
             }
         }
     }
