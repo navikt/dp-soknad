@@ -5,6 +5,7 @@ import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NySøknad
 import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.SøknadMediator.SøknadIkkeFunnet
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -52,7 +53,11 @@ internal class SøknadOpprettetHendelseMottak(
             val søknadOpprettetHendelse =
                 SøknadOpprettetHendelse(prosessversjon, søknadID, packet["ident"].asText())
             logger.info { "Fått løsning for '$behov' for $søknadID" }
-            mediator.behandle(søknadOpprettetHendelse)
+            try {
+                mediator.behandle(søknadOpprettetHendelse)
+            } catch (e: SøknadIkkeFunnet) {
+                logger.error(e) { "Fikk svar på behov om ny søknad fra quiz, men bruker har allerede slettet søknaden" }
+            }
         }
     }
 }
