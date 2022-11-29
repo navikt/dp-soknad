@@ -16,7 +16,7 @@ internal class MigrertSøknadMottak(
     rapidsConnection: RapidsConnection,
     private val mediator: SøknadMediator
 ) : River.PacketListener {
-    private val skipManglendeSøknader = false
+    private val skipManglendeSøknader = true
     private val behov = "MigrerProsess"
 
     init {
