@@ -8,7 +8,6 @@ import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import java.time.LocalDateTime
@@ -129,8 +128,8 @@ internal class InnsendingPostgresRepositoryTest {
     }
 
     private fun assertInnsendingEquals(originalInnsending: Innsending, rehydrertInnsending: Innsending) {
-        val expected = Hubba(originalInnsending)
-        val actual = Hubba(rehydrertInnsending)
+        val expected = TestInnsendingVisitor(originalInnsending)
+        val actual = TestInnsendingVisitor(rehydrertInnsending)
 
         assertEquals(expected.innsendingid, actual.innsendingid)
         assertEquals(expected.søknadid, actual.søknadid)
@@ -139,14 +138,12 @@ internal class InnsendingPostgresRepositoryTest {
         assertEquals(expected.innsendt, actual.innsendt)
         assertEquals(expected.journalpost, actual.journalpost)
         assertEquals(expected.ident, actual.ident)
-        assertEquals(expected.dokumenter.size, actual.dokumenter.size)
-        assertNotNull(expected.hoveddokument)
         assertEquals(expected.dokumenter, actual.dokumenter)
         assertEquals(expected.hoveddokument, actual.hoveddokument)
         assertEquals(expected.metadata, actual.metadata)
     }
 
-    private class Hubba(innsending: Innsending) : InnsendingVisitor {
+    private class TestInnsendingVisitor(innsending: Innsending) : InnsendingVisitor {
         lateinit var ident: String
         lateinit var innsendingid: UUID
         lateinit var søknadid: UUID

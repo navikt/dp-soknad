@@ -173,7 +173,14 @@ private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingV
     ) {
         innsendingQuery = queryOf(
             //language=PostgreSQL
-            statement = """INSERT INTO innsending_v1(innsending_uuid, soknad_uuid, innsendt, journalpost_id, innsendingtype, tilstand) VALUES(:innsending_uuid, :soknad_uuid, :innsendt, :journalpost_id, :innsendingtype, :tilstand)""",
+            statement = """
+                INSERT INTO innsending_v1(innsending_uuid, soknad_uuid, innsendt, journalpost_id, innsendingtype, tilstand) 
+                VALUES(:innsending_uuid, :soknad_uuid, :innsendt, :journalpost_id, :innsendingtype, :tilstand)
+                ON CONFLICT (innsending_uuid) DO UPDATE SET innsendt = :innsendt, 
+                                                            journalpost_id = :journalpost_id,
+                                                            innsendingtype = :innsendingtype,
+                                                            tilstand = :tilstand
+                """.trimMargin(),
             paramMap = mutableMapOf(
                 "innsending_uuid" to innsendingId,
                 "soknad_uuid" to søknadId,
@@ -241,7 +248,12 @@ private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingV
         hovedDokument?.let { hovedDokument ->
             queries.add(
                 queryOf(
-                    statement = """INSERT INTO hoveddokument_v1(innsending_uuid, dokument_uuid) VALUES (:innsending_uuid, :dokument_uuid)""",
+                    //language=PostgreSQL
+                    statement = """
+                        INSERT INTO hoveddokument_v1(innsending_uuid, dokument_uuid) 
+                        VALUES (:innsending_uuid, :dokument_uuid)
+                        ON CONFLICT (innsending_uuid) DO UPDATE SET dokument_uuid = :dokumentvariant_uuid
+                    """.trimIndent(),
                     paramMap = mapOf(
                         "innsending_uuid" to innsendingId,
                         "dokument_uuid" to hovedDokument.uuid
