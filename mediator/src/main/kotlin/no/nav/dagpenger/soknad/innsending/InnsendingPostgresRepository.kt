@@ -18,8 +18,6 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
     override fun hent(innsendingId: UUID): Innsending? {
         return using(sessionOf(ds)) { session ->
             // todo fix me
-            val hovedDokument = null
-            val dokumenter = emptyList<Innsending.Dokument>()
             val metadata = null
             session.run(
                 queryOf(
@@ -34,6 +32,7 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
                     )
                 ).map { row ->
                     val dialogId = row.uuid("soknad_uuid")
+                    val dokumenter = session.hentDokumenter(innsendingId)
                     Innsending.rehydrer(
                         innsendingId = row.uuid("innsending_uuid"),
                         type = Innsending.InnsendingType.valueOf(row.string("innsendingtype")),
@@ -42,8 +41,8 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
                         innsendt = row.norskZonedDateTime("innsendt"),
                         journalpostId = row.stringOrNull("journalpost_id"),
                         tilstandsType = Innsending.TilstandType.valueOf(row.string("tilstand")),
-                        hovedDokument = hovedDokument,
-                        dokumenter = dokumenter,
+                        hovedDokument = dokumenter.hovedDokument,
+                        dokumenter = dokumenter.dokumenter, // todo fixme
                         metadata = metadata
                     )
                 }.asSingle
@@ -54,8 +53,17 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
     override fun lagre(innsending: Innsending) {
         using(sessionOf(ds)) { session ->
             session.transaction { tx ->
-                InnsendingPersistenceVisitor(innsending = innsending).queries().forEach {
-                    tx.run(it.asUpdate)
+                val innsendingPersistenceVisitor = InnsendingPersistenceVisitor(innsending = innsending)
+
+                // 1. Lagre innsenindg
+                tx.run(innsendingPersistenceVisitor.innsendingQuery.asUpdate)
+                // 2. Lagre dokumenter
+                innsendingPersistenceVisitor.batchPreparedStatements().forEach {
+                    tx.batchPreparedNamedStatement(it.statement, it.params)
+                }
+                // 3. Lagre hoveddokument
+                innsendingPersistenceVisitor.queries().forEach { query ->
+                    tx.run(query.asUpdate)
                 }
             }
         }
@@ -75,16 +83,55 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
             ).map { row -> row.string("person_ident") }.asSingle
         ) ?: throw DataConstraintException("Fant ikke ident for dialogId: $dialogId")
     }
+
+    private fun Session.hentDokumenter(innsendingId: UUID): Dokumenter {
+        return this.run(
+            queryOf( //language=PostgreSQL
+                "SELECT * FROM dokument_v1 WHERE innsending_uuid = :innsendingId",
+                mapOf("innsendingId" to innsendingId)
+            ).map { row ->
+                val dokumentUUID = row.uuid("dokument_uuid")
+                val varianter: List<Innsending.Dokument.Dokumentvariant> = emptyList() // todo
+                val dokument = Innsending.Dokument(
+                    uuid = dokumentUUID,
+                    kravId = row.stringOrNull("kravid"),
+                    skjemakode = row.string("brevkode"),
+                    varianter = varianter
+                )
+                dokument
+            }.asList
+        ).let { Dokumenter(it, this.getHovedDokumentUUID(innsendingId)) }
+    }
+
+    private fun Session.getHovedDokumentUUID(innsendingId: UUID): UUID? = this.run(
+        queryOf( //language=PostgreSQL
+            "SELECT dokument_uuid FROM hoveddokument_v1 WHERE innsending_uuid = :innsendingId",
+            mapOf("innsendingId" to innsendingId)
+        ).map { row ->
+            row.uuidOrNull("dokument_uuid")
+        }.asSingle
+    )
 }
 
+private class Dokumenter(private val alleDokumenter: List<Innsending.Dokument>, hovedDokumentId: UUID?) :
+    List<Innsending.Dokument> by alleDokumenter {
+    val hovedDokument: Innsending.Dokument? = this.alleDokumenter.firstOrNull { it.uuid == hovedDokumentId }
+    val dokumenter: List<Innsending.Dokument> = this.alleDokumenter.filterNot { it.uuid == hovedDokumentId }
+}
+
+private data class BatchPreparedStatement(val statement: String, val params: List<Map<String, Any?>>)
 private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingVisitor {
+
+    lateinit var innsendingQuery: Query
     private val queries: MutableList<Query> = mutableListOf()
+    private val batchPreparedStatements: MutableList<BatchPreparedStatement> = mutableListOf()
 
     init {
         innsending.accept(this)
     }
 
     fun queries(): List<Query> = queries
+    fun batchPreparedStatements(): MutableList<BatchPreparedStatement> = batchPreparedStatements
 
     override fun visit(
         innsendingId: UUID,
@@ -98,7 +145,7 @@ private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingV
         dokumenter: List<Innsending.Dokument>,
         metadata: Innsending.Metadata?,
     ) {
-        val element = queryOf(
+        innsendingQuery = queryOf(
             //language=PostgreSQL
             statement = """INSERT INTO innsending_v1(innsending_uuid, soknad_uuid, innsendt, journalpost_id, innsendingtype, tilstand) VALUES(:innsending_uuid, :soknad_uuid, :innsendt, :journalpost_id, :innsendingtype, :tilstand)""",
             paramMap = mutableMapOf(
@@ -110,6 +157,39 @@ private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingV
                 "innsendingtype" to innsendingType.name
             )
         )
-        queries.add(element)
+
+        val params: MutableList<Map<String, Any?>> = mutableListOf()
+        dokumenter.toMutableList().apply {
+            hovedDokument?.let { add(it) }
+        }.forEach { dokument ->
+            params.add(
+                mapOf(
+                    "dokument_uuid" to dokument.uuid,
+                    "innsending_uuid" to innsendingId,
+                    "brevkode" to dokument.skjemakode,
+                    "kravId" to dokument.kravId
+                )
+            )
+        }
+        batchPreparedStatements.add(
+            BatchPreparedStatement(
+                statement = """ INSERT INTO dokument_v1 (dokument_uuid, innsending_uuid, brevkode, kravid)
+                    VALUES (:dokument_uuid, :innsending_uuid, :brevkode, :kravId)
+                    ON CONFLICT (dokument_uuid) DO UPDATE SET brevkode = :brevkode, kravid = :kravId""",
+                params = params
+            )
+        )
+
+        hovedDokument?.let { hovedDokument ->
+            queries.add(
+                queryOf(
+                    statement = """INSERT INTO hoveddokument_v1(innsending_uuid, dokument_uuid) VALUES (:innsending_uuid, :dokument_uuid)""",
+                    paramMap = mapOf(
+                        "innsending_uuid" to innsendingId,
+                        "dokument_uuid" to hovedDokument.uuid
+                    )
+                )
+            )
+        }
     }
 }

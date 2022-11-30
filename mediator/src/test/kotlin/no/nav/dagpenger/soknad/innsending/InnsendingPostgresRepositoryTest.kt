@@ -8,6 +8,7 @@ import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import java.time.LocalDateTime
@@ -35,7 +36,28 @@ internal class InnsendingPostgresRepositoryTest {
     private val now = ZonedDateTime.of(LocalDateTime.now(), ZoneId.of("Europe/Oslo"))
     private val hovedDokument = Innsending.Dokument(
         uuid = UUID.randomUUID(),
-        kravId = "f2-1",
+        kravId = "Hoveddokument",
+        skjemakode = "NAV-04",
+        varianter = listOf(
+            Innsending.Dokument.Dokumentvariant(
+                uuid = UUID.randomUUID(),
+                filnavn = "filnavn1",
+                urn = "urn:vedlegg:filnavn1",
+                variant = "NETTO",
+                type = "PDF"
+            ),
+            Innsending.Dokument.Dokumentvariant(
+                uuid = UUID.randomUUID(),
+                filnavn = "filnavn2",
+                urn = "urn:vedlegg:filnavn2",
+                variant = "NETTO",
+                type = "JSON"
+            )
+        )
+    )
+    private val dokument1 = Innsending.Dokument(
+        uuid = UUID.randomUUID(),
+        kravId = "dokument1",
         skjemakode = "NAV-04",
         varianter = listOf(
             Innsending.Dokument.Dokumentvariant(
@@ -55,7 +77,29 @@ internal class InnsendingPostgresRepositoryTest {
         )
     )
 
-    private val dokumenter = listOf(hovedDokument, hovedDokument.copy(UUID.randomUUID()))
+    private val dokument2 = Innsending.Dokument(
+        uuid = UUID.randomUUID(),
+        kravId = "dokument2",
+        skjemakode = "NAV-04",
+        varianter = listOf(
+            Innsending.Dokument.Dokumentvariant(
+                uuid = UUID.randomUUID(),
+                filnavn = "filnavn1",
+                urn = "urn:vedlegg:filnavn1",
+                variant = "NETTO",
+                type = "PDF"
+            ),
+            Innsending.Dokument.Dokumentvariant(
+                uuid = UUID.randomUUID(),
+                filnavn = "filnavn2",
+                urn = "urn:vedlegg:filnavn2",
+                variant = "NETTO",
+                type = "JSON"
+            )
+        )
+    )
+
+    private val dokumenter = listOf(dokument1, dokument2)
 
     private val originalInnsending = Innsending.rehydrer(
         innsendingId = UUID.randomUUID(),
@@ -95,9 +139,11 @@ internal class InnsendingPostgresRepositoryTest {
         assertEquals(expected.innsendt, actual.innsendt)
         assertEquals(expected.journalpost, actual.journalpost)
         assertEquals(expected.ident, actual.ident)
+        assertEquals(expected.dokumenter.size, actual.dokumenter.size)
+        assertNotNull(expected.hoveddokument)
         // todo
-//        assertEquals(expected.hoveddokument, actual.hoveddokument)
 //        assertEquals(expected.dokumenter, actual.dokumenter)
+//        assertEquals(expected.hoveddokument, actual.hoveddokument)
 //        assertEquals(expected.metadata, actual.metadata)
     }
 
