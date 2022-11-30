@@ -142,8 +142,8 @@ internal class InnsendingPostgresRepositoryTest {
         assertEquals(expected.dokumenter.size, actual.dokumenter.size)
         assertNotNull(expected.hoveddokument)
         // todo
-//        assertEquals(expected.dokumenter, actual.dokumenter)
-//        assertEquals(expected.hoveddokument, actual.hoveddokument)
+        assertEquals(expected.dokumenter, actual.dokumenter)
+        assertEquals(expected.hoveddokument, actual.hoveddokument)
 //        assertEquals(expected.metadata, actual.metadata)
     }
 

@@ -6,6 +6,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Innsending
+import no.nav.dagpenger.soknad.Innsending.Dokument.Dokumentvariant
 import no.nav.dagpenger.soknad.InnsendingVisitor
 import no.nav.dagpenger.soknad.db.DBUtils.norskZonedDateTime
 import no.nav.dagpenger.soknad.db.DataConstraintException
@@ -91,12 +92,11 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
                 mapOf("innsendingId" to innsendingId)
             ).map { row ->
                 val dokumentUUID = row.uuid("dokument_uuid")
-                val varianter: List<Innsending.Dokument.Dokumentvariant> = emptyList() // todo
                 val dokument = Innsending.Dokument(
                     uuid = dokumentUUID,
                     kravId = row.stringOrNull("kravid"),
                     skjemakode = row.string("brevkode"),
-                    varianter = varianter
+                    varianter = hentVarianter(dokumentUUID)
                 )
                 dokument
             }.asList
@@ -110,6 +110,21 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
         ).map { row ->
             row.uuidOrNull("dokument_uuid")
         }.asSingle
+    )
+
+    private fun Session.hentVarianter(dokumentUuid: UUID) = run(
+        queryOf( //language=PostgreSQL
+            "SELECT * FROM dokumentvariant_v1 WHERE dokument_uuid = :dokument_uuid",
+            mapOf("dokument_uuid" to dokumentUuid)
+        ).map { row ->
+            Dokumentvariant(
+                row.uuid("dokumentvariant_uuid"),
+                row.string("filnavn"),
+                row.string("urn"),
+                row.string("variant"),
+                row.string("type")
+            )
+        }.asList
     )
 }
 
@@ -158,11 +173,13 @@ private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingV
             )
         )
 
-        val params: MutableList<Map<String, Any?>> = mutableListOf()
+        val dokumentParams: MutableList<Map<String, Any?>> = mutableListOf()
+        val dokumentvariantParams: MutableList<Map<String, Any?>> = mutableListOf()
+
         dokumenter.toMutableList().apply {
             hovedDokument?.let { add(it) }
         }.forEach { dokument ->
-            params.add(
+            dokumentParams.add(
                 mapOf(
                     "dokument_uuid" to dokument.uuid,
                     "innsending_uuid" to innsendingId,
@@ -170,13 +187,43 @@ private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingV
                     "kravId" to dokument.kravId
                 )
             )
+
+            dokument.varianter.forEach { variant ->
+                dokumentvariantParams.add(
+                    mapOf(
+                        "dokumentvariant_uuid" to variant.uuid,
+                        "dokument_uuid" to dokument.uuid,
+                        "filnavn" to variant.filnavn,
+                        "urn" to variant.urn,
+                        "variant" to variant.variant,
+                        "type" to variant.type
+                    )
+                )
+            }
         }
+
         batchPreparedStatements.add(
             BatchPreparedStatement(
+                //language=PostgreSQL
                 statement = """ INSERT INTO dokument_v1 (dokument_uuid, innsending_uuid, brevkode, kravid)
                     VALUES (:dokument_uuid, :innsending_uuid, :brevkode, :kravId)
                     ON CONFLICT (dokument_uuid) DO UPDATE SET brevkode = :brevkode, kravid = :kravId""",
-                params = params
+                params = dokumentParams
+            )
+        )
+
+        batchPreparedStatements.add(
+            BatchPreparedStatement(
+                //language=PostgreSQL
+                statement = """
+                    INSERT INTO dokumentvariant_v1 (dokumentvariant_uuid, dokument_uuid, filnavn, urn, variant, type)
+                        VALUES (:dokumentvariant_uuid, :dokument_uuid, :filnavn, :urn, :variant, :type)
+                        ON CONFLICT (dokumentvariant_uuid) DO UPDATE SET filnavn = :filnavn, 
+                                                                         urn = :urn,
+                                                                         variant = :variant,
+                                                                         type = :type
+                """.trimIndent(),
+                params = dokumentvariantParams
             )
         )
 
