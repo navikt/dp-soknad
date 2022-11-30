@@ -44,7 +44,7 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
                         tilstandsType = Innsending.TilstandType.valueOf(row.string("tilstand")),
                         hovedDokument = dokumenter.hovedDokument,
                         dokumenter = dokumenter.dokumenter, // todo fixme
-                        metadata = metadata
+                        metadata = session.hentMetadata(innsendingId)
                     )
                 }.asSingle
             )
@@ -62,7 +62,7 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
                 innsendingPersistenceVisitor.batchPreparedStatements().forEach {
                     tx.batchPreparedNamedStatement(it.statement, it.params)
                 }
-                // 3. Lagre hoveddokument
+                // 3. Lagre hoveddokument, metadata
                 innsendingPersistenceVisitor.queries().forEach { query ->
                     tx.run(query.asUpdate)
                 }
@@ -125,6 +125,17 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
                 row.string("type")
             )
         }.asList
+    )
+
+    private fun Session.hentMetadata(innsendingId: UUID): Innsending.Metadata? = run(
+        queryOf( //language=PostgreSQL
+            "SELECT * FROM metadata WHERE innsending_uuid = :innsending_uuid",
+            mapOf("innsending_uuid" to innsendingId)
+        ).map { row ->
+            row.stringOrNull("skjemakode")?.let { skjemakode ->
+                Innsending.Metadata(skjemakode)
+            }
+        }.asSingle
     )
 }
 
@@ -234,6 +245,22 @@ private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingV
                     paramMap = mapOf(
                         "innsending_uuid" to innsendingId,
                         "dokument_uuid" to hovedDokument.uuid
+                    )
+                )
+            )
+        }
+
+        metadata?.let { metadata ->
+            queries.add(
+                queryOf( //language=PostgreSQL
+                    """
+                    INSERT INTO metadata (innsending_uuid, skjemakode)
+                    VALUES (:innsending_uuid, :skjemakode)
+                    ON CONFLICT (innsending_uuid) DO UPDATE SET skjemakode=:skjemakode
+                    """.trimIndent(),
+                    mapOf(
+                        "innsending_uuid" to innsendingId,
+                        "skjemakode" to metadata.skjemakode
                     )
                 )
             )

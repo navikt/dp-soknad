@@ -141,10 +141,9 @@ internal class InnsendingPostgresRepositoryTest {
         assertEquals(expected.ident, actual.ident)
         assertEquals(expected.dokumenter.size, actual.dokumenter.size)
         assertNotNull(expected.hoveddokument)
-        // todo
         assertEquals(expected.dokumenter, actual.dokumenter)
         assertEquals(expected.hoveddokument, actual.hoveddokument)
-//        assertEquals(expected.metadata, actual.metadata)
+        assertEquals(expected.metadata, actual.metadata)
     }
 
     private class Hubba(innsending: Innsending) : InnsendingVisitor {
