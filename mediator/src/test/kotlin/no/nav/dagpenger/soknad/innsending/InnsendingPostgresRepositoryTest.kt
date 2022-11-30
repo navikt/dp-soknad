@@ -94,8 +94,8 @@ internal class InnsendingPostgresRepositoryTest {
         assertEquals(expected.tilstand, actual.tilstand)
         assertEquals(expected.innsendt, actual.innsendt)
         assertEquals(expected.journalpost, actual.journalpost)
+        assertEquals(expected.ident, actual.ident)
         // todo
-//        assertEquals(expected.ident, actual.ident)
 //        assertEquals(expected.hoveddokument, actual.hoveddokument)
 //        assertEquals(expected.dokumenter, actual.dokumenter)
 //        assertEquals(expected.metadata, actual.metadata)
@@ -127,7 +127,7 @@ internal class InnsendingPostgresRepositoryTest {
             journalpost: String?,
             hovedDokument: Innsending.Dokument?,
             dokumenter: List<Innsending.Dokument>,
-            metadata: Innsending.Metadata?
+            metadata: Innsending.Metadata?,
         ) {
             this.innsendingid = innsendingId
             this.søknadid = søknadId

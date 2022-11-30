@@ -1,12 +1,14 @@
 package no.nav.dagpenger.soknad.innsending
 
 import kotliquery.Query
+import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.InnsendingVisitor
 import no.nav.dagpenger.soknad.db.DBUtils.norskZonedDateTime
+import no.nav.dagpenger.soknad.db.DataConstraintException
 import java.time.ZonedDateTime
 import java.util.UUID
 import javax.sql.DataSource
@@ -16,7 +18,6 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
     override fun hent(innsendingId: UUID): Innsending? {
         return using(sessionOf(ds)) { session ->
             // todo fix me
-            val ident = "BUBBA"
             val hovedDokument = null
             val dokumenter = emptyList<Innsending.Dokument>()
             val metadata = null
@@ -32,11 +33,12 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
                         "innsending_uuid" to innsendingId
                     )
                 ).map { row ->
+                    val dialogId = row.uuid("soknad_uuid")
                     Innsending.rehydrer(
                         innsendingId = row.uuid("innsending_uuid"),
                         type = Innsending.InnsendingType.valueOf(row.string("innsendingtype")),
-                        ident = ident,
-                        søknadId = row.uuid("soknad_uuid"),
+                        ident = session.hentIdent(dialogId),
+                        søknadId = dialogId,
                         innsendt = row.norskZonedDateTime("innsendt"),
                         journalpostId = row.stringOrNull("journalpost_id"),
                         tilstandsType = Innsending.TilstandType.valueOf(row.string("tilstand")),
@@ -62,6 +64,17 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
     override fun finnFor(søknadsId: UUID): List<Innsending> {
         TODO("Not yet implemented")
     }
+
+    private fun Session.hentIdent(dialogId: UUID): String {
+        return this.run(
+            queryOf(
+                statement = """SELECT person_ident FROM soknad_v1 WHERE uuid = :uuid""",
+                paramMap = mapOf(
+                    "uuid" to dialogId
+                )
+            ).map { row -> row.string("person_ident") }.asSingle
+        ) ?: throw DataConstraintException("Fant ikke ident for dialogId: $dialogId")
+    }
 }
 
 private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingVisitor {
@@ -83,7 +96,7 @@ private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingV
         journalpost: String?,
         hovedDokument: Innsending.Dokument?,
         dokumenter: List<Innsending.Dokument>,
-        metadata: Innsending.Metadata?
+        metadata: Innsending.Metadata?,
     ) {
         val element = queryOf(
             //language=PostgreSQL

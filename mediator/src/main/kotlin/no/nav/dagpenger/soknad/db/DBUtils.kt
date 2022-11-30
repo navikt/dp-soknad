@@ -9,3 +9,5 @@ object DBUtils {
     internal fun Row.norskZonedDateTime(columnLabel: String): ZonedDateTime =
         this.zonedDateTime(columnLabel).withZoneSameInstant(tidssone)
 }
+
+internal class DataConstraintException(message: String) : RuntimeException(message)
