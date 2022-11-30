@@ -299,6 +299,18 @@ class Innsending private constructor(
             dokumenter,
             metadata
         )
+        visitor.visit(
+            innsendingId = innsendingId,
+            søknadId = søknadId,
+            ident = ident,
+            innsendingType = type,
+            tilstand = tilstand.tilstandType,
+            innsendt = innsendt,
+            journalpost = journalpostId,
+            hovedDokument = hovedDokument,
+            dokumenter = dokumenter,
+            metadata = metadata
+        )
     }
 
     private fun kontekst(hendelse: Hendelse) {

@@ -17,6 +17,8 @@ import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand
 import no.nav.dagpenger.soknad.SøknadVisitor
+import no.nav.dagpenger.soknad.db.DBUtils.norskZonedDateTime
+import no.nav.dagpenger.soknad.db.DBUtils.tidssone
 import no.nav.dagpenger.soknad.innsending.InnsendingRepository
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.serder.AktivitetsloggDTO
@@ -32,7 +34,6 @@ import no.nav.dagpenger.soknad.serder.SøknadDTO.ProsessversjonDTO
 import no.nav.dagpenger.soknad.toMap
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.postgresql.util.PGobject
-import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID
 import javax.sql.DataSource
@@ -642,7 +643,3 @@ private fun Session.hentFiler(
         }.asList
     ).toSet()
 }
-
-private val tidssone = ZoneId.of("Europe/Oslo")
-private fun Row.norskZonedDateTime(columnLabel: String): ZonedDateTime =
-    this.zonedDateTime(columnLabel).withZoneSameInstant(tidssone)

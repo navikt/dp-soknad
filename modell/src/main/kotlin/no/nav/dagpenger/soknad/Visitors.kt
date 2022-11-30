@@ -15,9 +15,24 @@ interface TilstandVisitor {
 interface InnsendingVisitor {
     fun preVisitEttersendinger() {}
     fun postVisitEttersendinger() {}
+    // todo remove?
     fun visit(
         innsendingId: UUID,
         innsending: InnsendingType,
+        tilstand: TilstandType,
+        innsendt: ZonedDateTime,
+        journalpost: String?,
+        hovedDokument: Dokument?,
+        dokumenter: List<Dokument>,
+        metadata: Metadata? = null
+    ) {
+    }
+
+    fun visit(
+        innsendingId: UUID,
+        søknadId: UUID,
+        ident: String,
+        innsendingType: InnsendingType,
         tilstand: TilstandType,
         innsendt: ZonedDateTime,
         journalpost: String?,
