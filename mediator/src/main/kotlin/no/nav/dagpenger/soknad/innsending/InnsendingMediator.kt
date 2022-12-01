@@ -16,7 +16,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.withMDC
 
 internal class InnsendingMediator(
-    private val rapidsConnection: RapidsConnection,
+    rapidsConnection: RapidsConnection,
     private val innsendingRepository: InnsendingRepository
 ) {
     private companion object {
