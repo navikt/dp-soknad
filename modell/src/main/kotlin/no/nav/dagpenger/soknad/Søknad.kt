@@ -30,7 +30,6 @@ class Søknad private constructor(
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
     private var prosessversjon: Prosessversjon?,
     private var data: Lazy<SøknadData>,
-    private var innsendinger: Lazy<List<Innsending>>,
 ) : Aktivitetskontekst, InnsendingObserver {
     private val observers = mutableListOf<SøknadObserver>()
 
@@ -42,7 +41,6 @@ class Søknad private constructor(
         språk: Språk,
         ident: String,
         data: Lazy<SøknadData> = lazy { throw IllegalStateException("Mangler søknadsdata") },
-        innsendinger: Lazy<List<Innsending>> = lazy { throw IllegalStateException("Mangler innsendinger") },
     ) : this(
         søknadId = søknadId,
         ident = ident,
@@ -54,7 +52,6 @@ class Søknad private constructor(
         sistEndretAvBruker = ZonedDateTime.now(),
         prosessversjon = null,
         data = data,
-        innsendinger = innsendinger
     )
 
     companion object {
@@ -70,7 +67,6 @@ class Søknad private constructor(
             aktivitetslogg: Aktivitetslogg,
             prosessversjon: Prosessversjon?,
             data: Lazy<SøknadData>,
-            innsendinger: Lazy<List<Innsending>>,
         ): Søknad {
             val tilstand: Tilstand = when (tilstandsType) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
@@ -90,7 +86,6 @@ class Søknad private constructor(
                 aktivitetslogg = aktivitetslogg,
                 prosessversjon = prosessversjon,
                 data = data,
-                innsendinger = innsendinger
             )
         }
 

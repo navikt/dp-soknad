@@ -114,7 +114,6 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
                 aktivitetslogg = Aktivitetslogg(),
                 prosessversjon = null,
                 data = FerdigSøknadData,
-                innsendinger = lazy { emptyList() }
             )
         )
         return søknadId

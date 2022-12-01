@@ -210,6 +210,5 @@ class MineSøknaderApiTest {
         aktivitetslogg = Aktivitetslogg(),
         prosessversjon = prosessversjon,
         data = FerdigSøknadData,
-        innsendinger = lazy { emptyList() }
     )
 }

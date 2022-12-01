@@ -11,7 +11,6 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.DeepEquals.assertDeepEquals
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
-import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Prosessnavn
 import no.nav.dagpenger.soknad.Prosessversjon
@@ -78,7 +77,6 @@ internal class SøknadPostgresRepositoryTest {
     val ident = "12345678910"
     private val prosessversjon = Prosessversjon("Dagpenger", 1)
     private val mal = SøknadMal(prosessversjon, objectMapper.createObjectNode())
-    private val tomInnsending = lazy { emptyList<Innsending>() }
     val søknad = Søknad.rehydrer(
         søknadId = søknadId,
         ident = ident,
@@ -93,7 +91,6 @@ internal class SøknadPostgresRepositoryTest {
         aktivitetslogg = Aktivitetslogg(),
         prosessversjon = prosessversjon,
         data = FerdigSøknadData,
-        tomInnsending
     )
 
     @Test
@@ -124,7 +121,6 @@ internal class SøknadPostgresRepositoryTest {
             aktivitetslogg = Aktivitetslogg(),
             prosessversjon = prosessversjon,
             data = FerdigSøknadData,
-            tomInnsending
         )
 
         withMigratedDb {
@@ -206,13 +202,10 @@ internal class SøknadPostgresRepositoryTest {
             aktivitetslogg = Aktivitetslogg(),
             prosessversjon = prosessversjon,
             data = FerdigSøknadData,
-            tomInnsending
         )
 
         withMigratedDb {
-            SøknadMalPostgresRepository(dataSource).let { søknadMalPostgresRepository ->
-                søknadMalPostgresRepository.lagre(mal)
-            }
+            SøknadMalPostgresRepository(dataSource).lagre(mal)
             SøknadPostgresRepository(dataSource).let { søknadPostgresRepository ->
                 søknadPostgresRepository.lagre(søknad)
 
@@ -268,7 +261,6 @@ internal class SøknadPostgresRepositoryTest {
             aktivitetslogg = Aktivitetslogg(),
             prosessversjon = prosessversjon,
             data = FerdigSøknadData,
-            tomInnsending
         )
 
         withMigratedDb {
@@ -349,8 +341,8 @@ internal class SøknadPostgresRepositoryTest {
             )
             hentDokumentKrav(søknadMediator.hent(søknadId)!!).let {
                 assertEquals(2, it.aktiveDokumentKrav().first().svar.filer.size)
-                it.aktiveDokumentKrav().first().svar.filer.forEach {
-                    assertFalse(it.bundlet)
+                it.aktiveDokumentKrav().first().svar.filer.forEach { kravFil ->
+                    assertFalse(kravFil.bundlet)
                 }
                 it.aktiveDokumentKrav().forEach { krav ->
                     assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
@@ -471,7 +463,6 @@ internal class SøknadPostgresRepositoryTest {
             aktivitetslogg = Aktivitetslogg(),
             prosessversjon = Prosessversjon(Prosessnavn(prosessNavn), 2),
             data = FerdigSøknadData,
-            tomInnsending
         )
 
     @Test
@@ -491,13 +482,10 @@ internal class SøknadPostgresRepositoryTest {
             aktivitetslogg = Aktivitetslogg(),
             prosessversjon = prosessversjon,
             data = FerdigSøknadData,
-            tomInnsending
         )
 
         withMigratedDb {
-            SøknadMalPostgresRepository(dataSource).let { søknadMalPostgresRepository ->
-                søknadMalPostgresRepository.lagre(mal)
-            }
+            SøknadMalPostgresRepository(dataSource).lagre(mal)
 
             SøknadPostgresRepository(dataSource).let { repository ->
                 repository.lagre(innsendtSøknad)
@@ -531,7 +519,6 @@ internal class SøknadPostgresRepositoryTest {
             aktivitetslogg = Aktivitetslogg(),
             prosessversjon = null,
             data = FerdigSøknadData,
-            tomInnsending
         )
         val påbegyntSøknad = Søknad.rehydrer(
             søknadId = søknadIdForPåbegynt,
@@ -547,7 +534,6 @@ internal class SøknadPostgresRepositoryTest {
             aktivitetslogg = Aktivitetslogg(),
             prosessversjon = prosessversjon,
             data = FerdigSøknadData,
-            tomInnsending
         )
         val nySøknad = Søknad.rehydrer(
             søknadId = søknadIdForNy,
@@ -563,7 +549,6 @@ internal class SøknadPostgresRepositoryTest {
             aktivitetslogg = Aktivitetslogg(),
             prosessversjon = prosessversjon2,
             data = FerdigSøknadData,
-            tomInnsending
         )
         val innsendtSøknad = Søknad.rehydrer(
             søknadId = søknadIdForInnsendt,
@@ -579,7 +564,6 @@ internal class SøknadPostgresRepositoryTest {
             aktivitetslogg = Aktivitetslogg(),
             prosessversjon = prosessversjon,
             data = FerdigSøknadData,
-            tomInnsending
         )
 
         withMigratedDb {

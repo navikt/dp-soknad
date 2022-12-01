@@ -42,12 +42,10 @@ internal class SøknadTest {
         dokumentFaktum: String,
         faktaSomSannsynliggjøres: String
     ): Sannsynliggjøring {
-        val dokumentFaktum = Faktum(faktumJson("1", dokumentFaktum))
-        val faktaSomSannsynliggjøres = mutableSetOf(Faktum(faktumJson("2", faktaSomSannsynliggjøres)))
         return Sannsynliggjøring(
             id = sannsynliggjøringId,
-            faktum = dokumentFaktum,
-            sannsynliggjør = faktaSomSannsynliggjøres
+            faktum = Faktum(faktumJson("1", dokumentFaktum)),
+            sannsynliggjør = mutableSetOf(Faktum(faktumJson("2", faktaSomSannsynliggjøres)))
         )
     }
 
@@ -60,7 +58,6 @@ internal class SøknadTest {
             Språk(språk),
             testIdent,
             FerdigSøknadData,
-            innsendinger = lazy { emptyList() }
 
         )
         testSøknadObserver = TestSøknadObserver().also { søknad.addObserver(it) }

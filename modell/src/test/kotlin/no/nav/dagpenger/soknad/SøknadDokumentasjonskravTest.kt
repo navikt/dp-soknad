@@ -42,7 +42,6 @@ class SøknadDokumentasjonskravTest {
             språk = språk,
             ident = ident,
             data = FerdigSøknadData,
-            innsendinger = lazy { emptyList() }
         )
         søknad.håndter(
             ØnskeOmNySøknadHendelse(
@@ -222,10 +221,9 @@ class SøknadDokumentasjonskravTest {
 }
 
 internal class TestSøknadInspektør2(søknad: Søknad) : SøknadVisitor {
-    lateinit var søknadId: UUID
-    lateinit var gjeldendetilstand: Søknad.Tilstand.Type
+    private lateinit var søknadId: UUID
+    private lateinit var gjeldendetilstand: Søknad.Tilstand.Type
     lateinit var dokumentkrav: Dokumentkrav
-    internal lateinit var personLogg: Aktivitetslogg
 
     init {
         søknad.accept(this)

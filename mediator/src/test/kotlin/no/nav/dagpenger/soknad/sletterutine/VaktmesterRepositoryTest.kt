@@ -10,7 +10,6 @@ import kotliquery.using
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
-import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
@@ -73,7 +72,6 @@ internal class VaktmesterRepositoryTest {
             )
         )
     }
-    private val tomInnsending = lazy { emptyList<Innsending>() }
 
     @Test
     fun `Låsen hindrer parallel slettinger`() = withMigratedDb {
@@ -243,7 +241,6 @@ internal class VaktmesterRepositoryTest {
             aktivitetslogg = Aktivitetslogg(),
             prosessversjon = null,
             data = FerdigSøknadData,
-            tomInnsending
         )
 
     private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, ident: String) =
@@ -261,7 +258,6 @@ internal class VaktmesterRepositoryTest {
             aktivitetslogg = Aktivitetslogg(),
             prosessversjon = null,
             data = FerdigSøknadData,
-            tomInnsending
         )
 
     private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, ident: String) =
@@ -277,6 +273,5 @@ internal class VaktmesterRepositoryTest {
             aktivitetslogg = Aktivitetslogg(),
             prosessversjon = null,
             data = FerdigSøknadData,
-            tomInnsending
         )
 }

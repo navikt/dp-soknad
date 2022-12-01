@@ -5,7 +5,6 @@ import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
-import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Krav.Svar
 import no.nav.dagpenger.soknad.Prosessnavn
@@ -29,7 +28,6 @@ class SøknadDTO(
     val opprettet: ZonedDateTime,
     val prosessversjon: ProsessversjonDTO?,
     val data: Lazy<SøknadData>,
-    val innsendinger: Lazy<List<Innsending>>
 ) {
     fun rehydrer(): Søknad = Søknad.rehydrer(
         søknadId = this.søknadsId,
@@ -43,7 +41,6 @@ class SøknadDTO(
         aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
         prosessversjon = this.prosessversjon?.rehydrer(),
         data = data,
-        innsendinger = innsendinger
     )
 
     class SpråkDTO(val verdi: String) {

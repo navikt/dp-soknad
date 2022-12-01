@@ -103,7 +103,6 @@ internal class DokumentasjonKravApiTest {
         aktivitetslogg = Aktivitetslogg(),
         prosessversjon = null,
         data = FerdigSøknadData,
-        innsendinger = lazy { emptyList() }
     )
     private val søknadMediatorMock = mockk<SøknadMediator>().also {
         every { it.hent(testSoknadId) } returns søknad

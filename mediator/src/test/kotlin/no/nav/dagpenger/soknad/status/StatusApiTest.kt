@@ -176,6 +176,5 @@ class StatusApiTest {
         aktivitetslogg = Aktivitetslogg(),
         prosessversjon = null,
         data = FerdigSøknadData,
-        innsendinger = lazy { emptyList() }
     )
 }

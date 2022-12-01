@@ -17,7 +17,6 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand
 import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.db.DBUtils.norskZonedDateTime
 import no.nav.dagpenger.soknad.db.DBUtils.tidssone
-import no.nav.dagpenger.soknad.innsending.InnsendingPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.serder.AktivitetsloggDTO
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
@@ -108,9 +107,6 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 data = lazy {
                     SøknadDataPostgresRepository(dataSource).hentSøkerOppgave(søknadsId)
                 },
-                innsendinger = lazy {
-                    InnsendingPostgresRepository(dataSource).finnFor(søknadsId)
-                }
             )
         }
     }
