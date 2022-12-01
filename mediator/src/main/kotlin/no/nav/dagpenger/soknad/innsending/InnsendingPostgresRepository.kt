@@ -18,8 +18,6 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
 
     override fun hent(innsendingId: UUID): Innsending? {
         return using(sessionOf(ds)) { session ->
-            // todo fix me
-            val metadata = null
             session.run(
                 queryOf(
                     //language=PostgreSQL
@@ -245,7 +243,7 @@ private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingV
             )
         )
 
-        hovedDokument?.let { hovedDokument ->
+        hovedDokument?.let {
             queries.add(
                 queryOf(
                     //language=PostgreSQL
@@ -256,13 +254,13 @@ private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingV
                     """.trimIndent(),
                     paramMap = mapOf(
                         "innsending_uuid" to innsendingId,
-                        "dokument_uuid" to hovedDokument.uuid
+                        "dokument_uuid" to it.uuid
                     )
                 )
             )
         }
 
-        metadata?.let { metadata ->
+        metadata?.let { it ->
             queries.add(
                 queryOf( //language=PostgreSQL
                     """
@@ -272,7 +270,7 @@ private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingV
                     """.trimIndent(),
                     mapOf(
                         "innsending_uuid" to innsendingId,
-                        "skjemakode" to metadata.skjemakode
+                        "skjemakode" to it.skjemakode
                     )
                 )
             )
