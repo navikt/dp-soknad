@@ -5,6 +5,7 @@ import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
+import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
@@ -29,9 +30,13 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator, behandlingsstat
 
         validator.valider(søknadUuid, ident)
 
-        val søknad = søknadMediator.hent(søknadUuid)!!
-        val søknadStatusVisitor = SøknadStatusVisitor(søknad)
-        val søknadStatusDto = createSøknadStatusDto(søknadStatusVisitor, behandlingsstatusClient, token)
+        val søknadStatusDto = withLoggingContext(
+            "søknadId" to søknadUuid.toString()
+        ) {
+            val søknad = søknadMediator.hent(søknadUuid)!!
+            val søknadStatusVisitor = SøknadStatusVisitor(søknad)
+            createSøknadStatusDto(søknadStatusVisitor, behandlingsstatusClient, token)
+        }
 
         call.respond(OK, søknadStatusDto)
     }

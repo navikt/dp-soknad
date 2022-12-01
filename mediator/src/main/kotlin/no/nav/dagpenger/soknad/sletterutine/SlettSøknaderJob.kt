@@ -4,6 +4,8 @@ import mu.KotlinLogging
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import kotlin.concurrent.fixedRateTimer
+import kotlin.random.Random
+import kotlin.random.nextInt
 import kotlin.time.Duration.Companion.minutes
 
 internal object SlettSøknaderJob {
@@ -15,15 +17,17 @@ internal object SlettSøknaderJob {
         fixedRateTimer(
             name = "Sletterutine for søknader som ligger til sletting",
             daemon = true,
-            initialDelay = 1.minutes.inWholeMilliseconds,
-            period = 5.minutes.inWholeMilliseconds,
+            initialDelay = randomInitialDelay(),
+            period = 15.minutes.inWholeMilliseconds,
             action = {
                 try {
                     vaktmesterRepository.slett()
                 } catch (e: Exception) {
-                    logger.error { "Sletting av søknader feilet: $e" }
+                    logger.error(e) { "Sletting av søknader feilet" }
                 }
             }
         )
     }
 }
+
+fun randomInitialDelay() = Random.nextInt(1..10).minutes.inWholeMilliseconds

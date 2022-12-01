@@ -9,6 +9,8 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
@@ -16,6 +18,7 @@ import io.ktor.serialization.jackson.jackson
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.Configuration.tokenXClient
+import org.slf4j.MDC
 import java.time.LocalDate
 
 internal interface BehandlingsstatusClient {
@@ -28,8 +31,9 @@ internal class BehandlingsstatusHttpClient(
     private val tokenProvider: (token: String, audience: String) -> String = exchangeToOboToken,
     engine: HttpClientEngine = CIO.create()
 ) : BehandlingsstatusClient {
-    companion object {
-        private val logger = KotlinLogging.logger {}
+    private companion object {
+        val logger = KotlinLogging.logger {}
+        val sikkerlogg = KotlinLogging.logger("tjenestekall.BehandlingsstatusClient")
     }
 
     private val httpClient = HttpClient(engine) {
@@ -42,14 +46,21 @@ internal class BehandlingsstatusHttpClient(
     }
 
     override suspend fun hentBehandlingsstatus(fom: LocalDate, subjectToken: String): BehandlingsstatusDto {
+        var rawBody: String? = null
         val url = "$baseUrl/behandlingsstatus?fom=$fom"
+        logger.info { "Henter behandlingsstatus med fom=$fom" }
         return try {
             httpClient.get(url) {
+                header(HttpHeaders.XRequestId, MDC.get("call-id"))
                 addBearerToken(subjectToken)
                 contentType(ContentType.Application.Json)
-            }.body()
+            }.run {
+                rawBody = this.bodyAsText()
+                this.body()
+            }
         } catch (e: Exception) {
-            logger.error { "Feil under henting av behandlingsstatus. Behandlingsstatus settes til ukjent: ${e.message}" }
+            logger.error(e) { "Feil under henting av behandlingsstatus. Behandlingsstatus settes til ukjent" }
+            sikkerlogg.error(e) { "Feil under henting av behandlingsstatus. Behandlingsstatus settes til ukjent. Raw=$rawBody" }
             return BehandlingsstatusDto("Ukjent")
         }
     }

@@ -43,9 +43,9 @@ internal class VaktmesterPostgresRepository(
             session.transaction { transactionalSession ->
                 val søknaderSomSkalSlettes = hentSlettede(transactionalSession)
 
-                slettSøknader(søknaderSomSkalSlettes, transactionalSession).also {
-                    logger.info { "Avslutter sletting av slettede" }
-                }
+                slettSøknader(søknaderSomSkalSlettes, transactionalSession)
+            }.also {
+                logger.info { "Avslutter sletting av slettede" }
             }
         }
     }

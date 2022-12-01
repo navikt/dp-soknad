@@ -25,12 +25,11 @@ internal fun Route.ferdigstillSøknadRoute(søknadMediator: SøknadMediator) {
         val ident = call.ident()
         withLoggingContext("søknadid" to søknadUuid.toString()) {
             validator.valider(søknadUuid, ident)
+            val søknadstekstJson = call.receive<JsonNode>()
             val søknadInnsendtHendelse = SøknadInnsendtHendelse(søknadUuid, ident)
-            call.receive<JsonNode>().let {
-                søknadMediator.lagreSøknadsTekst(søknadUuid, it.toString())
-            }
             try {
                 søknadMediator.behandle(søknadInnsendtHendelse)
+                søknadMediator.lagreSøknadsTekst(søknadUuid, søknadstekstJson.toString())
             } catch (err: Aktivitetslogg.AktivitetException) {
                 logger.error(err) { "Kunne ikke behandle SøknadInnsendtHendelse, faktum eller dokumentkrav mangler" }
                 throw err
