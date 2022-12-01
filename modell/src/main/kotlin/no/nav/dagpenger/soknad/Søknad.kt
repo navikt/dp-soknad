@@ -339,8 +339,6 @@ class Søknad private constructor(
                 søknadInnsendtHendelse.severe("Kan ikke lage ettersending av prosess ${søknad.prosessversjon?.prosessnavn?.id}")
             }
 
-            søknad.dokumentkrav.håndter(søknadInnsendtHendelse)
-
             søknadInnsendtHendelse.behov(
                 Behovtype.NyEttersending,
                 "Søknad ettersend, trenger ny ettersending",
@@ -349,6 +347,8 @@ class Søknad private constructor(
                     "dokumentkrav" to søknad.dokumentkrav.tilDokument().map { it.toMap() },
                 )
             )
+
+            søknad.dokumentkrav.håndter(søknadInnsendtHendelse)
         }
     }
 

@@ -100,16 +100,16 @@ internal class SøknadTest {
                 sannsynliggjøring("3", "f3-1", "f3-2")
             )
         )
-        håndterLeggtilFil("1", "urn:sid:1")
-        håndterLeggtilFil("1", "urn:sid:2")
+        håndterLeggtilFil("1", "urn:sid:f1.1")
+        håndterLeggtilFil("1", "urn:sid:f1.2")
         håndterDokumentasjonIkkeTilgjengelig("2", "Har ikke")
 
         assertThrows<AktivitetException>("Alle dokumentkrav må være besvart") { håndterSendInnSøknad() }
 
-        håndterLeggtilFil("3", "urn:sid:3")
+        håndterLeggtilFil("3", "urn:sid:f3.1")
 
         håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
-        håndterDokumentkravSammenstilling(kravId = "3", urn = "urn:sid:bundle2")
+        håndterDokumentkravSammenstilling(kravId = "3", urn = "urn:sid:bundle3")
         håndterSendInnSøknad()
 
         assertTilstander(
@@ -118,14 +118,14 @@ internal class SøknadTest {
             Innsendt
         )
         // Ettersending
-        håndterLeggtilFil("2", "urn:sid:2")
-        håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle3")
+        håndterLeggtilFil("2", "urn:sid:f2.1")
+        håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle2")
         assertBehovContains(
             Behovtype.DokumentkravSvar,
         ) { behovParametre ->
             assertEquals("2", behovParametre["id"])
             assertEquals("dokument", behovParametre["type"])
-            assertEquals("urn:sid:bundle3", behovParametre["urn"])
+            assertEquals("urn:sid:bundle2", behovParametre["urn"])
             assertNotNull(behovParametre["lastOppTidsstempel"])
             assertEquals(inspektør.søknadId.toString(), behovParametre["søknad_uuid"])
             assertEquals(testIdent, behovParametre["ident"])
@@ -136,7 +136,23 @@ internal class SøknadTest {
             behovtype = Behovtype.NyEttersending,
             forventetDetaljer = mapOf(
                 "innsendtTidspunkt" to ettersendingHendelse.innsendtidspunkt(),
-                "dokumentkrav" to listOf<Map<String, Any>>(),
+
+                "dokumentkrav" to listOf<Map<String, Any>>(
+                    Innsending.Dokument(
+                        uuid = UUID.randomUUID(),
+                        kravId = "",
+                        skjemakode = "N6",
+                        varianter = listOf(
+                            Innsending.Dokument.Dokumentvariant(
+                                uuid = UUID.randomUUID(),
+                                filnavn = "f2-1",
+                                urn = "urn:sid:bundle2",
+                                variant = "ARKIV",
+                                type = "PDF"
+                            )
+                        )
+                    ).toMap()
+                ),
                 "søknad_uuid" to søknadId.toString(),
                 "ident" to testIdent,
             )
