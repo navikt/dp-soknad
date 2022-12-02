@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad.innsending
 
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Innsending
+import no.nav.dagpenger.soknad.Innsending.Dokument.Dokumentvariant
 import no.nav.dagpenger.soknad.Innsending.InnsendingType.NY_DIALOG
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerArkiverbarSøknad
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerJournalføring
@@ -78,7 +79,24 @@ internal class InnsendingMediatorTest {
     fun `Håndterer ArkiverbarSøknadHendelse`() {
         val innsendt = ZonedDateTime.now()
         val skjemaKode = "04.04-04"
-        val innsending = Innsending.ny(innsendt, ident, søknadId, listOf())
+        val innsending = Innsending.ny(
+            innsendt, ident, søknadId,
+            listOf(
+
+                Innsending.Dokument(
+                    uuid = UUID.randomUUID(),
+                    kravId = "k1",
+                    skjemakode = null,
+                    varianter = listOf()
+                ),
+                Innsending.Dokument(
+                    uuid = UUID.randomUUID(),
+                    kravId = "k2",
+                    skjemakode = null,
+                    varianter = listOf()
+                )
+            )
+        )
         innsending.addObserver(innsendingObserver)
 
         mediator.behandle(NyInnsendingHendelse(innsending, ident))
@@ -89,11 +107,30 @@ internal class InnsendingMediatorTest {
                 skjemaKode = skjemaKode
             )
         )
+        with(rapid.inspektør.message(1)) {
+            assertEquals(listOf<String>("k1", "k2"), this["dokumentasjonKravId"].map { it.asText() })
+        }
+
         mediator.behandle(
             ArkiverbarSøknadMottattHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
-                dokumentvarianter = listOf()
+                dokumentvarianter = listOf(
+                    Dokumentvariant(
+                        uuid = UUID.randomUUID(),
+                        filnavn = "f1",
+                        urn = "urn:vedlegg:f1",
+                        variant = "ARKIV",
+                        type = "PDF",
+                    ),
+                    Dokumentvariant(
+                        uuid = UUID.randomUUID(),
+                        filnavn = "f2",
+                        urn = "urn:vedlegg:f1",
+                        variant = "FULLVERSJON",
+                        type = "PDF"
+                    )
+                )
             )
         )
 
