@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.innsending
 
+import com.fasterxml.jackson.databind.JsonNode
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Innsending.Dokument.Dokumentvariant
@@ -16,8 +17,10 @@ import no.nav.dagpenger.soknad.hendelse.innsending.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.innsending.meldinger.NyInnsendingHendelse
 import no.nav.dagpenger.soknad.utils.asZonedDateTime
+import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.ZonedDateTime
@@ -79,23 +82,42 @@ internal class InnsendingMediatorTest {
     fun `Håndterer ArkiverbarSøknadHendelse`() {
         val innsendt = ZonedDateTime.now()
         val skjemaKode = "04.04-04"
-        val innsending = Innsending.ny(
-            innsendt, ident, søknadId,
-            listOf(
-
-                Innsending.Dokument(
-                    uuid = UUID.randomUUID(),
-                    kravId = "k1",
-                    skjemakode = null,
-                    varianter = listOf()
-                ),
-                Innsending.Dokument(
-                    uuid = UUID.randomUUID(),
-                    kravId = "k2",
-                    skjemakode = null,
-                    varianter = listOf()
+        val dokumentKrav = listOf(
+            Innsending.Dokument(
+                uuid = UUID.randomUUID(),
+                kravId = "k1",
+                skjemakode = null,
+                varianter = listOf(
+                    Dokumentvariant(
+                        uuid = UUID.randomUUID(),
+                        filnavn = "k1",
+                        urn = "urn:vedlegg:k1",
+                        variant = "BRUTTO",
+                        type = "PDF"
+                    )
+                )
+            ),
+            Innsending.Dokument(
+                uuid = UUID.randomUUID(),
+                kravId = "k2",
+                skjemakode = null,
+                varianter = listOf(
+                    Dokumentvariant(
+                        uuid = UUID.randomUUID(),
+                        filnavn = "k2",
+                        urn = "urn:vedlegg:k2",
+                        variant = "BRUTTO",
+                        type = "PDF"
+                    )
                 )
             )
+        )
+
+        val innsending = Innsending.ny(
+            innsendt = innsendt,
+            ident = ident,
+            søknadId = søknadId,
+            dokumentkrav = dokumentKrav
         )
         innsending.addObserver(innsendingObserver)
 
@@ -111,26 +133,28 @@ internal class InnsendingMediatorTest {
             assertEquals(listOf<String>("k1", "k2"), this["dokumentasjonKravId"].map { it.asText() })
         }
 
+        val hovedDokument = listOf(
+            Dokumentvariant(
+                uuid = UUID.randomUUID(),
+                filnavn = "f1",
+                urn = "urn:vedlegg:f1",
+                variant = "ARKIV",
+                type = "PDF",
+            ),
+            Dokumentvariant(
+                uuid = UUID.randomUUID(),
+                filnavn = "f2",
+                urn = "urn:vedlegg:f1",
+                variant = "FULLVERSJON",
+                type = "PDF"
+            )
+        )
+
         mediator.behandle(
             ArkiverbarSøknadMottattHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
-                dokumentvarianter = listOf(
-                    Dokumentvariant(
-                        uuid = UUID.randomUUID(),
-                        filnavn = "f1",
-                        urn = "urn:vedlegg:f1",
-                        variant = "ARKIV",
-                        type = "PDF",
-                    ),
-                    Dokumentvariant(
-                        uuid = UUID.randomUUID(),
-                        filnavn = "f2",
-                        urn = "urn:vedlegg:f1",
-                        variant = "FULLVERSJON",
-                        type = "PDF"
-                    )
-                )
+                dokumentvarianter = hovedDokument
             )
         )
 
@@ -139,9 +163,33 @@ internal class InnsendingMediatorTest {
         with(rapid.inspektør.message(2)) {
             assertEquals(listOf(Behovtype.NyJournalpost.name), this["@behov"].map { it.asText() })
             assertEquals(NY_DIALOG.name, this["type"].asText())
-            // TODO; Lag dokumenter på innsendinger
             assertTrue(this.has("hovedDokument"))
+            assertVarianter(hovedDokument, this["hovedDokument"]["varianter"])
+
             assertTrue(this.has("dokumenter"))
+            assertDokumenter(dokumentKrav, this["dokumenter"])
+        }
+    }
+
+    private fun assertDokumenter(dokumenterer: List<Innsending.Dokument>, jsonNode: JsonNode) {
+        assertFalse(jsonNode.isMissingOrNull(), "jsonNode finnes ikke eller er null")
+        assertEquals(dokumenterer.size, jsonNode.size())
+
+        dokumenterer.forEachIndexed { index, dokument ->
+            assertVarianter(dokument.varianter, jsonNode[index]["varianter"])
+        }
+    }
+
+    private fun assertVarianter(dokumentVarianter: List<Dokumentvariant>, jsonNode: JsonNode) {
+        assertFalse(jsonNode.isMissingOrNull(), "jsonNode finnes ikke eller er null")
+        assertEquals(dokumentVarianter.size, jsonNode.size())
+        dokumentVarianter.forEachIndexed { index, dokumentvariant ->
+            val actual = jsonNode[index]
+
+            assertEquals(dokumentvariant.filnavn, actual["filnavn"].asText())
+            assertEquals(dokumentvariant.urn, actual["urn"].asText())
+            assertEquals(dokumentvariant.variant, actual["variant"].asText())
+            assertEquals(dokumentvariant.type, actual["type"].asText())
         }
     }
 
