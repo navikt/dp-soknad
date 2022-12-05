@@ -24,7 +24,7 @@ import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
-import no.nav.dagpenger.soknad.observers.SøknadSlettetObserver
+import no.nav.dagpenger.soknad.observers.SøknadTilstandObserver
 import no.nav.dagpenger.soknad.sletterutine.VaktmesterPostgresRepository.Companion.låseNøkkel
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -114,7 +114,7 @@ internal class VaktmesterRepositoryTest {
         søknadCacheRepository.lagre(TestSøkerOppgave(nyPåbegyntSøknadUuid, testPersonIdent, "{}"))
 
         vaktmesterRepository.markerUtdaterteTilSletting(syvDager)
-        assertAntallSøknadSlettetEvent(1)
+        assertSøknadSlettetEvent()
         assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, søknadRepository, testPersonIdent)
     }
 
@@ -193,10 +193,10 @@ internal class VaktmesterRepositoryTest {
         søknadMalRepository = mockk(),
         ferdigstiltSøknadRepository = mockk(),
         søknadRepository = søknadRepository,
-        søknadObservers = listOf(SøknadSlettetObserver(testRapid))
+        søknadObservers = listOf(SøknadTilstandObserver(testRapid))
     )
 
-    private fun assertAntallSøknadSlettetEvent(antall: Int) = assertEquals(antall, testRapid.inspektør.size)
+    private fun assertSøknadSlettetEvent() = assertEquals("søknad_slettet", testRapid.inspektør.field(0, "@event_name").asText())
 
     private fun assertAtViIkkeSletterForMye(
         antallGjenværendeSøknader: Int,
