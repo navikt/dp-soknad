@@ -500,6 +500,7 @@ class Søknad private constructor(
                 SøknadObserver.SøknadEndretTilstandEvent(
                     søknadId = søknadId,
                     ident = ident,
+                    prosessversjon = prosessversjon,
                     gjeldendeTilstand = tilstand.tilstandType,
                     forrigeTilstand = forrigeTilstand.tilstandType
                 )

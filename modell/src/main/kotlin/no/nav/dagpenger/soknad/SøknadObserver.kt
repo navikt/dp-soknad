@@ -12,6 +12,7 @@ interface SøknadObserver {
     data class SøknadEndretTilstandEvent(
         val søknadId: UUID,
         val ident: String,
+        val prosessversjon: Prosessversjon?,
         val gjeldendeTilstand: Søknad.Tilstand.Type,
         val forrigeTilstand: Søknad.Tilstand.Type
     )
