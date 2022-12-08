@@ -23,35 +23,27 @@ internal class NyInnsendingBehovMottak(rapidsConnection: RapidsConnection, priva
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "behov") }
             validate { it.demandAllOrAny("@behov", listOf(behov)) }
-            validate { it.requireKey("søknad_uuid", "ident", "innsendingId", "@løsning") }
-            validate {
-                it.require("@løsning") { løsning ->
-                    løsning.required(behov)
-                }
-            }
+            validate { it.requireKey("søknad_uuid", "ident", "innsendtTidspunkt") }
+            validate { it.rejectKey("@løsning") }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val søknadId = packet["søknad_uuid"].asUUID()
-        val innsendingId = packet["innsendingId"].asUUID()
         val ident = packet["ident"].asText()
 
         withLoggingContext(
             "søknadId" to søknadId.toString(),
-            "innsendingId" to innsendingId.toString()
         ) {
-            logger.info { "Mottatt løsning for $behov for $innsendingId med skjemakode=${packet.skjemakode()}" }
+            logger.info { "Mottatt behov for ny innsending" }
             val hendelse = NyInnsendingMelding(packet).hendelse()
             mediator.behandle(hendelse)
 
             packet["@løsning"] = mapOf(
                 behov to mapOf(
-                    innsendingId to hendelse.innsendingId
+                    "innsendingId" to hendelse.innsendingId
                 )
             )
         }
     }
-
-    private fun JsonMessage.skjemakode(): String = this["@løsning"][behov]["skjemakode"].asText()
 }
