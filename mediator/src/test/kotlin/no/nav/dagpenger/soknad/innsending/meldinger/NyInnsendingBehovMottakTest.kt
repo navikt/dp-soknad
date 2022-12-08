@@ -31,7 +31,7 @@ internal class NyInnsendingBehovMottakTest {
     fun `skal kunne lage NyInnsendingHendelse fra en JsonMessage pakke`() {
         val søknadId = UUID.randomUUID()
         val innsendtTidspunkt = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).toString()
-        val dokumenter = listOf<Innsending.Dokument>(
+        val dokumenter = listOf(
             Innsending.Dokument(
                 uuid = UUID.randomUUID(),
                 kravId = "k1",
@@ -55,8 +55,8 @@ internal class NyInnsendingBehovMottakTest {
             ),
             Innsending.Dokument(
                 uuid = UUID.randomUUID(),
-                kravId = "k2",
-                skjemakode = "s2",
+                kravId = null,
+                skjemakode = null,
                 varianter = listOf()
             )
         )
