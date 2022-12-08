@@ -27,40 +27,41 @@ internal class NyInnsendingBehovMottakTest {
         every { it.behandle(capture(slot)) } just Runs
     }
 
+    private val innsendtTidspunkt = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).toString()
+    private val dokumenter = listOf(
+        Innsending.Dokument(
+            uuid = UUID.randomUUID(),
+            kravId = "k1",
+            skjemakode = "s1",
+            varianter = listOf(
+                Innsending.Dokument.Dokumentvariant(
+                    uuid = UUID.randomUUID(),
+                    filnavn = "f1",
+                    urn = "urn:vedlegg:f1",
+                    variant = "n1",
+                    type = "t1"
+                ),
+                Innsending.Dokument.Dokumentvariant(
+                    uuid = UUID.randomUUID(),
+                    filnavn = "f2",
+                    urn = "urn:vedlegg:f2",
+                    variant = "n2",
+                    type = "t2"
+                )
+            )
+        ),
+        Innsending.Dokument(
+            uuid = UUID.randomUUID(),
+            kravId = null,
+            skjemakode = null,
+            varianter = listOf()
+        )
+    )
+    private val ident = "1234"
+    private val søknadId = UUID.randomUUID()
+
     @Test
     fun `Skal håndtere NyInnsending hendelse`() {
-        val søknadId = UUID.randomUUID()
-        val innsendtTidspunkt = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).toString()
-        val dokumenter = listOf(
-            Innsending.Dokument(
-                uuid = UUID.randomUUID(),
-                kravId = "k1",
-                skjemakode = "s1",
-                varianter = listOf(
-                    Innsending.Dokument.Dokumentvariant(
-                        uuid = UUID.randomUUID(),
-                        filnavn = "f1",
-                        urn = "urn:vedlegg:f1",
-                        variant = "n1",
-                        type = "t1"
-                    ),
-                    Innsending.Dokument.Dokumentvariant(
-                        uuid = UUID.randomUUID(),
-                        filnavn = "f2",
-                        urn = "urn:vedlegg:f2",
-                        variant = "n2",
-                        type = "t2"
-                    )
-                )
-            ),
-            Innsending.Dokument(
-                uuid = UUID.randomUUID(),
-                kravId = null,
-                skjemakode = null,
-                varianter = listOf()
-            )
-        )
-        val ident = "1234"
         NyInnsendingBehovMottak(
             rapidsConnection = testRapid,
             mediator = mediator
