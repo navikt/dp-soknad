@@ -6,6 +6,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.hendelse.innsending.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
 import no.nav.dagpenger.soknad.innsending.tjenester.ArkiverbarSøknadMottattHendelseMottak
@@ -28,24 +29,23 @@ internal class ArkiverbarSøknadMottattHendelseMottakTest {
     fun `skal lytte på arkiverbar søknad opprettet melding og oversette til ArkiverbarSøknadMottattHendelse`() {
         testRapid.sendTestMessage(losning)
         verify(exactly = 1) { mediatorMock.behandle(any() as ArkiverbarSøknadMottattHendelse) }
-        assertEquals(
-            listOf(
-                mapOf<String, Any>(
-                    "filnavn" to "brutto.pdf",
-                    "urn" to "urn:vedlegg:soknadId/brutto.pdf",
-                    "variant" to "FULLVERSJON",
-                    "type" to "PDF"
+        val dokumentvarianter: List<Innsending.Dokument.Dokumentvariant> = slot.captured.dokumentvarianter().sortedBy { it.urn }
 
-                ),
-                mapOf<String, Any>(
-                    "filnavn" to "netto.pdf",
-                    "urn" to "urn:vedlegg:soknadId/netto.pdf",
-                    "variant" to "ARKIV",
-                    "type" to "PDF"
-                )
-            ),
-            slot.captured.dokumentvarianter().sortedBy { it.urn }.map { it.toMap().toMutableMap().also { hubba -> hubba.remove("uuid") } }
-        )
+        assertEquals(2, dokumentvarianter.size)
+
+        dokumentvarianter.first().let { dokumentvariant ->
+            assertEquals("brutto.pdf", dokumentvariant.filnavn)
+            assertEquals("urn:vedlegg:soknadId/brutto.pdf", dokumentvariant.urn)
+            assertEquals("FULLVERSJON", dokumentvariant.variant)
+            assertEquals("PDF", dokumentvariant.type)
+        }
+
+        dokumentvarianter.last().let { dokumentvariant ->
+            assertEquals("netto.pdf", dokumentvariant.filnavn)
+            assertEquals("urn:vedlegg:soknadId/netto.pdf", dokumentvariant.urn)
+            assertEquals("ARKIV", dokumentvariant.variant)
+            assertEquals("PDF", dokumentvariant.type)
+        }
     }
 
     //language=JSON
