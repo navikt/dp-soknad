@@ -23,7 +23,7 @@ internal class NyInnsendingBehovMottakTest {
 
     private val testRapid = TestRapid()
     private val slot = slot<NyInnsendingHendelse>()
-    val mediator = mockk<InnsendingMediator>().also {
+    private val mediator = mockk<InnsendingMediator>().also {
         every { it.behandle(capture(slot)) } just Runs
     }
 
@@ -80,7 +80,7 @@ internal class NyInnsendingBehovMottakTest {
         testRapid.sendTestMessage(jsonMessage)
 
         verify(exactly = 1) { mediator.behandle(any<NyInnsendingHendelse>()) }
-        TestInnsendingVisioter(slot.captured.innsending).let { innsending ->
+        TestInnsendingVisitor(slot.captured.innsending).let { innsending ->
             assertEquals(ident, innsending.ident)
             assertEquals(søknadId, innsending.søknadId)
             assertEquals(innsendtTidspunkt, innsending.innsendtTidspunkt.toString())
@@ -89,7 +89,7 @@ internal class NyInnsendingBehovMottakTest {
     }
 }
 
-internal class TestInnsendingVisioter(innsending: Innsending) : InnsendingVisitor {
+private class TestInnsendingVisitor(innsending: Innsending) : InnsendingVisitor {
     lateinit var søknadId: UUID
     lateinit var innsendtTidspunkt: ZonedDateTime
     lateinit var ident: String
