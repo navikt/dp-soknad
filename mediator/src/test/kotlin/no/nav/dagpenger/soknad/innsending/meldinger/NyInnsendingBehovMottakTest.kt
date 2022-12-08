@@ -108,6 +108,31 @@ internal class NyInnsendingBehovMottakTest {
         verify(exactly = 0) { mediator.behandle(any<NyInnsendingHendelse>()) }
     }
 
+    @Test
+    fun `Skal håndtere NyInnsending uten dokumenter`() {
+        NyInnsendingBehovMottak(
+            rapidsConnection = testRapid,
+            mediator = mediator
+        )
+
+        testRapid.sendTestMessage(
+            lagTestJson(
+                søknadId = søknadId,
+                ident = ident,
+                innsendtTidspunkt = innsendtTidspunkt,
+                dokumenter = listOf(),
+            )
+        )
+
+        verify(exactly = 1) { mediator.behandle(any<NyInnsendingHendelse>()) }
+        TestInnsendingVisitor(slot.captured.innsending).let { innsending ->
+            assertEquals(ident, innsending.ident)
+            assertEquals(søknadId, innsending.søknadId)
+            assertEquals(innsendtTidspunkt, innsending.innsendtTidspunkt.toString())
+            assertEquals(listOf<Innsending.Dokument>(), innsending.dokumenter)
+        }
+    }
+
     private fun lagTestJson(
         søknadId: UUID,
         ident: String,
