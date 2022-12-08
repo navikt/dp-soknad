@@ -19,7 +19,7 @@ import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak
 import no.nav.dagpenger.soknad.mal.SøknadMalPostgresRepository
 import no.nav.dagpenger.soknad.mal.SøknadsMalMottak
 import no.nav.dagpenger.soknad.observers.SøknadLoggerObserver
-import no.nav.dagpenger.soknad.observers.SøknadSlettetObserver
+import no.nav.dagpenger.soknad.observers.SøknadTilstandObserver
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
 import no.nav.dagpenger.soknad.personalia.personaliaRouteBuilder
@@ -71,7 +71,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         søknadObservers = listOf(
             SøknadLoggerObserver,
             SøknadMetrikkObserver,
-            SøknadSlettetObserver(rapidsConnection)
+            SøknadTilstandObserver(rapidsConnection)
         )
     ).also {
         SøknadOpprettetHendelseMottak(rapidsConnection, it)

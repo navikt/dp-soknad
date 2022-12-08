@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.UUID
 
-internal class SøknadSlettetObserverTest {
+internal class SøknadTilstandObserverTest {
 
     val testRapid = TestRapid()
     val søknadUuid = UUID.randomUUID()
@@ -16,8 +16,8 @@ internal class SøknadSlettetObserverTest {
 
     @Test
     fun `Skal sende slettet søknad event på kafka`() {
-        val søknadSlettetObserver = SøknadSlettetObserver(testRapid)
-        søknadSlettetObserver.søknadSlettet(SøknadSlettetEvent(søknadUuid, personIdent))
+        val søknadTilstandObserver = SøknadTilstandObserver(testRapid)
+        søknadTilstandObserver.søknadSlettet(SøknadSlettetEvent(søknadUuid, personIdent))
 
         assertEquals(1, testRapid.inspektør.size)
 
