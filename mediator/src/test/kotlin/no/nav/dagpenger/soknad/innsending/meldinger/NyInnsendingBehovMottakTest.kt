@@ -14,6 +14,7 @@ import no.nav.dagpenger.soknad.innsending.tjenester.NyInnsendingBehovMottak
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -60,6 +61,9 @@ internal class NyInnsendingBehovMottakTest {
     private val ident = "1234"
     private val søknadId = UUID.randomUUID()
 
+    @BeforeEach
+    fun setup() = testRapid.reset()
+
     @Test
     fun `Skal håndtere NyInnsending hendelse`() {
         NyInnsendingBehovMottak(
@@ -85,6 +89,25 @@ internal class NyInnsendingBehovMottakTest {
         }
     }
 
+    @Test
+    fun `Skal ikke håndtere NyInnsending hendelse med løsning`() {
+        NyInnsendingBehovMottak(
+            rapidsConnection = testRapid,
+            mediator = mediator
+        )
+        testRapid.sendTestMessage(
+            lagTestJson(
+                søknadId = søknadId,
+                ident = ident,
+                innsendtTidspunkt = innsendtTidspunkt,
+                dokumenter = dokumenter,
+                løsning = mapOf("@løsning" to mapOf<String, Any>("innsendingId" to UUID.randomUUID()))
+            )
+        )
+
+        verify(exactly = 0) { mediator.behandle(any<NyInnsendingHendelse>()) }
+    }
+
     private fun lagTestJson(
         søknadId: UUID,
         ident: String,
@@ -106,33 +129,33 @@ internal class NyInnsendingBehovMottakTest {
         }
         return JsonMessage.newMessage(map).toJson()
     }
-}
 
-private class TestInnsendingVisitor(innsending: Innsending) : InnsendingVisitor {
-    lateinit var søknadId: UUID
-    lateinit var innsendtTidspunkt: ZonedDateTime
-    lateinit var ident: String
-    lateinit var dokumenter: List<Innsending.Dokument>
+    private class TestInnsendingVisitor(innsending: Innsending) : InnsendingVisitor {
+        lateinit var søknadId: UUID
+        lateinit var innsendtTidspunkt: ZonedDateTime
+        lateinit var ident: String
+        lateinit var dokumenter: List<Innsending.Dokument>
 
-    init {
-        innsending.accept(this)
-    }
+        init {
+            innsending.accept(this)
+        }
 
-    override fun visit(
-        innsendingId: UUID,
-        søknadId: UUID,
-        ident: String,
-        innsendingType: Innsending.InnsendingType,
-        tilstand: Innsending.TilstandType,
-        innsendt: ZonedDateTime,
-        journalpost: String?,
-        hovedDokument: Innsending.Dokument?,
-        dokumenter: List<Innsending.Dokument>,
-        metadata: Innsending.Metadata?
-    ) {
-        this.søknadId = søknadId
-        this.innsendtTidspunkt = innsendt
-        this.ident = ident
-        this.dokumenter = dokumenter
+        override fun visit(
+            innsendingId: UUID,
+            søknadId: UUID,
+            ident: String,
+            innsendingType: Innsending.InnsendingType,
+            tilstand: Innsending.TilstandType,
+            innsendt: ZonedDateTime,
+            journalpost: String?,
+            hovedDokument: Innsending.Dokument?,
+            dokumenter: List<Innsending.Dokument>,
+            metadata: Innsending.Metadata?
+        ) {
+            this.søknadId = søknadId
+            this.innsendtTidspunkt = innsendt
+            this.ident = ident
+            this.dokumenter = dokumenter
+        }
     }
 }

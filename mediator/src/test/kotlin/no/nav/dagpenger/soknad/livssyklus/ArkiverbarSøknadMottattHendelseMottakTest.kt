@@ -44,7 +44,7 @@ internal class ArkiverbarSøknadMottattHendelseMottakTest {
                     "type" to "PDF"
                 )
             ),
-            slot.captured.dokumentvarianter().sortedBy { it.urn }.map { it.toMap() }
+            slot.captured.dokumentvarianter().sortedBy { it.urn }.map { it.toMap().toMutableMap().also { hubba -> hubba.remove("uuid") } }
         )
     }
 

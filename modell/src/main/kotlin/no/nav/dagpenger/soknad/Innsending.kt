@@ -348,9 +348,11 @@ class Innsending private constructor(
         val varianter: List<Dokumentvariant>
     ) {
         fun toMap() = mutableMapOf<String, Any>(
+            "uuid" to uuid.toString(),
             "varianter" to varianter.map { it.toMap() }
         ).also { map ->
             skjemakode?.let { map["skjemakode"] = it }
+            kravId?.let { map["kravId"] = kravId }
         }
 
         data class Dokumentvariant(
@@ -369,6 +371,7 @@ class Innsending private constructor(
             }
 
             fun toMap() = mapOf(
+                "uuid" to uuid.toString(),
                 "filnavn" to filnavn,
                 "urn" to urn,
                 "variant" to variant,
