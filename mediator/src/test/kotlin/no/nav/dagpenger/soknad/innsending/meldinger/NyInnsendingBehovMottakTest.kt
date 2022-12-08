@@ -6,7 +6,11 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Innsending
+import no.nav.dagpenger.soknad.Innsending.InnsendingType
+import no.nav.dagpenger.soknad.Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG
+import no.nav.dagpenger.soknad.Innsending.InnsendingType.NY_DIALOG
 import no.nav.dagpenger.soknad.InnsendingVisitor
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
 import no.nav.dagpenger.soknad.innsending.tjenester.NyInnsendingBehovMottak
@@ -15,12 +19,27 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
+import org.junit.jupiter.params.provider.MethodSource
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID
 
 internal class NyInnsendingBehovMottakTest {
+    companion object {
+        @JvmStatic
+        fun testFixtures(): List<TestFixture> {
+            return listOf(
+                TestFixture(
+                    behov = Behovtype.NyInnsending,
+                    innsendingType = NY_DIALOG
+                ),
+                TestFixture(
+                    behov = Behovtype.NyEttersending,
+                    innsendingType = ETTERSENDING_TIL_DIALOG
+                )
+            )
+        }
+    }
 
     private val testRapid = TestRapid()
     private val slot = slot<NyInnsendingHendelse>()
@@ -28,84 +47,47 @@ internal class NyInnsendingBehovMottakTest {
         every { it.behandle(capture(slot)) } just Runs
     }
 
-    private val innsendtTidspunkt = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).toString()
-    private val dokumenter = listOf(
-        Innsending.Dokument(
-            uuid = UUID.randomUUID(),
-            kravId = "k1",
-            skjemakode = "s1",
-            varianter = listOf(
-                Innsending.Dokument.Dokumentvariant(
-                    uuid = UUID.randomUUID(),
-                    filnavn = "f1",
-                    urn = "urn:vedlegg:f1",
-                    variant = "n1",
-                    type = "t1"
-                ),
-                Innsending.Dokument.Dokumentvariant(
-                    uuid = UUID.randomUUID(),
-                    filnavn = "f2",
-                    urn = "urn:vedlegg:f2",
-                    variant = "n2",
-                    type = "t2"
-                )
-            )
-        ),
-        Innsending.Dokument(
-            uuid = UUID.randomUUID(),
-            kravId = null,
-            skjemakode = null,
-            varianter = listOf()
-        )
-    )
-    private val ident = "1234"
-    private val søknadId = UUID.randomUUID()
-
     @BeforeEach
     fun setup() = testRapid.reset()
 
     @ParameterizedTest
-    @ValueSource(strings = ["NyInnsending", "NyEttersending"])
-    fun `Skal håndtere NyInnsending hendelse`(behov: String) {
+    @MethodSource("testFixtures")
+    fun `Skal håndtere NyInnsending hendelse`(testFixture: TestFixture) {
         NyInnsendingBehovMottak(
             rapidsConnection = testRapid,
             mediator = mediator
         )
 
         testRapid.sendTestMessage(
-            lagTestJson(
-                behov = behov,
-                søknadId = søknadId,
-                ident = ident,
-                innsendtTidspunkt = innsendtTidspunkt,
-                dokumenter = dokumenter
-            )
+            lagTestJson(fixture = testFixture)
         )
 
         verify(exactly = 1) { mediator.behandle(any<NyInnsendingHendelse>()) }
         TestInnsendingVisitor(slot.captured.innsending).let { innsending ->
-            assertEquals(ident, innsending.ident)
-            assertEquals(søknadId, innsending.søknadId)
-            assertEquals(innsendtTidspunkt, innsending.innsendtTidspunkt.toString())
-            assertEquals(dokumenter, innsending.dokumenter)
+            assertEquals(testFixture.ident, innsending.ident)
+            assertEquals(testFixture.søknadId, innsending.søknadId)
+            assertEquals(testFixture.innsendtTidspunkt, innsending.innsendtTidspunkt.toString())
+            assertEquals(testFixture.dokumenter, innsending.dokumenter)
+            assertEquals(testFixture.innsendingType, innsending.innsendingType)
         }
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["NyInnsending", "NyEttersending"])
-    fun `Skal ikke håndtere NyInnsending hendelse med løsning`(behov: String) {
+    @MethodSource("testFixtures")
+    fun `Skal ikke håndtere NyInnsending hendelse med løsning`(testFixture: TestFixture) {
         NyInnsendingBehovMottak(
             rapidsConnection = testRapid,
             mediator = mediator
         )
         testRapid.sendTestMessage(
             lagTestJson(
-                behov = behov,
-                søknadId = søknadId,
-                ident = ident,
-                innsendtTidspunkt = innsendtTidspunkt,
-                dokumenter = dokumenter,
-                løsning = mapOf("@løsning" to mapOf<String, Any>("innsendingId" to UUID.randomUUID()))
+                testFixture.copy(
+                    løsning = mapOf(
+                        "@løsning" to mapOf(
+                            "innsendingId" to UUID.randomUUID().toString()
+                        )
+                    )
+                )
             )
         )
 
@@ -113,49 +95,34 @@ internal class NyInnsendingBehovMottakTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["NyInnsending", "NyEttersending"])
-    fun `Skal håndtere NyInnsending uten dokumenter`(behov: String) {
+    @MethodSource("testFixtures")
+    fun `Skal håndtere NyInnsending uten dokumenter`(testFixture: TestFixture) {
         NyInnsendingBehovMottak(
             rapidsConnection = testRapid,
             mediator = mediator
         )
 
-        testRapid.sendTestMessage(
-            lagTestJson(
-                behov = behov,
-                søknadId = søknadId,
-                ident = ident,
-                innsendtTidspunkt = innsendtTidspunkt,
-                dokumenter = listOf(),
-            )
-        )
-
+        testRapid.sendTestMessage(lagTestJson(testFixture.copy(dokumenter = emptyList())))
         verify(exactly = 1) { mediator.behandle(any<NyInnsendingHendelse>()) }
         TestInnsendingVisitor(slot.captured.innsending).let { innsending ->
-            assertEquals(ident, innsending.ident)
-            assertEquals(søknadId, innsending.søknadId)
-            assertEquals(innsendtTidspunkt, innsending.innsendtTidspunkt.toString())
+            assertEquals(testFixture.ident, innsending.ident)
+            assertEquals(testFixture.søknadId, innsending.søknadId)
+            assertEquals(testFixture.innsendtTidspunkt, innsending.innsendtTidspunkt.toString())
+            assertEquals(testFixture.innsendingType, innsending.innsendingType)
             assertEquals(listOf<Innsending.Dokument>(), innsending.dokumenter)
         }
     }
 
-    private fun lagTestJson(
-        behov: String,
-        søknadId: UUID,
-        ident: String,
-        innsendtTidspunkt: String,
-        dokumenter: List<Innsending.Dokument>,
-        løsning: Map<String, Any>? = null
-    ): String {
+    private fun lagTestJson(fixture: TestFixture): String {
         val map = mutableMapOf(
             "@event_name" to "behov",
-            "@behov" to listOf(behov),
-            "søknad_uuid" to søknadId,
-            "innsendtTidspunkt" to innsendtTidspunkt,
-            "dokumentkrav" to dokumenter,
-            "ident" to ident,
+            "@behov" to listOf(fixture.behov),
+            "søknad_uuid" to fixture.søknadId,
+            "innsendtTidspunkt" to fixture.innsendtTidspunkt,
+            "dokumentkrav" to fixture.dokumenter,
+            "ident" to fixture.ident,
         ).also { mutableMap ->
-            løsning?.let {
+            fixture.løsning?.let {
                 mutableMap["@løsning"] = it
             }
         }
@@ -167,6 +134,7 @@ internal class NyInnsendingBehovMottakTest {
         lateinit var innsendtTidspunkt: ZonedDateTime
         lateinit var ident: String
         lateinit var dokumenter: List<Innsending.Dokument>
+        lateinit var innsendingType: InnsendingType
 
         init {
             innsending.accept(this)
@@ -176,7 +144,7 @@ internal class NyInnsendingBehovMottakTest {
             innsendingId: UUID,
             søknadId: UUID,
             ident: String,
-            innsendingType: Innsending.InnsendingType,
+            innsendingType: InnsendingType,
             tilstand: Innsending.TilstandType,
             innsendt: ZonedDateTime,
             journalpost: String?,
@@ -188,6 +156,45 @@ internal class NyInnsendingBehovMottakTest {
             this.innsendtTidspunkt = innsendt
             this.ident = ident
             this.dokumenter = dokumenter
+            this.innsendingType = innsendingType
         }
     }
+
+    internal data class TestFixture(
+        val søknadId: UUID = UUID.randomUUID(),
+        val innsendtTidspunkt: String = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).toString(),
+        val dokumenter: List<Innsending.Dokument> = listOf(
+            Innsending.Dokument(
+                uuid = UUID.randomUUID(),
+                kravId = "k1",
+                skjemakode = "s1",
+                varianter = listOf(
+                    Innsending.Dokument.Dokumentvariant(
+                        uuid = UUID.randomUUID(),
+                        filnavn = "f1",
+                        urn = "urn:vedlegg:f1",
+                        variant = "n1",
+                        type = "t1"
+                    ),
+                    Innsending.Dokument.Dokumentvariant(
+                        uuid = UUID.randomUUID(),
+                        filnavn = "f2",
+                        urn = "urn:vedlegg:f2",
+                        variant = "n2",
+                        type = "t2"
+                    )
+                )
+            ),
+            Innsending.Dokument(
+                uuid = UUID.randomUUID(),
+                kravId = null,
+                skjemakode = null,
+                varianter = listOf()
+            )
+        ),
+        val ident: String = "1234",
+        val løsning: Map<String, Any>? = null,
+        val behov: Behovtype,
+        val innsendingType: InnsendingType,
+    )
 }
