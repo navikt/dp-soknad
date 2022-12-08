@@ -28,7 +28,7 @@ internal class NyInnsendingBehovMottakTest {
     }
 
     @Test
-    fun `skal kunne lage NyInnsendingHendelse fra en JsonMessage pakke`() {
+    fun `Skal håndtere NyInnsending hendelse`() {
         val søknadId = UUID.randomUUID()
         val innsendtTidspunkt = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).toString()
         val dokumenter = listOf(
@@ -61,31 +61,49 @@ internal class NyInnsendingBehovMottakTest {
             )
         )
         val ident = "1234"
-        val jsonMessage = JsonMessage.newMessage(
-            map = mapOf(
-                "@event_name" to "behov",
-                "@behov" to listOf(NyInnsending.name),
-                "søknad_uuid" to søknadId,
-                "innsendtTidspunkt" to innsendtTidspunkt,
-                "dokumentkrav" to dokumenter,
-                "ident" to ident,
-            )
-        ).toJson()
-
         NyInnsendingBehovMottak(
             rapidsConnection = testRapid,
             mediator = mediator
         )
 
-        testRapid.sendTestMessage(jsonMessage)
+        testRapid.sendTestMessage(
+            lagTestJson(
+                søknadId = søknadId,
+                ident = ident,
+                innsendtTidspunkt = innsendtTidspunkt,
+                dokumenter = dokumenter
+            )
+        )
 
         verify(exactly = 1) { mediator.behandle(any<NyInnsendingHendelse>()) }
         TestInnsendingVisitor(slot.captured.innsending).let { innsending ->
             assertEquals(ident, innsending.ident)
             assertEquals(søknadId, innsending.søknadId)
-            assertEquals(innsendtTidspunkt, innsending.innsendtTidspunkt.toString())
+            assertEquals(innsendtTidspunkt.toString(), innsending.innsendtTidspunkt.toString())
             assertEquals(dokumenter, innsending.dokumenter)
         }
+    }
+
+    private fun lagTestJson(
+        søknadId: UUID,
+        ident: String,
+        innsendtTidspunkt: String,
+        dokumenter: List<Innsending.Dokument>,
+        løsning: Map<String, Any>? = null
+    ): String {
+        val map = mutableMapOf(
+            "@event_name" to "behov",
+            "@behov" to listOf(NyInnsending.name),
+            "søknad_uuid" to søknadId,
+            "innsendtTidspunkt" to innsendtTidspunkt,
+            "dokumentkrav" to dokumenter,
+            "ident" to ident,
+        ).also { mutableMap ->
+            løsning?.let {
+                mutableMap["@løsning"] = it
+            }
+        }
+        return JsonMessage.newMessage(map).toJson()
     }
 }
 
