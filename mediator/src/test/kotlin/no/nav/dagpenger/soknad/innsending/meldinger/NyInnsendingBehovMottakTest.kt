@@ -6,7 +6,6 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyInnsending
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.InnsendingVisitor
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
@@ -15,7 +14,8 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -64,8 +64,9 @@ internal class NyInnsendingBehovMottakTest {
     @BeforeEach
     fun setup() = testRapid.reset()
 
-    @Test
-    fun `Skal håndtere NyInnsending hendelse`() {
+    @ParameterizedTest
+    @ValueSource(strings = ["NyInnsending", "NyEttersending"])
+    fun `Skal håndtere NyInnsending hendelse`(behov: String) {
         NyInnsendingBehovMottak(
             rapidsConnection = testRapid,
             mediator = mediator
@@ -73,6 +74,7 @@ internal class NyInnsendingBehovMottakTest {
 
         testRapid.sendTestMessage(
             lagTestJson(
+                behov = behov,
                 søknadId = søknadId,
                 ident = ident,
                 innsendtTidspunkt = innsendtTidspunkt,
@@ -84,19 +86,21 @@ internal class NyInnsendingBehovMottakTest {
         TestInnsendingVisitor(slot.captured.innsending).let { innsending ->
             assertEquals(ident, innsending.ident)
             assertEquals(søknadId, innsending.søknadId)
-            assertEquals(innsendtTidspunkt.toString(), innsending.innsendtTidspunkt.toString())
+            assertEquals(innsendtTidspunkt, innsending.innsendtTidspunkt.toString())
             assertEquals(dokumenter, innsending.dokumenter)
         }
     }
 
-    @Test
-    fun `Skal ikke håndtere NyInnsending hendelse med løsning`() {
+    @ParameterizedTest
+    @ValueSource(strings = ["NyInnsending", "NyEttersending"])
+    fun `Skal ikke håndtere NyInnsending hendelse med løsning`(behov: String) {
         NyInnsendingBehovMottak(
             rapidsConnection = testRapid,
             mediator = mediator
         )
         testRapid.sendTestMessage(
             lagTestJson(
+                behov = behov,
                 søknadId = søknadId,
                 ident = ident,
                 innsendtTidspunkt = innsendtTidspunkt,
@@ -108,8 +112,9 @@ internal class NyInnsendingBehovMottakTest {
         verify(exactly = 0) { mediator.behandle(any<NyInnsendingHendelse>()) }
     }
 
-    @Test
-    fun `Skal håndtere NyInnsending uten dokumenter`() {
+    @ParameterizedTest
+    @ValueSource(strings = ["NyInnsending", "NyEttersending"])
+    fun `Skal håndtere NyInnsending uten dokumenter`(behov: String) {
         NyInnsendingBehovMottak(
             rapidsConnection = testRapid,
             mediator = mediator
@@ -117,6 +122,7 @@ internal class NyInnsendingBehovMottakTest {
 
         testRapid.sendTestMessage(
             lagTestJson(
+                behov = behov,
                 søknadId = søknadId,
                 ident = ident,
                 innsendtTidspunkt = innsendtTidspunkt,
@@ -134,6 +140,7 @@ internal class NyInnsendingBehovMottakTest {
     }
 
     private fun lagTestJson(
+        behov: String,
         søknadId: UUID,
         ident: String,
         innsendtTidspunkt: String,
@@ -142,7 +149,7 @@ internal class NyInnsendingBehovMottakTest {
     ): String {
         val map = mutableMapOf(
             "@event_name" to "behov",
-            "@behov" to listOf(NyInnsending.name),
+            "@behov" to listOf(behov),
             "søknad_uuid" to søknadId,
             "innsendtTidspunkt" to innsendtTidspunkt,
             "dokumentkrav" to dokumenter,

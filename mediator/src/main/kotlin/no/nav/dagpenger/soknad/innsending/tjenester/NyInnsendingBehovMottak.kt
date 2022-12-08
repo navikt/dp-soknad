@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad.innsending.tjenester
 
 import mu.KotlinLogging
 import mu.withLoggingContext
+import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyEttersending
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyInnsending
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
 import no.nav.dagpenger.soknad.innsending.meldinger.NyInnsendingMelding
@@ -17,12 +18,12 @@ internal class NyInnsendingBehovMottak(rapidsConnection: RapidsConnection, priva
         private val logger = KotlinLogging.logger {}
     }
 
-    private val behov = NyInnsending.name
+    private val behov = listOf(NyInnsending.name, NyEttersending.name)
 
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "behov") }
-            validate { it.demandAllOrAny("@behov", listOf(behov)) }
+            validate { it.demandAllOrAny("@behov", behov) }
             validate { it.requireKey("søknad_uuid", "ident", "innsendtTidspunkt") }
             validate { it.interestedIn("dokumentkrav") }
             validate { it.rejectKey("@løsning") }
