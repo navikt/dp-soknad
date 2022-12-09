@@ -12,16 +12,13 @@ internal class SøknadTilstandObserver(private val rapidsConnection: RapidsConne
 
     private fun søknadTilstandEndretEvent(event: SøknadEndretTilstandEvent) = JsonMessage.newMessage(
         "søknad_endret_tilstand",
-        mutableMapOf(
+        listOfNotNull(
             "søknad_uuid" to event.søknadId,
             "ident" to event.ident,
             "forrigeTilstand" to event.forrigeTilstand,
-            "gjeldendeTilstand" to event.gjeldendeTilstand
-        ).apply {
-            event.prosessversjon?.prosessnavn?.let {
-                this["prosessnavn"] = it.id
-            }
-        }.toMap()
+            "gjeldendeTilstand" to event.gjeldendeTilstand,
+            event.prosessversjon?.prosessnavn?.let { "prosessnavn" to it.id }
+        ).toMap()
     ).toJson()
 
     override fun søknadSlettet(event: SøknadSlettetEvent) =
