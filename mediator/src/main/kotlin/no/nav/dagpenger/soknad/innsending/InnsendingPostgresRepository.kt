@@ -68,10 +68,6 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
         }
     }
 
-    override fun finnFor(søknadsId: UUID): List<Innsending> {
-        TODO("Not yet implemented")
-    }
-
     private fun Session.hentIdent(dialogId: UUID): String {
         return this.run(
             queryOf(
