@@ -30,7 +30,7 @@ class Søknad private constructor(
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
     private var prosessversjon: Prosessversjon?,
     private var data: Lazy<SøknadData>,
-) : Aktivitetskontekst, InnsendingObserver {
+) : Aktivitetskontekst {
     private val observers = mutableListOf<SøknadObserver>()
 
     fun søknadUUID() = søknadId
@@ -400,7 +400,6 @@ class Søknad private constructor(
         tilstand.accept(visitor)
         aktivitetslogg.accept(visitor)
         dokumentkrav.accept(visitor)
-        // innsending?.accept(visitor)
     }
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst =
@@ -421,17 +420,6 @@ class Søknad private constructor(
         tilstand.entering(søknadHendelse, this)
 
         varsleOmEndretTilstand(forrigeTilstand)
-    }
-
-    override fun innsendingTilstandEndret(event: InnsendingObserver.InnsendingEndretTilstandEvent) {
-        observers.forEach {
-            it.innsendingTilstandEndret(
-                SøknadObserver.SøknadInnsendingEndretTilstandEvent(
-                    søknadId = this.søknadId,
-                    innsending = event
-                )
-            )
-        }
     }
 
     private fun varsleOmEndretTilstand(forrigeTilstand: Tilstand) {
