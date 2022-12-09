@@ -16,7 +16,7 @@ import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand
 import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.db.DBUtils.norskZonedDateTime
-import no.nav.dagpenger.soknad.db.DBUtils.tidssone
+import no.nav.dagpenger.soknad.db.DBUtils.norskZonedDateTimeOrNull
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.serder.AktivitetsloggDTO
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
@@ -61,7 +61,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 queryOf(
                     //language=PostgreSQL
                     statement = """
-                    SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident
+                    SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident, innsendt
                     FROM  soknad_v1
                     WHERE uuid = :uuid AND tilstand != 'Slettet'
                     """.trimIndent(),
@@ -101,8 +101,9 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 dokumentkrav = SøknadDTO.DokumentkravDTO(
                     session.hentDokumentKrav(søknadsId)
                 ),
-                sistEndretAvBruker = row.zonedDateTime("sist_endret_av_bruker").withZoneSameInstant(tidssone),
+                sistEndretAvBruker = row.norskZonedDateTime("sist_endret_av_bruker"),
                 aktivitetslogg = session.hentAktivitetslogg(søknadsId),
+                innsendt = row.norskZonedDateTimeOrNull("innsendt"),
                 prosessversjon = session.hentProsessversjon(søknadsId),
                 data = lazy {
                     SøknadDataPostgresRepository(dataSource).hentSøkerOppgave(søknadsId)
@@ -211,10 +212,11 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queryOf(
                 // language=PostgreSQL
                 """
-                   INSERT INTO soknad_v1(uuid, person_ident, tilstand, spraak, opprettet, sist_endret_av_bruker, soknadmal)
-                   VALUES (:uuid, :person_ident, :tilstand, :spraak, :opprettet, :sistEndretAvBruker, 
-                        (SELECT id FROM soknadmal WHERE prosessnavn = :prosessnavn AND prosessversjon = :prosessversjon))
+                   INSERT INTO soknad_v1(uuid, person_ident, tilstand, spraak, opprettet, sist_endret_av_bruker, soknadmal, innsendt)
+                   VALUES (:uuid, :person_ident, :tilstand, :spraak, :opprettet, :sistEndretAvBruker,
+                        (SELECT id FROM soknadmal WHERE prosessnavn = :prosessnavn AND prosessversjon = :prosessversjon), :innsendt)
                    ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
+                                                innsendt=:innsendt,
                                                 sist_endret_av_bruker = :sistEndretAvBruker, 
                                                 soknadmal=(SELECT id FROM soknadmal WHERE prosessnavn = :prosessnavn AND prosessversjon = :prosessversjon)
                 """.trimIndent(),
@@ -226,7 +228,8 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                     "opprettet" to opprettet,
                     "sistEndretAvBruker" to sistEndretAvBruker,
                     "prosessnavn" to prosessversjon?.prosessnavn?.id,
-                    "prosessversjon" to prosessversjon?.versjon
+                    "prosessversjon" to prosessversjon?.versjon,
+                    "innsendt" to innsendt
                 )
             )
         )

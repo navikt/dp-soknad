@@ -81,7 +81,7 @@ internal class SøknadPostgresRepositoryTest {
         søknadId = søknadId,
         ident = ident,
         opprettet = opprettet,
-        null,
+        innsendt = now,
         språk = Språk("NO"),
         dokumentkrav = Dokumentkrav.rehydrer(
             krav = setOf(krav)
@@ -101,6 +101,19 @@ internal class SøknadPostgresRepositoryTest {
 
                 assertEquals(ident, repository.hentEier(søknad.søknadUUID()))
                 assertNull(repository.hentEier(UUID.randomUUID()))
+            }
+        }
+    }
+
+    @Test
+    fun `Lagring og henting av søknad med innsendt dato`() {
+        withMigratedDb {
+            SøknadPostgresRepository(dataSource).let { repository ->
+                repository.lagre(søknad)
+                val søknad = repository.hent(søknadId)
+                requireNotNull(søknad)
+
+                assertEquals(now, TestSøknadVisitor(søknad).innsendt)
             }
         }
     }
@@ -592,27 +605,7 @@ internal class SøknadPostgresRepositoryTest {
     }
 
     private fun hentDokumentKrav(søknad: Søknad): Dokumentkrav {
-        class TestSøknadVisitor(søknad: Søknad) : SøknadVisitor {
-            lateinit var dokumentKrav: Dokumentkrav
 
-            init {
-                søknad.accept(this)
-            }
-
-            override fun visitSøknad(
-                søknadId: UUID,
-                ident: String,
-                opprettet: ZonedDateTime,
-                innsendt: ZonedDateTime?,
-                tilstand: Søknad.Tilstand,
-                språk: Språk,
-                dokumentkrav: Dokumentkrav,
-                sistEndretAvBruker: ZonedDateTime,
-                prosessversjon: Prosessversjon?
-            ) {
-                this.dokumentKrav = dokumentkrav
-            }
-        }
         return TestSøknadVisitor(søknad).dokumentKrav
     }
 
@@ -625,5 +618,29 @@ internal class SøknadPostgresRepositoryTest {
             )
         }
         assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: $tabell")
+    }
+
+    class TestSøknadVisitor(søknad: Søknad) : SøknadVisitor {
+        lateinit var dokumentKrav: Dokumentkrav
+        var innsendt: ZonedDateTime? = null
+
+        init {
+            søknad.accept(this)
+        }
+
+        override fun visitSøknad(
+            søknadId: UUID,
+            ident: String,
+            opprettet: ZonedDateTime,
+            innsendt: ZonedDateTime?,
+            tilstand: Søknad.Tilstand,
+            språk: Språk,
+            dokumentkrav: Dokumentkrav,
+            sistEndretAvBruker: ZonedDateTime,
+            prosessversjon: Prosessversjon?,
+        ) {
+            this.dokumentKrav = dokumentkrav
+            this.innsendt = innsendt
+        }
     }
 }

@@ -26,6 +26,7 @@ class SøknadDTO(
     val sistEndretAvBruker: ZonedDateTime,
     var aktivitetslogg: AktivitetsloggDTO? = null,
     val opprettet: ZonedDateTime,
+    val innsendt: ZonedDateTime?,
     val prosessversjon: ProsessversjonDTO?,
     val data: Lazy<SøknadData>,
 ) {
@@ -33,7 +34,7 @@ class SøknadDTO(
         søknadId = this.søknadsId,
         ident = this.ident,
         opprettet = opprettet,
-        innsendt = null,
+        innsendt = innsendt,
         språk = this.språkDTO.rehydrer(),
         dokumentkrav = this.dokumentkrav.rehydrer(),
         sistEndretAvBruker = this.sistEndretAvBruker,
