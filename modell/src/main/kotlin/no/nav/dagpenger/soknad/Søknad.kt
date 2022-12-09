@@ -22,7 +22,7 @@ class Søknad private constructor(
     private val søknadId: UUID,
     private val ident: String,
     private val opprettet: ZonedDateTime,
-    private val innsendt: ZonedDateTime?,
+    private var innsendt: ZonedDateTime?,
     private var tilstand: Tilstand,
     private val språk: Språk,
     private val dokumentkrav: Dokumentkrav,
@@ -277,6 +277,7 @@ class Søknad private constructor(
             )
 
             søknad.dokumentkrav.håndter(søknadInnsendtHendelse)
+            søknad.innsendt(søknadInnsendtHendelse.innsendtidspunkt())
             søknad.endreTilstand(Innsendt, søknadInnsendtHendelse)
         }
 
@@ -319,6 +320,10 @@ class Søknad private constructor(
     }
 
     private object Innsendt : Tilstand {
+        override fun entering(søknadHendelse: Hendelse, søknad: Søknad) {
+            super.entering(søknadHendelse, søknad)
+        }
+
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.Innsendt
 
@@ -420,6 +425,14 @@ class Søknad private constructor(
         tilstand.entering(søknadHendelse, this)
 
         varsleOmEndretTilstand(forrigeTilstand)
+    }
+
+    private fun innsendt(innsendtidspunkt: ZonedDateTime) {
+        this.innsendt = innsendtidspunkt
+        val event = SøknadObserver.SøknadInnsendtEvent(søknadId = søknadId, innsendt = innsendtidspunkt)
+        observers.forEach {
+            it.sœknadInnsendt(event)
+        }
     }
 
     private fun varsleOmEndretTilstand(forrigeTilstand: Tilstand) {

@@ -21,6 +21,7 @@ import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -71,7 +72,6 @@ internal class SøknadTest {
         håndterØnskeOmNySøknadHendelse()
         håndterNySøknadOpprettet()
         håndterSendInnSøknad()
-        // håndterArkiverbarSøknad()
 
         assertThrows<AktivitetException> {
             håndterFaktumOppdatering()
@@ -112,7 +112,8 @@ internal class SøknadTest {
 
         håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
         håndterDokumentkravSammenstilling(kravId = "3", urn = "urn:sid:bundle3")
-        håndterSendInnSøknad()
+
+        val søknadInnsendtHendelse = håndterSendInnSøknad()
 
         assertTilstander(
             UnderOpprettelse,
@@ -133,7 +134,10 @@ internal class SøknadTest {
             assertEquals(testIdent, behovParametre["ident"])
         }
 
+        Thread.sleep(1000)
         val ettersendingHendelse = håndterSendInnSøknad()
+        assertEquals(søknadInnsendtHendelse.innsendtidspunkt(), testSøknadObserver.innsendt)
+        assertNotEquals(ettersendingHendelse.innsendtidspunkt(), testSøknadObserver.innsendt)
         assertBehovContains(
             behovtype = Behovtype.NyEttersending,
         ) { behovParametre ->
@@ -197,6 +201,8 @@ internal class SøknadTest {
         håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
         håndterDokumentkravSammenstilling(kravId = "3", urn = "urn:sid:bundle2")
         val hendelse = håndterSendInnSøknad()
+
+        assertEquals(hendelse.innsendtidspunkt(), testSøknadObserver.innsendt)
 
         assertTilstander(
             UnderOpprettelse,
@@ -268,6 +274,7 @@ internal class SøknadTest {
         håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
         val hendelse = håndterSendInnSøknad()
 
+        assertEquals(hendelse.innsendtidspunkt(), testSøknadObserver.innsendt)
         assertTilstander(
             UnderOpprettelse,
             Påbegynt,

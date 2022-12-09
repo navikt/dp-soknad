@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad
 
+import java.time.ZonedDateTime
 import java.util.UUID
 
 interface SøknadObserver {
@@ -8,6 +9,13 @@ interface SøknadObserver {
 
     fun søknadSlettet(event: SøknadSlettetEvent) {}
     fun søknadMigrert(event: SøknadMigrertEvent) {}
+
+    fun sœknadInnsendt(event: SøknadInnsendtEvent) {}
+
+    data class SøknadInnsendtEvent(
+        val søknadId: UUID,
+        val innsendt: ZonedDateTime?
+    )
 
     data class SøknadEndretTilstandEvent(
         val søknadId: UUID,
