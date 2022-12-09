@@ -5,9 +5,8 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
-import no.nav.dagpenger.soknad.hendelse.innsending.JournalførtHendelse
-import no.nav.dagpenger.soknad.innsending.InnsendingMediator
-import no.nav.dagpenger.soknad.innsending.tjenester.JournalførtMottak
+import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -24,7 +23,7 @@ internal class JournalførtMottakTest {
             val slot = slot<JournalførtHendelse>()
             JournalførtMottak(
                 testRapid,
-                mockk<InnsendingMediator>().also {
+                mockk<SøknadMediator>().also {
                     every { it.behandle(capture(slot)) } just Runs
                 }
             )
@@ -44,7 +43,7 @@ internal class JournalførtMottakTest {
             with(slot.captured) {
                 assertEquals(this.journalpostId(), journalpostId)
                 assertEquals(this.ident(), ident)
-                // TODO: assertEquals(this.søknadID(), søknadId)
+                assertEquals(this.søknadID(), søknadId)
             }
         }
     }

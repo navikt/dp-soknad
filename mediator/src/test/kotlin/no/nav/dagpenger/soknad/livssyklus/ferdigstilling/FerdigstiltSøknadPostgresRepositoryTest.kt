@@ -105,15 +105,15 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
             Søknad.rehydrer(
                 søknadId = søknadId,
                 ident = "12345678910",
-                opprettet = ZonedDateTime.now(),
-                innsendt = null,
+                ZonedDateTime.now(),
                 språk = Språk(språkVerdi),
                 dokumentkrav = Dokumentkrav(),
                 sistEndretAvBruker = ZonedDateTime.now(),
                 tilstandsType = Påbegynt,
                 aktivitetslogg = Aktivitetslogg(),
-                prosessversjon = null,
-                data = FerdigSøknadData,
+                null,
+                null,
+                FerdigSøknadData
             )
         )
         return søknadId

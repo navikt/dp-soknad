@@ -46,9 +46,9 @@ private fun lagMineSøknaderDto(søknader: List<Søknad>, fom: LocalDate): MineS
                 )
 
             mineSøknaderVisitor.søknadTilstand() == Innsendt -> {
-                if (mineSøknaderVisitor.søknadInnsendt().toLocalDate() > fom) {
+                if (mineSøknaderVisitor.førsteInnsendingTidspunkt() > fom.atStartOfDay()) {
                     innsendteSøknader.add(
-                        InnsendtSøknadDto(søknad.søknadUUID(), mineSøknaderVisitor.søknadInnsendt())
+                        InnsendtSøknadDto(søknad.søknadUUID(), mineSøknaderVisitor.førsteInnsendingTidspunkt())
                     )
                 }
             }

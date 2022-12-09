@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad
 import java.util.UUID
 
 interface InnsendingObserver {
+
     fun innsendingTilstandEndret(event: InnsendingEndretTilstandEvent) {}
 
     data class InnsendingEndretTilstandEvent(

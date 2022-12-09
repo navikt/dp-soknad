@@ -5,13 +5,10 @@ import no.nav.dagpenger.pdl.createPersonOppslag
 import no.nav.dagpenger.soknad.data.søknadData
 import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
-import no.nav.dagpenger.soknad.innsending.InnsendingMediator
-import no.nav.dagpenger.soknad.innsending.InnsendingPostgresRepository
-import no.nav.dagpenger.soknad.innsending.tjenester.ArkiverbarSøknadMottattHendelseMottak
-import no.nav.dagpenger.soknad.innsending.tjenester.JournalførtMottak
-import no.nav.dagpenger.soknad.innsending.tjenester.NyInnsendingBehovMottak
-import no.nav.dagpenger.soknad.innsending.tjenester.NyJournalpostMottak
-import no.nav.dagpenger.soknad.innsending.tjenester.SkjemakodeMottak
+import no.nav.dagpenger.soknad.livssyklus.ArkiverbarSøknadMottattHendelseMottak
+import no.nav.dagpenger.soknad.livssyklus.JournalførtMottak
+import no.nav.dagpenger.soknad.livssyklus.NyJournalpostMottak
+import no.nav.dagpenger.soknad.livssyklus.SkjemakodeMottak
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.FerdigstiltSøknadPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.ferdigStiltSøknadRouteBuilder
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.MigrertSøknadMottak
@@ -76,19 +73,12 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         )
     ).also {
         SøknadOpprettetHendelseMottak(rapidsConnection, it)
-        SøkerOppgaveMottak(rapidsConnection, it)
-        MigrertSøknadMottak(rapidsConnection, it)
-    }
-
-    private val innsendingMediator = InnsendingMediator(
-        rapidsConnection = rapidsConnection,
-        innsendingRepository = InnsendingPostgresRepository(PostgresDataSourceBuilder.dataSource)
-    ).also {
         ArkiverbarSøknadMottattHendelseMottak(rapidsConnection, it)
         NyJournalpostMottak(rapidsConnection, it)
         JournalførtMottak(rapidsConnection, it)
+        SøkerOppgaveMottak(rapidsConnection, it)
         SkjemakodeMottak(rapidsConnection, it)
-        NyInnsendingBehovMottak(rapidsConnection, it)
+        MigrertSøknadMottak(rapidsConnection, it)
     }
 
     init {

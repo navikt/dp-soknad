@@ -1,14 +1,14 @@
 package no.nav.dagpenger.soknad.serder
 
+import no.nav.dagpenger.soknad.Ettersending
 import no.nav.dagpenger.soknad.Innsending
+import no.nav.dagpenger.soknad.NyInnsending
 import java.time.ZonedDateTime
 import java.util.UUID
 
 data class InnsendingDTO(
     val innsendingId: UUID,
     val type: InnsendingTypeDTO,
-    val ident: String,
-    val søknadId: UUID,
     val innsendt: ZonedDateTime,
     var journalpostId: String?,
     var tilstand: TilstandDTO,
@@ -17,17 +17,27 @@ data class InnsendingDTO(
     val metadata: MetadataDTO?,
     val ettersendinger: List<InnsendingDTO>
 ) {
-    fun rehydrer(): Innsending {
-        return Innsending.rehydrer(
+    fun rehydrer(): NyInnsending {
+        return NyInnsending.rehydrer(
             innsendingId = this.innsendingId,
             type = this.type.rehydrer(),
-            ident = ident,
-            søknadId = søknadId,
             innsendt = this.innsendt,
             journalpostId = this.journalpostId,
             tilstandsType = this.tilstand.rehydrer(),
             hovedDokument = hovedDokument,
             dokumenter = dokumenter,
+            ettersendinger = ettersendinger.map {
+                Ettersending.rehydrer(
+                    it.innsendingId,
+                    it.type.rehydrer(),
+                    it.innsendt,
+                    it.journalpostId,
+                    it.tilstand.rehydrer(),
+                    it.hovedDokument,
+                    it.dokumenter,
+                    it.metadata?.rehydrer()
+                )
+            },
             metadata = metadata?.rehydrer()
         )
     }

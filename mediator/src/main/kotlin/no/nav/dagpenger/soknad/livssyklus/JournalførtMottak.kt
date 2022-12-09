@@ -1,10 +1,9 @@
-package no.nav.dagpenger.soknad.innsending.tjenester
+package no.nav.dagpenger.soknad.livssyklus
 
 import mu.KotlinLogging
 import mu.withLoggingContext
-import no.nav.dagpenger.soknad.hendelse.innsending.JournalførtHendelse
-import no.nav.dagpenger.soknad.innsending.InnsendingMediator
-import no.nav.dagpenger.soknad.utils.asUUID
+import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -12,7 +11,7 @@ import no.nav.helse.rapids_rivers.River
 
 internal class JournalførtMottak(
     rapidsConnection: RapidsConnection,
-    private val mediator: InnsendingMediator
+    private val mediator: SøknadMediator
 ) : River.PacketListener {
     companion object {
         private val logger = KotlinLogging.logger {}
@@ -48,9 +47,9 @@ internal class JournalførtMottak(
          */
         val søknadID = packet["søknadsData"]["søknad_uuid"].asUUID()
         withLoggingContext(
-            "søknadId" to søknadID.toString()
+            "søknadId" to søknadID.toString(),
         ) {
-            val journalførtHendelse = JournalførtHendelse(søknadID, ident, journalpostId)
+            val journalførtHendelse = JournalførtHendelse(søknadID, journalpostId, ident)
             logger.info { "Fått løsning for innsending_ferdigstilt for $journalpostId" }
             mediator.behandle(journalførtHendelse)
         }

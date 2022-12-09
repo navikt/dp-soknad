@@ -6,7 +6,7 @@ import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.SøknadMediator.SøknadIkkeFunnet
 import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
-import no.nav.dagpenger.soknad.utils.asUUID
+import no.nav.dagpenger.soknad.livssyklus.asUUID
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection

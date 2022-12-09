@@ -201,8 +201,7 @@ class Aktivitetslogg private constructor(
                 InnsendingMetadata,
                 ArkiverbarSøknad,
                 NyJournalpost,
-                NyInnsending,
-                NyEttersending
+                NyInnsending
             }
         }
 

@@ -24,23 +24,24 @@ class SøknadDTO(
     val språkDTO: SpråkDTO,
     var dokumentkrav: DokumentkravDTO,
     val sistEndretAvBruker: ZonedDateTime,
+    val innsendingDTO: InnsendingDTO?,
     var aktivitetslogg: AktivitetsloggDTO? = null,
     val opprettet: ZonedDateTime,
     val prosessversjon: ProsessversjonDTO?,
-    val data: Lazy<SøknadData>,
+    val data: Lazy<SøknadData>
 ) {
     fun rehydrer(): Søknad = Søknad.rehydrer(
         søknadId = this.søknadsId,
         ident = this.ident,
         opprettet = opprettet,
-        innsendt = null,
         språk = this.språkDTO.rehydrer(),
         dokumentkrav = this.dokumentkrav.rehydrer(),
         sistEndretAvBruker = this.sistEndretAvBruker,
         tilstandsType = this.tilstandType.rehydrer(),
         aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
+        innsending = this.innsendingDTO?.rehydrer(),
         prosessversjon = this.prosessversjon?.rehydrer(),
-        data = data,
+        data = data
     )
 
     class SpråkDTO(val verdi: String) {

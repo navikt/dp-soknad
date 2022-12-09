@@ -36,7 +36,7 @@ import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
-import no.nav.dagpenger.soknad.utils.asUUID
+import no.nav.dagpenger.soknad.livssyklus.asUUID
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -94,15 +94,15 @@ internal class DokumentasjonKravApiTest {
     private val søknad = Søknad.rehydrer(
         søknadId = testSoknadId,
         ident = defaultDummyFodselsnummer,
-        opprettet = ZonedDateTime.now(),
-        innsendt = null,
+        ZonedDateTime.now(),
         språk = Språk("NO"),
         dokumentkrav = dokumentKrav,
         sistEndretAvBruker = ZonedDateTime.now(),
         tilstandsType = Søknad.Tilstand.Type.Påbegynt,
         aktivitetslogg = Aktivitetslogg(),
-        prosessversjon = null,
-        data = FerdigSøknadData,
+        null,
+        null,
+        FerdigSøknadData
     )
     private val søknadMediatorMock = mockk<SøknadMediator>().also {
         every { it.hent(testSoknadId) } returns søknad

@@ -4,20 +4,30 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Aktivitetslogg.AktivitetException
-import no.nav.dagpenger.soknad.Innsending.Dokument.Dokumentvariant
+import no.nav.dagpenger.soknad.Innsending.InnsendingType
+import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerArkiverbarSøknad
+import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerJournalføring
+import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMetadata
+import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMidlertidligJournalføring
+import no.nav.dagpenger.soknad.Innsending.TilstandType.Journalført
+import no.nav.dagpenger.soknad.Innsending.TilstandType.Opprettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.helpers.FerdigSøknadData
+import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
+import no.nav.dagpenger.soknad.hendelse.InnsendingMetadataMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
+import no.nav.dagpenger.soknad.hendelse.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -31,6 +41,7 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 private const val testIdent = "12345678912"
+private const val testJournalpostId = "J123"
 
 internal class SøknadTest {
     private lateinit var søknad: Søknad
@@ -39,28 +50,31 @@ internal class SøknadTest {
     private val inspektør get() = TestSøknadInspektør(søknad)
     private val språk = "NO"
 
+    private companion object {
+        val objectMapper = jacksonObjectMapper().writerWithDefaultPrettyPrinter()
+    }
+
     private fun sannsynliggjøring(
         sannsynliggjøringId: String,
         dokumentFaktum: String,
         faktaSomSannsynliggjøres: String
     ): Sannsynliggjøring {
+        val dokumentFaktum = Faktum(faktumJson("1", dokumentFaktum))
+        val faktaSomSannsynliggjøres = mutableSetOf(Faktum(faktumJson("2", faktaSomSannsynliggjøres)))
         return Sannsynliggjøring(
             id = sannsynliggjøringId,
-            faktum = Faktum(faktumJson("1", dokumentFaktum)),
-            sannsynliggjør = mutableSetOf(Faktum(faktumJson("2", faktaSomSannsynliggjøres)))
+            faktum = dokumentFaktum,
+            sannsynliggjør = faktaSomSannsynliggjøres
         )
     }
-
-    private val søknadId = UUID.randomUUID()
 
     @BeforeEach
     internal fun setUp() {
         søknad = Søknad(
-            søknadId,
+            UUID.randomUUID(),
             Språk(språk),
             testIdent,
-            FerdigSøknadData,
-
+            FerdigSøknadData
         )
         testSøknadObserver = TestSøknadObserver().also { søknad.addObserver(it) }
         plantUmlObservatør = PlantUmlObservatør().also { søknad.addObserver(it) }
@@ -71,95 +85,11 @@ internal class SøknadTest {
         håndterØnskeOmNySøknadHendelse()
         håndterNySøknadOpprettet()
         håndterSendInnSøknad()
-        // håndterArkiverbarSøknad()
+        håndterArkiverbarSøknad()
 
         assertThrows<AktivitetException> {
             håndterFaktumOppdatering()
         }
-    }
-
-    @Test
-    fun `Søker oppretter dagpenger søknad, ferdigstiller den og ettersender til søknad`() {
-        håndterØnskeOmNySøknadHendelse()
-        with(inspektør.opprettet) {
-            assertNotNull(this)
-            assertEquals(LocalDate.now(), this.toLocalDate())
-        }
-        assertBehov(
-            Behovtype.NySøknad,
-            mapOf(
-                "prosessnavn" to "Dagpenger",
-                "søknad_uuid" to inspektør.søknadId.toString(),
-                "ident" to testIdent
-            )
-        )
-        håndterNySøknadOpprettet()
-        håndterFaktumOppdatering()
-        håndterSøkerOppgaveHendelse(
-            setOf(
-                sannsynliggjøring("1", "f1-1", "f1-2"),
-                sannsynliggjøring("2", "f2-1", "f2-2"),
-                sannsynliggjøring("3", "f3-1", "f3-2")
-            )
-        )
-        håndterLeggtilFil("1", "urn:sid:f1.1")
-        håndterLeggtilFil("1", "urn:sid:f1.2")
-        håndterDokumentasjonIkkeTilgjengelig("2", "Har ikke")
-
-        assertThrows<AktivitetException>("Alle dokumentkrav må være besvart") { håndterSendInnSøknad() }
-
-        håndterLeggtilFil("3", "urn:sid:f3.1")
-
-        håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
-        håndterDokumentkravSammenstilling(kravId = "3", urn = "urn:sid:bundle3")
-        håndterSendInnSøknad()
-
-        assertTilstander(
-            UnderOpprettelse,
-            Påbegynt,
-            Innsendt
-        )
-        // Ettersending
-        håndterLeggtilFil("2", "urn:sid:f2.1")
-        håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle2")
-        assertBehovContains(
-            Behovtype.DokumentkravSvar,
-        ) { behovParametre ->
-            assertEquals("2", behovParametre["id"])
-            assertEquals("dokument", behovParametre["type"])
-            assertEquals("urn:sid:bundle2", behovParametre["urn"])
-            assertNotNull(behovParametre["lastOppTidsstempel"])
-            assertEquals(inspektør.søknadId.toString(), behovParametre["søknad_uuid"])
-            assertEquals(testIdent, behovParametre["ident"])
-        }
-
-        val ettersendingHendelse = håndterSendInnSøknad()
-        assertBehovContains(
-            behovtype = Behovtype.NyEttersending,
-        ) { behovParametre ->
-            assertEquals(ettersendingHendelse.innsendtidspunkt(), behovParametre["innsendtTidspunkt"])
-            assertEquals(søknadId.toString(), behovParametre["søknad_uuid"])
-            assertEquals(testIdent, behovParametre["ident"])
-        }
-        assertDokumenter(
-            behovtype = Behovtype.NyEttersending,
-            expected = listOf(
-                Innsending.Dokument(
-                    uuid = UUID.randomUUID(),
-                    kravId = "2",
-                    skjemakode = "N6",
-                    varianter = listOf(
-                        Innsending.Dokument.Dokumentvariant(
-                            uuid = UUID.randomUUID(),
-                            filnavn = "f2-1",
-                            urn = "urn:sid:bundle2",
-                            variant = "ARKIV",
-                            type = "PDF"
-                        )
-                    )
-                )
-            )
-        )
     }
 
     @Test
@@ -204,48 +134,171 @@ internal class SøknadTest {
             Innsendt
         )
 
-        assertBehovContains(
-            behovtype = Behovtype.NyInnsending,
-        ) { behovParametre ->
-            assertEquals(hendelse.innsendtidspunkt(), behovParametre["innsendtTidspunkt"])
-            assertEquals(søknadId.toString(), behovParametre["søknad_uuid"])
-            assertEquals(testIdent, behovParametre["ident"])
-        }
-        assertDokumenter(
-            behovtype = Behovtype.NyInnsending,
-            listOf(
-                Innsending.Dokument(
-                    uuid = UUID.randomUUID(),
-                    kravId = "1",
-                    skjemakode = "N6",
-                    varianter = listOf(
-                        Dokumentvariant(
-                            uuid = UUID.randomUUID(),
-                            filnavn = "f1-1",
-                            urn = "urn:sid:bundle1",
-                            variant = "ARKIV",
-                            type = "PDF"
-                        )
-                    )
-                ),
-                Innsending.Dokument(
-                    uuid = UUID.randomUUID(),
-                    kravId = "3",
-                    skjemakode = "N6",
-                    varianter = listOf(
-                        Dokumentvariant(
-                            uuid = UUID.randomUUID(),
-                            filnavn = "f3-1",
-                            urn = "urn:sid:bundle2",
-                            variant = "ARKIV",
-                            type = "PDF"
-                        )
-                    )
-                )
+        assertInnsendingTilstand(
+            AvventerMetadata
+        )
+
+        assertBehov(
+            Behovtype.InnsendingMetadata,
+            mapOf(
+                "søknad_uuid" to inspektør.søknadId.toString(),
+                "ident" to testIdent,
+                "type" to "NY_DIALOG",
+                "innsendingId" to inspektør.innsendingId.toString()
             )
         )
 
+        håndterInnsendingMetadata()
+
+        assertInnsendingTilstand(
+            AvventerArkiverbarSøknad
+        )
+
+        assertBehov(
+            Behovtype.ArkiverbarSøknad,
+            mapOf(
+                "innsendtTidspunkt" to hendelse.innsendtidspunkt().toString(),
+                "dokumentasjonKravId" to listOf("1", "3"),
+                "skjemakode" to "04-01.02",
+                "søknad_uuid" to inspektør.søknadId.toString(),
+                "ident" to testIdent,
+                "type" to "NY_DIALOG",
+                "innsendingId" to inspektør.innsendingId.toString()
+            )
+        )
+        håndterArkiverbarSøknad()
+        assertInnsendingTilstand(
+            AvventerMidlertidligJournalføring
+        )
+        val hoveddokument = mutableMapOf(
+            "varianter" to listOf(
+                mapOf<String, Any>(
+                    "filnavn" to "",
+                    "urn" to "urn:dokument:1",
+                    "variant" to "ARKIV",
+                    "type" to "PDF"
+                )
+            ),
+            "skjemakode" to "04-01.02"
+        )
+
+        assertBehov(
+            Behovtype.NyJournalpost,
+            mapOf(
+                "hovedDokument" to hoveddokument,
+                "dokumenter" to listOf(
+                    mapOf(
+                        "varianter" to listOf(
+                            mapOf<String, Any>(
+                                "filnavn" to "f1-1",
+                                "urn" to "urn:sid:bundle1",
+                                "variant" to "ARKIV",
+                                "type" to "PDF"
+                            )
+                        ),
+                        "skjemakode" to "N6"
+                    ),
+                    mapOf(
+                        "varianter" to listOf(
+                            mapOf<String, Any>(
+                                "filnavn" to "f3-1",
+                                "urn" to "urn:sid:bundle2",
+                                "variant" to "ARKIV",
+                                "type" to "PDF"
+                            )
+                        ),
+                        "skjemakode" to "N6"
+                    )
+                ),
+                "søknad_uuid" to inspektør.søknadId.toString(),
+                "ident" to testIdent,
+                "type" to "NY_DIALOG",
+                "innsendingId" to inspektør.innsendingId.toString()
+            )
+        )
+        håndterMidlertidigJournalførtSøknad()
+        assertInnsendingTilstand(
+            AvventerJournalføring
+        )
+        håndterJournalførtSøknad()
+        assertInnsendingTilstand(
+            Journalført
+        )
+        assertTilstander(
+            UnderOpprettelse,
+            Påbegynt,
+            Innsendt
+        )
+
+        assertInnsendingTilstander(
+            Opprettet,
+            AvventerMetadata,
+            AvventerArkiverbarSøknad,
+            AvventerMidlertidligJournalføring,
+            AvventerJournalføring,
+            Journalført
+        )
+
         assertPuml("Søker oppretter søknad og ferdigstiller den")
+        // Ettersending
+        håndterLeggtilFil("2", "urn:sid:2")
+        håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle3")
+        assertBehovContains(
+            Behovtype.DokumentkravSvar
+        ) { behovParametre ->
+            assertEquals("2", behovParametre["id"])
+            assertEquals("dokument", behovParametre["type"])
+            assertEquals("urn:sid:bundle3", behovParametre["urn"])
+            assertNotNull(behovParametre["lastOppTidsstempel"])
+            assertEquals(inspektør.søknadId.toString(), behovParametre["søknad_uuid"])
+            assertEquals(testIdent, behovParametre["ident"])
+        }
+        val ettersendingHendelse = håndterSendInnSøknad()
+
+        assertBehov(
+            Behovtype.ArkiverbarSøknad,
+            mapOf(
+                "innsendtTidspunkt" to ettersendingHendelse.innsendtidspunkt().toString(),
+                "dokumentasjonKravId" to listOf("2"),
+                "skjemakode" to "04-01.02",
+                "søknad_uuid" to inspektør.søknadId.toString(),
+                "ident" to testIdent,
+                "type" to "ETTERSENDING_TIL_DIALOG",
+                "innsendingId" to ettersendinger().innsendingId.toString()
+            )
+        )
+
+        håndterArkiverbarSøknad(ettersendinger().innsendingId)
+
+        assertBehov(
+            Behovtype.NyJournalpost,
+            mapOf(
+                "hovedDokument" to hoveddokument.also { it["skjemakode"] = "04-01.02" },
+                "dokumenter" to listOf(
+                    mapOf(
+                        "varianter" to listOf(
+                            mapOf<String, Any>(
+                                "filnavn" to "f2-1",
+                                "urn" to "urn:sid:bundle3",
+                                "variant" to "ARKIV",
+                                "type" to "PDF"
+                            )
+                        ),
+                        "skjemakode" to "N6"
+                    )
+                ),
+                "søknad_uuid" to inspektør.søknadId.toString(),
+                "ident" to testIdent,
+                "type" to InnsendingType.ETTERSENDING_TIL_DIALOG.name,
+                "innsendingId" to ettersendinger().innsendingId.toString()
+            )
+        )
+
+        håndterMidlertidigJournalførtSøknad(ettersendinger().innsendingId)
+        assertEttersendingTilstand(AvventerJournalføring)
+
+        håndterJournalførtSøknad()
+        assertEttersendingTilstand(Journalført)
     }
 
     @Test
@@ -266,7 +319,7 @@ internal class SøknadTest {
 
         håndterLeggtilFil("1", "urn:sid:1")
         håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
-        val hendelse = håndterSendInnSøknad()
+        håndterSendInnSøknad()
 
         assertTilstander(
             UnderOpprettelse,
@@ -275,33 +328,17 @@ internal class SøknadTest {
         )
 
         assertThrows<AktivitetException> { håndterSendInnSøknad() }
-        assertBehovContains(
-            behovtype = Behovtype.NyInnsending,
-        ) { behovParametre ->
-            assertEquals(hendelse.innsendtidspunkt(), behovParametre["innsendtTidspunkt"])
-            assertEquals(søknadId.toString(), behovParametre["søknad_uuid"])
-            assertEquals(testIdent, behovParametre["ident"])
-        }
-        assertDokumenter(
-            behovtype = Behovtype.NyInnsending,
-            listOf(
-                Innsending.Dokument(
-                    uuid = UUID.randomUUID(),
-                    kravId = "1",
-                    skjemakode = "N6",
-                    varianter = listOf(
-                        Dokumentvariant(
-                            uuid = UUID.randomUUID(),
-                            filnavn = "f1-1",
-                            urn = "urn:sid:bundle1",
-                            variant = "ARKIV",
-                            type = "PDF"
-                        )
-                    )
-                )
-            )
-        )
     }
+
+    private fun assertInnsendingTilstand(tilstand: Innsending.TilstandType) {
+        assertEquals(tilstand, inspektør.innsending.tilstand)
+    }
+
+    private fun assertEttersendingTilstand(tilstand: Innsending.TilstandType) {
+        assertEquals(tilstand, ettersendinger().tilstand)
+    }
+
+    private fun ettersendinger() = inspektør.ettersendinger.last()
 
     @Test
     fun `Slett søknad for person`() {
@@ -341,6 +378,49 @@ internal class SøknadTest {
                 inspektør.søknadId,
                 testIdent,
                 Prosessversjon("navn", 2)
+            )
+        )
+    }
+
+    private fun håndterInnsendingMetadata() {
+        søknad.håndter(
+            InnsendingMetadataMottattHendelse(
+                inspektør.innsendingId,
+                inspektør.søknadId,
+                testIdent,
+                "04-01.02"
+            )
+        )
+    }
+
+    private fun håndterArkiverbarSøknad(innsendingId: UUID = inspektør.innsendingId) {
+        søknad.håndter(
+            ArkiverbarSøknadMottattHendelse(
+                innsendingId,
+                inspektør.søknadId,
+                testIdent,
+                "urn:dokument:1".lagTestDokument()
+            )
+        )
+    }
+
+    private fun håndterMidlertidigJournalførtSøknad(innsendingId: UUID = inspektør.innsendingId) {
+        søknad.håndter(
+            SøknadMidlertidigJournalførtHendelse(
+                innsendingId,
+                inspektør.søknadId,
+                testIdent,
+                testJournalpostId
+            )
+        )
+    }
+
+    private fun håndterJournalførtSøknad() {
+        søknad.håndter(
+            JournalførtHendelse(
+                inspektør.søknadId,
+                testJournalpostId,
+                testIdent
             )
         )
     }
@@ -418,6 +498,10 @@ internal class SøknadTest {
         assertEquals(tilstander.asList(), testSøknadObserver.tilstander)
     }
 
+    private fun assertInnsendingTilstander(vararg tilstander: Innsending.TilstandType) {
+        assertEquals(tilstander.asList(), testSøknadObserver.innsendTilstander)
+    }
+
     private fun assertPuml(tittel: String) {
         plantUmlObservatør.verify(tittel)
     }
@@ -428,37 +512,9 @@ internal class SøknadTest {
         } ?: throw AssertionError("Fant ikke behov $behovtype")
 
         assertEquals(
-            forventetDetaljer,
-            behov.detaljer() + behov.kontekst()
+            objectMapper.writeValueAsString(forventetDetaljer),
+            objectMapper.writeValueAsString(behov.detaljer() + behov.kontekst())
         )
-    }
-
-    private fun assertDokumenter(behovtype: Behovtype, expected: List<Innsending.Dokument>) {
-        val behov = inspektør.aktivitetslogg.behov().findLast {
-            it.type == behovtype
-        } ?: throw AssertionError("Fant ikke behov $behovtype")
-
-        val jacksonObjectMapper = jacksonObjectMapper()
-        val dokumenter: List<Innsending.Dokument> = (behov.detaljer()["dokumentkrav"] as List<Map<String, Any>>).map {
-            jacksonObjectMapper.convertValue(it, Innsending.Dokument::class.java)
-        }
-
-        expected.forEachIndexed { index, dokument ->
-            val actual = dokumenter[index]
-            assertEquals(dokument.skjemakode, actual.skjemakode)
-            assertEquals(dokument.kravId, actual.kravId)
-            assertVarianter(dokument.varianter, actual.varianter)
-        }
-    }
-
-    private fun assertVarianter(expectedVarianter: List<Dokumentvariant>, actualVarianter: List<Dokumentvariant>) {
-        expectedVarianter.forEachIndexed { index, expected ->
-            val actual = actualVarianter[index]
-            assertEquals(expected.filnavn, actual.filnavn)
-            assertEquals(expected.variant, actual.variant)
-            assertEquals(expected.type, actual.type)
-            assertEquals(expected.urn, actual.urn)
-        }
     }
 
     private fun assertBehovContains(behovtype: Behovtype, block: (Map<String, Any>) -> Unit) {
@@ -469,3 +525,7 @@ internal class SøknadTest {
         block(behov.detaljer() + behov.kontekst())
     }
 }
+
+private fun String.lagTestDokument() = listOf(
+    Innsending.Dokument.Dokumentvariant(filnavn = "", urn = this, variant = "ARKIV", type = "PDF")
+)

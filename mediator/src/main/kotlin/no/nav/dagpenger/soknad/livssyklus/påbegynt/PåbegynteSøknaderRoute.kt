@@ -49,7 +49,6 @@ private class PåbegynteSøknadVisitor(søknad: Søknad) : SøknadVisitor {
         søknadId: UUID,
         ident: String,
         opprettet: ZonedDateTime,
-        innsendt: ZonedDateTime?,
         tilstand: Søknad.Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,

@@ -10,6 +10,9 @@ import io.mockk.mockk
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.Ettersending
+import no.nav.dagpenger.soknad.Innsending
+import no.nav.dagpenger.soknad.NyInnsending
 import no.nav.dagpenger.soknad.Prosessnavn
 import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Språk
@@ -44,11 +47,11 @@ class MineSøknaderApiTest {
                         søknadMed(tilstand = Påbegynt, opprettet, sistEndretAvBruker = sistEndretAvBruker),
                         søknadMed(
                             tilstand = Innsendt,
-                            innsendt = innsendtTidspunkt.atZone(ZoneId.of("Europe/Oslo"))
+                            innsending = innsending(innsendtTidspunkt, journalpostId = "123"),
                         ),
                         søknadMed(
                             tilstand = Innsendt,
-                            innsendt = innsendtTidspunkt.atZone(ZoneId.of("Europe/Oslo"))
+                            innsending = innsending(innsendtTidspunkt, journalpostId = "456"),
                         )
                     )
                 }
@@ -122,7 +125,7 @@ class MineSøknaderApiTest {
                     every { it.hentSøknader(TestApplication.defaultDummyFodselsnummer) } returns setOf(
                         søknadMed(
                             tilstand = Innsendt,
-                            innsendt = innsendtTidspunkt.atZone(ZoneId.of("Europe/Oslo"))
+                            innsending = innsending(innsendtTidspunkt, journalpostId = "456"),
                         )
                     )
                 }
@@ -150,7 +153,7 @@ class MineSøknaderApiTest {
                     every { it.hentSøknader(TestApplication.defaultDummyFodselsnummer) } returns setOf(
                         søknadMed(
                             tilstand = Innsendt,
-                            innsendt = innsendtTidspunkt.atZone(ZoneId.of("Europe/Oslo"))
+                            innsending = innsending(innsendtTidspunkt, journalpostId = "456"),
                         ),
                         gammelInnsendtSøknad(innsendt = fom.minusDays(2))
                     )
@@ -169,6 +172,7 @@ class MineSøknaderApiTest {
 
     @Test
     fun `får 400 Bad Request ved manglende eller ugyldig fom queryparam`() {
+
         TestApplication.withMockAuthServerAndTestApplication(TestApplication.mockedSøknadApi()) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
                 assertEquals(HttpStatusCode.BadRequest, this.status)
@@ -181,7 +185,7 @@ class MineSøknaderApiTest {
 
     private fun gammelInnsendtSøknad(innsendt: LocalDate) = søknadMed(
         tilstand = Innsendt,
-        innsendt = innsendt.minusDays(5).atStartOfDay().atZone(ZoneId.of("Europe/Oslo"))
+        innsending = innsending(innsendt.minusDays(5).atStartOfDay(), journalpostId = "456"),
     )
 
     private fun expectedJson(
@@ -195,20 +199,36 @@ class MineSøknaderApiTest {
     private fun søknadMed(
         tilstand: Søknad.Tilstand.Type,
         opprettet: LocalDateTime = LocalDateTime.now(),
-        innsendt: ZonedDateTime? = null,
+        innsending: NyInnsending? = null,
         sistEndretAvBruker: LocalDateTime = LocalDateTime.MAX,
         prosessversjon: Prosessversjon? = Prosessversjon(Prosessnavn("Dagpenger"), 1)
     ) = Søknad.rehydrer(
         søknadId = søknadUuid,
         ident = TestApplication.defaultDummyFodselsnummer,
         opprettet = ZonedDateTime.of(opprettet, ZoneId.of("Europe/Oslo")),
-        innsendt = innsendt,
         språk = Språk("NO"),
         dokumentkrav = Dokumentkrav(),
         sistEndretAvBruker = ZonedDateTime.of(sistEndretAvBruker, ZoneId.of("Europe/Oslo")),
         tilstandsType = tilstand,
         aktivitetslogg = Aktivitetslogg(),
+        innsending = innsending,
         prosessversjon = prosessversjon,
-        data = FerdigSøknadData,
+        data = FerdigSøknadData
+    )
+
+    private fun innsending(
+        innsendtTidspunkt: LocalDateTime,
+        journalpostId: String,
+        ettersending: List<Ettersending> = emptyList()
+    ) = NyInnsending.rehydrer(
+        innsendingId = UUID.randomUUID(),
+        type = Innsending.InnsendingType.NY_DIALOG,
+        innsendt = ZonedDateTime.of(innsendtTidspunkt, ZoneId.of("Europe/Oslo")),
+        journalpostId = journalpostId,
+        tilstandsType = Innsending.TilstandType.Journalført,
+        hovedDokument = null,
+        dokumenter = emptyList(),
+        ettersendinger = ettersending,
+        metadata = Innsending.Metadata("04-02-03")
     )
 }

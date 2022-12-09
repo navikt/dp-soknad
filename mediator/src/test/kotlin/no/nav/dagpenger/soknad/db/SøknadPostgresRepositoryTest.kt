@@ -10,8 +10,11 @@ import kotliquery.using
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.DeepEquals.assertDeepEquals
 import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.Ettersending
 import no.nav.dagpenger.soknad.Faktum
+import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Krav
+import no.nav.dagpenger.soknad.NyInnsending
 import no.nav.dagpenger.soknad.Prosessnavn
 import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Sannsynliggjøring
@@ -81,7 +84,6 @@ internal class SøknadPostgresRepositoryTest {
         søknadId = søknadId,
         ident = ident,
         opprettet = opprettet,
-        null,
         språk = Språk("NO"),
         dokumentkrav = Dokumentkrav.rehydrer(
             krav = setOf(krav)
@@ -89,8 +91,9 @@ internal class SøknadPostgresRepositoryTest {
         sistEndretAvBruker = now,
         tilstandsType = Påbegynt,
         aktivitetslogg = Aktivitetslogg(),
-        prosessversjon = prosessversjon,
-        data = FerdigSøknadData,
+        null,
+        prosessversjon,
+        data = FerdigSøknadData
     )
 
     @Test
@@ -111,7 +114,6 @@ internal class SøknadPostgresRepositoryTest {
             søknadId = søknadId,
             ident = ident,
             opprettet = opprettet,
-            null,
             språk = Språk("NO"),
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav)
@@ -119,8 +121,9 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
-            prosessversjon = prosessversjon,
-            data = FerdigSøknadData,
+            null,
+            prosessversjon,
+            data = FerdigSøknadData
         )
 
         withMigratedDb {
@@ -140,7 +143,115 @@ internal class SøknadPostgresRepositoryTest {
     }
 
     @Test
-    fun `Lagre og hente søknad med dokumentkrav og aktivitetslogg`() {
+    fun `Vi klarer å rehydrere innsendinger med dokumenter`() {
+        /**
+         * Denne framprovoserer problemene vi har hatt med at innsendinger rehydreres uten dokumenter
+         */
+        val krav1 = Krav(
+            id = sannsynliggjøring.id,
+            sannsynliggjøring = sannsynliggjøring,
+            tilstand = Krav.KravTilstand.AKTIV,
+            svar = Krav.Svar(
+                filer = mutableSetOf(
+                    Krav.Fil(
+                        filnavn = "1-1.jpg",
+                        urn = URN.rfc8141().parse("urn:nav:vedlegg:1-1"),
+                        storrelse = 1000,
+                        tidspunkt = now,
+                        bundlet = false
+                    )
+                ),
+                valg = Krav.Svar.SvarValg.SEND_NÅ,
+                begrunnelse = null,
+                bundle = URN.rfc8141().parse("urn:nav:bundle:1"),
+                innsendt = true
+            )
+        )
+        val søknad = Søknad.rehydrer(
+            søknadId = søknadId,
+            ident = ident,
+            opprettet = opprettet,
+            språk = språk,
+            dokumentkrav = Dokumentkrav.rehydrer(
+                krav = setOf(krav1)
+            ),
+            sistEndretAvBruker = now.minusDays(1),
+            tilstandsType = Påbegynt,
+            aktivitetslogg = Aktivitetslogg(),
+            innsending = NyInnsending.rehydrer(
+                innsendingId = UUID.randomUUID(),
+                type = Innsending.InnsendingType.NY_DIALOG,
+                innsendt = now,
+                journalpostId = "123123",
+                tilstandsType = Innsending.TilstandType.AvventerArkiverbarSøknad,
+                hovedDokument = null,
+                dokumenter = listOf(
+                    Innsending.Dokument(
+                        uuid = UUID.randomUUID(),
+                        kravId = "kravId",
+                        skjemakode = "brevkode-vedlegg",
+                        varianter = listOf(
+                            Innsending.Dokument.Dokumentvariant(
+                                UUID.randomUUID(),
+                                "filnavn3",
+                                "urn:burn:turn3",
+                                "variant3",
+                                "type3"
+                            )
+                        )
+                    )
+                ),
+                ettersendinger = mutableListOf(),
+                metadata = Innsending.Metadata("04-02-03")
+            ),
+            prosessversjon = prosessversjon,
+            data = FerdigSøknadData
+        )
+
+        withMigratedDb {
+            SøknadMalPostgresRepository(dataSource).let { søknadMalPostgresRepository ->
+                søknadMalPostgresRepository.lagre(mal)
+            }
+            SøknadPostgresRepository(dataSource).let { søknadPostgresRepository ->
+                søknadPostgresRepository.lagre(søknad)
+
+                assertAntallRader("soknad_v1", 1)
+                assertAntallRader("dokumentkrav_filer_v1", 1)
+                assertAntallRader("dokumentkrav_v1", 1)
+                assertAntallRader("aktivitetslogg_v1", 1)
+                assertAntallRader("innsending_v1", 1)
+                assertAntallRader("dokument_v1", 1)
+                assertAntallRader("hoveddokument_v1", 0)
+                assertAntallRader("ettersending_v1", 0)
+                assertAntallRader("dokumentvariant_v1", 1)
+
+                søknadPostgresRepository.hent(søknadId).let { rehydrertSøknad ->
+                    assertNotNull(rehydrertSøknad)
+                    assertDeepEquals(rehydrertSøknad, søknad)
+                    rehydrertSøknad?.accept(object : SøknadVisitor {
+                        override fun visit(
+                            innsendingId: UUID,
+                            innsending: Innsending.InnsendingType,
+                            tilstand: Innsending.TilstandType,
+                            innsendt: ZonedDateTime,
+                            journalpost: String?,
+                            hovedDokument: Innsending.Dokument?,
+                            dokumenter: List<Innsending.Dokument>,
+                            metadata: Innsending.Metadata?
+                        ) {
+                            assertEquals(1, dokumenter.size)
+                            assertEquals("brevkode-vedlegg", dokumenter.first().skjemakode)
+                            assertEquals("kravId", dokumenter.first().kravId)
+                            assertEquals(1, dokumenter.first().varianter.size)
+                        }
+                    })
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `Lagre og hente søknad med dokument, dokumentkrav, innsending og aktivitetslogg`() {
         val krav1 = Krav(
             id = sannsynliggjøring.id,
             sannsynliggjøring = sannsynliggjøring,
@@ -192,7 +303,6 @@ internal class SøknadPostgresRepositoryTest {
             søknadId = søknadId,
             ident = ident,
             opprettet = opprettet,
-            null,
             språk = språk,
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav1, krav2)
@@ -200,12 +310,88 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now.minusDays(1),
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
+            innsending = NyInnsending.rehydrer(
+                UUID.randomUUID(),
+                Innsending.InnsendingType.NY_DIALOG,
+                now,
+                "123123",
+                Innsending.TilstandType.AvventerArkiverbarSøknad,
+                Innsending.Dokument(
+                    uuid = UUID.randomUUID(),
+                    kravId = null,
+                    skjemakode = "brevkode",
+                    varianter = listOf(
+                        Innsending.Dokument.Dokumentvariant(
+                            UUID.randomUUID(),
+                            "filnavn1",
+                            "urn:burn:turn1",
+                            "variant1",
+                            "type1"
+                        ),
+                        Innsending.Dokument.Dokumentvariant(
+                            UUID.randomUUID(),
+                            "filnavn2",
+                            "urn:burn:turn2",
+                            "variant2",
+                            "type2"
+                        )
+                    )
+                ),
+                listOf(
+                    Innsending.Dokument(
+                        uuid = UUID.randomUUID(),
+                        kravId = "kravId",
+                        skjemakode = "brevkode2",
+                        varianter = listOf(
+                            Innsending.Dokument.Dokumentvariant(
+                                UUID.randomUUID(),
+                                "filnavn3",
+                                "urn:burn:turn3",
+                                "variant3",
+                                "type3"
+                            ),
+                            Innsending.Dokument.Dokumentvariant(
+                                UUID.randomUUID(),
+                                "filnavn4",
+                                "urn:burn:turn4",
+                                "variant4",
+                                "type4"
+                            )
+                        )
+                    )
+                ),
+                mutableListOf(
+                    Ettersending.rehydrer(
+                        UUID.randomUUID(),
+                        Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG,
+                        now,
+                        null,
+                        Innsending.TilstandType.Opprettet,
+                        null,
+                        listOf(),
+                        Innsending.Metadata(skjemakode = "0324-23")
+                    ),
+                    Ettersending.rehydrer(
+                        UUID.randomUUID(),
+                        Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG,
+                        now,
+                        null,
+                        Innsending.TilstandType.AvventerJournalføring,
+                        null,
+                        listOf(),
+                        Innsending.Metadata(skjemakode = "0324-23")
+                    )
+                ),
+                Innsending.Metadata(skjemakode = "04-02-03")
+            ),
             prosessversjon = prosessversjon,
-            data = FerdigSøknadData,
+            data = FerdigSøknadData
         )
 
         withMigratedDb {
-            SøknadMalPostgresRepository(dataSource).lagre(mal)
+            SøknadMalPostgresRepository(dataSource).let { søknadMalPostgresRepository ->
+                søknadMalPostgresRepository.lagre(mal)
+            }
             SøknadPostgresRepository(dataSource).let { søknadPostgresRepository ->
                 søknadPostgresRepository.lagre(søknad)
 
@@ -213,6 +399,11 @@ internal class SøknadPostgresRepositoryTest {
                 assertAntallRader("dokumentkrav_filer_v1", 3)
                 assertAntallRader("dokumentkrav_v1", 2)
                 assertAntallRader("aktivitetslogg_v1", 1)
+                assertAntallRader("innsending_v1", 3)
+                assertAntallRader("dokument_v1", 2)
+                assertAntallRader("hoveddokument_v1", 1)
+                assertAntallRader("ettersending_v1", 2)
+                assertAntallRader("dokumentvariant_v1", 4)
 
                 søknadPostgresRepository.hent(søknadId).let { rehydrertSøknad ->
                     assertNotNull(rehydrertSøknad)
@@ -224,6 +415,22 @@ internal class SøknadPostgresRepositoryTest {
                 søknadPostgresRepository.hent(søknadId).let { rehydrertSøknad ->
                     assertNotNull(rehydrertSøknad)
                     assertDeepEquals(rehydrertSøknad, søknad)
+                    rehydrertSøknad?.accept(object : SøknadVisitor {
+                        override fun visit(
+                            innsendingId: UUID,
+                            innsending: Innsending.InnsendingType,
+                            tilstand: Innsending.TilstandType,
+                            innsendt: ZonedDateTime,
+                            journalpost: String?,
+                            hovedDokument: Innsending.Dokument?,
+                            dokumenter: List<Innsending.Dokument>,
+                            metadata: Innsending.Metadata?
+                        ) {
+                            if (innsending == Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG) return
+                            assertEquals(2, hovedDokument!!.varianter.size)
+                            assertEquals(1, dokumenter.size)
+                        }
+                    })
                 }
             }
         }
@@ -251,7 +458,6 @@ internal class SøknadPostgresRepositoryTest {
             søknadId = søknadId,
             ident = ident,
             opprettet = opprettet,
-            null,
             språk = språk,
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav)
@@ -259,8 +465,9 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now.minusDays(1),
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
+            innsending = null,
             prosessversjon = prosessversjon,
-            data = FerdigSøknadData,
+            data = FerdigSøknadData
         )
 
         withMigratedDb {
@@ -341,8 +548,8 @@ internal class SøknadPostgresRepositoryTest {
             )
             hentDokumentKrav(søknadMediator.hent(søknadId)!!).let {
                 assertEquals(2, it.aktiveDokumentKrav().first().svar.filer.size)
-                it.aktiveDokumentKrav().first().svar.filer.forEach { kravFil ->
-                    assertFalse(kravFil.bundlet)
+                it.aktiveDokumentKrav().first().svar.filer.forEach {
+                    assertFalse(it.bundlet)
                 }
                 it.aktiveDokumentKrav().forEach { krav ->
                     assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
@@ -453,7 +660,6 @@ internal class SøknadPostgresRepositoryTest {
             søknadId = søknadId,
             ident = ident,
             opprettet = ZonedDateTime.now(),
-            null,
             språk = Språk("NO"),
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav)
@@ -461,8 +667,9 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
-            prosessversjon = Prosessversjon(Prosessnavn(prosessNavn), 2),
-            data = FerdigSøknadData,
+            null,
+            Prosessversjon(Prosessnavn(prosessNavn), 2),
+            data = FerdigSøknadData
         )
 
     @Test
@@ -472,7 +679,6 @@ internal class SøknadPostgresRepositoryTest {
             søknadId = søknadIdForInnsendt,
             ident = ident,
             opprettet = ZonedDateTime.now(),
-            null,
             språk = Språk("NO"),
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav)
@@ -480,12 +686,15 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now,
             tilstandsType = Innsendt,
             aktivitetslogg = Aktivitetslogg(),
-            prosessversjon = prosessversjon,
-            data = FerdigSøknadData,
+            null,
+            prosessversjon,
+            data = FerdigSøknadData
         )
 
         withMigratedDb {
-            SøknadMalPostgresRepository(dataSource).lagre(mal)
+            SøknadMalPostgresRepository(dataSource).let { søknadMalPostgresRepository ->
+                søknadMalPostgresRepository.lagre(mal)
+            }
 
             SøknadPostgresRepository(dataSource).let { repository ->
                 repository.lagre(innsendtSøknad)
@@ -509,7 +718,6 @@ internal class SøknadPostgresRepositoryTest {
             søknadId = søknadIdForPreMigrert,
             ident = ident,
             opprettet = ZonedDateTime.now(),
-            null,
             språk = Språk("NO"),
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav)
@@ -517,14 +725,14 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
-            prosessversjon = null,
-            data = FerdigSøknadData,
+            null,
+            null,
+            data = FerdigSøknadData
         )
         val påbegyntSøknad = Søknad.rehydrer(
             søknadId = søknadIdForPåbegynt,
             ident = ident,
             opprettet = ZonedDateTime.now(),
-            null,
             språk = Språk("NO"),
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav)
@@ -532,14 +740,14 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
-            prosessversjon = prosessversjon,
-            data = FerdigSøknadData,
+            null,
+            prosessversjon,
+            data = FerdigSøknadData
         )
         val nySøknad = Søknad.rehydrer(
             søknadId = søknadIdForNy,
             ident = ident,
             opprettet = ZonedDateTime.now(),
-            null,
             språk = Språk("NO"),
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav)
@@ -547,14 +755,14 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
+            null,
             prosessversjon = prosessversjon2,
-            data = FerdigSøknadData,
+            data = FerdigSøknadData
         )
         val innsendtSøknad = Søknad.rehydrer(
             søknadId = søknadIdForInnsendt,
             ident = ident,
             opprettet = ZonedDateTime.now(),
-            null,
             språk = Språk("NO"),
             dokumentkrav = Dokumentkrav.rehydrer(
                 krav = setOf(krav)
@@ -562,8 +770,9 @@ internal class SøknadPostgresRepositoryTest {
             sistEndretAvBruker = now,
             tilstandsType = Innsendt,
             aktivitetslogg = Aktivitetslogg(),
-            prosessversjon = prosessversjon,
-            data = FerdigSøknadData,
+            null,
+            prosessversjon,
+            data = FerdigSøknadData
         )
 
         withMigratedDb {
@@ -603,7 +812,6 @@ internal class SøknadPostgresRepositoryTest {
                 søknadId: UUID,
                 ident: String,
                 opprettet: ZonedDateTime,
-                innsendt: ZonedDateTime?,
                 tilstand: Søknad.Tilstand,
                 språk: Språk,
                 dokumentkrav: Dokumentkrav,
