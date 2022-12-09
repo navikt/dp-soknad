@@ -13,7 +13,6 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class InnsendingPostgresRepositoryTest {
@@ -33,8 +32,7 @@ internal class InnsendingPostgresRepositoryTest {
         }
     }
 
-    private val now =
-        ZonedDateTime.of(LocalDateTime.of(2022, 1, 1, 1, 1), ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.MINUTES)
+    private val now = ZonedDateTime.of(LocalDateTime.now(), ZoneId.of("Europe/Oslo"))
     private val hovedDokument = Innsending.Dokument(
         uuid = UUID.randomUUID(),
         kravId = "Hoveddokument",
