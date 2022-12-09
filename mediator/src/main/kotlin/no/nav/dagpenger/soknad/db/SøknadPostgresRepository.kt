@@ -77,7 +77,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         session.run(
             queryOf( //language=PostgreSQL
                 """
-                SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident
+                SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident, innsendt
                 FROM  soknad_v1
                 WHERE person_ident = :ident AND tilstand != 'Slettet' 
                 ORDER BY sist_endret_av_bruker DESC
