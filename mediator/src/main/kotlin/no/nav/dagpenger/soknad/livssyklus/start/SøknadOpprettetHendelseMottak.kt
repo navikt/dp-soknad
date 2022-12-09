@@ -1,17 +1,16 @@
 package no.nav.dagpenger.soknad.livssyklus.start
 
-import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NySøknad
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.SøknadMediator.SøknadIkkeFunnet
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
+import no.nav.dagpenger.soknad.utils.asUUID
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import java.util.UUID
 
 internal class SøknadOpprettetHendelseMottak(
     rapidsConnection: RapidsConnection,
@@ -61,5 +60,3 @@ internal class SøknadOpprettetHendelseMottak(
         }
     }
 }
-
-internal fun JsonNode.asUUID(): UUID = this.asText().let { UUID.fromString(it) }

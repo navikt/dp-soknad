@@ -177,6 +177,7 @@ private class ApiDokumentkravResponse(
         søknadId: UUID,
         ident: String,
         opprettet: ZonedDateTime,
+        innsendt: ZonedDateTime?,
         tilstand: Søknad.Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,

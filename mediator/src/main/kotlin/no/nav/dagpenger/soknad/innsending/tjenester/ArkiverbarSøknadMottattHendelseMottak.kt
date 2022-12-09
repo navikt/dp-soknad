@@ -1,21 +1,21 @@
-package no.nav.dagpenger.soknad.livssyklus
+package no.nav.dagpenger.soknad.innsending.tjenester
 
 import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.ArkiverbarSøknad
 import no.nav.dagpenger.soknad.Innsending.Dokument.Dokumentvariant
-import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.hendelse.ArkiverbarSøknadMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.innsending.ArkiverbarSøknadMottattHendelse
+import no.nav.dagpenger.soknad.innsending.InnsendingMediator
+import no.nav.dagpenger.soknad.utils.asUUID
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import java.util.UUID
 
 internal class ArkiverbarSøknadMottattHendelseMottak(
     rapidsConnection: RapidsConnection,
-    private val mediator: SøknadMediator
+    private val mediator: InnsendingMediator
 ) : River.PacketListener {
     companion object {
         private val logger = KotlinLogging.logger {}
@@ -45,7 +45,6 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
         ) {
             val arkiverbarSøknadMottattHendelse = ArkiverbarSøknadMottattHendelse(
                 innsendingId = innsendingId,
-                søknadID = søknadID,
                 ident = packet["ident"].asText(),
                 dokumentvarianter = packet["@løsning"][behov].dokumentVarianter()
             )
@@ -70,5 +69,3 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
         )
     }
 }
-
-internal fun JsonNode.asUUID(): UUID = this.asText().let { UUID.fromString(it) }
