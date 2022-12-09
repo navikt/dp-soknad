@@ -41,7 +41,7 @@ class SøknadDokumentasjonskravTest {
             søknadId = søknadId,
             språk = språk,
             ident = ident,
-            data = FerdigSøknadData
+            data = FerdigSøknadData,
         )
         søknad.håndter(
             ØnskeOmNySøknadHendelse(
@@ -221,10 +221,9 @@ class SøknadDokumentasjonskravTest {
 }
 
 internal class TestSøknadInspektør2(søknad: Søknad) : SøknadVisitor {
-    lateinit var søknadId: UUID
-    lateinit var gjeldendetilstand: Søknad.Tilstand.Type
+    private lateinit var søknadId: UUID
+    private lateinit var gjeldendetilstand: Søknad.Tilstand.Type
     lateinit var dokumentkrav: Dokumentkrav
-    internal lateinit var personLogg: Aktivitetslogg
 
     init {
         søknad.accept(this)
@@ -234,6 +233,7 @@ internal class TestSøknadInspektør2(søknad: Søknad) : SøknadVisitor {
         søknadId: UUID,
         ident: String,
         opprettet: ZonedDateTime,
+        innsendt: ZonedDateTime?,
         tilstand: Søknad.Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,

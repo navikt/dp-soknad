@@ -1,15 +1,15 @@
-package no.nav.dagpenger.soknad.hendelse
+package no.nav.dagpenger.soknad.hendelse.innsending
 
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import java.util.UUID
 
-class JournalførtHendelse(
-    søknadsId: UUID,
-    private val journalpostId: String,
+class SøknadMidlertidigJournalførtHendelse(
+    innsendingId: UUID,
     ident: String,
+    private val journalpostId: String,
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
-) : SøknadHendelse(
-    søknadsId,
+) : InnsendingHendelse(
+    innsendingId,
     ident,
     aktivitetslogg
 ) {

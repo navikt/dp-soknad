@@ -15,6 +15,7 @@ interface TilstandVisitor {
 interface InnsendingVisitor {
     fun preVisitEttersendinger() {}
     fun postVisitEttersendinger() {}
+    // todo remove?
     fun visit(
         innsendingId: UUID,
         innsending: InnsendingType,
@@ -24,19 +25,36 @@ interface InnsendingVisitor {
         hovedDokument: Dokument?,
         dokumenter: List<Dokument>,
         metadata: Metadata? = null
-    ) {}
+    ) {
+    }
+
+    fun visit(
+        innsendingId: UUID,
+        søknadId: UUID,
+        ident: String,
+        innsendingType: InnsendingType,
+        tilstand: TilstandType,
+        innsendt: ZonedDateTime,
+        journalpost: String?,
+        hovedDokument: Dokument?,
+        dokumenter: List<Dokument>,
+        metadata: Metadata? = null
+    ) {
+    }
 }
+
 interface DokumentkravVisitor {
     fun preVisitDokumentkrav() {}
     fun visitKrav(krav: Krav) {}
     fun postVisitDokumentkrav() {}
 }
 
-interface SøknadVisitor : TilstandVisitor, AktivitetsloggVisitor, DokumentkravVisitor, InnsendingVisitor {
+interface SøknadVisitor : TilstandVisitor, AktivitetsloggVisitor, DokumentkravVisitor {
     fun visitSøknad(
         søknadId: UUID,
         ident: String,
         opprettet: ZonedDateTime,
+        innsendt: ZonedDateTime?,
         tilstand: Tilstand,
         språk: Språk,
         dokumentkrav: Dokumentkrav,

@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad.hendelse
+package no.nav.dagpenger.soknad.hendelse.innsending
 
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Innsending.Metadata
@@ -6,11 +6,9 @@ import java.util.UUID
 
 class InnsendingMetadataMottattHendelse(
     innsendingId: UUID,
-    val søknadID: UUID,
-    val ident: String,
+    ident: String,
     skjemaKode: String,
-    aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
-) :
-    InnsendingHendelse(innsendingId, søknadID, ident, aktivitetslogg) {
+    aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+) : InnsendingHendelse(innsendingId, ident, aktivitetslogg) {
     val metadata: Metadata = Metadata(skjemaKode)
 }

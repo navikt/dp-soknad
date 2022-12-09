@@ -233,14 +233,14 @@ internal class VaktmesterRepositoryTest {
             søknadId = journalførtSøknadId,
             ident = ident,
             opprettet = ZonedDateTime.now(),
+            null,
             språk = språk,
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.of(2022, 11, 2, 2, 2, 2, 2), ZoneId.of("Europe/Oslo")),
             tilstandsType = Innsendt,
             aktivitetslogg = Aktivitetslogg(),
-            null,
-            null,
-            FerdigSøknadData
+            prosessversjon = null,
+            data = FerdigSøknadData,
         )
 
     private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, ident: String) =
@@ -248,6 +248,7 @@ internal class VaktmesterRepositoryTest {
             søknadId = gammelPåbegyntSøknadId,
             ident = ident,
             opprettet = ZonedDateTime.now(),
+            null,
             språk = språk,
             dokumentkrav = Dokumentkrav.rehydrer(
                 setOf(krav)
@@ -255,9 +256,8 @@ internal class VaktmesterRepositoryTest {
             sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.of(2022, 11, 2, 2, 2, 2, 2), ZoneId.of("Europe/Oslo")),
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
-            null,
-            null,
-            FerdigSøknadData
+            prosessversjon = null,
+            data = FerdigSøknadData,
         )
 
     private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, ident: String) =
@@ -265,13 +265,13 @@ internal class VaktmesterRepositoryTest {
             søknadId = nyPåbegyntSøknadId,
             ident = ident,
             opprettet = ZonedDateTime.now(),
+            null,
             språk = språk,
             dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.of(2022, 11, 2, 2, 2, 2, 2), ZoneId.of("Europe/Oslo")),
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
-            null,
-            null,
-            FerdigSøknadData
+            prosessversjon = null,
+            data = FerdigSøknadData,
         )
 }
