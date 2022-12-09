@@ -20,7 +20,6 @@ import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
@@ -618,29 +617,5 @@ internal class SøknadPostgresRepositoryTest {
             )
         }
         assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: $tabell")
-    }
-
-    class TestSøknadVisitor(søknad: Søknad) : SøknadVisitor {
-        lateinit var dokumentKrav: Dokumentkrav
-        var innsendt: ZonedDateTime? = null
-
-        init {
-            søknad.accept(this)
-        }
-
-        override fun visitSøknad(
-            søknadId: UUID,
-            ident: String,
-            opprettet: ZonedDateTime,
-            innsendt: ZonedDateTime?,
-            tilstand: Søknad.Tilstand,
-            språk: Språk,
-            dokumentkrav: Dokumentkrav,
-            sistEndretAvBruker: ZonedDateTime,
-            prosessversjon: Prosessversjon?,
-        ) {
-            this.dokumentKrav = dokumentkrav
-            this.innsendt = innsendt
-        }
     }
 }

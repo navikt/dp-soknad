@@ -1,6 +1,5 @@
 package no.nav.dagpenger.soknad.db
 
-import com.zaxxer.hikari.HikariDataSource
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import org.flywaydb.core.internal.configuration.ConfigUtils
 import org.testcontainers.containers.PostgreSQLContainer
@@ -31,12 +30,6 @@ internal object Postgres {
         System.setProperty(PostgresDataSourceBuilder.DB_USERNAME_KEY, instance.username)
     }
 
-    fun withMigratedDb(): HikariDataSource {
-        setup()
-        PostgresDataSourceBuilder.runMigration()
-        return PostgresDataSourceBuilder.dataSource
-    }
-
     fun tearDown() {
         System.clearProperty(PostgresDataSourceBuilder.DB_PASSWORD_KEY)
         System.clearProperty(PostgresDataSourceBuilder.DB_USERNAME_KEY)
@@ -50,6 +43,18 @@ internal object Postgres {
         setup()
         PostgresDataSourceBuilder.clean().run {
             block()
+        }.also {
+            tearDown()
+        }
+    }
+
+    fun withCleanDb(target: String, setup: () -> Unit, test: () -> Unit) {
+        this.setup()
+        PostgresDataSourceBuilder.clean().run {
+            PostgresDataSourceBuilder.runMigrationTo(target)
+            setup()
+            PostgresDataSourceBuilder.runMigration()
+            test()
         }.also {
             tearDown()
         }

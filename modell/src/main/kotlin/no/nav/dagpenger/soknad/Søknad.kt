@@ -320,9 +320,6 @@ class Søknad private constructor(
     }
 
     private object Innsendt : Tilstand {
-        override fun entering(søknadHendelse: Hendelse, søknad: Søknad) {
-            super.entering(søknadHendelse, søknad)
-        }
 
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.Innsendt

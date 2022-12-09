@@ -33,6 +33,7 @@ internal object PostgresDataSourceBuilder {
         }
     }
 
+    private fun flyWayBuilder() = Flyway.configure().connectRetries(10)
     private val flyWayBuilder: FluentConfiguration = Flyway.configure().connectRetries(10)
 
     fun clean() = flyWayBuilder.cleanDisabled(
@@ -43,6 +44,15 @@ internal object PostgresDataSourceBuilder {
         flyWayBuilder
             .dataSource(dataSource)
             .initSql(initSql)
+            .load()
+            .migrate()
+            .migrations
+            .size
+
+    internal fun runMigrationTo(target: String): Int =
+        flyWayBuilder()
+            .dataSource(dataSource)
+            .target(target)
             .load()
             .migrate()
             .migrations
