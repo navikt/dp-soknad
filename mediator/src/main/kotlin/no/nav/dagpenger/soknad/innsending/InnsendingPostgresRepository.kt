@@ -16,6 +16,14 @@ import javax.sql.DataSource
 
 internal class InnsendingPostgresRepository(private val ds: DataSource) : InnsendingRepository {
 
+    override fun hentFor(søknadId: UUID): List<Innsending> {
+        return using(sessionOf(ds)) { session ->
+            session.hentInnsendId(søknadId)
+        }.mapNotNull { innsendingId ->
+            hent(innsendingId)
+        }
+    }
+
     override fun hent(innsendingId: UUID): Innsending? {
         return using(sessionOf(ds)) { session ->
             session.run(
@@ -131,6 +139,17 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
             }
         }.asSingle
     )
+
+    private fun Session.hentInnsendId(søknadId: UUID): List<UUID> {
+        return run(
+            queryOf( //language=PostgreSQL
+                "SELECT innsending_uuid FROM innsending_v1 WHERE soknad_uuid = :søknad_uuid",
+                mapOf("søknad_uuid" to søknadId)
+            ).map { row ->
+                row.uuid("soknad_uuid")
+            }.asList
+        )
+    }
 }
 
 private class Dokumenter(private val alleDokumenter: List<Innsending.Dokument>, hovedDokumentId: UUID?) :

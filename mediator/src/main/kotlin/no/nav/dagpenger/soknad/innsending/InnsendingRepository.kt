@@ -6,4 +6,5 @@ import java.util.UUID
 interface InnsendingRepository {
     fun hent(innsendingId: UUID): Innsending?
     fun lagre(innsending: Innsending)
+    fun hentFor(søknadId: UUID): List<Innsending>
 }

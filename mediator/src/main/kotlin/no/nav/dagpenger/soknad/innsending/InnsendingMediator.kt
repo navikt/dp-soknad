@@ -18,7 +18,7 @@ import no.nav.helse.rapids_rivers.withMDC
 internal class InnsendingMediator(
     rapidsConnection: RapidsConnection,
     private val innsendingRepository: InnsendingRepository
-) {
+) : InnsendingRepository by innsendingRepository {
     private companion object {
         val logger = KotlinLogging.logger { }
         val sikkerLogger = KotlinLogging.logger("tjenestekall")

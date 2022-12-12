@@ -285,4 +285,8 @@ private class InMemoryInnsendingRepository : InnsendingRepository {
     override fun lagre(innsending: Innsending) {
         innsendinger[innsending.innsendingId] = innsending
     }
+
+    override fun hentFor(søknadId: UUID): List<Innsending> {
+        TODO("Not yet implemented")
+    }
 }
