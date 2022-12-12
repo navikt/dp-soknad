@@ -17,6 +17,7 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class InnsendingPostgresRepositoryTest {
+    private val journalpostId = "jp1"
     private val testPersonIdent = "123"
     private val dialogId = UUID.randomUUID()
 
@@ -108,7 +109,7 @@ internal class InnsendingPostgresRepositoryTest {
         ident = testPersonIdent,
         søknadId = dialogId,
         innsendt = now,
-        journalpostId = null,
+        journalpostId = journalpostId,
         tilstandsType = Innsending.TilstandType.AvventerJournalføring,
         hovedDokument = hovedDokument,
         dokumenter = dokumenter,
@@ -130,14 +131,11 @@ internal class InnsendingPostgresRepositoryTest {
     }
 
     @Test
-    fun `hent innsending id`() {
+    fun `hent innsending basert på journalpost id`() {
         setup {
             val innsendingPostgresRepository = InnsendingPostgresRepository(dataSource)
             innsendingPostgresRepository.lagre(originalInnsending)
-            innsendingPostgresRepository.hentFor(dialogId).let { rehydrerteInnsendinger ->
-                assertEquals(1, rehydrerteInnsendinger.size)
-                assertInnsendingEquals(originalInnsending, rehydrerteInnsendinger.first())
-            }
+            assertInnsendingEquals(originalInnsending, innsendingPostgresRepository.hentInnsending(journalpostId))
         }
     }
 

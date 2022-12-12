@@ -45,7 +45,6 @@ class Innsending private constructor(
     )
 
     companion object {
-        fun List<Innsending>.filter(type: InnsendingType): List<Innsending> = this.filter { it.type == type }
 
         fun ny(innsendt: ZonedDateTime, ident: String, søknadId: UUID, dokumentkrav: List<Dokument>) =
             Innsending(InnsendingType.NY_DIALOG, ident, søknadId, innsendt, dokumentkrav)

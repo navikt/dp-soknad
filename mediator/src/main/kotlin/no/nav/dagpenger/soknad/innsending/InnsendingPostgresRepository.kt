@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.innsending
 
 import kotliquery.Query
+import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
@@ -16,12 +17,25 @@ import javax.sql.DataSource
 
 internal class InnsendingPostgresRepository(private val ds: DataSource) : InnsendingRepository {
 
-    override fun hentFor(søknadId: UUID): List<Innsending> {
-        return using(sessionOf(ds)) { session ->
-            session.hentInnsendId(søknadId)
-        }.mapNotNull { innsendingId ->
-            hent(innsendingId)
-        }
+    override fun hentInnsending(journalpostId: String): Innsending {
+        val innsendingId: UUID = using(sessionOf(ds)) { session ->
+            session.run(
+                //language=PostgreSQL
+                queryOf(
+                    statement = """
+                    SELECT innsending_uuid FROM innsending_v1 WHERE journalpost_id = :journalpost_id
+                    """.trimIndent(),
+                    paramMap = mapOf(
+                        "journalpost_id" to journalpostId
+                    )
+                ).map { row ->
+                    row.uuid("innsending_uuid")
+                }.asSingle
+            )
+        } ?: throw DataConstraintException("Fant ikke innsending knyttet til journalpostId $journalpostId")
+
+        return hent(innsendingId)
+            ?: throw DataConstraintException("Fant ikke innsending med innsendingId $innsendingId")
     }
 
     override fun hent(innsendingId: UUID): Innsending? {
@@ -37,7 +51,7 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
                     paramMap = mapOf(
                         "innsending_uuid" to innsendingId
                     )
-                ).map { row ->
+                ).map { row: Row ->
                     val dialogId = row.uuid("soknad_uuid")
                     val dokumenter = session.hentDokumenter(innsendingId)
                     Innsending.rehydrer(
@@ -139,17 +153,6 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
             }
         }.asSingle
     )
-
-    private fun Session.hentInnsendId(søknadId: UUID): List<UUID> {
-        return run(
-            queryOf( //language=PostgreSQL
-                "SELECT innsending_uuid  FROM innsending_v1 WHERE soknad_uuid = :soknad_uuid",
-                mapOf("soknad_uuid" to søknadId)
-            ).map { row ->
-                row.uuidOrNull("innsending_uuid")
-            }.asList
-        )
-    }
 }
 
 private class Dokumenter(private val alleDokumenter: List<Innsending.Dokument>, hovedDokumentId: UUID?) :

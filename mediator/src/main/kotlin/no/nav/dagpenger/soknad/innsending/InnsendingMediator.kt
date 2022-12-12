@@ -56,8 +56,7 @@ internal class InnsendingMediator(
         }
     }
 
-    private fun behandle(hendelse: InnsendingHendelse, håndter: (Innsending) -> Unit) = try {
-        val innsending = hentEllerOpprettInnsending(hendelse)
+    private fun behandle(hendelse: Hendelse, innsending: Innsending, håndter: (Innsending) -> Unit) = try {
         håndter(innsending)
         innsendingRepository.lagre(innsending)
         finalize(hendelse)
@@ -72,6 +71,16 @@ internal class InnsendingMediator(
     } catch (e: Exception) {
         errorHandler(e, e.message ?: "Ukjent feil")
         throw e
+    }
+
+    private fun behandle(hendelse: JournalførtHendelse, håndter: (Innsending) -> Unit) {
+        val innsending = innsendingRepository.hentInnsending(hendelse.journalpostId())
+        behandle(hendelse, innsending, håndter)
+    }
+
+    private fun behandle(hendelse: InnsendingHendelse, håndter: (Innsending) -> Unit) {
+        val innsending = hentEllerOpprettInnsending(hendelse)
+        behandle(hendelse, innsending, håndter)
     }
 
     private fun hentEllerOpprettInnsending(hendelse: InnsendingHendelse): Innsending {

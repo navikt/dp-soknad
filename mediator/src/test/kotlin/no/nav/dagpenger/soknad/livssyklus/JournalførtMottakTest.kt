@@ -5,8 +5,6 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
-import no.nav.dagpenger.soknad.Innsending
-import no.nav.dagpenger.soknad.Innsending.TilstandType.Journalført
 import no.nav.dagpenger.soknad.hendelse.innsending.JournalførtHendelse
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
 import no.nav.dagpenger.soknad.innsending.tjenester.JournalførtMottak
@@ -15,7 +13,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import java.time.ZonedDateTime
 import java.util.UUID
 
 internal class JournalførtMottakTest {
@@ -26,27 +23,12 @@ internal class JournalførtMottakTest {
         val søknadId = UUID.randomUUID()
         val journalpostId = "jp1"
         val ident = "ident1"
-        val innsendingId = UUID.randomUUID()
         TestRapid().let { testRapid ->
             val slot = slot<JournalførtHendelse>()
             JournalførtMottak(
                 testRapid,
                 mockk<InnsendingMediator>().also {
                     every { it.behandle(capture(slot)) } just Runs
-                    every { it.hentFor(søknadId) } returns listOf(
-                        Innsending.rehydrer(
-                            innsendingId = innsendingId,
-                            type = Innsending.InnsendingType.NY_DIALOG,
-                            ident = ident,
-                            søknadId = søknadId,
-                            innsendt = ZonedDateTime.now(),
-                            journalpostId = "jp",
-                            tilstandsType = Journalført,
-                            hovedDokument = null,
-                            dokumenter = listOf(),
-                            metadata = null
-                        )
-                    )
                 }
             )
 
@@ -62,7 +44,6 @@ internal class JournalførtMottakTest {
             with(slot.captured) {
                 assertEquals(this.journalpostId(), journalpostId)
                 assertEquals(this.ident(), ident)
-                assertEquals(this.innsendingId(), innsendingId)
             }
         }
     }

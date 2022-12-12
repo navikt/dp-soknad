@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.innsending
 
 import com.fasterxml.jackson.databind.JsonNode
+import io.ktor.util.reflect.instanceOf
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Innsending.Dokument.Dokumentvariant
@@ -259,7 +260,6 @@ internal class InnsendingMediatorTest {
         )
         mediator.behandle(
             JournalførtHendelse(
-                innsendingId = innsending.innsendingId,
                 ident = ident,
                 journalpostId = journalpostId
             )
@@ -286,7 +286,7 @@ private class InMemoryInnsendingRepository : InnsendingRepository {
         innsendinger[innsending.innsendingId] = innsending
     }
 
-    override fun hentFor(søknadId: UUID): List<Innsending> {
-        TODO("Not yet implemented")
+    override fun hentInnsending(journalPostId: String): Innsending {
+        innsendinger.values.single { innsending -> InnsendingV() }
     }
 }

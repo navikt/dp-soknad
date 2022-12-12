@@ -2,8 +2,6 @@ package no.nav.dagpenger.soknad.innsending.tjenester
 
 import mu.KotlinLogging
 import mu.withLoggingContext
-import no.nav.dagpenger.soknad.Innsending.Companion.filter
-import no.nav.dagpenger.soknad.Innsending.InnsendingType.NY_DIALOG
 import no.nav.dagpenger.soknad.hendelse.innsending.JournalførtHendelse
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
 import no.nav.dagpenger.soknad.utils.asUUID
@@ -11,7 +9,6 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import java.util.UUID
 
 internal class JournalførtMottak(
     rapidsConnection: RapidsConnection,
@@ -50,18 +47,13 @@ internal class JournalførtMottak(
          * Søknad. Da kan journalpost ha sin egen tilstand og søknad delegere/spørre den
          */
         val søknadID = packet["søknadsData"]["søknad_uuid"].asUUID()
-        val innsendingId = hentInnsendingId(søknadID)
         withLoggingContext(
             "søknadId" to søknadID.toString(),
-            "innsendingId" to innsendingId.toString()
+            "journalpostId" to journalpostId
         ) {
-            val journalførtHendelse = JournalførtHendelse(innsendingId, ident, journalpostId)
+            val journalførtHendelse = JournalførtHendelse(ident, journalpostId)
             logger.info { "Fått løsning for innsending_ferdigstilt for $journalpostId" }
             mediator.behandle(journalførtHendelse)
         }
-    }
-
-    private fun hentInnsendingId(søknadId: UUID): UUID {
-        return mediator.hentFor(søknadId).filter(NY_DIALOG).single().innsendingId
     }
 }
