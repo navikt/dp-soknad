@@ -42,7 +42,7 @@ jobs:
 
   deploy-dev:
     needs: [ build ]
-    if: github.ref == 'refs/heads/feature/skill-innsending'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -54,16 +54,16 @@ jobs:
           VARS: mediator/nais/dev/vars.yaml
           PRINT_PAYLOAD: true
 
-#  deploy-prod:
-#    needs: [ build ]
-#    if: github.ref == 'refs/heads/main'
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: nais/deploy/actions/deploy@v1
-#        env:
-#          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-#          CLUSTER: prod-gcp
-#          RESOURCE: mediator/nais/nais.yaml
-#          VARS: mediator/nais/prod/vars.yaml
-#          PRINT_PAYLOAD: true
+  deploy-prod:
+    needs: [ build ]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: prod-gcp
+          RESOURCE: mediator/nais/nais.yaml
+          VARS: mediator/nais/prod/vars.yaml
+          PRINT_PAYLOAD: true
