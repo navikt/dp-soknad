@@ -63,7 +63,7 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
                         journalpostId = row.stringOrNull("journalpost_id"),
                         tilstandsType = Innsending.TilstandType.valueOf(row.string("tilstand")),
                         hovedDokument = dokumenter.hovedDokument,
-                        dokumenter = dokumenter.dokumenter, // todo fixme
+                        dokumenter = dokumenter.dokumenter,
                         metadata = session.hentMetadata(innsendingId)
                     )
                 }.asSingle

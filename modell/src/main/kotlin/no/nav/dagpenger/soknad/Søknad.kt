@@ -266,7 +266,6 @@ class Søknad private constructor(
                 // @todo: Oversette validringsfeil til frontend. Mulig lage et eller annet som frontend kan tolke
                 søknadInnsendtHendelse.severe("Alle dokumentkrav må være besvart")
             }
-            // TODO: ta med inn i innsending søknadInnsendtHendelse.info("Innsending ${innsending.toSpesifikkKontekst()} opprettet med ${krav.size} dokumentkrav, ${besvarte.size} besvarte, ${innsendte.size} innsendte")
             søknadInnsendtHendelse.behov(
                 Behovtype.NyInnsending,
                 "Søknad innsendt, trenger ny innsending",

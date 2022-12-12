@@ -201,6 +201,7 @@ class Innsending private constructor(
         override val tilstandType = TilstandType.Opprettet
 
         override fun håndter(hendelse: NyInnsendingHendelse, innsending: Innsending) {
+            hendelse.info("Innsending ${innsending.toSpesifikkKontekst()} med id ${innsending.innsendingId} opprettet.")
             innsending.endreTilstand(AvventerMetadata, hendelse)
         }
     }
