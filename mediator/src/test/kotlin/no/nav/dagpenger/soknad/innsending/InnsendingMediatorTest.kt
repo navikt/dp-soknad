@@ -1,7 +1,6 @@
 package no.nav.dagpenger.soknad.innsending
 
 import com.fasterxml.jackson.databind.JsonNode
-import io.ktor.util.reflect.instanceOf
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Innsending.Dokument.Dokumentvariant
@@ -12,6 +11,7 @@ import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMetadata
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMidlertidligJournalføring
 import no.nav.dagpenger.soknad.Innsending.TilstandType.Journalført
 import no.nav.dagpenger.soknad.InnsendingObserver
+import no.nav.dagpenger.soknad.InnsendingVisitor
 import no.nav.dagpenger.soknad.hendelse.innsending.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.InnsendingMetadataMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.JournalførtHendelse
@@ -266,6 +266,7 @@ internal class InnsendingMediatorTest {
         )
 
         assertEquals(Journalført, innsendingObserver.gjeldendeTilstand)
+        assertEquals(journalpostId, TestInnsendingVisitor(innsending).journalpostId)
     }
 }
 
@@ -274,6 +275,28 @@ class TestInnsendingObserver : InnsendingObserver {
 
     override fun innsendingTilstandEndret(event: InnsendingObserver.InnsendingEndretTilstandEvent) {
         gjeldendeTilstand = event.gjeldendeTilstand
+    }
+}
+private class TestInnsendingVisitor(innsending: Innsending) : InnsendingVisitor {
+    var journalpostId: String? = null
+
+    init {
+        innsending.accept(this)
+    }
+
+    override fun visit(
+        innsendingId: UUID,
+        søknadId: UUID,
+        ident: String,
+        innsendingType: Innsending.InnsendingType,
+        tilstand: Innsending.TilstandType,
+        innsendt: ZonedDateTime,
+        journalpost: String?,
+        hovedDokument: Innsending.Dokument?,
+        dokumenter: List<Innsending.Dokument>,
+        metadata: Innsending.Metadata?,
+    ) {
+        this.journalpostId = journalpost
     }
 }
 
@@ -287,6 +310,8 @@ private class InMemoryInnsendingRepository : InnsendingRepository {
     }
 
     override fun hentInnsending(journalPostId: String): Innsending {
-        innsendinger.values.single { innsending -> InnsendingV() }
+        return innsendinger.values.single { innsending ->
+            TestInnsendingVisitor(innsending).journalpostId == journalPostId
+        }
     }
 }
