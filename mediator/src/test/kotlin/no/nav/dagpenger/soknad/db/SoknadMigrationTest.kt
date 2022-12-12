@@ -13,6 +13,7 @@ import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -21,7 +22,7 @@ internal class SoknadMigrationTest {
     private val søknadId1: UUID = UUID.randomUUID()
     private val søknadId2 = UUID.randomUUID()
 
-    val now = ZonedDateTime.now().truncatedTo(ChronoUnit.MINUTES)
+    val now = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.MINUTES)
     private val søknader = listOf<Søknad>(
         Søknad.rehydrer(
             søknadId = søknadId1,
