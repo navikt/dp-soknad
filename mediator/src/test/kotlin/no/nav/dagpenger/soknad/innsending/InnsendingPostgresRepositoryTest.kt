@@ -129,6 +129,18 @@ internal class InnsendingPostgresRepositoryTest {
         }
     }
 
+    @Test
+    fun `hent innsending id`() {
+        setup {
+            val innsendingPostgresRepository = InnsendingPostgresRepository(dataSource)
+            innsendingPostgresRepository.lagre(originalInnsending)
+            innsendingPostgresRepository.hentFor(dialogId).let { rehydrerteInnsendinger ->
+                assertEquals(1, rehydrerteInnsendinger.size)
+                assertInnsendingEquals(originalInnsending, rehydrerteInnsendinger.first())
+            }
+        }
+    }
+
     private fun assertInnsendingEquals(originalInnsending: Innsending, rehydrertInnsending: Innsending) {
         val expected = TestInnsendingVisitor(originalInnsending)
         val actual = TestInnsendingVisitor(rehydrertInnsending)

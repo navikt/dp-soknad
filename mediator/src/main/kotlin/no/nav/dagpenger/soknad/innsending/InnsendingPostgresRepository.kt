@@ -143,10 +143,10 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
     private fun Session.hentInnsendId(søknadId: UUID): List<UUID> {
         return run(
             queryOf( //language=PostgreSQL
-                "SELECT innsending_uuid FROM innsending_v1 WHERE soknad_uuid = :søknad_uuid",
-                mapOf("søknad_uuid" to søknadId)
+                "SELECT innsending_uuid  FROM innsending_v1 WHERE soknad_uuid = :soknad_uuid",
+                mapOf("soknad_uuid" to søknadId)
             ).map { row ->
-                row.uuid("soknad_uuid")
+                row.uuidOrNull("innsending_uuid")
             }.asList
         )
     }
