@@ -28,7 +28,6 @@ suspend fun <T> retryIO(
                 søknadDataResultat.labels(antallForsøk.toString()).inc()
             }
         } catch (e: Exception) {
-            logger.warn { "Forsøk: $antallForsøk/$times feilet på henting av neste seksjon. Prøver igjen om $currentDelay ms." }
             antallForsøk++
         }
         delay(currentDelay)
