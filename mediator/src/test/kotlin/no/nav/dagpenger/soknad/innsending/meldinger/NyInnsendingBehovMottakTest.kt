@@ -17,6 +17,7 @@ import no.nav.dagpenger.soknad.innsending.tjenester.NyInnsendingBehovMottak
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
@@ -70,6 +71,14 @@ internal class NyInnsendingBehovMottakTest {
             assertEquals(testFixture.dokumenter, innsending.dokumenter)
             assertEquals(testFixture.innsendingType, innsending.innsendingType)
         }
+        testRapid.inspektør.size
+        assertEquals(1, testRapid.inspektør.size)
+        assertNotNull(
+            testRapid.inspektør.field(
+                index = 0,
+                field = "@løsning"
+            ).get(testFixture.innsendingType.name)
+        )
     }
 
     @ParameterizedTest
