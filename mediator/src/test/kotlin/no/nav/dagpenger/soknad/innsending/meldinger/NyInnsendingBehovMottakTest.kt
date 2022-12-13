@@ -77,7 +77,7 @@ internal class NyInnsendingBehovMottakTest {
             testRapid.inspektør.field(
                 index = 0,
                 field = "@løsning"
-            ).get(testFixture.innsendingType.name)
+            ).get(testFixture.behov.name)
         )
     }
 

@@ -25,8 +25,9 @@ class NyInnsendingMelding(packet: JsonMessage) {
     fun hendelse(): NyInnsendingHendelse = NyInnsendingHendelse(innsending, ident)
 
     companion object {
+        fun JsonMessage.behov() = this["@behov"].single().asText()
         fun JsonMessage.innsendingType(): Innsending.InnsendingType {
-            return when (val behovtype = this["@behov"].single().asText()) {
+            return when (val behovtype = this.behov()) {
                 NyInnsending.name -> NY_DIALOG
                 NyEttersending.name -> ETTERSENDING_TIL_DIALOG
                 else -> {

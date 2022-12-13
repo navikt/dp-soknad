@@ -6,7 +6,7 @@ import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyEtters
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyInnsending
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
 import no.nav.dagpenger.soknad.innsending.meldinger.NyInnsendingMelding
-import no.nav.dagpenger.soknad.innsending.meldinger.NyInnsendingMelding.Companion.innsendingType
+import no.nav.dagpenger.soknad.innsending.meldinger.NyInnsendingMelding.Companion.behov
 import no.nav.dagpenger.soknad.utils.asUUID
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -37,14 +37,14 @@ internal class NyInnsendingBehovMottak(rapidsConnection: RapidsConnection, priva
         withLoggingContext(
             "søknadId" to søknadId.toString(),
         ) {
-            val innsendingType = packet.innsendingType()
-            logger.info { "Mottatt behov for ny innsending av type: $innsendingType" }
+            val behov = packet.behov()
+            logger.info { "Mottatt behov for ny innsending av type: $behov" }
 
             val hendelse = NyInnsendingMelding(packet).hendelse()
             mediator.behandle(hendelse)
 
             packet["@løsning"] = mapOf(
-                innsendingType.name to mapOf(
+                behov to mapOf(
                     "innsendingId" to hendelse.innsendingId
                 )
             )
