@@ -27,6 +27,8 @@ spec:
     cpuThresholdPercentage: 75
   kafka:
      pool: {{ kafka_pool }}
+  strategy:
+    type: Recreate
   resources:
     limits:
       cpu: "2024m"
