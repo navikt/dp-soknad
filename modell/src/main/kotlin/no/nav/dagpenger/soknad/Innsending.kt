@@ -73,16 +73,16 @@ class Innsending private constructor(
                 TilstandType.Journalført -> Journalført
             }
             return Innsending(
-                innsendingId,
-                ident,
-                søknadId,
-                type,
-                innsendt,
-                journalpostId,
-                tilstand,
-                hovedDokument,
-                dokumenter,
-                metadata
+                innsendingId = innsendingId,
+                ident = ident,
+                søknadId = søknadId,
+                type = type,
+                innsendt = innsendt,
+                journalpostId = journalpostId,
+                tilstand = tilstand,
+                hovedDokument = hovedDokument,
+                dokumenter = dokumenter,
+                metadata = metadata
             )
         }
     }
@@ -291,16 +291,6 @@ class Innsending private constructor(
     }
 
     fun accept(visitor: InnsendingVisitor) {
-        visitor.visit(
-            innsendingId,
-            type,
-            tilstand.tilstandType,
-            innsendt,
-            journalpostId,
-            hovedDokument,
-            dokumenter,
-            metadata
-        )
         visitor.visit(
             innsendingId = innsendingId,
             søknadId = søknadId,
