@@ -1,0 +1,23 @@
+@startuml
+
+autonumber
+
+"dp-soknadsdialog" -> "dp-soknad": Søknad er utfylt, men mangler vedlegg
+"dp-soknad" -> "dp-soknad": Finnes det alt en ettersendingsoppgave for denne søknaden?
+opt "Det finnes ikke en oppgave fra før"
+"dp-soknad" -> "dp-behov-brukernotifikasjon": behov for oppgave
+"dp-behov-brukernotifikasjon" -> "dp-behov-brukernotifikasjon-db": lagrer oppgave i egen db
+"dp-behov-brukernotifikasjon" -> "Min Side": sender oppgave
+end
+
+loop
+    "dp-soknadsdialog" -> "dp-soknad": laster opp vedlegg
+    "dp-soknad" -> "dp-soknad": er alle vedlegg lastet opp?
+    opt "Alle vedlegg er faktisk lastet opp"
+        "dp-soknad" -> "dp-behov-brukernotifikasjon": behov for å markere oppgave som done
+        "dp-behov-brukernotifikasjon" -> "dp-behov-brukernotifikasjon-db": marker som done
+        "dp-behov-brukernotifikasjon" -> "Min Side": sender done for oppgaven
+    end
+end
+
+@enduml
