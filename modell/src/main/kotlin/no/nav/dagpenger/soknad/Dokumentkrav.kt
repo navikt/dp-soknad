@@ -92,11 +92,7 @@ class Dokumentkrav private constructor(
         this.aktiveDokumentKrav().find { krav -> krav.id == hendelse.kravId }
             ?: hendelse.severe("Fant ikke Dokumentasjonskrav id")
 
-    fun accept(dokumentkravVisitor: DokumentkravVisitor) {
-        dokumentkravVisitor.preVisitDokumentkrav()
-        krav.forEach { it.accept(dokumentkravVisitor) }
-        dokumentkravVisitor.postVisitDokumentkrav()
-    }
+    fun accept(dokumentkravVisitor: DokumentkravVisitor) = krav.forEach { it.accept(dokumentkravVisitor) }
 
     fun ferdigBesvart() = aktiveDokumentKrav().all { it.besvart() }
     fun ingen() = krav.isEmpty()
