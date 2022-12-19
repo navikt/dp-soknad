@@ -20,6 +20,7 @@ internal object Configuration {
             "KAFKA_RAPID_TOPIC" to "teamdagpenger.rapid.v1",
             "KAFKA_EXTRA_TOPIC" to "teamdagpenger.journalforing.v1",
             "KAFKA_RESET_POLICY" to "latest",
+            "PERSON_KONTO_REGISTER_URL" to "http://sokos-kontoregister-person.okonomi/api/borger/v1/hent-aktiv-konto"
         )
     )
     val properties =
@@ -31,17 +32,8 @@ internal object Configuration {
 
     val basePath = "/arbeid/dagpenger/soknadapi"
 
-    val dpProxyUrl by lazy { properties[Key("DP_PROXY_URL", stringType)] }
-    val dpProxyScope by lazy { properties[Key("DP_PROXY_SCOPE", stringType)] }
-
-    val dpProxyTokenProvider by lazy {
-        val azureAd = OAuth2Config.AzureAd(properties)
-        CachedOauth2Client(
-            tokenEndpointUrl = azureAd.tokenEndpointUrl,
-            authType = azureAd.clientSecret(),
-        )
-    }
-
+    val kontoRegisterUrl by lazy { properties[Key("PERSON_KONTO_REGISTER_URL", stringType)] }
+    val kontoRegisterScope by lazy { properties[Key("PERSON_KONTO_REGISTER_SCOPE", stringType)] }
     val pdlUrl by lazy { properties[Key("PDL_API_URL", stringType)] }
     val pdlAudience by lazy { properties[Key("PDL_AUDIENCE", stringType)] }
     val dpInnsynAudience by lazy { properties[Key("DP_INNSYN_AUDIENCE", stringType)] }
@@ -53,5 +45,11 @@ internal object Configuration {
             tokenEndpointUrl = tokenX.tokenEndpointUrl,
             authType = tokenX.privateKey()
         )
+    }
+
+    fun tokenXClient(audience: String) = { subjectToken: String ->
+        tokenXClient.tokenExchange(
+            token = subjectToken, audience = audience
+        ).accessToken
     }
 }

@@ -34,7 +34,7 @@ internal class PersonaliaApiTest {
             coEvery { it.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) } returns testPerson
         }
         val mockKontonummerOppslag = mockk<KontonummerOppslag>().also {
-            coEvery { it.hentKontonummer(TestApplication.defaultDummyFodselsnummer) } returns testKontonummer
+            coEvery { it.hentKontonummer(TestApplication.testTokenXToken) } returns testKontonummer
         }
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -69,7 +69,7 @@ internal class PersonaliaApiTest {
         }
 
         val mockKontonummerOppslag = mockk<KontonummerOppslag>().also {
-            coEvery { it.hentKontonummer(TestApplication.defaultDummyFodselsnummer) } returns testKontonummer
+            coEvery { it.hentKontonummer(TestApplication.testTokenXToken) } returns testKontonummer
         }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
