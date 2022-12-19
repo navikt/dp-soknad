@@ -30,7 +30,7 @@ internal fun Route.personalia(
             val fnr = call.ident()
             val jwtToken = call.request.jwt()
             val personalia = withContext(coroutineContext) {
-                val kontonummer = async { kontonummerOppslag.hentKontonummer(fnr) }
+                val kontonummer = async { kontonummerOppslag.hentKontonummer(jwtToken) }
                 val person = async { personOppslag.hentPerson(fnr, jwtToken) }
                 Personalia(person.await(), kontonummer.await())
             }

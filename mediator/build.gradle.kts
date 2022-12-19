@@ -16,6 +16,7 @@ dependencies {
     implementation(Ktor2.Server.library("default-headers"))
     implementation(Ktor2.Client.library("cio"))
     implementation(Ktor2.Client.library("content-negotiation"))
+    implementation(Ktor2.Client.library("logging"))
     implementation(Ktor2.Server.library("content-negotiation"))
     implementation("io.prometheus:simpleclient_caffeine:0.16.0")
     implementation("io.ktor:ktor-serialization-jackson:${Ktor2.version}")

@@ -52,11 +52,11 @@ spec:
     outbound:
       rules:
         - application: dp-innsyn
+        - application: sokos-kontoregister-person
+          namespace: okonomi
   env:
-    - name: DP_PROXY_SCOPE
-      value: {{dp_proxy_scope}}
-    - name: DP_PROXY_URL
-      value: {{dp_proxy_url}}
+    - name: PERSON_KONTO_REGISTER_SCOPE
+      value: {{PERSON_KONTO_REGISTER_SCOPE}}
     - name: PDL_API_URL
       value: {{PDL_API_URL}}
     - name: PDL_AUDIENCE

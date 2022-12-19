@@ -41,8 +41,8 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
             personaliaRouteBuilder = personaliaRouteBuilder(
                 personOppslag = PersonOppslag(createPersonOppslag(Configuration.pdlUrl)),
                 kontonummerOppslag = KontonummerOppslag(
-                    dpProxyUrl = Configuration.dpProxyUrl,
-                    tokenProvider = { Configuration.dpProxyTokenProvider.clientCredentials(Configuration.dpProxyScope).accessToken },
+                    kontoRegisterUrl = Configuration.kontoRegisterUrl,
+                    tokenProvider = Configuration.tokenXClient(Configuration.kontoRegisterScope)
                 )
             ),
             søknadRouteBuilder = søknadApiRouteBuilder(
