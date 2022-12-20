@@ -1,0 +1,12 @@
+@startuml
+
+autonumber
+
+"dp-soknad" -> "dp-behov-brukernotifikasjon": behov for beskjed
+"dp-behov-brukernotifikasjon" -> "dp-behov-brukernotifikasjon-db": lagrer beskjed i egen db
+"dp-behov-brukernotifikasjon" -> "Min Side": sender beskjed
+
+"dp-behov-brukernotifikasjon" <- "Min Side": Lytter på done-topic for å merke når bruker har klikket bort beskjeden
+"dp-behov-brukernotifikasjon" -> "dp-behov-brukernotifikasjon-db": marker som done
+
+@enduml
