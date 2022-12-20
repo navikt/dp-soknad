@@ -1,0 +1,12 @@
+@startuml
+
+autonumber
+
+"dp-soknadsdialog" -> "dp-soknad": hent beskjeder og oppgaver
+"dp-soknad" -> "dp-behov-brukernotifikasjon": hent aktive beskjeder og oppgaver
+"dp-behov-brukernotifikasjon" -> "dp-behov-brukernotifikasjon-db": henter fra databasen
+"dp-behov-brukernotifikasjon" <- "dp-behov-brukernotifikasjon-db": aktive beskjeder og oppgaver
+"dp-soknad" <- "dp-behov-brukernotifikasjon": aktive beskjeder og oppgaver
+"dp-soknadsdialog" <- "dp-soknad": aktive beskjeder og oppgaver
+
+@enduml
