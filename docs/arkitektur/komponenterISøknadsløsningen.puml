@@ -1,0 +1,20 @@
+@startuml
+component "[[https://github.com/navikt/dp-soknadsdialog Soknadsdialog]]" as soknadsdialog
+component "[[https://github.com/navikt/dp-soknad Soknad]]" as soknad
+database db as soknadDb
+component "[[https://github.com/navikt/dp-quiz Quiz]]" as quiz
+database db as quizDb
+component Kafka as kafka
+component "[[https://github.com/navikt/dp-mellomlagring mellomlager]]" as mellomlager
+component "[[https://github.com/navikt/dp-vaktmester-mellomlagring vaktmester-mellomlagring]]" as mellomlagerVaktmester
+database db as mellomlagerDb
+
+soknadsdialog -> soknad
+soknad --> soknadDb
+soknad -> kafka
+soknad --> mellomlager
+mellomlager --> mellomlagerDb
+mellomlagerVaktmester --> mellomlagerDb
+kafka -> quiz
+quiz --> quizDb
+@enduml
