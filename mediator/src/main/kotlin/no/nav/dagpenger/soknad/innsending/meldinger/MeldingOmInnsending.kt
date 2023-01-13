@@ -2,7 +2,6 @@ package no.nav.dagpenger.soknad.innsending.meldinger
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.dagpenger.soknad.Innsending
-import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.utils.asUUID
 import no.nav.dagpenger.soknad.utils.asZonedDateTime
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -15,8 +14,8 @@ abstract class MeldingOmInnsending(packet: JsonMessage) {
     protected val dokumentkrav: List<Innsending.Dokument> = packet.dokumentkrav()
     protected val ident = packet["ident"].asText()
 
-    abstract val innsending: Innsending
-    abstract fun hendelse(): Hendelse
+    protected abstract val innsending: Innsending
+    fun hendelse(): NyInnsendingHendelse = NyInnsendingHendelse(innsending, ident)
 
     private fun JsonMessage.dokumentkrav(): List<Innsending.Dokument> {
         return this["dokumentkrav"].map { jsonNode ->
