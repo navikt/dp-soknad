@@ -29,9 +29,20 @@ class Søknad private constructor(
     private var sistEndretAvBruker: ZonedDateTime,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
     private var prosessversjon: Prosessversjon?,
-    private var data: Lazy<SøknadData>,
-) : Aktivitetskontekst {
+    private var data: Lazy<SøknadData>
+) : Aktivitetskontekst, DokumentkravObserver {
     private val observers = mutableListOf<SøknadObserver>()
+
+    override fun dokumentkravInnsendt(event: DokumentkravObserver.DokumentkravInnsendtEvent) {
+        val prosessnavn = requireNotNull(prosessversjon?.prosessnavn)
+        event.søknadType = prosessnavn.id
+        event.innsendingstype = when (tilstand) {
+            is Påbegynt -> "NyInnsending"
+            is Innsendt -> "Ettersending"
+            else -> throw IllegalStateException("")
+        }
+        observers.forEach { it.dokumentkravInnsendt(event) }
+    }
 
     fun søknadUUID() = søknadId
     fun ident() = ident
@@ -40,7 +51,7 @@ class Søknad private constructor(
         søknadId: UUID,
         språk: Språk,
         ident: String,
-        data: Lazy<SøknadData> = lazy { throw IllegalStateException("Mangler søknadsdata") },
+        data: Lazy<SøknadData> = lazy { throw IllegalStateException("Mangler søknadsdata") }
     ) : this(
         søknadId = søknadId,
         ident = ident,
@@ -51,8 +62,12 @@ class Søknad private constructor(
         dokumentkrav = Dokumentkrav(),
         sistEndretAvBruker = ZonedDateTime.now(),
         prosessversjon = null,
-        data = data,
+        data = data
     )
+
+    init {
+        dokumentkrav.addObserver(this)
+    }
 
     companion object {
         fun rehydrer(
@@ -66,7 +81,7 @@ class Søknad private constructor(
             tilstandsType: Tilstand.Type,
             aktivitetslogg: Aktivitetslogg,
             prosessversjon: Prosessversjon?,
-            data: Lazy<SøknadData>,
+            data: Lazy<SøknadData>
         ): Søknad {
             val tilstand: Tilstand = when (tilstandsType) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
@@ -85,7 +100,7 @@ class Søknad private constructor(
                 sistEndretAvBruker = sistEndretAvBruker,
                 aktivitetslogg = aktivitetslogg,
                 prosessversjon = prosessversjon,
-                data = data,
+                data = data
             )
         }
 
@@ -319,7 +334,6 @@ class Søknad private constructor(
     }
 
     private object Innsendt : Tilstand {
-
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.Innsendt
 
@@ -345,7 +359,7 @@ class Søknad private constructor(
                 "Søknad ettersend, trenger ny ettersending",
                 mapOf(
                     "innsendtTidspunkt" to søknadInnsendtHendelse.innsendtidspunkt(),
-                    "dokumentkrav" to søknad.dokumentkrav.tilDokument().map { it.toMap() },
+                    "dokumentkrav" to søknad.dokumentkrav.tilDokument().map { it.toMap() }
                 )
             )
 
@@ -427,7 +441,7 @@ class Søknad private constructor(
         this.innsendt = innsendtidspunkt
         val event = SøknadObserver.SøknadInnsendtEvent(søknadId = søknadId, innsendt = innsendtidspunkt)
         observers.forEach {
-            it.sœknadInnsendt(event)
+            it.søknadInnsendt(event)
         }
     }
 

@@ -60,8 +60,7 @@ internal class SøknadTest {
             søknadId,
             Språk(språk),
             testIdent,
-            FerdigSøknadData,
-
+            FerdigSøknadData
         )
         testSøknadObserver = TestSøknadObserver().also { søknad.addObserver(it) }
         plantUmlObservatør = PlantUmlObservatør().also { søknad.addObserver(it) }
@@ -112,7 +111,6 @@ internal class SøknadTest {
 
         håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
         håndterDokumentkravSammenstilling(kravId = "3", urn = "urn:sid:bundle3")
-
         val søknadInnsendtHendelse = håndterSendInnSøknad()
 
         assertTilstander(
@@ -124,7 +122,7 @@ internal class SøknadTest {
         håndterLeggtilFil("2", "urn:sid:f2.1")
         håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle2")
         assertBehovContains(
-            Behovtype.DokumentkravSvar,
+            Behovtype.DokumentkravSvar
         ) { behovParametre ->
             assertEquals("2", behovParametre["id"])
             assertEquals("dokument", behovParametre["type"])
@@ -139,7 +137,7 @@ internal class SøknadTest {
         assertEquals(søknadInnsendtHendelse.innsendtidspunkt(), testSøknadObserver.innsendt)
         assertNotEquals(ettersendingHendelse.innsendtidspunkt(), testSøknadObserver.innsendt)
         assertBehovContains(
-            behovtype = Behovtype.NyEttersending,
+            behovtype = Behovtype.NyEttersending
         ) { behovParametre ->
             assertEquals(ettersendingHendelse.innsendtidspunkt(), behovParametre["innsendtTidspunkt"])
             assertEquals(søknadId.toString(), behovParametre["søknad_uuid"])
@@ -203,6 +201,9 @@ internal class SøknadTest {
         val hendelse = håndterSendInnSøknad()
 
         assertEquals(hendelse.innsendtidspunkt(), testSøknadObserver.innsendt)
+        // Sjekk at vi har sendt ut hendelse om innsending av dokumentkrav
+        assertEquals(testSøknadObserver.dokumentkrav?.søknadId, søknadId)
+        assertEquals(testSøknadObserver.dokumentkrav?.innsendingstype, "NyInnsending")
 
         assertTilstander(
             UnderOpprettelse,
@@ -211,7 +212,7 @@ internal class SøknadTest {
         )
 
         assertBehovContains(
-            behovtype = Behovtype.NyInnsending,
+            behovtype = Behovtype.NyInnsending
         ) { behovParametre ->
             assertEquals(hendelse.innsendtidspunkt(), behovParametre["innsendtTidspunkt"])
             assertEquals(søknadId.toString(), behovParametre["søknad_uuid"])
@@ -283,7 +284,7 @@ internal class SøknadTest {
 
         assertThrows<AktivitetException> { håndterSendInnSøknad() }
         assertBehovContains(
-            behovtype = Behovtype.NyInnsending,
+            behovtype = Behovtype.NyInnsending
         ) { behovParametre ->
             assertEquals(hendelse.innsendtidspunkt(), behovParametre["innsendtTidspunkt"])
             assertEquals(søknadId.toString(), behovParametre["søknad_uuid"])
@@ -444,7 +445,6 @@ internal class SøknadTest {
         val behov = inspektør.aktivitetslogg.behov().findLast {
             it.type == behovtype
         } ?: throw AssertionError("Fant ikke behov $behovtype")
-
         val jacksonObjectMapper = jacksonObjectMapper()
         val dokumenter: List<Innsending.Dokument> = (behov.detaljer()["dokumentkrav"] as List<Map<String, Any>>).map {
             jacksonObjectMapper.convertValue(it, Innsending.Dokument::class.java)

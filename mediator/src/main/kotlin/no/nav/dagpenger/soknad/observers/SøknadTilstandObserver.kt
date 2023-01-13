@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.observers
 
+import no.nav.dagpenger.soknad.DokumentkravObserver
 import no.nav.dagpenger.soknad.SøknadObserver
 import no.nav.dagpenger.soknad.SøknadObserver.SøknadEndretTilstandEvent
 import no.nav.dagpenger.soknad.SøknadObserver.SøknadSlettetEvent
@@ -31,4 +32,8 @@ internal class SøknadTilstandObserver(private val rapidsConnection: RapidsConne
             "ident" to event.ident
         )
     ).toJson()
+
+    override fun dokumentkravInnsendt(event: DokumentkravObserver.DokumentkravInnsendtEvent) {
+        println(event)
+    }
 }

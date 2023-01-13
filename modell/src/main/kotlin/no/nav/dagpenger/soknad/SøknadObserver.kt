@@ -3,14 +3,33 @@ package no.nav.dagpenger.soknad
 import java.time.ZonedDateTime
 import java.util.UUID
 
-interface SøknadObserver {
+interface DokumentkravObserver {
+    fun dokumentkravInnsendt(event: DokumentkravInnsendtEvent) {}
+    data class DokumentkravInnsendtEvent(
+        val søknadId: UUID,
+        var søknadType: String? = null,
+        var innsendingstype: String? = null,
+        val ferdigBesvart: Boolean,
+        val dokumentkrav: List<DokumentkravInnsendingSomethingSomething>
+    ) {
+        val hendelseId: UUID = UUID.randomUUID()
+
+        data class DokumentkravInnsendingSomethingSomething(
+            val dokumentnavn: String,
+            val skjemakode: String,
+            val valg: String
+        )
+    }
+}
+
+interface SøknadObserver : DokumentkravObserver {
     fun søknadTilstandEndret(event: SøknadEndretTilstandEvent) {}
     fun innsendingTilstandEndret(event: SøknadInnsendingEndretTilstandEvent) {}
 
     fun søknadSlettet(event: SøknadSlettetEvent) {}
     fun søknadMigrert(event: SøknadMigrertEvent) {}
 
-    fun sœknadInnsendt(event: SøknadInnsendtEvent) {}
+    fun søknadInnsendt(event: SøknadInnsendtEvent) {}
 
     data class SøknadInnsendtEvent(
         val søknadId: UUID,

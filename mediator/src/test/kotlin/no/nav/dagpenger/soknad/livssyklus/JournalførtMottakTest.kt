@@ -9,6 +9,7 @@ import no.nav.dagpenger.soknad.hendelse.innsending.JournalførtHendelse
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
 import no.nav.dagpenger.soknad.innsending.tjenester.JournalførtMottak
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.params.ParameterizedTest
@@ -67,3 +68,30 @@ internal class JournalførtMottakTest {
         """.trimIndent()
     }
 }
+
+@Language("JSON")
+val lol = """
+{
+  "@id": "88edc131-ca7a-4698-b460-4bc52eeebf4b",
+  "@opprettet": "2023-01-05T19:30:49.892895037",
+  "journalpostId": "598734831",
+  "datoRegistrert": "2023-01-05T19:30:43",
+  "skjemaKode": "GENERELL_INNSENDING",
+  "tittel": "Generell innsending",
+  "type": "Generell",
+  "fødselsnummer": "27028327825",
+  "aktørId": "1000096570597",
+  "søknadsData": {},
+  "@event_name": "innsending_ferdigstilt",
+  "system_read_count": 0,
+  "system_participating_services": [
+    {
+      "id": "88edc131-ca7a-4698-b460-4bc52eeebf4b",
+      "time": "2023-01-05T19:30:49.893140946",
+      "service": "dp-mottak",
+      "instance": "dp-mottak-5f57874678-nlblk",
+      "image": "ghcr.io/navikt/dp-mottak/dp-mottak:cfa50014c9c559ee1e211934ab040db054818642"
+    }
+  ]
+}
+""".trimIndent()

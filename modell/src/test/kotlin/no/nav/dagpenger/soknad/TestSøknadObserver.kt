@@ -4,14 +4,13 @@ import no.nav.dagpenger.soknad.SøknadObserver.SøknadEndretTilstandEvent
 import java.time.ZonedDateTime
 
 class TestSøknadObserver : SøknadObserver {
-
+    internal var dokumentkrav: DokumentkravObserver.DokumentkravInnsendtEvent? = null
     internal var slettet: Boolean = false
     internal var sisteVersjon: Prosessversjon? = null
     internal val tilstander = mutableListOf<Søknad.Tilstand.Type>().also {
         it.add(Søknad.Tilstand.Type.UnderOpprettelse)
     }
     internal var innsendt: ZonedDateTime? = null
-
     internal val innsendTilstander = mutableListOf<Innsending.TilstandType>().also {
         it.add(Innsending.TilstandType.Opprettet)
     }
@@ -32,7 +31,11 @@ class TestSøknadObserver : SøknadObserver {
         sisteVersjon = event.gjeldendeProsessversjon
     }
 
-    override fun sœknadInnsendt(event: SøknadObserver.SøknadInnsendtEvent) {
+    override fun søknadInnsendt(event: SøknadObserver.SøknadInnsendtEvent) {
         this.innsendt = event.innsendt
+    }
+
+    override fun dokumentkravInnsendt(event: DokumentkravObserver.DokumentkravInnsendtEvent) {
+        this.dokumentkrav = event
     }
 }

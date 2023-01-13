@@ -13,12 +13,15 @@ import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
+import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
 class Dokumentkrav private constructor(
     private val krav: MutableSet<Krav> = mutableSetOf()
 ) {
+    private val observers = mutableListOf<DokumentkravObserver>()
+
     constructor() : this(mutableSetOf())
 
     companion object {
@@ -57,10 +60,62 @@ class Dokumentkrav private constructor(
     }
 
     fun håndter(hendelse: SøknadInnsendtHendelse) {
-        aktiveDokumentKrav().forEach {
+        val aktiveDokumentKrav = aktiveDokumentKrav()
+        aktiveDokumentKrav.forEach {
             it.svar.håndter(hendelse)
         }
+        val event = DokumentkravObserver.DokumentkravInnsendtEvent(
+            søknadId = hendelse.søknadID(),
+            ferdigBesvart = ferdigBesvart(),
+            dokumentkrav = aktiveDokumentKrav.map {
+                DokumentkravObserver.DokumentkravInnsendtEvent.DokumentkravInnsendingSomethingSomething(
+                    dokumentnavn = it.beskrivendeId,
+                    skjemakode = it.tilSkjemakode(),
+                    valg = it.svar.valg.name
+                )
+            }
+        )
+        observers.forEach { it.dokumentkravInnsendt(event) }
+        // emit(it.first().beskrivendeId)
     }
+
+    fun addObserver(dokumentkravObserver: DokumentkravObserver) {
+        observers.add(dokumentkravObserver)
+    }
+
+    @Language("JSON")
+    val foo = """
+{
+  "søknadId": "123123",
+  "ferdigBesvart": true,
+  "id": "123123-123-123123-123",
+  "dokumentkrav": [
+    {
+      "valg": "SENDES_SENERE",
+      "beskrivendeId": "faktum.dokument-arbeidsforhold-avskjediget",
+      "skjemakode": "O2"
+    },
+    {
+      "valg": "SENDES_SENERE",
+      "beskrivendeId": "faktum.dokument-arbeidsforhold-avskjediget",
+      "skjemakode": "O2"
+    }
+  ]
+}
+    """.trimIndent()
+
+    @Language("Markdown")
+    val markdown = """
+søknadId | søknadType | innsendingstype | innsendtidspunkt | ferdigBesvart | dokumentnavn  | skjemakode | valg
+123123   | dagpenger  | Ettersending    | 2020-01-1T127    | true          | arbeidsavtale | O3         | sendes_nå
+123123   | dagpenger  | Ettersending    | 2020-01-1T127    | true          | oppsigelse    | T6         | sendes_nå 
+123123   | dagpenger  | Ettersending    | 2020-01-1T124    | true          | arbeidsavtale | O2         | sendes_nå
+123123   | dagpenger  | Ettersending    | 2020-01-1T124    | true          | oppsigelse    | T6         | sendes_nå 
+123123   | dagpenger  | NyInnsending    | 2020-01-1T123    | false         | arbeidsavtale | O2         | sendes_nå
+123123   | dagpenger  | NyInnsending    | 2020-01-1T123    | false         | oppsigelse    | T6         | sendes_senere 
+123125   | innsending | NyInnsending    | 2020-01-1T123    | false         | klage         | T6         | sendes_senere 
+
+    """.trimIndent()
 
     internal fun tilDokument(): List<Dokument> =
         aktiveDokumentKrav().filterNot { it.innsendt() }.filter { it.besvart() }.filter { it.svar.valg == SEND_NÅ }
