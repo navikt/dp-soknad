@@ -13,6 +13,7 @@ import no.nav.dagpenger.soknad.Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG
 import no.nav.dagpenger.soknad.Innsending.InnsendingType.NY_DIALOG
 import no.nav.dagpenger.soknad.InnsendingVisitor
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
+import no.nav.dagpenger.soknad.innsending.tjenester.NyEttersendingBehovMottak
 import no.nav.dagpenger.soknad.innsending.tjenester.NyInnsendingBehovMottak
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -58,6 +59,10 @@ internal class NyInnsendingBehovMottakTest {
             rapidsConnection = testRapid,
             mediator = mediator
         )
+        NyEttersendingBehovMottak(
+            rapidsConnection = testRapid,
+            mediator = mediator
+        )
 
         testRapid.sendTestMessage(
             lagTestJson(fixture = testFixture)
@@ -88,6 +93,11 @@ internal class NyInnsendingBehovMottakTest {
             rapidsConnection = testRapid,
             mediator = mediator
         )
+        NyEttersendingBehovMottak(
+            rapidsConnection = testRapid,
+            mediator = mediator
+        )
+
         testRapid.sendTestMessage(
             lagTestJson(
                 testFixture.copy(
@@ -107,6 +117,10 @@ internal class NyInnsendingBehovMottakTest {
     @MethodSource("testFixtures")
     fun `Skal håndtere NyInnsending uten dokumenter`(testFixture: TestFixture) {
         NyInnsendingBehovMottak(
+            rapidsConnection = testRapid,
+            mediator = mediator
+        )
+        NyEttersendingBehovMottak(
             rapidsConnection = testRapid,
             mediator = mediator
         )

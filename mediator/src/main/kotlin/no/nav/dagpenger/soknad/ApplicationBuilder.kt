@@ -9,6 +9,7 @@ import no.nav.dagpenger.soknad.innsending.InnsendingMediator
 import no.nav.dagpenger.soknad.innsending.InnsendingPostgresRepository
 import no.nav.dagpenger.soknad.innsending.tjenester.ArkiverbarSøknadMottattHendelseMottak
 import no.nav.dagpenger.soknad.innsending.tjenester.JournalførtMottak
+import no.nav.dagpenger.soknad.innsending.tjenester.NyEttersendingBehovMottak
 import no.nav.dagpenger.soknad.innsending.tjenester.NyInnsendingBehovMottak
 import no.nav.dagpenger.soknad.innsending.tjenester.NyJournalpostMottak
 import no.nav.dagpenger.soknad.innsending.tjenester.SkjemakodeMottak
@@ -89,6 +90,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         JournalførtMottak(rapidsConnection, it)
         SkjemakodeMottak(rapidsConnection, it)
         NyInnsendingBehovMottak(rapidsConnection, it)
+        NyEttersendingBehovMottak(rapidsConnection, it)
     }
 
     init {

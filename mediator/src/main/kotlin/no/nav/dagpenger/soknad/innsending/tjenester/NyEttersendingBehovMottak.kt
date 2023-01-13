@@ -2,16 +2,16 @@ package no.nav.dagpenger.soknad.innsending.tjenester
 
 import mu.KotlinLogging
 import mu.withLoggingContext
-import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyInnsending
+import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyEttersending
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
-import no.nav.dagpenger.soknad.innsending.meldinger.NyInnsendingMelding
+import no.nav.dagpenger.soknad.innsending.meldinger.NyEttersendingMelding
 import no.nav.dagpenger.soknad.utils.asUUID
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 
-internal class NyInnsendingBehovMottak(rapidsConnection: RapidsConnection, private val mediator: InnsendingMediator) :
+internal class NyEttersendingBehovMottak(rapidsConnection: RapidsConnection, private val mediator: InnsendingMediator) :
     River.PacketListener {
     companion object {
         private val logger = KotlinLogging.logger {}
@@ -20,7 +20,7 @@ internal class NyInnsendingBehovMottak(rapidsConnection: RapidsConnection, priva
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "behov") }
-            validate { it.demandAllOrAny("@behov", listOf(NyInnsending.name)) }
+            validate { it.demandAllOrAny("@behov", listOf(NyEttersending.name)) }
             validate { it.requireKey("søknad_uuid", "ident", "innsendtTidspunkt") }
             validate { it.interestedIn("dokumentkrav") }
             validate { it.rejectKey("@løsning") }
@@ -33,10 +33,10 @@ internal class NyInnsendingBehovMottak(rapidsConnection: RapidsConnection, priva
         withLoggingContext(
             "søknadId" to søknadId.toString(),
         ) {
-            val behov = NyInnsending.name
+            val behov = NyEttersending.name
             logger.info { "Mottatt behov for ny innsending av type: $behov" }
 
-            val hendelse = NyInnsendingMelding(packet).hendelse()
+            val hendelse = NyEttersendingMelding(packet).hendelse()
             mediator.behandle(hendelse)
 
             packet["@løsning"] = mapOf(
