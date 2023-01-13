@@ -32,11 +32,19 @@ internal class NyInnsendingBehovMottakTest {
         fun testFixtures(): List<TestFixture> {
             return listOf(
                 TestFixture(
-                    behov = Behovtype.NyInnsending,
+                    behov = listOf(Behovtype.NyInnsending),
                     innsendingType = NY_DIALOG
                 ),
                 TestFixture(
-                    behov = Behovtype.NyEttersending,
+                    behov = listOf(Behovtype.NyEttersending),
+                    innsendingType = ETTERSENDING_TIL_DIALOG
+                ),
+                TestFixture(
+                    behov = listOf(Behovtype.NyInnsending, Behovtype.NySøknad),
+                    innsendingType = NY_DIALOG
+                ),
+                TestFixture(
+                    behov = listOf(Behovtype.NyEttersending, Behovtype.InnsendingMetadata),
                     innsendingType = ETTERSENDING_TIL_DIALOG
                 )
             )
@@ -82,7 +90,7 @@ internal class NyInnsendingBehovMottakTest {
             testRapid.inspektør.field(
                 index = 0,
                 field = "@løsning"
-            ).get(testFixture.behov.name)
+            ).get(testFixture.behov[0].name)
         )
     }
 
@@ -139,7 +147,7 @@ internal class NyInnsendingBehovMottakTest {
     private fun lagTestJson(fixture: TestFixture): String {
         val map = mutableMapOf(
             "@event_name" to "behov",
-            "@behov" to listOf(fixture.behov),
+            "@behov" to fixture.behov,
             "søknad_uuid" to fixture.søknadId,
             "innsendtTidspunkt" to fixture.innsendtTidspunkt,
             "dokumentkrav" to fixture.dokumenter,
@@ -217,7 +225,7 @@ internal class NyInnsendingBehovMottakTest {
         ),
         val ident: String = "1234",
         val løsning: Map<String, Any>? = null,
-        val behov: Behovtype,
+        val behov: List<Behovtype>,
         val innsendingType: InnsendingType,
     )
 }
