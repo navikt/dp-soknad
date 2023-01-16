@@ -66,6 +66,8 @@ class Dokumentkrav private constructor(
         }
         val event = DokumentkravObserver.DokumentkravInnsendtEvent(
             søknadId = hendelse.søknadID(),
+            ident = hendelse.ident(),
+            innsendttidspunkt = hendelse.innsendtidspunkt().toLocalDateTime(),
             ferdigBesvart = ferdigBesvart(),
             dokumentkrav = aktiveDokumentKrav.map {
                 DokumentkravObserver.DokumentkravInnsendtEvent.DokumentkravInnsendingSomethingSomething(
@@ -82,40 +84,6 @@ class Dokumentkrav private constructor(
     fun addObserver(dokumentkravObserver: DokumentkravObserver) {
         observers.add(dokumentkravObserver)
     }
-
-    @Language("JSON")
-    val foo = """
-{
-  "søknadId": "123123",
-  "ferdigBesvart": true,
-  "id": "123123-123-123123-123",
-  "dokumentkrav": [
-    {
-      "valg": "SENDES_SENERE",
-      "beskrivendeId": "faktum.dokument-arbeidsforhold-avskjediget",
-      "skjemakode": "O2"
-    },
-    {
-      "valg": "SENDES_SENERE",
-      "beskrivendeId": "faktum.dokument-arbeidsforhold-avskjediget",
-      "skjemakode": "O2"
-    }
-  ]
-}
-    """.trimIndent()
-
-    @Language("Markdown")
-    val markdown = """
-søknadId | søknadType | innsendingstype | innsendtidspunkt | ferdigBesvart | dokumentnavn  | skjemakode | valg
-123123   | dagpenger  | Ettersending    | 2020-01-1T127    | true          | arbeidsavtale | O3         | sendes_nå
-123123   | dagpenger  | Ettersending    | 2020-01-1T127    | true          | oppsigelse    | T6         | sendes_nå 
-123123   | dagpenger  | Ettersending    | 2020-01-1T124    | true          | arbeidsavtale | O2         | sendes_nå
-123123   | dagpenger  | Ettersending    | 2020-01-1T124    | true          | oppsigelse    | T6         | sendes_nå 
-123123   | dagpenger  | NyInnsending    | 2020-01-1T123    | false         | arbeidsavtale | O2         | sendes_nå
-123123   | dagpenger  | NyInnsending    | 2020-01-1T123    | false         | oppsigelse    | T6         | sendes_senere 
-123125   | innsending | NyInnsending    | 2020-01-1T123    | false         | klage         | T6         | sendes_senere 
-
-    """.trimIndent()
 
     internal fun tilDokument(): List<Dokument> =
         aktiveDokumentKrav().filterNot { it.innsendt() }.filter { it.besvart() }.filter { it.svar.valg == SEND_NÅ }

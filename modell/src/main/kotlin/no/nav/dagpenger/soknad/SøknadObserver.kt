@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad
 
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -7,8 +8,10 @@ interface DokumentkravObserver {
     fun dokumentkravInnsendt(event: DokumentkravInnsendtEvent) {}
     data class DokumentkravInnsendtEvent(
         val søknadId: UUID,
+        val ident: String,
         var søknadType: String? = null,
         var innsendingstype: String? = null,
+        var innsendttidspunkt: LocalDateTime,
         val ferdigBesvart: Boolean,
         val dokumentkrav: List<DokumentkravInnsendingSomethingSomething>
     ) {

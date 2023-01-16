@@ -33,7 +33,27 @@ internal class SøknadTilstandObserver(private val rapidsConnection: RapidsConne
         )
     ).toJson()
 
-    override fun dokumentkravInnsendt(event: DokumentkravObserver.DokumentkravInnsendtEvent) {
-        println(event)
-    }
+    override fun dokumentkravInnsendt(event: DokumentkravObserver.DokumentkravInnsendtEvent) =
+        rapidsConnection.publish(event.ident, dokumentkravInnsendtEvent(event))
+
+    private fun dokumentkravInnsendtEvent(event: DokumentkravObserver.DokumentkravInnsendtEvent) =
+        JsonMessage.newMessage(
+            eventName = "dokumentkrav_innsendt",
+            map = mapOf(
+                "søknad_uuid" to event.søknadId,
+                "ident" to event.ident,
+                "søknadType" to event.søknadType!!,
+                "innsendingsType" to event.innsendingstype!!,
+                "innsendttidspunkt" to event.innsendttidspunkt,
+                "ferdigBesvart" to event.ferdigBesvart,
+                "hendelseId" to event.hendelseId,
+                "dokumentkrav" to event.dokumentkrav.map {
+                    mapOf(
+                        "dokumentnavn" to it.dokumentnavn,
+                        "skjemakode" to it.skjemakode,
+                        "valg" to it.valg
+                    )
+                }
+            )
+        ).toJson()
 }
