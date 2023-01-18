@@ -67,7 +67,7 @@ object Metrics {
     val søknaderTilSletting = Gauge
         .build()
         .namespace(namespace)
-        .name("søknad_sletting_antall")
+        .name("antall_til_sletting")
         .help("Hvor mange søknader prøver vi å slette")
         .register()
 }
