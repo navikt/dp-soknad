@@ -202,7 +202,9 @@ class Aktivitetslogg private constructor(
                 ArkiverbarSøknad,
                 NyJournalpost,
                 NyInnsending,
-                NyEttersending
+                NyEttersending,
+                // Historiske behov som ikke lengre brukes aktivt, men må være tilgjengelig for aktivitetsloggen.
+                OppgaveOmEttersending
             }
         }
 

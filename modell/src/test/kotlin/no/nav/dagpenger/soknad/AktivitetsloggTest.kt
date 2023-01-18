@@ -1,10 +1,12 @@
 package no.nav.dagpenger.soknad
 
+import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 
@@ -149,7 +151,7 @@ internal class AktivitetsloggTest {
         val param1 = "value"
         val param2 = LocalDate.now()
         hendelse1.behov(
-            Aktivitetslogg.Aktivitet.Behov.Behovtype.NySøknad,
+            Behovtype.NySøknad,
             "Oppretter ny søknad",
             mapOf(
                 "param1" to param1,
@@ -163,6 +165,20 @@ internal class AktivitetsloggTest {
         assertEquals("Person", aktivitetslogg.behov().first().kontekst()["Person"])
         assertEquals(param1, aktivitetslogg.behov().first().detaljer()["param1"])
         assertEquals(param2, aktivitetslogg.behov().first().detaljer()["param2"])
+    }
+
+    @Test
+    fun `Alle historiske eventtyper må være tilgjengelig for at aktivitetsloggen skal fungere`() {
+        // Aktive
+        assertDoesNotThrow { Behovtype.valueOf("NySøknad") }
+        assertDoesNotThrow { Behovtype.valueOf("DokumentkravSvar") }
+        assertDoesNotThrow { Behovtype.valueOf("InnsendingMetadata") }
+        assertDoesNotThrow { Behovtype.valueOf("ArkiverbarSøknad") }
+        assertDoesNotThrow { Behovtype.valueOf("NyJournalpost") }
+        assertDoesNotThrow { Behovtype.valueOf("NyInnsending") }
+        assertDoesNotThrow { Behovtype.valueOf("NyEttersending") }
+        // Historiske
+        assertDoesNotThrow { Behovtype.valueOf("OppgaveOmEttersending") } // Har kun vært i bruk i dev
     }
 
     private fun assertInfo(message: String, aktivitetslogg: Aktivitetslogg = this.aktivitetslogg) {
