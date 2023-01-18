@@ -13,7 +13,6 @@ import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
-import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
