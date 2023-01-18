@@ -7,6 +7,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import mu.KotlinLogging
+import no.nav.dagpenger.soknad.Metrics.søknaderTilSletting
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.SøknadMediator
@@ -91,6 +92,7 @@ internal class VaktmesterPostgresRepository(
     ): List<Int> {
         val iderTilSletting = søknadUuider.map { listOf(it.søknadUuid) }
         logger.info { "Forsøker å slette ${iderTilSletting.size} søknader. SøknadUUIDer: $iderTilSletting" }
+        søknaderTilSletting.set(iderTilSletting.size.toDouble())
         val raderSlettet = transactionalSession.batchPreparedStatement(
             //language=PostgreSQL
             "DELETE FROM soknad_v1 WHERE uuid =?",

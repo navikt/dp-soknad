@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import io.prometheus.client.Counter
+import io.prometheus.client.Gauge
 import io.prometheus.client.Histogram
 
 private val namespace = "dp_soknad"
@@ -56,12 +57,17 @@ object Metrics {
         .help("Teller tilstandsendringer på søknad")
         .labelNames("tilstand", "forrigetilstand")
         .register()
-
     val søknadInnsendingTilstandTeller = Counter
         .build()
         .namespace(namespace)
         .name("innsending_tilstand_teller")
         .help("Teller tilstandsendringer på innsendinger ")
         .labelNames("type", "tilstand", "forrigetilstand")
+        .register()
+    val søknaderTilSletting = Gauge
+        .build()
+        .namespace(namespace)
+        .name("søknad_sletting_antall")
+        .help("Hvor mange søknader prøver vi å slette")
         .register()
 }
