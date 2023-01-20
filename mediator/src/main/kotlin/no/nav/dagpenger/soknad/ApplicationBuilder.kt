@@ -15,6 +15,7 @@ import no.nav.dagpenger.soknad.innsending.tjenester.NyJournalpostMottak
 import no.nav.dagpenger.soknad.innsending.tjenester.SkjemakodeMottak
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.FerdigstiltSøknadPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.ferdigStiltSøknadRouteBuilder
+import no.nav.dagpenger.soknad.livssyklus.ferdigstilt.SøknadInnsendtTidspunktTjeneste
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.MigrertSøknadMottak
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak
@@ -79,6 +80,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         SøknadOpprettetHendelseMottak(rapidsConnection, it)
         SøkerOppgaveMottak(rapidsConnection, it)
         MigrertSøknadMottak(rapidsConnection, it)
+        SøknadInnsendtTidspunktTjeneste(rapidsConnection, it)
     }
 
     private val innsendingMediator = InnsendingMediator(
