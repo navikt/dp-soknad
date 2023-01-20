@@ -64,7 +64,7 @@ class SøknadInnsendtTidspunktTjenesteTest {
         testRapid.sendTestMessage(behovMelding(okSoknadId))
         with(testRapid.inspektør) {
             Assertions.assertEquals(1, size)
-            Assertions.assertEquals("2022-05-05T00:00:00+02:00", field(0, "@løsning")["Søknadstidspunkt"].asText())
+            Assertions.assertEquals("2022-05-05", field(0, "@løsning")["Søknadstidspunkt"].asText())
         }
     }
 
