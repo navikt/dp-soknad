@@ -13,6 +13,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.withMDC
+import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -47,9 +48,9 @@ internal class SøknadInnsendtTidspunktTjeneste(
         ) {
             try {
                 val innsendtSøknadsId = packet.getInnsendtSøknadsId()
-                val innsendtTidspunkt: ZonedDateTime? = mediator.hent(UUID.fromString(innsendtSøknadsId))?.let {
+                val innsendtTidspunkt: LocalDate? = mediator.hent(UUID.fromString(innsendtSøknadsId))?.let {
                     object : SøknadVisitor {
-                        var innsendt: ZonedDateTime? = null
+                        var innsendt: LocalDate? = null
 
                         init {
                             it.accept(this)
@@ -66,7 +67,7 @@ internal class SøknadInnsendtTidspunktTjeneste(
                             sistEndretAvBruker: ZonedDateTime,
                             prosessversjon: Prosessversjon?
                         ) {
-                            this.innsendt = innsendt
+                            this.innsendt = innsendt?.toLocalDate()
                         }
                     }.innsendt
                 }
