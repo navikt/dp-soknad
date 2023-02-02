@@ -16,6 +16,7 @@ import io.mockk.verify
 import no.nav.dagpenger.soknad.Søknadsprosess.NySøknadsProsess
 import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
+import no.nav.dagpenger.soknad.db.SøkerOppgaveNotFoundException
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
@@ -175,6 +176,32 @@ internal class SøknadApiTest {
                 body = "Det her er ihvertall ikke json for å si det sånn"
             ).apply {
                 assertEquals(HttpStatusCode.BadRequest, this.status)
+            }
+        }
+    }
+
+    @Test
+    fun `skal gi riktig HttpProblem dersom neste søker oppgave ikke finnes`() {
+        val testSøknadUuid = UUID.randomUUID()
+        val mockSøknadMediator = mockk<SøknadMediator>().also { søknadMediator ->
+            every { søknadMediator.hentSøkerOppgave(testSøknadUuid) } throws SøkerOppgaveNotFoundException("test")
+            every { søknadMediator.hentEier(testSøknadUuid) } returns defaultDummyFodselsnummer
+        }
+        TestApplication.withMockAuthServerAndTestApplication(
+            TestApplication.mockedSøknadApi(
+                søknadMediator = mockSøknadMediator
+            )
+        ) {
+            autentisert(
+                "${Configuration.basePath}/soknad/$testSøknadUuid/neste"
+            ).apply {
+                assertEquals(HttpStatusCode.ServiceUnavailable, this.status)
+                assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])
+                assertEquals(
+                    // language=JSON
+                    """{"type":"about:blank","title":"Søkeroppgave ikke funnet","status":503,"detail":"test","instance":"about:blank","errorType":"UNAVAILABLE"}""",
+                    this.bodyAsText()
+                )
             }
         }
     }

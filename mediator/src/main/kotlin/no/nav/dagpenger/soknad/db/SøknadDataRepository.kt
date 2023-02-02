@@ -1,6 +1,5 @@
 package no.nav.dagpenger.soknad.db
 
-import io.ktor.server.plugins.NotFoundException
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
@@ -18,6 +17,7 @@ interface SøknadDataRepository {
     fun besvart(søknadUUID: UUID): Int
 }
 
+internal class SøkerOppgaveNotFoundException(message: String) : RuntimeException(message)
 class SøknadDataPostgresRepository(private val dataSource: DataSource) : SøknadDataRepository {
     override fun lagre(søkerOppgave: SøkerOppgave) {
         using(sessionOf(dataSource)) { session ->
@@ -66,8 +66,9 @@ class SøknadDataPostgresRepository(private val dataSource: DataSource) : Søkna
                 ).map { row ->
                     SøkerOppgaveMelding(row.binaryStream("soknad_data"))
                 }.asSingle
-            ) ?: throw NotFoundException("Fant ikke søker_oppgave for søknad med id $søknadUUID med nyereEnn=$nyereEnn")
-                .also { Metrics.søknadDataTimeouts.inc() }
+            )
+                ?: throw SøkerOppgaveNotFoundException("Fant ikke søker_oppgave for søknad med id $søknadUUID med nyereEnn=$nyereEnn")
+                    .also { Metrics.søknadDataTimeouts.inc() }
         }
 
     override fun slett(søknadUUID: UUID) =

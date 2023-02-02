@@ -1,13 +1,13 @@
 package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.server.plugins.NotFoundException
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
+import no.nav.dagpenger.soknad.db.SøkerOppgaveNotFoundException
 import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
@@ -78,7 +78,7 @@ class SøknadDataRepositoryTest {
     fun `Henter en søknad som ikke finnes`() {
         withMigratedDb {
             val søknadCache = SøknadDataPostgresRepository(dataSource)
-            assertThrows<NotFoundException> { søknadCache.hentSøkerOppgave(UUID.randomUUID()) }
+            assertThrows<SøkerOppgaveNotFoundException> { søknadCache.hentSøkerOppgave(UUID.randomUUID()) }
         }
     }
 

@@ -2,7 +2,6 @@ package no.nav.dagpenger.soknad.sletterutine
 
 import FerdigSøknadData
 import de.slub.urn.URN
-import io.ktor.server.plugins.NotFoundException
 import io.mockk.mockk
 import kotliquery.queryOf
 import kotliquery.sessionOf
@@ -20,6 +19,7 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestSøkerOppgave
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
+import no.nav.dagpenger.soknad.db.SøkerOppgaveNotFoundException
 import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.faktumJson
@@ -209,7 +209,7 @@ internal class VaktmesterRepositoryTest {
     }
 
     private fun assertCacheSlettet(søknadUuid: UUID, søknadCacheRepository: SøknadDataPostgresRepository) {
-        assertThrows<NotFoundException> { søknadCacheRepository.hentSøkerOppgave(søknadUuid) }
+        assertThrows<SøkerOppgaveNotFoundException> { søknadCacheRepository.hentSøkerOppgave(søknadUuid) }
     }
 
     private fun aktivitetsloggFinnes(søknadUuid: UUID): Boolean {

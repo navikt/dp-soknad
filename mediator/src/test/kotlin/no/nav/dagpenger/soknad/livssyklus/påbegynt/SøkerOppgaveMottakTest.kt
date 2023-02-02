@@ -1,13 +1,13 @@
 package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.server.plugins.NotFoundException
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.dagpenger.soknad.Prosessnavn
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.db.Postgres
+import no.nav.dagpenger.soknad.db.SøkerOppgaveNotFoundException
 import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
@@ -70,7 +70,7 @@ class SøkerOppgaveMottakTest {
             assertDoesNotThrow {
                 søknadMediator.hentSøkerOppgave(søknadUuid, nyereEnn = 0)
             }
-            assertThrows<NotFoundException> {
+            assertThrows<SøkerOppgaveNotFoundException> {
                 søknadMediator.hentSøkerOppgave(søknadUuid, nyereEnn = 5)
             }
         }

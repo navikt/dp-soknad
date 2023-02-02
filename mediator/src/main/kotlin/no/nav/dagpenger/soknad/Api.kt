@@ -7,6 +7,7 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
+import io.ktor.http.HttpStatusCode.Companion.ServiceUnavailable
 import io.ktor.serialization.jackson.JacksonConverter
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.application.Application
@@ -28,6 +29,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
 import mu.KotlinLogging
+import no.nav.dagpenger.soknad.db.SøkerOppgaveNotFoundException
 import no.nav.dagpenger.soknad.utils.auth.AzureAdFactory.azure
 import no.nav.dagpenger.soknad.utils.auth.TokenXFactory.tokenX
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
@@ -74,6 +76,7 @@ internal fun Application.api(
                         )
                     )
                 }
+
                 is IllegalArgumentException -> {
                     logger.info(cause) { "Kunne ikke håndtere API kall - Bad request" }
                     call.respond(
@@ -81,6 +84,7 @@ internal fun Application.api(
                         HttpProblem(title = "Feilet", detail = cause.message, status = 400)
                     )
                 }
+
                 is NotFoundException -> {
                     logger.info(cause) { "Kunne ikke håndtere API kall - Ikke funnet" }
                     call.respond(
@@ -88,6 +92,7 @@ internal fun Application.api(
                         HttpProblem(title = "Feilet", detail = cause.message, status = 404)
                     )
                 }
+
                 is BadRequestException -> {
                     logger.error(cause) { "Kunne ikke håndtere API kall - feil i request" }
                     call.respond(
@@ -95,6 +100,7 @@ internal fun Application.api(
                         HttpProblem(title = "Feilet", detail = cause.message, status = 400)
                     )
                 }
+
                 is IkkeTilgangExeption -> {
                     logger.warn { "Kunne ikke håndtere API kall - Ikke tilgang" }
                     call.respond(
@@ -102,6 +108,20 @@ internal fun Application.api(
                         HttpProblem(title = "Ikke tilgang", status = 403, detail = cause.message)
                     )
                 }
+
+                is SøkerOppgaveNotFoundException -> {
+                    logger.warn { "Søkeroppgave ikke funnet" }
+                    call.respond(
+                        ServiceUnavailable,
+                        HttpProblem(
+                            title = "Søkeroppgave ikke funnet",
+                            status = 503,
+                            detail = cause.message,
+                            errorType = "UNAVAILABLE"
+                        )
+                    )
+                }
+
                 else -> {
                     logger.error(cause) { "Kunne ikke håndtere API kall" }
                     call.respond(
