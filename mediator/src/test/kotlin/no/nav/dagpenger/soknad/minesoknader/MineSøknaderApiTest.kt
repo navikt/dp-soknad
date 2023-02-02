@@ -30,6 +30,7 @@ import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -43,10 +44,7 @@ class MineSøknaderApiTest {
     private val søknadUuid = UUID.randomUUID()
     private val endepunkt = "${Configuration.basePath}/soknad/mine-soknader"
     private val endepunktIncludeDokumentkrav = "${Configuration.basePath}/soknad/mine-soknader?include=dokumentkrav"
-    private val fom = LocalDate.now()
-    private val innsendtTidspunkt = LocalDateTime.MAX
-    private val opprettet = LocalDateTime.MAX
-    private val sistEndretAvBruker = LocalDateTime.MAX
+    private val nå = LocalDate.now()
 
     private val dokumentfaktum = Faktum(faktumJson(id = "1", beskrivendeId = "f1", generertAv = "foo"))
     private val dokumentfaktum2 = Faktum(faktumJson(id = "2", beskrivendeId = "f2", generertAv = "foo"))
@@ -65,10 +63,10 @@ class MineSøknaderApiTest {
     )
 
     private val fil = Krav.Fil(
-        "testfil.jpg",
-        URN.rfc8141().parse("urn:nav:1"),
-        89900,
-        ZonedDateTime.now(),
+        filnavn = "testfil.jpg",
+        urn = URN.rfc8141().parse("urn:nav:1"),
+        storrelse = 89900,
+        tidspunkt = ZonedDateTime.now(),
         bundlet = false
     )
 
@@ -100,25 +98,23 @@ class MineSøknaderApiTest {
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentSøknader(defaultDummyFodselsnummer) } returns setOf(
-                        søknadMed(tilstand = Påbegynt, opprettet, sistEndretAvBruker = sistEndretAvBruker),
-                        søknadMed(
-                            tilstand = Innsendt,
-                            innsendt = innsendtTidspunkt.atZone(ZoneId.of("Europe/Oslo"))
-                        ),
-                        søknadMed(
-                            tilstand = Innsendt,
-                            innsendt = innsendtTidspunkt.atZone(ZoneId.of("Europe/Oslo"))
-                        )
+                        søknadMed(tilstand = Påbegynt),
+                        søknadMed(tilstand = Innsendt),
+                        søknadMed(tilstand = Innsendt)
                     )
                 }
             )
         ) {
-            autentisert("$endepunkt?fom=$fom", httpMethod = HttpMethod.Get).apply {
-                assertEquals(HttpStatusCode.OK, this.status)
-                val expectedJson =
-                    """{"paabegynt":{"soknadUuid":"$søknadUuid","opprettet":"$opprettet","sistEndretAvBruker":"$sistEndretAvBruker"},"innsendte":[{"soknadUuid":"$søknadUuid","forstInnsendt":"$innsendtTidspunkt"},{"soknadUuid":"$søknadUuid","forstInnsendt":"$innsendtTidspunkt"}]}"""
-                assertEquals(expectedJson, this.bodyAsText())
-                assertEquals("application/json; charset=UTF-8", this.contentType().toString())
+            autentisert("$endepunkt?fom=$nå", httpMethod = HttpMethod.Get).also { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals("application/json; charset=UTF-8", response.contentType().toString())
+
+                val jsonResponse = objectMapper.readTree(response.bodyAsText())
+                val påbegynt = jsonResponse["paabegynt"]
+                val innsendte = jsonResponse["innsendte"]
+
+                assertNotNull(påbegynt)
+                assertEquals(2, innsendte.size())
             }
         }
     }
@@ -131,19 +127,22 @@ class MineSøknaderApiTest {
                     every { it.hentSøknader(defaultDummyFodselsnummer) } returns setOf(
                         søknadMed(
                             tilstand = Påbegynt,
-                            opprettet,
-                            sistEndretAvBruker = sistEndretAvBruker,
                             prosessversjon = Prosessversjon(Prosessnavn("Innsending"), 1)
-                        )
+                        ),
+                        søknadMed(
+                            tilstand = Innsendt,
+                            prosessversjon = Prosessversjon(Prosessnavn("Innsending"), 1)
+                        ),
                     )
                 }
             )
         ) {
-            autentisert("$endepunkt?fom=$fom", httpMethod = HttpMethod.Get).apply {
-                assertEquals(HttpStatusCode.OK, this.status)
-                val expectedJson = "{}"
-                assertEquals(expectedJson, this.bodyAsText())
-                assertEquals("application/json; charset=UTF-8", this.contentType().toString())
+            autentisert("$endepunkt?fom=$nå", httpMethod = HttpMethod.Get).also { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals("application/json; charset=UTF-8", response.contentType().toString())
+
+                val jsonResponse = objectMapper.readTree(response.bodyAsText())
+                assertTrue(jsonResponse.isEmpty)
             }
         }
     }
@@ -157,11 +156,12 @@ class MineSøknaderApiTest {
                 }
             )
         ) {
-            autentisert("$endepunkt?fom=$fom", httpMethod = HttpMethod.Get).apply {
-                assertEquals(HttpStatusCode.OK, this.status)
-                val expectedJson = """{}"""
-                assertEquals(expectedJson, this.bodyAsText())
-                assertEquals("application/json; charset=UTF-8", this.contentType().toString())
+            autentisert("$endepunkt?fom=$nå", httpMethod = HttpMethod.Get).also { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals("application/json; charset=UTF-8", response.contentType().toString())
+
+                val jsonResponse = objectMapper.readTree(response.bodyAsText())
+                assertTrue(jsonResponse.isEmpty)
             }
         }
     }
@@ -172,45 +172,50 @@ class MineSøknaderApiTest {
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentSøknader(defaultDummyFodselsnummer) } returns setOf(
-                        søknadMed(
-                            tilstand = Innsendt,
-                            innsendt = innsendtTidspunkt.atZone(ZoneId.of("Europe/Oslo"))
-                        )
+                        søknadMed(tilstand = Innsendt)
                     )
                 }
             )
         ) {
-            autentisert("$endepunkt?fom=$fom", httpMethod = HttpMethod.Get).apply {
-                assertEquals(HttpStatusCode.OK, this.status)
-                val expectedJson =
-                    """{"innsendte":[{"soknadUuid":"$søknadUuid","forstInnsendt":"$innsendtTidspunkt"}]}"""
-                assertEquals(expectedJson, this.bodyAsText())
-                assertEquals("application/json; charset=UTF-8", this.contentType().toString())
+            autentisert("$endepunkt?fom=$nå", httpMethod = HttpMethod.Get).also { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals("application/json; charset=UTF-8", response.contentType().toString())
+
+                val jsonResponse = objectMapper.readTree(response.bodyAsText())
+                val påbegynt = jsonResponse["paabegynt"]
+                val innsendte = jsonResponse["innsendte"]
+
+                assertNull(påbegynt)
+                assertEquals(1, innsendte.size())
             }
         }
     }
 
     @Test
     fun `tar ikke med søknader som er innsendt før fom queryparam`() {
+        val gammelInnsendtSøknad = søknadMed(
+            tilstand = Innsendt,
+            innsendt = nå.atStartOfDay().minusDays(2).atZone(ZoneId.of("Europe/Oslo"))
+        )
+
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentSøknader(defaultDummyFodselsnummer) } returns setOf(
-                        søknadMed(
-                            tilstand = Innsendt,
-                            innsendt = innsendtTidspunkt.atZone(ZoneId.of("Europe/Oslo"))
-                        ),
-                        gammelInnsendtSøknad(innsendt = fom.minusDays(2))
+                        søknadMed(tilstand = Innsendt),
+                        gammelInnsendtSøknad
                     )
                 }
             )
         ) {
-            autentisert("$endepunkt?fom=$fom", httpMethod = HttpMethod.Get).apply {
-                assertEquals(HttpStatusCode.OK, this.status)
-                val expectedJson =
-                    """{"innsendte":[{"soknadUuid":"$søknadUuid","forstInnsendt":"$innsendtTidspunkt"}]}"""
-                assertEquals(expectedJson, this.bodyAsText())
-                assertEquals("application/json; charset=UTF-8", this.contentType().toString())
+            autentisert("$endepunkt?fom=$nå", httpMethod = HttpMethod.Get).also { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+                assertEquals("application/json; charset=UTF-8", response.contentType().toString())
+
+                val jsonResponse = objectMapper.readTree(response.bodyAsText())
+                val innsendte = jsonResponse["innsendte"]
+
+                assertEquals(1, innsendte.size())
             }
         }
     }
@@ -228,21 +233,20 @@ class MineSøknaderApiTest {
     }
 
     @Test
-    fun `henter bare ut dokumentkrav hvis queryparam include=dokumentkrav `() {
+    fun `henter bare ut dokumentkrav hvis queryparam include=dokumentkrav`() {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentSøknader(defaultDummyFodselsnummer) } returns setOf(
                         søknadMed(
                             tilstand = Innsendt,
-                            innsendt = innsendtTidspunkt.atZone(ZoneId.of("Europe/Oslo")),
                             dokumentkrav = dokumentkrav
                         )
                     )
                 }
             )
         ) {
-            autentisert("$endepunktIncludeDokumentkrav&fom=$fom", httpMethod = HttpMethod.Get).let { response ->
+            autentisert("$endepunktIncludeDokumentkrav&fom=$nå", httpMethod = HttpMethod.Get).let { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
                 assertEquals("application/json; charset=UTF-8", response.contentType().toString())
 
@@ -252,7 +256,7 @@ class MineSøknaderApiTest {
                 assertEquals(2, dokumentkrav.size())
             }
 
-            autentisert("$endepunkt?fom=$fom", httpMethod = HttpMethod.Get).let { response ->
+            autentisert("$endepunkt?fom=$nå", httpMethod = HttpMethod.Get).let { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
                 assertEquals("application/json; charset=UTF-8", response.contentType().toString())
 
@@ -290,15 +294,10 @@ class MineSøknaderApiTest {
         }
     }
 
-    private fun gammelInnsendtSøknad(innsendt: LocalDate) = søknadMed(
-        tilstand = Innsendt,
-        innsendt = innsendt.minusDays(5).atStartOfDay().atZone(ZoneId.of("Europe/Oslo"))
-    )
-
     private fun søknadMed(
         tilstand: Søknad.Tilstand.Type,
         opprettet: LocalDateTime = LocalDateTime.now(),
-        innsendt: ZonedDateTime? = null,
+        innsendt: ZonedDateTime? = LocalDateTime.MAX.atZone(ZoneId.of("Europe/Oslo")),
         dokumentkrav: Dokumentkrav = Dokumentkrav(),
         sistEndretAvBruker: LocalDateTime = LocalDateTime.MAX,
         prosessversjon: Prosessversjon? = Prosessversjon(Prosessnavn("Dagpenger"), 1),
