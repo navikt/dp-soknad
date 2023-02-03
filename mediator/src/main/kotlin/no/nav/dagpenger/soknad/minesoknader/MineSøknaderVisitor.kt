@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.minesoknader
 
 import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
@@ -15,15 +16,17 @@ class MineSøknaderVisitor(søknad: Søknad) : SøknadVisitor {
     private lateinit var søknadOpprettet: LocalDateTime
     private var søknadSistEndretAvBruker: LocalDateTime? = null
     private lateinit var søknadTilstand: Søknad.Tilstand.Type
+    private lateinit var dokumentkrav: Set<Krav>
 
     init {
         søknad.accept(this)
     }
 
-    fun søknadInnsendt(): LocalDateTime = requireNotNull(søknadInnsendt).toLocalDateTime()
-    fun sistEndretAvBruker() = søknadSistEndretAvBruker
-    fun søknadOpprettet() = søknadOpprettet
-    fun søknadTilstand() = søknadTilstand
+    internal fun søknadInnsendt(): LocalDateTime = requireNotNull(søknadInnsendt).toLocalDateTime()
+    internal fun sistEndretAvBruker() = søknadSistEndretAvBruker
+    internal fun søknadOpprettet() = søknadOpprettet
+    internal fun søknadTilstand() = søknadTilstand
+    internal fun dokumentkrav() = dokumentkrav
 
     override fun visitSøknad(
         søknadId: UUID,
@@ -34,11 +37,12 @@ class MineSøknaderVisitor(søknad: Søknad) : SøknadVisitor {
         språk: Språk,
         dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime,
-        prosessversjon: Prosessversjon?
+        prosessversjon: Prosessversjon?,
     ) {
         søknadOpprettet = opprettet.toLocalDateTime()
         søknadSistEndretAvBruker = sistEndretAvBruker.toLocalDateTime()
         søknadTilstand = tilstand.tilstandType
         søknadInnsendt = innsendt
+        this.dokumentkrav = dokumentkrav.aktiveDokumentKrav()
     }
 }
