@@ -16,6 +16,7 @@ import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -27,20 +28,21 @@ internal class PostgresDokumentkravRepositoryTest {
         val id = UUID.randomUUID()
 
         withSøknad(lagSøknad(søknadId = id, ident = "123", "1")) {
-            val fil = Krav.Fil(
+            val fil1 = Krav.Fil(
                 filnavn = "fil1",
                 urn = URN.rfc8141().parse("urn:vedlegg:$id/fil1"),
                 storrelse = 0,
                 tidspunkt = ZonedDateTime.now(),
                 bundlet = false
             )
+            val fil2 = fil1.copy(urn = URN.rfc8141().parse("urn:vedlegg:$id/fil2"))
             PostgresDokumentkravRepository(PostgresDataSourceBuilder.dataSource).let {
                 it.håndter(
                     LeggTilFil(
                         søknadID = id,
                         ident = "123",
                         kravId = "1",
-                        fil = fil
+                        fil = fil1
                     )
                 )
 
@@ -49,21 +51,28 @@ internal class PostgresDokumentkravRepositoryTest {
                         søknadID = id,
                         ident = "123",
                         kravId = "1",
-                        fil = fil.copy(urn = URN.rfc8141().parse("urn:vedlegg:$id/fil2"))
+                        fil = fil2
                     )
                 )
 
-                // todo assertSomething
+                it.hent(id).let { dokumentKrav ->
+                    assertEquals(dokumentKrav.aktiveDokumentKrav().size, 1)
+                    assertEquals(setOf(fil1, fil2), dokumentKrav.aktiveDokumentKrav().single().svar.filer)
+                }
 
                 it.håndter(
                     SlettFil(
                         søknadID = id,
                         ident = "123",
                         kravId = "1",
-                        urn = fil.urn
+                        urn = fil1.urn
                     )
                 )
-                // todo assertSomething
+
+                it.hent(id).let { dokumentKrav ->
+                    assertEquals(dokumentKrav.aktiveDokumentKrav().size, 1)
+                    assertEquals(setOf(fil2), dokumentKrav.aktiveDokumentKrav().single().svar.filer)
+                }
             }
         }
     }

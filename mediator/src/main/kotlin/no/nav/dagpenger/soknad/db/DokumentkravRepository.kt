@@ -1,15 +1,23 @@
 package no.nav.dagpenger.soknad.db
 
+import de.slub.urn.URN
+import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.db.DBUtils.norskZonedDateTime
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
+import no.nav.dagpenger.soknad.serder.SøknadDTO
+import no.nav.dagpenger.soknad.utils.serder.objectMapper
+import java.util.UUID
 import javax.sql.DataSource
 
 interface DokumentkravRepository {
     fun håndter(hendelse: LeggTilFil)
     fun håndter(hendelse: SlettFil)
+    fun hent(søknadId: UUID): Dokumentkrav
 }
 
 internal class PostgresDokumentkravRepository(private val datasource: DataSource) : DokumentkravRepository {
@@ -56,5 +64,75 @@ internal class PostgresDokumentkravRepository(private val datasource: DataSource
                 ).asUpdate
             )
         }
+    }
+
+    override fun hent(søknadId: UUID): Dokumentkrav {
+        return using(sessionOf(datasource)) { session ->
+            session.run(
+                queryOf(
+                    // language=PostgreSQL
+                    statement = """
+                                      SELECT faktum_id, beskrivende_id, faktum, sannsynliggjoer, tilstand, valg, begrunnelse, bundle_urn, innsendt
+                                      FROM dokumentkrav_v1 
+                                      WHERE soknad_uuid = :soknad_uuid
+                    """.trimIndent(),
+                    paramMap = mapOf(
+                        "soknad_uuid" to søknadId
+                    )
+                ).map { row ->
+                    val faktumId = row.string("faktum_id")
+                    SøknadDTO.DokumentkravDTO.KravDTO(
+                        id = faktumId,
+                        beskrivendeId = row.string("beskrivende_id"),
+                        sannsynliggjøring = SøknadDTO.DokumentkravDTO.SannsynliggjøringDTO(
+                            id = faktumId,
+                            faktum = objectMapper.readTree(row.binaryStream("faktum")),
+                            sannsynliggjør = objectMapper.readTree(row.binaryStream("sannsynliggjoer")).toSet()
+                        ),
+                        svar = SøknadDTO.DokumentkravDTO.SvarDTO(
+                            begrunnelse = row.stringOrNull("begrunnelse"),
+                            filer = session.hentFiler(søknadId, faktumId),
+                            valg = SøknadDTO.DokumentkravDTO.SvarDTO.SvarValgDTO.valueOf(row.string("valg")),
+                            bundle = row.stringOrNull("bundle_urn")?.let { URN.rfc8141().parse(it) },
+                            innsendt = row.boolean("innsendt")
+                        ),
+                        tilstand = row.string("tilstand")
+                            .let { SøknadDTO.DokumentkravDTO.KravDTO.KravTilstandDTO.valueOf(it) }
+                    )
+                }.asList
+            )
+                .toSet()
+                .let { SøknadDTO.DokumentkravDTO(it) }
+                .rehydrer()
+        }
+    }
+
+    private fun Session.hentFiler(
+        søknadsId: UUID,
+        faktumId: String
+    ): Set<SøknadDTO.DokumentkravDTO.KravDTO.FilDTO> {
+        return this.run(
+            queryOf(
+                //language=PostgreSQL
+                statement = """
+                  SELECT faktum_id, soknad_uuid, filnavn, storrelse, urn, tidspunkt, bundlet
+                  FROM dokumentkrav_filer_v1 
+                  WHERE soknad_uuid = :soknad_uuid
+                  AND faktum_id = :faktum_id 
+                """.trimIndent(),
+                paramMap = mapOf(
+                    "soknad_uuid" to søknadsId,
+                    "faktum_id" to faktumId
+                )
+            ).map { row ->
+                SøknadDTO.DokumentkravDTO.KravDTO.FilDTO(
+                    filnavn = row.string("filnavn"),
+                    urn = URN.rfc8141().parse(row.string("urn")),
+                    storrelse = row.long("storrelse"),
+                    tidspunkt = row.norskZonedDateTime("tidspunkt"),
+                    bundlet = row.boolean("bundlet")
+                )
+            }.asList
+        ).toSet()
     }
 }
