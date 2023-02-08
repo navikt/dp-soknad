@@ -12,7 +12,6 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.status.SøknadStatus.Paabegynt
-import no.nav.dagpenger.soknad.status.SøknadStatus.Ukjent
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
@@ -29,7 +28,6 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator, behandlingsstat
         val token = call.request.jwt()
 
         validator.valider(søknadUuid, ident)
-
         val søknadStatusDto = withLoggingContext(
             "søknadId" to søknadUuid.toString()
         ) {
@@ -45,7 +43,7 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator, behandlingsstat
 private suspend fun createSøknadStatusDto(
     statusVisitor: SøknadStatusVisitor,
     behandlingsstatusClient: BehandlingsstatusClient,
-    token: String,
+    token: String
 ) = when (statusVisitor.søknadTilstand()) {
     Påbegynt -> SøknadStatusDto(Paabegynt, statusVisitor.søknadOpprettet())
     Innsendt -> {
@@ -67,15 +65,15 @@ private suspend fun createSøknadStatusDto(
 private suspend fun hentSøknadStatus(
     behandlingsstatusClient: BehandlingsstatusClient,
     førsteInnsendingTidspunkt: LocalDate,
-    token: String,
+    token: String
 ): SøknadStatus {
     val behandlingsstatus =
         behandlingsstatusClient.hentBehandlingsstatus(fom = førsteInnsendingTidspunkt, token).behandlingsstatus
-    return if (behandlingsstatus != "null") SøknadStatus.valueOf(behandlingsstatus) else Ukjent
+    return SøknadStatus.valueOf(behandlingsstatus)
 }
 
 data class SøknadStatusDto(
     val status: SøknadStatus,
     val opprettet: LocalDateTime,
-    val innsendt: LocalDateTime? = null,
+    val innsendt: LocalDateTime? = null
 )

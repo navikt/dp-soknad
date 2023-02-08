@@ -1,7 +1,8 @@
 package no.nav.dagpenger.soknad.status
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.module.kotlin.KotlinFeature
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
@@ -41,6 +42,11 @@ internal class BehandlingsstatusHttpClient(
         install(ContentNegotiation) {
             jackson {
                 configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                registerModule(
+                    KotlinModule.Builder()
+                        .configure(KotlinFeature.NullIsSameAsDefault, enabled = true)
+                        .build()
+                )
             }
         }
     }
@@ -71,8 +77,7 @@ internal class BehandlingsstatusHttpClient(
 }
 
 internal data class BehandlingsstatusDto(
-    @JsonProperty("behandlingsstatus")
-    val behandlingsstatus: String
+    val behandlingsstatus: String = "Ukjent"
 )
 
 private val exchangeToOboToken = { token: String, audience: String ->

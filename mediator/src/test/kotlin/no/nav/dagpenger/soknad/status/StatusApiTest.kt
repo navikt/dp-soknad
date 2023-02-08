@@ -119,7 +119,7 @@ class StatusApiTest {
                             any(),
                             any()
                         )
-                    } returns BehandlingsstatusDto(behandlingsstatus = "null")
+                    } returns BehandlingsstatusDto(behandlingsstatus = "Ukjent")
                 }
             )
         ) {

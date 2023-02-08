@@ -15,7 +15,6 @@ import java.time.LocalDate
 import java.util.UUID
 
 class BehandlingsstatusClientTest {
-
     private val testTokenProvider: (token: String, audience: String) -> String = { _, _ -> "testToken" }
     private val baseUrl = "http://baseurl"
     private val innsynAudience = "dp-innsyn"
@@ -24,7 +23,6 @@ class BehandlingsstatusClientTest {
     @Test
     fun `Får deserialisert til BehandlingsstatusDto`() {
         val fom = LocalDate.now()
-
         val callId = UUID.randomUUID().toString()
         MDC.put("call-id", callId)
         runBlocking {
@@ -72,8 +70,9 @@ class BehandlingsstatusClientTest {
             )
         }
     }
+
     @Test
-    fun `InternalServerError resulterer i fjasbehandlingsstatus`() {
+    fun `Håndterer null som status`() {
         runBlocking {
             val behandlingsstatusClient = BehandlingsstatusHttpClient(
                 baseUrl,
@@ -81,7 +80,7 @@ class BehandlingsstatusClientTest {
                 testTokenProvider,
                 engine = MockEngine {
                     respond(
-                        content = """{"foo":"UnderBehandling"}""".trimMargin(),
+                        content = """{"behandlingsstatus":null}""".trimMargin(),
                         headers = headersOf(HttpHeaders.ContentType, "application/json")
                     )
                 }
