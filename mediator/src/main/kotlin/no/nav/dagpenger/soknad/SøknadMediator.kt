@@ -99,11 +99,11 @@ internal class SøknadMediator(
     }
 
     fun behandle(hendelse: LeggTilFil) {
-        dokumentkravRepository.leggTil(hendelse.søknadID, hendelse.kravId, hendelse.fil)
+        dokumentkravRepository.håndter(hendelse)
     }
 
     fun behandle(hendelse: SlettFil) {
-        dokumentkravRepository.slett(hendelse.søknadID, hendelse.kravId)
+        dokumentkravRepository.håndter(hendelse)
     }
 
     fun behandle(hendelse: DokumentKravSammenstilling) {
