@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import mu.KotlinLogging
+import no.nav.dagpenger.soknad.db.DokumentkravRepository
 import no.nav.dagpenger.soknad.db.SøknadDataRepository
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
@@ -32,6 +33,7 @@ internal class SøknadMediator(
     private val søknadMalRepository: SøknadMalRepository,
     private val ferdigstiltSøknadRepository: FerdigstiltSøknadRepository,
     private val søknadRepository: SøknadRepository,
+    private val dokumentkravRepository: DokumentkravRepository,
     private val søknadObservers: List<SøknadObserver> = emptyList()
 ) : SøknadDataRepository by søknadDataRepository,
     SøknadMalRepository by søknadMalRepository,
@@ -93,27 +95,19 @@ internal class SøknadMediator(
     }
 
     fun behandle(hendelse: DokumentasjonIkkeTilgjengelig) {
-        behandle(hendelse) { søknad ->
-            søknad.håndter(hendelse)
-        }
+        // TODO
     }
 
     fun behandle(hendelse: LeggTilFil) {
-        behandle(hendelse) { søknad ->
-            søknad.håndter(hendelse)
-        }
+        dokumentkravRepository.leggTil(hendelse.søknadID, hendelse.kravId, hendelse.fil)
     }
 
     fun behandle(hendelse: SlettFil) {
-        behandle(hendelse) { søknad ->
-            søknad.håndter(hendelse)
-        }
+        dokumentkravRepository.slett(hendelse.søknadID, hendelse.kravId)
     }
 
     fun behandle(hendelse: DokumentKravSammenstilling) {
-        behandle(hendelse) { søknad ->
-            søknad.håndter(hendelse)
-        }
+        // TODO
     }
 
     fun behandle(hendelse: MigrertProsessHendelse, søkerOppgave: SøkerOppgave) {

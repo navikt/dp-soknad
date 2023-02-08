@@ -4,7 +4,7 @@ import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Krav
 import java.util.UUID
 
-sealed class DokumentKravHendelse(søknadID: UUID, ident: String, val kravId: String) : SøknadHendelse(søknadID, ident)
+sealed class DokumentKravHendelse(val søknadID: UUID, ident: String, val kravId: String) : Hendelse(ident)
 
 class LeggTilFil(søknadID: UUID, ident: String, kravId: String, val fil: Krav.Fil) :
     DokumentKravHendelse(søknadID, ident, kravId)
