@@ -315,7 +315,8 @@ internal class SøknadPostgresRepositoryTest {
                 søknadMalRepository = mockk(),
                 ferdigstiltSøknadRepository = mockk(),
                 søknadRepository = søknadPostgresRepository,
-                søknadObservers = listOf()
+                søknadObservers = listOf(),
+                dokumentkravRepository = mockk()
             )
 
             hentDokumentKrav(søknadMediator.hent(søknadId)!!).let {

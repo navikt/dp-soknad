@@ -271,7 +271,7 @@ internal class DokumentasjonKravApiTest {
                 assertEquals(HttpStatusCode.NoContent, response.status)
                 with(slot.captured) {
                     assertEquals("451", this.kravId)
-                    assertEquals(testSoknadId, this.søknadID())
+                    assertEquals(testSoknadId, this.søknadID)
                     assertEquals(defaultDummyFodselsnummer, this.ident())
                     assertEquals("urn:vedlegg:soknadid/filid", this.urn.toString())
                 }
@@ -354,7 +354,7 @@ internal class DokumentasjonKravApiTest {
 
                 with(slot.captured) {
                     assertEquals("451", this.kravId)
-                    assertEquals(testSoknadId, this.søknadID())
+                    assertEquals(testSoknadId, this.søknadID)
                     assertEquals(defaultDummyFodselsnummer, this.ident())
                     assertEquals("urn:bundle:1", this.urn().toString())
                 }

@@ -193,7 +193,8 @@ internal class VaktmesterRepositoryTest {
         søknadMalRepository = mockk(),
         ferdigstiltSøknadRepository = mockk(),
         søknadRepository = søknadRepository,
-        søknadObservers = listOf(SøknadTilstandObserver(testRapid))
+        søknadObservers = listOf(SøknadTilstandObserver(testRapid)),
+        dokumentkravRepository = mockk()
     )
 
     private fun assertSøknadSlettetEvent() = assertEquals("søknad_slettet", testRapid.inspektør.field(0, "@event_name").asText())

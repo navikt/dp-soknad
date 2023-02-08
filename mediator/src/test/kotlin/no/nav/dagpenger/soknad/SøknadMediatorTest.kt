@@ -79,7 +79,8 @@ internal class SøknadMediatorTest {
                 every { it.prosessversjon(any(), any()) } returns Prosessversjon("test", 1)
             },
             ferdigstiltSøknadRepository = mockk(),
-            søknadRepository = TestSøknadRepository
+            søknadRepository = TestSøknadRepository,
+            dokumentkravRepository = mockk()
         )
 
         innsendingMediator = InnsendingMediator(

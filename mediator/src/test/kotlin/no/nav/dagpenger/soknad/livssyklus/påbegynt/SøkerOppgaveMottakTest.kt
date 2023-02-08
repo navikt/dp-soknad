@@ -39,7 +39,8 @@ class SøkerOppgaveMottakTest {
                 SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource),
                 mockk(),
                 mockk(),
-                SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
+                SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource),
+                mockk()
             ).also {
                 SøkerOppgaveMottak(testRapid, it)
             }
@@ -87,7 +88,8 @@ class SøkerOppgaveMottakTest {
             søknadDataRepository = mockk(),
             søknadMalRepository = mockk(),
             ferdigstiltSøknadRepository = mockk(),
-            søknadRepository = søknadRepository
+            søknadRepository = søknadRepository,
+            dokumentkravRepository = mockk()
         )
             .also {
                 SøkerOppgaveMottak(testRapid, it)
