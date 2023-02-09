@@ -211,7 +211,7 @@ private class ApiDokumentkravResponse(
                 svar = it.svar.valg.fraSvarValg(),
                 begrunnelse = it.svar.begrunnelse
             )
-        }
+        }.sortedBy { it.beskrivendeId }
     }
 }
 
