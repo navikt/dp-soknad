@@ -5,8 +5,10 @@ import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.db.DBUtils.norskZonedDateTime
+import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.serder.SøknadDTO
@@ -14,9 +16,12 @@ import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import java.util.UUID
 import javax.sql.DataSource
 
+val logger = KotlinLogging.logger { }
+
 interface DokumentkravRepository {
     fun håndter(hendelse: LeggTilFil)
     fun håndter(hendelse: SlettFil)
+    fun håndter(hendelse: DokumentasjonIkkeTilgjengelig)
     fun hent(søknadId: UUID): Dokumentkrav
 }
 
@@ -63,6 +68,31 @@ internal class PostgresDokumentkravRepository(private val datasource: DataSource
                     )
                 ).asUpdate
             )
+        }
+    }
+
+    override fun håndter(hendelse: DokumentasjonIkkeTilgjengelig) {
+        using(sessionOf(datasource)) { session ->
+            session.run(
+                queryOf(
+                    // language=PostgreSQL
+                    """ UPDATE dokumentkrav_v1 SET valg = :valg, begrunnelse = :begrunnelse
+                        WHERE soknad_uuid = :soknadId AND faktum_id = :kravId
+                    """.trimMargin(),
+                    mapOf(
+                        "soknadId" to hendelse.søknadID,
+                        "kravId" to hendelse.kravId,
+                        "valg" to hendelse.valg.name,
+                        "begrunnelse" to hendelse.begrunnelse
+                    )
+                ).asUpdate
+            )
+        }.also { rowsUpdated ->
+            if (rowsUpdated != 1) {
+                logger.warn {
+                    "Fant ikke dokumentasjon krav ${hendelse.kravId} for søknad: ${hendelse.søknadID}"
+                }
+            }
         }
     }
 
