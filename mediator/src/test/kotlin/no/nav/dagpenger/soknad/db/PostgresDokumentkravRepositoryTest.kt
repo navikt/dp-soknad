@@ -27,7 +27,7 @@ internal class PostgresDokumentkravRepositoryTest {
     fun `Kan opprette og slette filer`() {
         val id = UUID.randomUUID()
 
-        withSøknad(lagSøknad(søknadId = id, ident = "123", "1")) {
+        setup(lagSøknad(søknadId = id, ident = "123", "1")) { dokumentKravRepository ->
             val fil1 = Krav.Fil(
                 filnavn = "fil1",
                 urn = URN.rfc8141().parse("urn:vedlegg:$id/fil1"),
@@ -36,51 +36,49 @@ internal class PostgresDokumentkravRepositoryTest {
                 bundlet = false
             )
             val fil2 = fil1.copy(urn = URN.rfc8141().parse("urn:vedlegg:$id/fil2"))
-            PostgresDokumentkravRepository(PostgresDataSourceBuilder.dataSource).let {
-                it.håndter(
-                    LeggTilFil(
-                        søknadID = id,
-                        ident = "123",
-                        kravId = "1",
-                        fil = fil1
-                    )
+            dokumentKravRepository.håndter(
+                LeggTilFil(
+                    søknadID = id,
+                    ident = "123",
+                    kravId = "1",
+                    fil = fil1
                 )
+            )
 
-                it.håndter(
-                    LeggTilFil(
-                        søknadID = id,
-                        ident = "123",
-                        kravId = "1",
-                        fil = fil2
-                    )
+            dokumentKravRepository.håndter(
+                LeggTilFil(
+                    søknadID = id,
+                    ident = "123",
+                    kravId = "1",
+                    fil = fil2
                 )
+            )
 
-                it.hent(id).let { dokumentKrav ->
-                    assertEquals(dokumentKrav.aktiveDokumentKrav().size, 1)
-                    assertEquals(setOf(fil1, fil2), dokumentKrav.aktiveDokumentKrav().single().svar.filer)
-                }
+            dokumentKravRepository.hent(id).let { dokumentKrav ->
+                assertEquals(dokumentKrav.aktiveDokumentKrav().size, 1)
+                assertEquals(setOf(fil1, fil2), dokumentKrav.aktiveDokumentKrav().single().svar.filer)
+            }
 
-                it.håndter(
-                    SlettFil(
-                        søknadID = id,
-                        ident = "123",
-                        kravId = "1",
-                        urn = fil1.urn
-                    )
+            dokumentKravRepository.håndter(
+                SlettFil(
+                    søknadID = id,
+                    ident = "123",
+                    kravId = "1",
+                    urn = fil1.urn
                 )
+            )
 
-                it.hent(id).let { dokumentKrav ->
-                    assertEquals(dokumentKrav.aktiveDokumentKrav().size, 1)
-                    assertEquals(setOf(fil2), dokumentKrav.aktiveDokumentKrav().single().svar.filer)
-                }
+            dokumentKravRepository.hent(id).let { dokumentKrav ->
+                assertEquals(dokumentKrav.aktiveDokumentKrav().size, 1)
+                assertEquals(setOf(fil2), dokumentKrav.aktiveDokumentKrav().single().svar.filer)
             }
         }
     }
 
-    private fun withSøknad(søknad: Søknad, block: () -> Unit) {
+    private fun setup(søknad: Søknad, block: (repository: PostgresDokumentkravRepository) -> Unit) {
         withMigratedDb {
             SøknadPostgresRepository(dataSource = PostgresDataSourceBuilder.dataSource).lagre(søknad)
-            block()
+            block(PostgresDokumentkravRepository(PostgresDataSourceBuilder.dataSource))
         }
     }
 
@@ -116,7 +114,6 @@ internal class PostgresDokumentkravRepositoryTest {
             aktivitetslogg = Aktivitetslogg(),
             prosessversjon = Prosessversjon("Dagpenger", 1),
             data = FerdigSøknadData
-
         )
     }
 }
