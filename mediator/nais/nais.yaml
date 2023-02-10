@@ -52,8 +52,11 @@ spec:
     outbound:
       rules:
         - application: dp-innsyn
+        - application: dp-soknad-redis
         - application: sokos-kontoregister-person
           namespace: okonomi
+  envFrom:
+    - secret: dp-soknad-redis-password
   env:
     - name: PERSON_KONTO_REGISTER_SCOPE
       value: {{PERSON_KONTO_REGISTER_SCOPE}}
