@@ -19,7 +19,7 @@ class ReddissonLock() : Lock {
     private val client = Redisson.create(
         Config().also {
             it.useSingleServer()
-                .setAddress("redis://dp-soknad-redis:6379")
+                .setAddress("dp-soknad-redis:6379")
                 .password = Configuration.redisPassword
         }
     )
