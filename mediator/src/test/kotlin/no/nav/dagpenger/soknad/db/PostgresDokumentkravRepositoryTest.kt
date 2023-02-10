@@ -14,11 +14,14 @@ import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.faktumJson
+import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -57,7 +60,7 @@ internal class PostgresDokumentkravRepositoryTest {
             )
 
             dokumentKravRepository.hent(id).let { dokumentKrav ->
-                assertEquals(dokumentKrav.aktiveDokumentKrav().size, 1)
+                assertEquals(1, dokumentKrav.aktiveDokumentKrav().size)
                 assertEquals(setOf(fil1, fil2), dokumentKrav.aktiveDokumentKrav().single().svar.filer)
             }
 
@@ -71,7 +74,7 @@ internal class PostgresDokumentkravRepositoryTest {
             )
 
             dokumentKravRepository.hent(id).let { dokumentKrav ->
-                assertEquals(dokumentKrav.aktiveDokumentKrav().size, 1)
+                assertEquals(1, dokumentKrav.aktiveDokumentKrav().size)
                 assertEquals(setOf(fil2), dokumentKrav.aktiveDokumentKrav().single().svar.filer)
             }
         }
@@ -81,14 +84,6 @@ internal class PostgresDokumentkravRepositoryTest {
     fun `Skal håndtere Dokumentasjon ikke tilgjengelig`() {
         val id = UUID.randomUUID()
         setup(lagSøknad(søknadId = id, ident = "123", "1")) { dokumentKravRepository ->
-            val fil1 = Krav.Fil(
-                filnavn = "fil1",
-                urn = URN.rfc8141().parse("urn:vedlegg:$id/fil1"),
-                storrelse = 0,
-                tidspunkt = ZonedDateTime.now(),
-                bundlet = false
-            )
-
             dokumentKravRepository.håndter(
                 DokumentasjonIkkeTilgjengelig(
                     søknadID = id,
@@ -104,7 +99,69 @@ internal class PostgresDokumentkravRepositoryTest {
                 assertEquals(SEND_SENERE, svar.valg)
                 assertEquals("Begrunnelse", svar.begrunnelse)
             }
+        }
+    }
 
+    @Test
+    fun `Skal oppdatere dokumentkravene med bundle-info`() {
+        val id = UUID.randomUUID()
+
+        setup(lagSøknad(søknadId = id, ident = "123", "1")) { dokumentKravRepository ->
+            val fil1 = Krav.Fil(
+                filnavn = "fil1",
+                urn = URN.rfc8141().parse("urn:vedlegg:$id/fil1"),
+                storrelse = 0,
+                tidspunkt = ZonedDateTime.now(),
+                bundlet = false
+            )
+
+            val fil2 = Krav.Fil(
+                filnavn = "fil1",
+                urn = URN.rfc8141().parse("urn:vedlegg:$id/fil2"),
+                storrelse = 0,
+                tidspunkt = ZonedDateTime.now(),
+                bundlet = false
+            )
+
+            dokumentKravRepository.håndter(
+                LeggTilFil(
+                    søknadID = id,
+                    ident = "123",
+                    kravId = "1",
+                    fil = fil1
+                )
+            )
+
+            dokumentKravRepository.håndter(
+                LeggTilFil(
+                    søknadID = id,
+                    ident = "4567",
+                    kravId = "1",
+                    fil = fil2
+                )
+            )
+
+            dokumentKravRepository.hent(id).let { dokumentKrav ->
+                assertNull(dokumentKrav.aktiveDokumentKrav().single().svar.bundle)
+                assertEquals(2, dokumentKrav.aktiveDokumentKrav().single().svar.filer.size)
+                assertTrue(dokumentKrav.aktiveDokumentKrav().single().svar.filer.all { !it.bundlet })
+            }
+
+            val bundleUrn = URN.rfc8141().parse("urn:bundle:1")
+
+            dokumentKravRepository.håndter(
+                DokumentKravSammenstilling(
+                    søknadID = id,
+                    ident = "123",
+                    kravId = "1",
+                    urn = bundleUrn
+                )
+            )
+
+            dokumentKravRepository.hent(id).let { dokumentKrav ->
+                assertEquals(bundleUrn, dokumentKrav.aktiveDokumentKrav().single().svar.bundle)
+                assertTrue(dokumentKrav.aktiveDokumentKrav().single().svar.filer.all { it.bundlet })
+            }
         }
     }
 

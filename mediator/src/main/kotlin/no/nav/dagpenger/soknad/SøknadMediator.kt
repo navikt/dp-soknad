@@ -95,7 +95,7 @@ internal class SøknadMediator(
     }
 
     fun behandle(hendelse: DokumentasjonIkkeTilgjengelig) {
-        // TODO
+        dokumentkravRepository.håndter(hendelse)
     }
 
     fun behandle(hendelse: LeggTilFil) {
@@ -107,7 +107,7 @@ internal class SøknadMediator(
     }
 
     fun behandle(hendelse: DokumentKravSammenstilling) {
-        // TODO
+        dokumentkravRepository.håndter(hendelse)
     }
 
     fun behandle(hendelse: MigrertProsessHendelse, søkerOppgave: SøkerOppgave) {

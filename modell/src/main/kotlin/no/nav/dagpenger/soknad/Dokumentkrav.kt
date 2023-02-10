@@ -150,6 +150,7 @@ data class Krav(
         }
 
     fun håndter(hendelse: DokumentKravSammenstilling) {
+        // TODO: Dette må skje ved innsending
         hendelse.behov(
             DokumentkravSvar,
             "Må svare dokumentkravet i Quiz",
@@ -256,9 +257,9 @@ data class Krav(
         }
 
         fun håndter(hendelse: DokumentKravSammenstilling) {
-            this.bundle = hendelse.urn()
-            this.filer.forEach { fil -> fil.bundlet = true }
-            this.innsendt = false
+            bundle = hendelse.urn()
+            filer.forEach { fil -> fil.bundlet = true }
+            innsendt = false
         }
 
         fun besvart() = TilstandStrategy.strategy(this).besvart(this)

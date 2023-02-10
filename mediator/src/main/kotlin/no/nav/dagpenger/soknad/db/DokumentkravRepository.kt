@@ -8,6 +8,7 @@ import kotliquery.using
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.db.DBUtils.norskZonedDateTime
+import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
@@ -22,6 +23,7 @@ interface DokumentkravRepository {
     fun håndter(hendelse: LeggTilFil)
     fun håndter(hendelse: SlettFil)
     fun håndter(hendelse: DokumentasjonIkkeTilgjengelig)
+    fun håndter(hendelse: DokumentKravSammenstilling)
     fun hent(søknadId: UUID): Dokumentkrav
 }
 
@@ -94,6 +96,46 @@ internal class PostgresDokumentkravRepository(private val datasource: DataSource
                 }
             }
         }
+    }
+
+    override fun håndter(hendelse: DokumentKravSammenstilling) {
+        using(sessionOf(datasource)) { session ->
+            session.transaction { tx ->
+                tx.settDokumentasjonskravSomBundlet(hendelse)
+                tx.settDokumentasjonskravfilerSomBundlet(hendelse)
+            }
+        }
+    }
+
+    private fun Session.settDokumentasjonskravSomBundlet(hendelse: DokumentKravSammenstilling) {
+        run(
+            queryOf(
+                // language=PostgreSQL
+                """ UPDATE dokumentkrav_v1 SET bundle_urn = :bundle_urn
+                            WHERE soknad_uuid = :soknadId AND faktum_id = :kravId
+                        """.trimMargin(),
+                mapOf(
+                    "soknadId" to hendelse.søknadID,
+                    "kravId" to hendelse.kravId,
+                    "bundle_urn" to hendelse.urn().toString()
+                )
+            ).asUpdate
+        )
+    }
+
+    private fun Session.settDokumentasjonskravfilerSomBundlet(hendelse: DokumentKravSammenstilling) {
+        run(
+            queryOf(
+                // language=PostgreSQL
+                """ UPDATE dokumentkrav_filer_v1 SET bundlet = true
+                        WHERE soknad_uuid = :soknadId AND faktum_id = :kravId
+                    """.trimMargin(),
+                mapOf(
+                    "soknadId" to hendelse.søknadID,
+                    "kravId" to hendelse.kravId
+                )
+            ).asUpdate
+        )
     }
 
     override fun hent(søknadId: UUID): Dokumentkrav {
