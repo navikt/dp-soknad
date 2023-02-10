@@ -25,6 +25,7 @@ interface DokumentkravRepository {
     fun håndter(hendelse: DokumentasjonIkkeTilgjengelig)
     fun håndter(hendelse: DokumentKravSammenstilling)
     fun hent(søknadId: UUID): Dokumentkrav
+    fun hentDTO(søknadId: UUID): SøknadDTO.DokumentkravDTO
 }
 
 internal class PostgresDokumentkravRepository(private val datasource: DataSource) : DokumentkravRepository {
@@ -138,7 +139,7 @@ internal class PostgresDokumentkravRepository(private val datasource: DataSource
         )
     }
 
-    override fun hent(søknadId: UUID): Dokumentkrav {
+    override fun hentDTO(søknadId: UUID): SøknadDTO.DokumentkravDTO {
         return using(sessionOf(datasource)) { session ->
             session.run(
                 queryOf(
@@ -175,9 +176,10 @@ internal class PostgresDokumentkravRepository(private val datasource: DataSource
             )
                 .toSet()
                 .let { SøknadDTO.DokumentkravDTO(it) }
-                .rehydrer()
         }
     }
+
+    override fun hent(søknadId: UUID): Dokumentkrav = hentDTO(søknadId).rehydrer()
 
     private fun Session.hentFiler(
         søknadsId: UUID,
