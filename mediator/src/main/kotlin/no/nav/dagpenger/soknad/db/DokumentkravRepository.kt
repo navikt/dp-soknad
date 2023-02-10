@@ -7,6 +7,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.db.DBUtils.norskZonedDateTime
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
@@ -33,29 +34,47 @@ internal class PostgresDokumentkravRepository(private val datasource: DataSource
     override fun håndter(hendelse: LeggTilFil) {
         val fil = hendelse.fil
         using(sessionOf(datasource)) { session ->
-            session.run(
-                queryOf(
-                    // language=PostgreSQL
-                    statement = """
+            session.transaction { tx ->
+                tx.run(
+                    queryOf(
+                        // language=PostgreSQL
+                        statement = """
                     INSERT INTO dokumentkrav_filer_v1(faktum_id, soknad_uuid, filnavn, storrelse, urn, tidspunkt, bundlet)
                     VALUES (:faktum_id, :soknad_uuid, :filnavn, :storrelse, :urn, :tidspunkt,:bundlet)
                     ON CONFLICT (faktum_id, soknad_uuid, urn) DO UPDATE SET filnavn = :filnavn, 
                                                                             storrelse = :storrelse, 
                                                                             tidspunkt = :tidspunkt,
                                                                             bundlet = :bundlet
-                    """.trimIndent(),
-                    mapOf(
-                        "faktum_id" to hendelse.kravId,
-                        "soknad_uuid" to hendelse.søknadID,
-                        "filnavn" to fil.filnavn,
-                        "storrelse" to fil.storrelse,
-                        "urn" to fil.urn.toString(),
-                        "tidspunkt" to fil.tidspunkt,
-                        "bundlet" to fil.bundlet
-                    )
-                ).asExecute
-            )
+                        """.trimIndent(),
+                        mapOf(
+                            "faktum_id" to hendelse.kravId,
+                            "soknad_uuid" to hendelse.søknadID,
+                            "filnavn" to fil.filnavn,
+                            "storrelse" to fil.storrelse,
+                            "urn" to fil.urn.toString(),
+                            "tidspunkt" to fil.tidspunkt,
+                            "bundlet" to fil.bundlet
+                        )
+                    ).asExecute
+                )
+                tx.settDokumentkravTilSendNå(hendelse)
+            }
         }
+    }
+
+    private fun Session.settDokumentkravTilSendNå(hendelse: LeggTilFil) {
+        run(
+            queryOf(
+                // language=PostgreSQL
+                """ UPDATE dokumentkrav_v1 SET valg = '${Krav.Svar.SvarValg.SEND_NÅ.name}', begrunnelse = null
+                            WHERE soknad_uuid = :soknadId AND faktum_id = :kravId
+                        """.trimMargin(),
+                mapOf(
+                    "soknadId" to hendelse.søknadID,
+                    "kravId" to hendelse.kravId,
+                )
+            ).asUpdate
+        )
     }
 
     override fun håndter(hendelse: SlettFil) {
