@@ -22,6 +22,8 @@ import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.FerdigstiltSøknadRepos
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.mal.SøknadMalRepository
+import no.nav.dagpenger.soknad.utils.HubbaLock
+import no.nav.dagpenger.soknad.utils.Lock
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.withMDC
 import java.util.UUID
@@ -32,7 +34,8 @@ internal class SøknadMediator(
     private val søknadMalRepository: SøknadMalRepository,
     private val ferdigstiltSøknadRepository: FerdigstiltSøknadRepository,
     private val søknadRepository: SøknadRepository,
-    private val søknadObservers: List<SøknadObserver> = emptyList()
+    private val søknadObservers: List<SøknadObserver> = emptyList(),
+    private val lock: Lock = HubbaLock
 ) : SøknadDataRepository by søknadDataRepository,
     SøknadMalRepository by søknadMalRepository,
     FerdigstiltSøknadRepository by ferdigstiltSøknadRepository,
@@ -132,13 +135,15 @@ internal class SøknadMediator(
     }
 
     private fun behandle(hendelse: SøknadHendelse, håndter: (Søknad) -> Unit) = try {
-        val søknad = hentEllerOpprettSøknad(hendelse)
-        søknadObservers.forEach { søknadObserver ->
-            søknad.addObserver(søknadObserver)
+        lock.withLock(hendelse.søknadID(), 10, 10) {
+            val søknad = hentEllerOpprettSøknad(hendelse)
+            søknadObservers.forEach { søknadObserver ->
+                søknad.addObserver(søknadObserver)
+            }
+            håndter(søknad)
+            lagre(søknad)
+            finalize(hendelse)
         }
-        håndter(søknad)
-        lagre(søknad)
-        finalize(hendelse)
     } catch (err: Aktivitetslogg.AktivitetException) {
         withMDC(kontekst(hendelse)) {
             logger.error("alvorlig feil i aktivitetslogg (se sikkerlogg for detaljer)")

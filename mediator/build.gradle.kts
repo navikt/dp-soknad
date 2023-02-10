@@ -23,6 +23,7 @@ dependencies {
     implementation("com.github.navikt.dp-biblioteker:oauth2-klient:${Dagpenger.Biblioteker.version}")
     implementation("com.github.navikt.dp-biblioteker:pdl-klient:${Dagpenger.Biblioteker.version}")
     implementation("com.github.navikt:pam-geography:2.15")
+    implementation("org.redisson:redisson:3.2.0")
 
     implementation("com.fasterxml.jackson.module:jackson-module-blackbird:${Jackson.version}")
     // DB

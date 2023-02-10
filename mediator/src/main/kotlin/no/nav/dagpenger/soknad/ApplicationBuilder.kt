@@ -29,6 +29,7 @@ import no.nav.dagpenger.soknad.personalia.personaliaRouteBuilder
 import no.nav.dagpenger.soknad.sletterutine.SlettSøknaderJob
 import no.nav.dagpenger.soknad.sletterutine.UtdaterteSøknaderJob
 import no.nav.dagpenger.soknad.status.BehandlingsstatusHttpClient
+import no.nav.dagpenger.soknad.utils.ReddissonLock
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.runMigration
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -75,7 +76,8 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
             SøknadLoggerObserver,
             SøknadMetrikkObserver,
             SøknadTilstandObserver(rapidsConnection)
-        )
+        ),
+        lock = ReddissonLock()
     ).also {
         SøknadOpprettetHendelseMottak(rapidsConnection, it)
         SøkerOppgaveMottak(rapidsConnection, it)

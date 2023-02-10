@@ -225,7 +225,7 @@ data class ApiDokumentKrav(
     val begrunnelse: String? = null,
     val svar: GyldigValg? = null,
     val bundle: String? = null,
-    val bundleFilsti: String? = null
+    val bundleFilsti: String? = null,
 ) {
     data class ApiDokumentkravFiler(
         val filnavn: String,
