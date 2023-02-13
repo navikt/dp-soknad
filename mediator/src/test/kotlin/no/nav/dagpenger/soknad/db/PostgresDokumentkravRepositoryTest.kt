@@ -23,10 +23,13 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import java.time.ZonedDateTime
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class PostgresDokumentkravRepositoryTest {
+    private val now = LocalDateTime.now().atZone(ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.HOURS)
 
     @Test
     fun `Kan opprette og slette filer`() {
@@ -37,7 +40,7 @@ internal class PostgresDokumentkravRepositoryTest {
                 filnavn = "fil1",
                 urn = URN.rfc8141().parse("urn:vedlegg:$id/fil1"),
                 storrelse = 0,
-                tidspunkt = ZonedDateTime.now(),
+                tidspunkt = now,
                 bundlet = false
             )
             val fil2 = fil1.copy(urn = URN.rfc8141().parse("urn:vedlegg:$id/fil2"))
@@ -111,7 +114,7 @@ internal class PostgresDokumentkravRepositoryTest {
                 filnavn = "fil1",
                 urn = URN.rfc8141().parse("urn:vedlegg:$id/fil1"),
                 storrelse = 0,
-                tidspunkt = ZonedDateTime.now(),
+                tidspunkt = now,
                 bundlet = false
             )
 
@@ -119,7 +122,7 @@ internal class PostgresDokumentkravRepositoryTest {
                 filnavn = "fil1",
                 urn = URN.rfc8141().parse("urn:vedlegg:$id/fil2"),
                 storrelse = 0,
-                tidspunkt = ZonedDateTime.now(),
+                tidspunkt = now,
                 bundlet = false
             )
 
@@ -177,7 +180,6 @@ internal class PostgresDokumentkravRepositoryTest {
         ident: String = "1234",
         vararg kravId: String
     ): Søknad {
-        val now = ZonedDateTime.now()
         return Søknad.rehydrer(
             søknadId = søknadId,
             ident = ident,
