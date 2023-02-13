@@ -153,30 +153,8 @@ internal class SøknadPostgresRepositoryTest {
 
     @Test
     fun `Lagre og hente søknad med dokumentkrav og aktivitetslogg`() {
-        val krav1 = Krav(
-            id = sannsynliggjøring.id,
-            sannsynliggjøring = sannsynliggjøring,
-            tilstand = Krav.KravTilstand.AKTIV,
-            svar = Krav.Svar(
-                filer = mutableSetOf(),
-                valg = Krav.Svar.SvarValg.SEND_NÅ,
-                begrunnelse = null,
-                bundle = null,
-                innsendt = false,
-            )
-        )
-        val krav2 = Krav(
-            id = sannsynliggjøring2.id,
-            sannsynliggjøring = sannsynliggjøring2,
-            tilstand = Krav.KravTilstand.AKTIV,
-            svar = Krav.Svar(
-                filer = mutableSetOf(),
-                valg = Krav.Svar.SvarValg.SEND_NÅ,
-                begrunnelse = null,
-                bundle = null,
-                innsendt = false,
-            )
-        )
+        val krav1 = Krav(sannsynliggjøring)
+        val krav2 = Krav(sannsynliggjøring2)
         val søknad = Søknad.rehydrer(
             søknadId = søknadId,
             ident = ident,
@@ -199,22 +177,20 @@ internal class SøknadPostgresRepositoryTest {
                 søknadPostgresRepository.lagre(søknad)
 
                 assertAntallRader("soknad_v1", 1)
-                assertAntallRader("dokumentkrav_filer_v1", 0)
                 assertAntallRader("dokumentkrav_v1", 2)
                 assertAntallRader("aktivitetslogg_v1", 1)
 
-                // TODO
-//                søknadPostgresRepository.hent(søknadId).let { rehydrertSøknad ->
-//                    assertNotNull(rehydrertSøknad)
-//                    assertDeepEquals(rehydrertSøknad, søknad)
-//                }
-//
-//                søknadPostgresRepository.lagre(søknad)
-//
-//                søknadPostgresRepository.hent(søknadId).let { rehydrertSøknad ->
-//                    assertNotNull(rehydrertSøknad)
-//                    assertDeepEquals(rehydrertSøknad, søknad)
-//                }
+                søknadPostgresRepository.hent(søknadId).let { rehydrertSøknad ->
+                    assertNotNull(rehydrertSøknad)
+                    assertDeepEquals(rehydrertSøknad, søknad)
+                }
+
+                søknadPostgresRepository.lagre(søknad)
+
+                søknadPostgresRepository.hent(søknadId).let { rehydrertSøknad ->
+                    assertNotNull(rehydrertSøknad)
+                    assertDeepEquals(rehydrertSøknad, søknad)
+                }
             }
         }
     }
@@ -268,7 +244,7 @@ internal class SøknadPostgresRepositoryTest {
     }
 
     @Test
-    fun `livssyklus til dokumentasjonskrav svar`() {
+    fun `Kan hente ut søknad med dokumentasjonskrav svar`() {
         val tidspunkt = now
         val fil1 = Krav.Fil(
             filnavn = "ja.jpg",
