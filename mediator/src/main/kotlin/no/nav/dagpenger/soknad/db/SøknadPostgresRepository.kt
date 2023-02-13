@@ -31,8 +31,8 @@ import javax.sql.DataSource
 @Suppress("FunctionName")
 class SøknadPostgresRepository(private val dataSource: DataSource) :
     SøknadRepository {
+    private val dokumentkravRepository = PostgresDokumentkravRepository(dataSource)
 
-    private val hubba = PostgresDokumentkravRepository(dataSource)
     override fun hentEier(søknadId: UUID): String? {
         return using(sessionOf(dataSource)) { session ->
             session.run(
@@ -94,7 +94,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 opprettet = row.norskZonedDateTime("opprettet"),
                 tilstandType = SøknadDTO.TilstandDTO.rehydrer(row.string("tilstand")),
                 språkDTO = SøknadDTO.SpråkDTO(row.string("spraak")),
-                dokumentkrav = hubba.hentDTO(søknadsId),
+                dokumentkrav = dokumentkravRepository.hentDTO(søknadsId),
                 sistEndretAvBruker = row.norskZonedDateTime("sist_endret_av_bruker"),
                 aktivitetslogg = session.hentAktivitetslogg(søknadsId),
                 innsendt = row.norskZonedDateTimeOrNull("innsendt"),
