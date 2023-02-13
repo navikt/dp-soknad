@@ -6,6 +6,7 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.Krav
+import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SEND_NÅ
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SEND_SENERE
 import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Sannsynliggjøring
@@ -64,7 +65,9 @@ internal class PostgresDokumentkravRepositoryTest {
 
             dokumentKravRepository.hent(id).let { dokumentKrav ->
                 assertEquals(1, dokumentKrav.aktiveDokumentKrav().size)
-                assertEquals(setOf(fil1, fil2), dokumentKrav.aktiveDokumentKrav().single().svar.filer)
+                val svar = dokumentKrav.aktiveDokumentKrav().single().svar
+                assertEquals(setOf(fil1, fil2), svar.filer)
+                assertEquals(SEND_NÅ, svar.valg)
             }
 
             dokumentKravRepository.håndter(
@@ -153,6 +156,22 @@ internal class PostgresDokumentkravRepositoryTest {
             val bundleUrn = URN.rfc8141().parse("urn:bundle:1")
 
             dokumentKravRepository.håndter(
+                DokumentasjonIkkeTilgjengelig(
+                    søknadID = id,
+                    ident = "123",
+                    kravId = "1",
+                    valg = SEND_SENERE,
+                    begrunnelse = "Begrunnelse"
+                )
+            )
+
+            dokumentKravRepository.hent(id).let { krav ->
+                val svar = krav.aktiveDokumentKrav().single().svar
+                assertEquals(SEND_SENERE, svar.valg)
+                assertEquals("Begrunnelse", svar.begrunnelse)
+            }
+
+            dokumentKravRepository.håndter(
                 DokumentKravSammenstilling(
                     søknadID = id,
                     ident = "123",
@@ -162,8 +181,10 @@ internal class PostgresDokumentkravRepositoryTest {
             )
 
             dokumentKravRepository.hent(id).let { dokumentKrav ->
-                assertEquals(bundleUrn, dokumentKrav.aktiveDokumentKrav().single().svar.bundle)
-                assertTrue(dokumentKrav.aktiveDokumentKrav().single().svar.filer.all { it.bundlet })
+                val svar = dokumentKrav.aktiveDokumentKrav().single().svar
+                assertEquals(bundleUrn, svar.bundle)
+                assertEquals(SEND_NÅ, svar.valg)
+                assertTrue(svar.filer.all { it.bundlet })
             }
         }
     }
