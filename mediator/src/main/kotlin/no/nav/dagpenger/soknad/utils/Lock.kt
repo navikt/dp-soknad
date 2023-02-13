@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad.utils
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration
 import org.redisson.Redisson
+import org.redisson.api.RedissonClient
 import org.redisson.config.Config
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -22,13 +23,39 @@ class ReddissonLock(config: Config = defaultConfig) : Lock {
             Config().also {
                 it.useSingleServer()
                     .setAddress("dp-soknad-redis:6379")
+                    .setDnsMonitoring(true)
+                    .setDnsMonitoringInterval(1000)
                     .password = Configuration.redisPassword
             }
         }
         private val logger = KotlinLogging.logger { }
     }
 
-    private val client = Redisson.create(config)
+    val client: RedissonClient = Redisson.create(config)
+
+    suspend fun hubba(id: UUID, waitTime: Int, leaseTime: Int, block: suspend () -> Unit) {
+        client.getLock(id.toString()).let { lock ->
+            lock.tryLock(waitTime.seconds.inWholeSeconds, leaseTime.seconds.inWholeSeconds, TimeUnit.SECONDS).let {
+                when (it) {
+                    true -> {
+                        try {
+                            block()
+                        } finally {
+                            kotlin.runCatching {
+                                lock.unlock()
+                            }.onFailure {
+                                logger.warn(it) { "Kunne ikke release lock for $id" }
+                            }
+                        }
+                    }
+
+                    false -> {
+                        throw RuntimeException("Fikk ikke tak i lock")
+                    }
+                }
+            }
+        }
+    }
 
     override fun withLock(id: UUID, waitTime: Int, leaseTime: Int, block: () -> Unit) {
         client.getLock(id.toString()).let { lock ->
@@ -38,12 +65,10 @@ class ReddissonLock(config: Config = defaultConfig) : Lock {
                         try {
                             block()
                         } finally {
-                            try {
+                            kotlin.runCatching {
                                 lock.unlock()
-                            } catch (t: Throwable) {
-                                logger.warn(t) {
-                                    "fikk ikke releaset lock"
-                                }
+                            }.onFailure {
+                                logger.warn(it) { "Kunne ikke release lock for $id" }
                             }
                         }
                     }

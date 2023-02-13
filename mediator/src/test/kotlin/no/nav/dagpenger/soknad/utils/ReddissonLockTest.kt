@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.utils
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
@@ -28,22 +29,27 @@ class ReddissonLockTest {
                     .password = "redis"
             }
         )
-        val id = UUID.randomUUID()
+        val id = UUID.randomUUID().also { println(it) }
 
         runBlocking {
             launch {
                 logger.info("hubba launch")
-                reddissonLock.withLock(id, 1, 10) {
+                reddissonLock.hubba(id, 1, 10) {
+                    reddissonLock.client.keys.also { println(it.keys.map { s -> s }) }
+                    delay(1000)
                     logger.info("hubba done")
                 }
             }
 
             launch {
                 logger.info("bubba launch")
-                reddissonLock.withLock(id, 1, 10) {
+                reddissonLock.hubba(id, 1, 10) {
+                    delay(1000)
+                    reddissonLock.client.keys.also { println(it.keys.map { s -> s }) }
                     logger.info("bubba done")
                 }
             }
         }
+        reddissonLock.client.keys.also { println(it.keys.map { s -> s }) }
     }
 }
