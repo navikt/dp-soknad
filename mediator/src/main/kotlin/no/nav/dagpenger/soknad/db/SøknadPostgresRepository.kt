@@ -236,7 +236,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                 """
                 INSERT INTO dokumentkrav_v1(faktum_id, beskrivende_id, soknad_uuid, faktum, sannsynliggjoer, tilstand)
                 VALUES (:faktum_id, :beskrivende_id, :soknad_uuid, :faktum, :sannsynliggjoer, :tilstand)
-                ON CONFLICT (faktum_id, soknad_uuid) DO UPDATE SET tilstand = :tilstand
+                ON CONFLICT (faktum_id, soknad_uuid) DO UPDATE SET tilstand = :tilstand, innsendt = :innsendt
                 """.trimIndent(),
                 mapOf(
                     "faktum_id" to krav.id,
@@ -253,6 +253,7 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                         )
                     },
                     "tilstand" to krav.tilstand.name,
+                    "innsendt" to krav.svar.innsendt
                 )
             )
         )

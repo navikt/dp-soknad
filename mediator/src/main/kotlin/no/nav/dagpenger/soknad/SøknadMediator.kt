@@ -90,8 +90,8 @@ internal class SøknadMediator(
     fun behandle(søkerOppgave: SøkerOppgave) {
         val søkeroppgaveHendelse =
             SøkeroppgaveHendelse(søkerOppgave.søknadUUID(), søkerOppgave.eier(), søkerOppgave.sannsynliggjøringer())
-        behandle(søkeroppgaveHendelse) { person ->
-            person.håndter(søkeroppgaveHendelse)
+        behandle(søkeroppgaveHendelse) { søknad ->
+            søknad.håndter(søkeroppgaveHendelse)
             søknadDataRepository.lagre(søkerOppgave)
         }
     }
