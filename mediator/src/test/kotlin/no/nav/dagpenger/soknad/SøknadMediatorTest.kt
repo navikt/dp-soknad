@@ -116,6 +116,8 @@ internal class SøknadMediatorTest {
         assertEquals(1, testRapid.inspektør.size)
         val behovJson = testRapid.inspektør.message(0)
         assertEquals("DokumentkravSvar", behovJson["@behov"].single().asText())
+        assertEquals("$søknadUuid", behovJson["søknad_uuid"].asText())
+
         behovJson["DokumentkravSvar"].let { dokumentKravNode ->
             assertEquals("1", dokumentKravNode["id"].asText())
             assertEquals("1", dokumentKravNode["id"].asText())
