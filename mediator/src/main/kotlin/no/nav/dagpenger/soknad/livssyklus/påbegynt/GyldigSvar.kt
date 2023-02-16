@@ -38,6 +38,7 @@ class GyldigSvar(json: JsonNode) {
             "land" -> require(svarAsJson.isTextual && svarAsJson.asText().length < 4, feilmelding())
             "periode" -> validerPeriode()
             "generator" -> validerGenerator()
+            "dokument" -> {}
             else -> {
                 throw IllegalArgumentException("Kjenner ikke typen $type")
             }
