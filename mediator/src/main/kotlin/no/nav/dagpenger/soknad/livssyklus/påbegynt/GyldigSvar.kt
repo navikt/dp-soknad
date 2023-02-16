@@ -3,8 +3,10 @@ package no.nav.dagpenger.soknad.livssyklus.påbegynt
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
+import de.slub.urn.URN
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.isMissingOrNull
+import java.time.LocalDateTime
 
 class GyldigSvar(json: JsonNode) {
 
@@ -27,20 +29,35 @@ class GyldigSvar(json: JsonNode) {
                 erValg() && svarAsJson.size() > 0,
                 feilmelding()
             )
+
             "envalg" -> require((erTekst()), feilmelding())
             "localdate" -> require(
                 svarAsJson.isTextual && kotlin.runCatching { svarAsJson.asLocalDate() }.isSuccess,
                 feilmelding()
             )
+
             "double" -> require(svarAsJson.isDouble || svarAsJson.isNumber, feilmelding())
             "int" -> require(svarAsJson.isInt, feilmelding())
             "tekst" -> require(erTekst(), feilmelding())
             "land" -> require(svarAsJson.isTextual && svarAsJson.asText().length < 4, feilmelding())
             "periode" -> validerPeriode()
             "generator" -> validerGenerator()
+            "dokument" -> {
+                validerDokument()
+            }
+
             else -> {
                 throw IllegalArgumentException("Kjenner ikke typen $type")
             }
+        }
+    }
+
+    private fun validerDokument() {
+        kotlin.runCatching {
+            svarAsJson["urn"].asText().let { URN.rfc8141().parse(it) }
+            svarAsJson["lastOppTidsstempel"].asText().let { LocalDateTime.parse(it) }
+        }.onFailure {
+            throw IllegalArgumentException("Ikke gyldig '$type', feil i underliggende faktum ${it.message}, svar: $svarAsJson")
         }
     }
 
