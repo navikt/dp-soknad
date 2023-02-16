@@ -42,7 +42,7 @@ jobs:
 
   deploy-dev:
     needs: [ build ]
-    if: github.ref == 'refs/heads/bug/oppsummering_og_dokumentkrav'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
