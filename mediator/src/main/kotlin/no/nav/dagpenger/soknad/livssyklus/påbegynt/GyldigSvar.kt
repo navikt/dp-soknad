@@ -84,7 +84,7 @@ class GyldigSvar(json: JsonNode) {
         }.fold(
             {},
             {
-                throw IllegalArgumentException(feilmelding().invoke())
+                throw IllegalArgumentException("Ikke gyldig '$type', feil i underliggende faktum ${it.message}, svar: $svarAsJson")
             }
         )
     }
