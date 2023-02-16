@@ -131,7 +131,7 @@ internal class PostgresDokumentkravRepository(private val datasource: DataSource
         run(
             queryOf(
                 // language=PostgreSQL
-                """ UPDATE dokumentkrav_v1 SET bundle_urn = :bundle_urn, valg = '${Krav.Svar.SvarValg.SEND_NÅ.name}'
+                """ UPDATE dokumentkrav_v1 SET bundle_urn = :bundle_urn, valg = '${Krav.Svar.SvarValg.SEND_NÅ.name}', innsendt = false
                             WHERE soknad_uuid = :soknadId AND faktum_id = :kravId
                         """.trimMargin(),
                 mapOf(
