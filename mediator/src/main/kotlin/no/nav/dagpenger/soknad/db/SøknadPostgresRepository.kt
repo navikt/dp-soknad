@@ -1,6 +1,5 @@
 package no.nav.dagpenger.soknad.db
 
-import de.slub.urn.URN
 import kotliquery.Query
 import kotliquery.Row
 import kotliquery.Session
@@ -21,11 +20,6 @@ import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.serder.AktivitetsloggDTO
 import no.nav.dagpenger.soknad.serder.AktivitetsloggMapper.Companion.aktivitetslogg
 import no.nav.dagpenger.soknad.serder.SøknadDTO
-import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.KravDTO
-import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.KravDTO.KravTilstandDTO
-import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SannsynliggjøringDTO
-import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SvarDTO
-import no.nav.dagpenger.soknad.serder.SøknadDTO.DokumentkravDTO.SvarDTO.SvarValgDTO
 import no.nav.dagpenger.soknad.serder.SøknadDTO.ProsessversjonDTO
 import no.nav.dagpenger.soknad.toMap
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
@@ -37,6 +31,8 @@ import javax.sql.DataSource
 @Suppress("FunctionName")
 class SøknadPostgresRepository(private val dataSource: DataSource) :
     SøknadRepository {
+    private val dokumentkravRepository = PostgresDokumentkravRepository(dataSource)
+
     override fun hentEier(søknadId: UUID): String? {
         return using(sessionOf(dataSource)) { session ->
             session.run(
@@ -98,9 +94,7 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 opprettet = row.norskZonedDateTime("opprettet"),
                 tilstandType = SøknadDTO.TilstandDTO.rehydrer(row.string("tilstand")),
                 språkDTO = SøknadDTO.SpråkDTO(row.string("spraak")),
-                dokumentkrav = SøknadDTO.DokumentkravDTO(
-                    session.hentDokumentKrav(søknadsId)
-                ),
+                dokumentkrav = dokumentkravRepository.hentDTO(søknadsId),
                 sistEndretAvBruker = row.norskZonedDateTime("sist_endret_av_bruker"),
                 aktivitetslogg = session.hentAktivitetslogg(søknadsId),
                 innsendt = row.norskZonedDateTimeOrNull("innsendt"),
@@ -240,17 +234,9 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queryOf(
                 // language=PostgreSQL
                 """
-                INSERT INTO dokumentkrav_v1(faktum_id, beskrivende_id, soknad_uuid, faktum, sannsynliggjoer, tilstand, valg,
-                                            begrunnelse, bundle_urn, innsendt)
-                VALUES (:faktum_id, :beskrivende_id, :soknad_uuid, :faktum, :sannsynliggjoer, :tilstand, :valg, :begrunnelse, :bundle, :innsendt)
-                ON CONFLICT (faktum_id, soknad_uuid) DO UPDATE SET beskrivende_id  = :beskrivende_id,
-                                                                   faktum          = :faktum,
-                                                                   sannsynliggjoer = :sannsynliggjoer,
-                                                                   tilstand        = :tilstand,
-                                                                   valg            = :valg,
-                                                                   begrunnelse     = :begrunnelse,
-                                                                   bundle_urn      = :bundle,
-                                                                   innsendt        = :innsendt
+                INSERT INTO dokumentkrav_v1(faktum_id, beskrivende_id, soknad_uuid, faktum, sannsynliggjoer, tilstand)
+                VALUES (:faktum_id, :beskrivende_id, :soknad_uuid, :faktum, :sannsynliggjoer, :tilstand)
+                ON CONFLICT (faktum_id, soknad_uuid) DO UPDATE SET tilstand = :tilstand, innsendt = :innsendt
                 """.trimIndent(),
                 mapOf(
                     "faktum_id" to krav.id,
@@ -267,48 +253,9 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                         )
                     },
                     "tilstand" to krav.tilstand.name,
-                    "valg" to krav.svar.valg.name,
-                    "begrunnelse" to krav.svar.begrunnelse,
-                    "bundle" to krav.svar.bundle?.toString(),
                     "innsendt" to krav.svar.innsendt
                 )
             )
-        )
-        // fjerne alle filer for søknaden. Modellen har fasit på hvor mange som legges til i neste block
-        queries.add(
-            queryOf(
-                // language=PostgreSQL
-                "DELETE FROM dokumentkrav_filer_v1 WHERE soknad_uuid = :uuid AND faktum_id = :faktum_id",
-                mapOf(
-                    "uuid" to søknadId,
-                    "faktum_id" to krav.id
-                )
-            )
-        )
-
-        queries.addAll(
-            krav.svar.filer.map { fil ->
-                queryOf(
-                    // language=PostgreSQL
-                    statement = """
-                    INSERT INTO dokumentkrav_filer_v1(faktum_id, soknad_uuid, filnavn, storrelse, urn, tidspunkt, bundlet)
-                    VALUES (:faktum_id, :soknad_uuid, :filnavn, :storrelse, :urn, :tidspunkt,:bundlet)
-                    ON CONFLICT (faktum_id, soknad_uuid, urn) DO UPDATE SET filnavn = :filnavn, 
-                                                                            storrelse = :storrelse, 
-                                                                            tidspunkt = :tidspunkt,
-                                                                            bundlet = :bundlet
-                    """.trimIndent(),
-                    mapOf(
-                        "faktum_id" to krav.id,
-                        "soknad_uuid" to søknadId,
-                        "filnavn" to fil.filnavn,
-                        "storrelse" to fil.storrelse,
-                        "urn" to fil.urn.toString(),
-                        "tidspunkt" to fil.tidspunkt,
-                        "bundlet" to fil.bundlet
-                    )
-                )
-            }
         )
     }
 
@@ -327,68 +274,4 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             )
         )
     }
-}
-
-private fun Session.hentDokumentKrav(søknadsId: UUID): Set<KravDTO> =
-    this.run(
-        queryOf(
-            // language=PostgreSQL
-            """
-                  SELECT faktum_id, beskrivende_id, faktum, sannsynliggjoer, tilstand, valg, begrunnelse, bundle_urn, innsendt
-                  FROM dokumentkrav_v1 
-                  WHERE soknad_uuid = :soknad_uuid
-            """.trimIndent(),
-            mapOf(
-                "soknad_uuid" to søknadsId
-            )
-        ).map { row ->
-            val faktumId = row.string("faktum_id")
-            KravDTO(
-                id = faktumId,
-                beskrivendeId = row.string("beskrivende_id"),
-                sannsynliggjøring = SannsynliggjøringDTO(
-                    id = faktumId,
-                    faktum = objectMapper.readTree(row.binaryStream("faktum")),
-                    sannsynliggjør = objectMapper.readTree(row.binaryStream("sannsynliggjoer")).toSet()
-                ),
-                svar = SvarDTO(
-                    begrunnelse = row.stringOrNull("begrunnelse"),
-                    filer = hentFiler(søknadsId, faktumId),
-                    valg = SvarValgDTO.valueOf(row.string("valg")),
-                    bundle = row.stringOrNull("bundle_urn")?.let { URN.rfc8141().parse(it) },
-                    innsendt = row.boolean("innsendt")
-                ),
-                tilstand = row.string("tilstand")
-                    .let { KravTilstandDTO.valueOf(it) }
-            )
-        }.asList
-    ).toSet()
-
-private fun Session.hentFiler(
-    søknadsId: UUID,
-    faktumId: String
-): Set<KravDTO.FilDTO> {
-    return this.run(
-        queryOf(
-            //language=PostgreSQL
-            statement = """
-                  SELECT faktum_id, soknad_uuid, filnavn, storrelse, urn, tidspunkt, bundlet
-                  FROM dokumentkrav_filer_v1 
-                  WHERE soknad_uuid = :soknad_uuid
-                  AND faktum_id = :faktum_id 
-            """.trimIndent(),
-            paramMap = mapOf(
-                "soknad_uuid" to søknadsId,
-                "faktum_id" to faktumId
-            )
-        ).map { row ->
-            KravDTO.FilDTO(
-                filnavn = row.string("filnavn"),
-                urn = URN.rfc8141().parse(row.string("urn")),
-                storrelse = row.long("storrelse"),
-                tidspunkt = row.norskZonedDateTime("tidspunkt"),
-                bundlet = row.boolean("bundlet")
-            )
-        }.asList
-    ).toSet()
 }

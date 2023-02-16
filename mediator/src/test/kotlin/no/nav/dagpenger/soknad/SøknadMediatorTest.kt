@@ -2,11 +2,13 @@ package no.nav.dagpenger.soknad
 
 import FerdigSøknadData
 import com.fasterxml.jackson.databind.node.BooleanNode
+import de.slub.urn.URN
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
+import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
@@ -19,6 +21,7 @@ import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak
 import no.nav.dagpenger.soknad.mal.SøknadMalRepository
+import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.rapids_rivers.toUUID
 import org.junit.jupiter.api.AfterEach
@@ -26,6 +29,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import java.util.UUID
 
 internal class SøknadMediatorTest {
@@ -79,7 +83,8 @@ internal class SøknadMediatorTest {
                 every { it.prosessversjon(any(), any()) } returns Prosessversjon("test", 1)
             },
             ferdigstiltSøknadRepository = mockk(),
-            søknadRepository = TestSøknadRepository
+            søknadRepository = TestSøknadRepository,
+            dokumentkravRepository = mockk(relaxed = true)
         )
 
         innsendingMediator = InnsendingMediator(
@@ -98,6 +103,29 @@ internal class SøknadMediatorTest {
     @AfterEach
     fun tearDown() {
         TestSøknadRepository.clear()
+    }
+
+    @Test
+    fun `håndtere dokumentkrav sammenstilling`() {
+        val søknadUuid = UUID.randomUUID()
+        søknadMediator.behandle(
+            DokumentKravSammenstilling(
+                søknadID = søknadUuid, ident = testIdent, kravId = "1", urn = URN.rfc8141().parse("urn:vedlegg:krav1")
+            )
+        )
+        assertEquals(1, testRapid.inspektør.size)
+        val behovJson = testRapid.inspektør.message(0)
+        assertEquals("DokumentkravSvar", behovJson["@behov"].single().asText())
+        assertEquals("$søknadUuid", behovJson["søknad_uuid"].asText())
+
+        behovJson["DokumentkravSvar"].let { dokumentKravNode ->
+            assertEquals("1", dokumentKravNode["id"].asText())
+            assertEquals("1", dokumentKravNode["id"].asText())
+            assertEquals("dokument", dokumentKravNode["type"].asText())
+            assertDoesNotThrow {
+                dokumentKravNode["lastOppTidsstempel"].asLocalDateTime()
+            }
+        }
     }
 
     @Test

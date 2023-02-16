@@ -19,10 +19,12 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestSøkerOppgave
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
+import no.nav.dagpenger.soknad.db.PostgresDokumentkravRepository
 import no.nav.dagpenger.soknad.db.SøkerOppgaveNotFoundException
 import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.faktumJson
+import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.observers.SøknadTilstandObserver
 import no.nav.dagpenger.soknad.sletterutine.VaktmesterPostgresRepository.Companion.låseNøkkel
@@ -129,6 +131,21 @@ internal class VaktmesterRepositoryTest {
         val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
 
         søknadRepository.lagre(gammelPåbegyntSøknad(gammelPåbegyntSøknadUuid, testPersonIdent))
+
+        PostgresDokumentkravRepository(dataSource).håndter(
+            LeggTilFil(
+                søknadID = gammelPåbegyntSøknadUuid,
+                ident = testPersonIdent,
+                kravId = krav.id,
+                fil = Krav.Fil(
+                    filnavn = "test.jpg",
+                    urn = URN.rfc8141().parse("urn:test:1"),
+                    storrelse = 0,
+                    tidspunkt = ZonedDateTime.now(),
+                    bundlet = false
+                )
+            )
+        )
         søknadRepository.lagre(nyPåbegyntSøknad(nyPåbegyntSøknadUuid, testPersonIdent))
         søknadRepository.lagre(innsendtSøknad(innsendtSøknadUuid, testPersonIdent))
         søknadCacheRepository.lagre(TestSøkerOppgave(gammelPåbegyntSøknadUuid, testPersonIdent, "{}"))
@@ -186,22 +203,24 @@ internal class VaktmesterRepositoryTest {
 
     private fun søknadMediator(
         søknadCacheRepository: SøknadDataPostgresRepository,
-        søknadRepository: SøknadRepository
+        søknadRepository: SøknadRepository,
     ) = SøknadMediator(
         rapidsConnection = testRapid,
         søknadDataRepository = søknadCacheRepository,
         søknadMalRepository = mockk(),
         ferdigstiltSøknadRepository = mockk(),
         søknadRepository = søknadRepository,
-        søknadObservers = listOf(SøknadTilstandObserver(testRapid))
+        søknadObservers = listOf(SøknadTilstandObserver(testRapid)),
+        dokumentkravRepository = mockk()
     )
 
-    private fun assertSøknadSlettetEvent() = assertEquals("søknad_slettet", testRapid.inspektør.field(0, "@event_name").asText())
+    private fun assertSøknadSlettetEvent() =
+        assertEquals("søknad_slettet", testRapid.inspektør.field(0, "@event_name").asText())
 
     private fun assertAtViIkkeSletterForMye(
         antallGjenværendeSøknader: Int,
         søknadRepository: SøknadRepository,
-        ident: String
+        ident: String,
     ) {
         søknadRepository.hentSøknader(ident).also { søknader ->
             assertEquals(antallGjenværendeSøknader, søknader.size)
