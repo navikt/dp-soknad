@@ -9,7 +9,6 @@ import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
-import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
@@ -162,11 +161,6 @@ class Søknad private constructor(
         tilstand.håndter(leggTilFil, this)
     }
 
-    fun håndter(slettFil: SlettFil) {
-        kontekst(slettFil)
-        tilstand.håndter(slettFil, this)
-    }
-
     fun håndter(hendelse: DokumentKravSammenstilling) {
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
@@ -215,10 +209,6 @@ class Søknad private constructor(
 
         fun håndter(leggTilFil: LeggTilFil, søknad: Søknad) {
             leggTilFil.`kan ikke håndteres i denne tilstanden`()
-        }
-
-        fun håndter(slettFil: SlettFil, søknad: Søknad) {
-            slettFil.`kan ikke håndteres i denne tilstanden`()
         }
 
         fun håndter(hendelse: DokumentKravSammenstilling, søknad: Søknad) {
@@ -314,10 +304,6 @@ class Søknad private constructor(
             søknad.håndter(søkeroppgaveHendelse.sannsynliggjøringer())
         }
 
-        override fun håndter(slettFil: SlettFil, søknad: Søknad) {
-            søknad.dokumentkrav.håndter(slettFil)
-        }
-
         override fun håndter(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
             søknad.endreTilstand(Slettet, slettSøknadHendelse)
         }
@@ -339,10 +325,6 @@ class Søknad private constructor(
 
         override fun håndter(leggTilFil: LeggTilFil, søknad: Søknad) {
             søknad.dokumentkrav.håndter(leggTilFil)
-        }
-
-        override fun håndter(slettFil: SlettFil, søknad: Søknad) {
-            søknad.dokumentkrav.håndter(slettFil)
         }
 
         override fun håndter(dokumentKravSammenstilling: DokumentKravSammenstilling, søknad: Søknad) {

@@ -11,7 +11,6 @@ import no.nav.dagpenger.soknad.hendelse.DokumentKravHendelse
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
-import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
@@ -39,11 +38,6 @@ class Dokumentkrav private constructor(
     }
 
     fun håndter(hendelse: LeggTilFil) {
-        val krav = hentKrav(hendelse)
-        krav.svar.håndter(hendelse)
-    }
-
-    fun håndter(hendelse: SlettFil) {
         val krav = hentKrav(hendelse)
         krav.svar.håndter(hendelse)
     }
@@ -241,10 +235,6 @@ data class Krav(
             filer.add(hendelse.fil)
             valg = SEND_NÅ
             begrunnelse = null
-        }
-
-        fun håndter(hendelse: SlettFil) {
-            filer.removeIf { it.urn == hendelse.urn }
         }
 
         fun håndter(hendelse: DokumentasjonIkkeTilgjengelig) {

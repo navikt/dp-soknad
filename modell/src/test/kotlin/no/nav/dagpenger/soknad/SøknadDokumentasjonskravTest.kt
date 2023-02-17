@@ -5,7 +5,6 @@ import no.nav.dagpenger.soknad.helpers.FerdigSøknadData
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
-import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
@@ -155,23 +154,6 @@ class SøknadDokumentasjonskravTest {
             }
         }
 
-        søknad.håndter(
-            SlettFil(
-                søknadId,
-                ident,
-                "1",
-                urn = URN.rfc8141().parse("urn:sid:2")
-            )
-        )
-
-        with(TestSøknadInspektør2(søknad).dokumentkrav) {
-            assertEquals(1, this.aktiveDokumentKrav().size)
-            this.aktiveDokumentKrav().forEach { krav ->
-                assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
-                assertEquals(null, krav.svar.begrunnelse)
-                assertEquals(1, krav.svar.filer.size)
-            }
-        }
         val bundleUrn = URN.rfc8141().parse("urn:sid:bundle")
         søknad.håndter(
             DokumentKravSammenstilling(
@@ -186,7 +168,7 @@ class SøknadDokumentasjonskravTest {
             assertEquals(1, this.aktiveDokumentKrav().size)
             this.aktiveDokumentKrav().forEach { krav ->
                 assertEquals(bundleUrn, krav.svar.bundle)
-                assertEquals(1, krav.svar.filer.size)
+                assertEquals(2, krav.svar.filer.size)
                 assertTrue(krav.svar.filer.first().bundlet)
             }
         }
