@@ -6,6 +6,7 @@ import no.nav.dagpenger.soknad.data.søknadData
 import no.nav.dagpenger.soknad.db.PostgresDokumentkravRepository
 import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
+import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentasjonsKravMediator
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
 import no.nav.dagpenger.soknad.innsending.InnsendingPostgresRepository
 import no.nav.dagpenger.soknad.innsending.tjenester.ArkiverbarSøknadMottattHendelseMottak
@@ -50,6 +51,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
             ),
             søknadRouteBuilder = søknadApiRouteBuilder(
                 søknadMediator(),
+                dokumentasjonsKravMediator,
                 BehandlingsstatusHttpClient()
             ),
             ferdigstiltRouteBuilder = ferdigStiltSøknadRouteBuilder(
@@ -68,6 +70,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     }
 
     private val dokumentkravRepository = PostgresDokumentkravRepository(PostgresDataSourceBuilder.dataSource)
+    private val dokumentasjonsKravMediator = DokumentasjonsKravMediator(rapidsConnection, dokumentkravRepository)
 
     private val søknadMediator = SøknadMediator(
         rapidsConnection = rapidsConnection,
@@ -83,7 +86,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         )
     ).also {
         SøknadOpprettetHendelseMottak(rapidsConnection, it)
-        SøkerOppgaveMottak(rapidsConnection, it)
+        SøkerOppgaveMottak(rapidsConnection, it, dokumentasjonsKravMediator)
         MigrertSøknadMottak(rapidsConnection, it)
         SøknadInnsendtTidspunktTjeneste(rapidsConnection, it)
     }

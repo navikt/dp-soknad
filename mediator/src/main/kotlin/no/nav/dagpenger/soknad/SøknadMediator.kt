@@ -3,17 +3,12 @@ package no.nav.dagpenger.soknad
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.db.DokumentkravRepository
 import no.nav.dagpenger.soknad.db.SøknadDataRepository
-import no.nav.dagpenger.soknad.hendelse.DokumentKravHendelse
-import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
-import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
+import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentasjonsKravMediator
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
-import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
-import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
-import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
@@ -26,7 +21,6 @@ import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.mal.SøknadMalRepository
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.withMDC
-import java.time.LocalDateTime
 import java.util.UUID
 
 internal class SøknadMediator(
@@ -47,6 +41,7 @@ internal class SøknadMediator(
     }
 
     private val behovMediator = BehovMediator(rapidsConnection, sikkerLogger)
+    private val dokumentasjonsKravMediator = DokumentasjonsKravMediator(rapidsConnection, dokumentkravRepository)
 
     fun behandle(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         behandle(ønskeOmNySøknadHendelse) { søknad ->
@@ -68,6 +63,7 @@ internal class SøknadMediator(
 
     fun behandle(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
         behandle(søknadInnsendtHendelse) { søknad ->
+            dokumentasjonsKravMediator.håndter(søknadInnsendtHendelse)
             søknad.håndter(søknadInnsendtHendelse)
         }
     }
@@ -88,54 +84,10 @@ internal class SøknadMediator(
     }
 
     fun behandle(søkerOppgave: SøkerOppgave) {
-        val søkeroppgaveHendelse =
-            SøkeroppgaveHendelse(søkerOppgave.søknadUUID(), søkerOppgave.eier(), søkerOppgave.sannsynliggjøringer())
-        behandle(søkeroppgaveHendelse) { søknad ->
-            søknad.håndter(søkeroppgaveHendelse)
-            søknadDataRepository.lagre(søkerOppgave)
-        }
-    }
-
-    private fun behandleDokumentasjonkravHendelse(
-        hendelse: DokumentKravHendelse,
-        block: (repository: DokumentkravRepository) -> Unit
-    ) {
-        block(dokumentkravRepository)
-        finalize(hendelse)
-    }
-
-    fun behandle(hendelse: DokumentasjonIkkeTilgjengelig) {
-        behandleDokumentasjonkravHendelse(hendelse) { repository ->
-            repository.håndter(hendelse)
-        }
-    }
-
-    fun behandle(hendelse: LeggTilFil) {
-        behandleDokumentasjonkravHendelse(hendelse) { repository ->
-            repository.håndter(hendelse)
-        }
-    }
-
-    fun behandle(hendelse: SlettFil) {
-        behandleDokumentasjonkravHendelse(hendelse) { repository ->
-            repository.håndter(hendelse)
-        }
-    }
-
-    fun behandle(hendelse: DokumentKravSammenstilling) {
-        behandleDokumentasjonkravHendelse(hendelse) { repository ->
-            repository.håndter(hendelse)
-            hendelse.behov(
-                Aktivitetslogg.Aktivitet.Behov.Behovtype.DokumentkravSvar,
-                "Må svare dokumentkravet i Quiz",
-                mapOf(
-                    "id" to hendelse.kravId,
-                    "type" to "dokument",
-                    "urn" to hendelse.urn().toString(),
-                    "lastOppTidsstempel" to LocalDateTime.now()
-                )
-            )
-        }
+//        val søkeroppgaveHendelse =
+//            SøkeroppgaveHendelse(søkerOppgave.søknadUUID(), søkerOppgave.eier(), søkerOppgave.sannsynliggjøringer())
+//        dokumentasjonsKravMediator.håndter(søkeroppgaveHendelse)
+        søknadDataRepository.lagre(søkerOppgave)
     }
 
     fun behandle(hendelse: MigrertProsessHendelse, søkerOppgave: SøkerOppgave) {

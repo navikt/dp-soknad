@@ -1,6 +1,5 @@
 package no.nav.dagpenger.soknad.status
 
-import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
@@ -30,7 +29,6 @@ class SøknadStatusVisitor(søknad: Søknad) : SøknadVisitor {
         innsendt: ZonedDateTime?,
         tilstand: Søknad.Tilstand,
         språk: Språk,
-        dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime,
         prosessversjon: Prosessversjon?
     ) {

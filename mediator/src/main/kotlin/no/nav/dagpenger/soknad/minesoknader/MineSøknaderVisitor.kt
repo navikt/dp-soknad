@@ -1,6 +1,5 @@
 package no.nav.dagpenger.soknad.minesoknader
 
-import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Språk
@@ -26,6 +25,8 @@ class MineSøknaderVisitor(søknad: Søknad) : SøknadVisitor {
     internal fun sistEndretAvBruker() = søknadSistEndretAvBruker
     internal fun søknadOpprettet() = søknadOpprettet
     internal fun søknadTilstand() = søknadTilstand
+
+    // TODO: NP
     internal fun dokumentkrav() = dokumentkrav
 
     override fun visitSøknad(
@@ -35,7 +36,6 @@ class MineSøknaderVisitor(søknad: Søknad) : SøknadVisitor {
         innsendt: ZonedDateTime?,
         tilstand: Søknad.Tilstand,
         språk: Språk,
-        dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime,
         prosessversjon: Prosessversjon?,
     ) {
@@ -43,6 +43,5 @@ class MineSøknaderVisitor(søknad: Søknad) : SøknadVisitor {
         søknadSistEndretAvBruker = sistEndretAvBruker.toLocalDateTime()
         søknadTilstand = tilstand.tilstandType
         søknadInnsendt = innsendt
-        this.dokumentkrav = dokumentkrav.aktiveDokumentKrav()
     }
 }

@@ -6,7 +6,6 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import mu.KotlinLogging
-import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
@@ -52,7 +51,6 @@ private class PåbegynteSøknadVisitor(søknad: Søknad) : SøknadVisitor {
         innsendt: ZonedDateTime?,
         tilstand: Søknad.Tilstand,
         språk: Språk,
-        dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime,
         prosessversjon: Prosessversjon?
     ) {

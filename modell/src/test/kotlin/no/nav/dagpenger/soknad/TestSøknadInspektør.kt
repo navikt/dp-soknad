@@ -6,9 +6,7 @@ import java.util.UUID
 internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
     lateinit var søknadId: UUID
     lateinit var gjeldendetilstand: Søknad.Tilstand.Type
-    lateinit var dokumentkrav: Dokumentkrav
     lateinit var aktivitetslogg: Aktivitetslogg
-    lateinit var innsending: InnsendingData
     lateinit var opprettet: ZonedDateTime
 
     data class InnsendingData(
@@ -32,12 +30,10 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
         innsendt: ZonedDateTime?,
         tilstand: Søknad.Tilstand,
         språk: Språk,
-        dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime,
         prosessversjon: Prosessversjon?
     ) {
         this.søknadId = søknadId
-        this.dokumentkrav = dokumentkrav
         this.opprettet = opprettet
     }
 

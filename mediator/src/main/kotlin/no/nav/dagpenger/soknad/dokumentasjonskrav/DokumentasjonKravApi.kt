@@ -19,11 +19,7 @@ import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Krav
-import no.nav.dagpenger.soknad.Prosessversjon
-import no.nav.dagpenger.soknad.Språk
-import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
@@ -38,7 +34,10 @@ import java.util.UUID
 
 private val logger = KotlinLogging.logger { }
 
-internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
+internal fun Route.dokumentasjonkravRoute(
+    søknadMediator: SøknadMediator,
+    dokumentasjonsKravMediator: DokumentasjonsKravMediator
+) {
     val validator = SøknadEierValidator(søknadMediator)
 
     route("/{søknad_uuid}/dokumentasjonskrav") {
@@ -49,9 +48,9 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
                     call.optionalIdent()?.let { ident ->
                         validator.valider(søknadUuid, ident)
                     }
-                    val søknad =
-                        søknadMediator.hent(søknadUuid) ?: throw NotFoundException("Dokumentasjon ikke funnet")
-                    call.respond(ApiDokumentkravResponse(søknad))
+                    val dokumentkrav =
+                        dokumentasjonsKravMediator.hent(søknadUuid)
+                    call.respond(ApiDokumentkravResponse(dokumentkrav))
                 }
             }
         }
@@ -62,7 +61,7 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
             withLoggingContext("søknadid" to søknadUuid.toString()) {
                 validator.valider(søknadUuid, ident)
                 val fil = call.receive<ApiFil>().also { logger.info { "Received: $it" } }
-                søknadMediator.behandle(LeggTilFil(søknadUuid, ident, kravId, fil.tilModell()))
+                dokumentasjonsKravMediator.behandle(LeggTilFil(søknadUuid, ident, kravId, fil.tilModell()))
                 call.respond(HttpStatusCode.Created)
             }
         }
@@ -73,7 +72,7 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
             withLoggingContext("søknadid" to søknadUuid.toString()) {
                 validator.valider(søknadUuid, ident)
                 val svar = call.receive<Svar>()
-                søknadMediator.behandle(
+                dokumentasjonsKravMediator.behandle(
                     DokumentasjonIkkeTilgjengelig(
                         søknadUuid,
                         ident,
@@ -94,7 +93,7 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
                 val urn = URN.rfc8141().parse("urn:vedlegg:${call.nss()}").also {
                     logger.info { "Delete: $it" }
                 }
-                søknadMediator.behandle(SlettFil(søknadUuid, ident, kravId, urn))
+                dokumentasjonsKravMediator.behandle(SlettFil(søknadUuid, ident, kravId, urn))
                 call.respond(HttpStatusCode.NoContent)
             }
         }
@@ -112,7 +111,7 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
                     kravId,
                     bundleSvar.tilURN()
                 )
-                søknadMediator.behandle(dokumentkravSammenstilling)
+                dokumentasjonsKravMediator.behandle(dokumentkravSammenstilling)
                 call.respond(HttpStatusCode.Created)
             }
         }
@@ -164,29 +163,10 @@ private data class BundleSvar(
 }
 
 private class ApiDokumentkravResponse(
-    søknad: Søknad
-) : SøknadVisitor {
-    init {
-        søknad.accept(this)
-    }
-
-    lateinit var soknad_uuid: UUID
-    lateinit var krav: List<ApiDokumentKrav>
-
-    override fun visitSøknad(
-        søknadId: UUID,
-        ident: String,
-        opprettet: ZonedDateTime,
-        innsendt: ZonedDateTime?,
-        tilstand: Søknad.Tilstand,
-        språk: Språk,
-        dokumentkrav: Dokumentkrav,
-        sistEndretAvBruker: ZonedDateTime,
-        prosessversjon: Prosessversjon?
-    ) {
-        soknad_uuid = søknadId
-        krav = dokumentkrav.aktiveDokumentKrav().toApiKrav()
-    }
+    dokumentkrav: Dokumentkrav
+) {
+    val soknad_uuid: UUID = dokumentkrav.søknadId
+    val krav: List<ApiDokumentKrav> = dokumentkrav.aktiveDokumentKrav().toApiKrav()
 
     companion object {
         fun Set<Krav>.toApiKrav(): List<ApiDokumentKrav> = map {

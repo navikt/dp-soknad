@@ -7,8 +7,6 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Aktivitetslogg
-import no.nav.dagpenger.soknad.Dokumentkrav
-import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
@@ -190,7 +188,6 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         innsendt: ZonedDateTime?,
         tilstand: Tilstand,
         språk: Språk,
-        dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime,
         prosessversjon: Prosessversjon?
     ) {
@@ -229,35 +226,35 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         )
     }
 
-    override fun visitKrav(krav: Krav) {
-        queries.add(
-            queryOf(
-                // language=PostgreSQL
-                """
-                INSERT INTO dokumentkrav_v1(faktum_id, beskrivende_id, soknad_uuid, faktum, sannsynliggjoer, tilstand)
-                VALUES (:faktum_id, :beskrivende_id, :soknad_uuid, :faktum, :sannsynliggjoer, :tilstand)
-                ON CONFLICT (faktum_id, soknad_uuid) DO UPDATE SET tilstand = :tilstand, innsendt = :innsendt
-                """.trimIndent(),
-                mapOf(
-                    "faktum_id" to krav.id,
-                    "soknad_uuid" to søknadId,
-                    "beskrivende_id" to krav.beskrivendeId,
-                    "faktum" to PGobject().apply {
-                        type = "jsonb"
-                        value = objectMapper.writeValueAsString(krav.sannsynliggjøring.faktum().originalJson())
-                    },
-                    "sannsynliggjoer" to PGobject().apply {
-                        type = "jsonb"
-                        value = objectMapper.writeValueAsString(
-                            krav.sannsynliggjøring.sannsynliggjør().map { it.originalJson() }
-                        )
-                    },
-                    "tilstand" to krav.tilstand.name,
-                    "innsendt" to krav.svar.innsendt
-                )
-            )
-        )
-    }
+//    override fun visitKrav(krav: Krav) {
+//        queries.add(
+//            queryOf(
+//                // language=PostgreSQL
+//                """
+//                INSERT INTO dokumentkrav_v1(faktum_id, beskrivende_id, soknad_uuid, faktum, sannsynliggjoer, tilstand)
+//                VALUES (:faktum_id, :beskrivende_id, :soknad_uuid, :faktum, :sannsynliggjoer, :tilstand)
+//                ON CONFLICT (faktum_id, soknad_uuid) DO UPDATE SET tilstand = :tilstand, innsendt = :innsendt
+//                """.trimIndent(),
+//                mapOf(
+//                    "faktum_id" to krav.id,
+//                    "soknad_uuid" to søknadId,
+//                    "beskrivende_id" to krav.beskrivendeId,
+//                    "faktum" to PGobject().apply {
+//                        type = "jsonb"
+//                        value = objectMapper.writeValueAsString(krav.sannsynliggjøring.faktum().originalJson())
+//                    },
+//                    "sannsynliggjoer" to PGobject().apply {
+//                        type = "jsonb"
+//                        value = objectMapper.writeValueAsString(
+//                            krav.sannsynliggjøring.sannsynliggjør().map { it.originalJson() }
+//                        )
+//                    },
+//                    "tilstand" to krav.tilstand.name,
+//                    "innsendt" to krav.svar.innsendt
+//                )
+//            )
+//        )
+//    }
 
     override fun preVisitAktivitetslogg(aktivitetslogg: Aktivitetslogg) {
         queries.add(

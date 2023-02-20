@@ -15,16 +15,18 @@ import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
+import java.util.UUID
 
 class Dokumentkrav private constructor(
+    val søknadId: UUID,
     private val krav: MutableSet<Krav> = mutableSetOf()
 ) {
     private val observers = mutableListOf<DokumentkravObserver>()
 
-    constructor() : this(mutableSetOf())
+    constructor(søknadId: UUID) : this(søknadId, mutableSetOf())
 
     companion object {
-        fun rehydrer(krav: Set<Krav>) = Dokumentkrav(krav.toMutableSet())
+        fun rehydrer(søknadId: UUID, krav: Set<Krav>) = Dokumentkrav(søknadId, krav.toMutableSet())
     }
 
     fun håndter(nyeSannsynliggjøringer: Set<Sannsynliggjøring>) {
@@ -59,6 +61,11 @@ class Dokumentkrav private constructor(
     }
 
     fun håndter(hendelse: SøknadInnsendtHendelse) {
+
+        if (!ferdigBesvart()) {
+            // @todo: Oversette validringsfeil til frontend. Mulig lage et eller annet som frontend kan tolke
+            hendelse.severe("Alle dokumentkrav må være besvart")
+        }
         val aktiveDokumentKrav = aktiveDokumentKrav()
         aktiveDokumentKrav.forEach {
             it.svar.håndter(hendelse)
@@ -84,7 +91,7 @@ class Dokumentkrav private constructor(
         observers.add(dokumentkravObserver)
     }
 
-    internal fun tilDokument(): List<Dokument> =
+    fun tilDokument(): List<Dokument> =
         aktiveDokumentKrav().filterNot { it.innsendt() }.filter { it.besvart() }.filter { it.svar.valg == SEND_NÅ }
             .map { krav ->
                 Dokument(

@@ -33,7 +33,7 @@ interface DokumentkravVisitor {
     fun visitKrav(krav: Krav) {}
 }
 
-interface SøknadVisitor : TilstandVisitor, AktivitetsloggVisitor, DokumentkravVisitor {
+interface SøknadVisitor : TilstandVisitor, AktivitetsloggVisitor {
     fun visitSøknad(
         søknadId: UUID,
         ident: String,
@@ -41,7 +41,6 @@ interface SøknadVisitor : TilstandVisitor, AktivitetsloggVisitor, DokumentkravV
         innsendt: ZonedDateTime?,
         tilstand: Tilstand,
         språk: Språk,
-        dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime,
         prosessversjon: Prosessversjon?
     ) {

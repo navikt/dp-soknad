@@ -1,17 +1,20 @@
-package no.nav.dagpenger.soknad.innsending.tjenester
+package no.nav.dagpenger.soknad.dokumentasjonskrav
 
 import mu.KotlinLogging
 import mu.withLoggingContext
+import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyEttersending
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyInnsending
-import no.nav.dagpenger.soknad.innsending.InnsendingMediator
-import no.nav.dagpenger.soknad.innsending.meldinger.NyInnsendingMelding
+import no.nav.dagpenger.soknad.innsending.meldinger.NyEttersendingMelding
 import no.nav.dagpenger.soknad.utils.asUUID
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 
-internal class NyInnsendingBehovMottak(rapidsConnection: RapidsConnection, private val mediator: InnsendingMediator) :
+internal class DokumentasjonKravHubba(
+    rapidsConnection: RapidsConnection,
+    private val dokumentasjonsKravMediator: DokumentasjonsKravMediator
+) :
     River.PacketListener {
     companion object {
         private val logger = KotlinLogging.logger {}
@@ -20,10 +23,9 @@ internal class NyInnsendingBehovMottak(rapidsConnection: RapidsConnection, priva
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "behov") }
-            validate { it.demandAllOrAny("@behov", listOf(NyInnsending.name)) }
+            validate { it.demandAllOrAny("@behov", listOf(NyEttersending.name, NyInnsending.name)) }
             validate { it.requireKey("søknad_uuid", "ident", "innsendtTidspunkt") }
-            validate { it.requireKey("dokumentkrav") }
-            validate { it.rejectKey("@løsning") }
+            validate { it.rejectKey("dokumentkrav", "@løsning") }
         }.register(this)
     }
 
@@ -33,17 +35,9 @@ internal class NyInnsendingBehovMottak(rapidsConnection: RapidsConnection, priva
         withLoggingContext(
             "søknadId" to søknadId.toString(),
         ) {
-            val behov = NyInnsending.name
-            logger.info { "Mottatt behov for ny innsending av type: $behov" }
+            val aktiveDokumentKrav = dokumentasjonsKravMediator.hent(søknadId).tilDokument()
 
-            val hendelse = NyInnsendingMelding(packet).hendelse()
-            mediator.behandle(hendelse)
-
-            packet["@løsning"] = mapOf(
-                behov to mapOf(
-                    "innsendingId" to hendelse.innsendingId
-                )
-            )
+            packet["dokumentkrav"] = aktiveDokumentKrav.map { it.toMap() }
             context.publish(packet.toJson())
         }
     }

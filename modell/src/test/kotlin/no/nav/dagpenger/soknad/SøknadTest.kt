@@ -1,7 +1,6 @@
 package no.nav.dagpenger.soknad
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import de.slub.urn.URN
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Aktivitetslogg.AktivitetException
 import no.nav.dagpenger.soknad.Innsending.Dokument.Dokumentvariant
@@ -10,10 +9,7 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.helpers.FerdigSøknadData
-import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
-import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
-import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
@@ -28,7 +24,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
-import java.time.ZonedDateTime
 import java.util.UUID
 
 private const val testIdent = "12345678912"
@@ -101,16 +96,16 @@ internal class SøknadTest {
                 sannsynliggjøring("3", "f3-1", "f3-2")
             )
         )
-        håndterLeggtilFil("1", "urn:sid:f1.1")
-        håndterLeggtilFil("1", "urn:sid:f1.2")
-        håndterDokumentasjonIkkeTilgjengelig("2", "Har ikke")
+//        håndterLeggtilFil("1", "urn:sid:f1.1")
+//        håndterLeggtilFil("1", "urn:sid:f1.2")
+//        håndterDokumentasjonIkkeTilgjengelig("2", "Har ikke")
 
         assertThrows<AktivitetException>("Alle dokumentkrav må være besvart") { håndterSendInnSøknad() }
 
-        håndterLeggtilFil("3", "urn:sid:f3.1")
-
-        håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
-        håndterDokumentkravSammenstilling(kravId = "3", urn = "urn:sid:bundle3")
+//        håndterLeggtilFil("3", "urn:sid:f3.1")
+//
+//        håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
+//        håndterDokumentkravSammenstilling(kravId = "3", urn = "urn:sid:bundle3")
         val søknadInnsendtHendelse = håndterSendInnSøknad()
 
         assertTilstander(
@@ -119,8 +114,8 @@ internal class SøknadTest {
             Innsendt
         )
         // Ettersending
-        håndterLeggtilFil("2", "urn:sid:f2.1")
-        håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle2")
+//        håndterLeggtilFil("2", "urn:sid:f2.1")
+//        håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle2")
         assertBehovContains(
             Behovtype.DokumentkravSvar
         ) { behovParametre ->
@@ -188,16 +183,16 @@ internal class SøknadTest {
                 sannsynliggjøring("3", "f3-1", "f3-2")
             )
         )
-        håndterLeggtilFil("1", "urn:sid:1")
-        håndterLeggtilFil("1", "urn:sid:2")
-        håndterDokumentasjonIkkeTilgjengelig("2", "Har ikke")
+//        håndterLeggtilFil("1", "urn:sid:1")
+//        håndterLeggtilFil("1", "urn:sid:2")
+//        håndterDokumentasjonIkkeTilgjengelig("2", "Har ikke")
 
         assertThrows<AktivitetException>("Alle dokumentkrav må være besvart") { håndterSendInnSøknad() }
 
-        håndterLeggtilFil("3", "urn:sid:3")
-
-        håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
-        håndterDokumentkravSammenstilling(kravId = "3", urn = "urn:sid:bundle2")
+//        håndterLeggtilFil("3", "urn:sid:3")
+//
+//        håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
+//        håndterDokumentkravSammenstilling(kravId = "3", urn = "urn:sid:bundle2")
         val hendelse = håndterSendInnSøknad()
 
         assertEquals(hendelse.innsendtidspunkt(), testSøknadObserver.innsendt)
@@ -271,8 +266,8 @@ internal class SøknadTest {
             )
         )
 
-        håndterLeggtilFil("1", "urn:sid:1")
-        håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
+//        håndterLeggtilFil("1", "urn:sid:1")
+//        håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
         val hendelse = håndterSendInnSøknad()
 
         assertEquals(hendelse.innsendtidspunkt(), testSøknadObserver.innsendt)
@@ -384,43 +379,43 @@ internal class SøknadTest {
         )
     }
 
-    private fun håndterLeggtilFil(kravId: String, urn: String) {
-        val hendelse = LeggTilFil(
-            inspektør.søknadId,
-            testIdent,
-            kravId,
-            fil = Krav.Fil(
-                filnavn = "test.jpg",
-                urn = URN.rfc8141().parse(urn),
-                storrelse = 0,
-                tidspunkt = ZonedDateTime.now(),
-                bundlet = false
-            )
-        )
-        søknad.håndter(hendelse)
-    }
+//    private fun håndterLeggtilFil(kravId: String, urn: String) {
+//        val hendelse = LeggTilFil(
+//            inspektør.søknadId,
+//            testIdent,
+//            kravId,
+//            fil = Krav.Fil(
+//                filnavn = "test.jpg",
+//                urn = URN.rfc8141().parse(urn),
+//                storrelse = 0,
+//                tidspunkt = ZonedDateTime.now(),
+//                bundlet = false
+//            )
+//        )
+//        søknad.håndter(hendelse)
+//    }
 
-    private fun håndterDokumentasjonIkkeTilgjengelig(kravId: String, begrunnelse: String) {
-        val hendelse = DokumentasjonIkkeTilgjengelig(
-            inspektør.søknadId,
-            testIdent,
-            kravId = kravId,
-            valg = Krav.Svar.SvarValg.SENDER_IKKE,
-            begrunnelse = begrunnelse
-        )
-        søknad.håndter(hendelse)
-    }
+//    private fun håndterDokumentasjonIkkeTilgjengelig(kravId: String, begrunnelse: String) {
+//        val hendelse = DokumentasjonIkkeTilgjengelig(
+//            inspektør.søknadId,
+//            testIdent,
+//            kravId = kravId,
+//            valg = Krav.Svar.SvarValg.SENDER_IKKE,
+//            begrunnelse = begrunnelse
+//        )
+//        søknad.håndter(hendelse)
+//    }
 
-    private fun håndterDokumentkravSammenstilling(kravId: String, urn: String) {
-        val hendelse = DokumentKravSammenstilling(
-            inspektør.søknadId,
-            testIdent,
-            kravId = kravId,
-            urn = URN.rfc8141().parse(urn)
-        )
-
-        søknad.håndter(hendelse)
-    }
+//    private fun håndterDokumentkravSammenstilling(kravId: String, urn: String) {
+//        val hendelse = DokumentKravSammenstilling(
+//            inspektør.søknadId,
+//            testIdent,
+//            kravId = kravId,
+//            urn = URN.rfc8141().parse(urn)
+//        )
+//
+//        søknad.håndter(hendelse)
+//    }
 
     private fun assertTilstander(vararg tilstander: Søknad.Tilstand.Type) {
         assertEquals(tilstander.asList(), testSøknadObserver.tilstander)

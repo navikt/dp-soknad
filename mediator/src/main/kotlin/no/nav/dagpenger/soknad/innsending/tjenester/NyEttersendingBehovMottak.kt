@@ -22,7 +22,7 @@ internal class NyEttersendingBehovMottak(rapidsConnection: RapidsConnection, pri
             validate { it.demandValue("@event_name", "behov") }
             validate { it.demandAllOrAny("@behov", listOf(NyEttersending.name)) }
             validate { it.requireKey("søknad_uuid", "ident", "innsendtTidspunkt") }
-            validate { it.interestedIn("dokumentkrav") }
+            validate { it.requireKey("dokumentkrav") }
             validate { it.rejectKey("@løsning") }
         }.register(this)
     }

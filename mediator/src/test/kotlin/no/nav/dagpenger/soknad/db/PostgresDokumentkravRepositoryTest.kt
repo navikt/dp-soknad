@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
@@ -31,6 +32,36 @@ import java.util.UUID
 
 internal class PostgresDokumentkravRepositoryTest {
     private val now = LocalDateTime.now().atZone(ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.HOURS)
+    private val dokumentFaktum1 = Faktum(faktumJson(id = "1", beskrivendeId = "f1", generertAv = "foobar"))
+    private val dokumentFaktum2 = Faktum(faktumJson(id = "2", beskrivendeId = "f2"))
+    private val faktaSomSannsynliggjøres = mutableSetOf(Faktum(faktumJson(id = "2", beskrivendeId = "f2")))
+    private val sannsynliggjøring1 = Sannsynliggjøring(
+        id = dokumentFaktum1.id,
+        faktum = dokumentFaktum1,
+        sannsynliggjør = faktaSomSannsynliggjøres
+    )
+    private val sannsynliggjøring2 = Sannsynliggjøring(
+        id = dokumentFaktum2.id,
+        faktum = dokumentFaktum2,
+        sannsynliggjør = faktaSomSannsynliggjøres
+    )
+    val dokumentkrav = Dokumentkrav().also { it.håndter(setOf(sannsynliggjøring1, sannsynliggjøring2)) }
+
+    @Test
+    fun `lagring og henting av dokumentkrav`() {
+        val id = UUID.randomUUID()
+        setup(lagSøknad(søknadId = id, ident = "123")) { repository ->
+            assertDoesNotThrow {
+                repository.lagre(
+                    søknadId = id,
+                    dokumentkrav = dokumentkrav
+                )
+            }
+
+            val aktiveDokumentKrav = repository.hent(id).aktiveDokumentKrav()
+            assertEquals(2, aktiveDokumentKrav.size)
+        }
+    }
 
     @Test
     fun `Kan opprette og slette filer`() {

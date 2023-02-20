@@ -3,6 +3,8 @@ package no.nav.dagpenger.soknad.livssyklus.påbegynt
 import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentasjonsKravMediator
+import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -11,7 +13,8 @@ import no.nav.helse.rapids_rivers.asLocalDateTime
 
 internal class SøkerOppgaveMottak(
     rapidsConnection: RapidsConnection,
-    private val søknadMediator: SøknadMediator
+    private val søknadMediator: SøknadMediator,
+    private val dokumentasjonsKravMediator: DokumentasjonsKravMediator
 ) : River.PacketListener {
     private companion object {
         val logger = KotlinLogging.logger {}
@@ -42,6 +45,13 @@ internal class SøkerOppgaveMottak(
         ) {
             logger.info { "Mottatt pakke ${packet["@event_name"].asText()}" }
             try {
+                dokumentasjonsKravMediator.håndter(
+                    SøkeroppgaveHendelse(
+                        søkerOppgave.søknadUUID(),
+                        søkerOppgave.eier(),
+                        søkerOppgave.sannsynliggjøringer()
+                    )
+                )
                 søknadMediator.behandle(søkerOppgave)
             } catch (e: SøknadMediator.SøknadIkkeFunnet) {
                 logger.warn(e) { "Fant ikke søknad" }

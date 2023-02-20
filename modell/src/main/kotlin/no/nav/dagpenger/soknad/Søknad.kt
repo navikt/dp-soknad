@@ -2,14 +2,10 @@ package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.SøknadObserver.SøknadSlettetEvent
-import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
-import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
-import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
-import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
@@ -25,7 +21,7 @@ class Søknad private constructor(
     private var innsendt: ZonedDateTime?,
     private var tilstand: Tilstand,
     private val språk: Språk,
-    private val dokumentkrav: Dokumentkrav,
+//    private val dokumentkrav: Dokumentkrav,
     private var sistEndretAvBruker: ZonedDateTime,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
     private var prosessversjon: Prosessversjon?,
@@ -59,14 +55,14 @@ class Søknad private constructor(
         innsendt = null,
         tilstand = UnderOpprettelse,
         språk = språk,
-        dokumentkrav = Dokumentkrav(),
+//        dokumentkrav = Dokumentkrav(),
         sistEndretAvBruker = ZonedDateTime.now(),
         prosessversjon = null,
         data = data
     )
 
     init {
-        dokumentkrav.addObserver(this)
+//        dokumentkrav.addObserver(this)
     }
 
     companion object {
@@ -76,7 +72,7 @@ class Søknad private constructor(
             opprettet: ZonedDateTime,
             innsendt: ZonedDateTime?,
             språk: Språk,
-            dokumentkrav: Dokumentkrav,
+//            dokumentkrav: Dokumentkrav,
             sistEndretAvBruker: ZonedDateTime,
             tilstandsType: Tilstand.Type,
             aktivitetslogg: Aktivitetslogg,
@@ -96,7 +92,7 @@ class Søknad private constructor(
                 innsendt = innsendt,
                 tilstand = tilstand,
                 språk = språk,
-                dokumentkrav = dokumentkrav,
+//                dokumentkrav = dokumentkrav,
                 sistEndretAvBruker = sistEndretAvBruker,
                 aktivitetslogg = aktivitetslogg,
                 prosessversjon = prosessversjon,
@@ -151,27 +147,6 @@ class Søknad private constructor(
         tilstand.håndter(slettSøknadHendelse, this)
     }
 
-    fun håndter(dokumentasjonIkkeTilgjengelig: DokumentasjonIkkeTilgjengelig) {
-        kontekst(dokumentasjonIkkeTilgjengelig)
-        tilstand.håndter(dokumentasjonIkkeTilgjengelig, this)
-    }
-
-    fun håndter(leggTilFil: LeggTilFil) {
-        kontekst(leggTilFil)
-        leggTilFil.info("Legger til fil")
-        tilstand.håndter(leggTilFil, this)
-    }
-
-    fun håndter(slettFil: SlettFil) {
-        kontekst(slettFil)
-        tilstand.håndter(slettFil, this)
-    }
-
-    fun håndter(hendelse: DokumentKravSammenstilling) {
-        kontekst(hendelse)
-        tilstand.håndter(hendelse, this)
-    }
-
     fun håndter(hendelse: MigrertProsessHendelse) {
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
@@ -207,22 +182,6 @@ class Søknad private constructor(
 
         fun håndter(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
             slettSøknadHendelse.severe("Kan ikke slette søknad i tilstand $tilstandType")
-        }
-
-        fun håndter(dokumentasjonIkkeTilgjengelig: DokumentasjonIkkeTilgjengelig, søknad: Søknad) {
-            dokumentasjonIkkeTilgjengelig.`kan ikke håndteres i denne tilstanden`()
-        }
-
-        fun håndter(leggTilFil: LeggTilFil, søknad: Søknad) {
-            leggTilFil.`kan ikke håndteres i denne tilstanden`()
-        }
-
-        fun håndter(slettFil: SlettFil, søknad: Søknad) {
-            slettFil.`kan ikke håndteres i denne tilstanden`()
-        }
-
-        fun håndter(hendelse: DokumentKravSammenstilling, søknad: Søknad) {
-            hendelse.`kan ikke håndteres i denne tilstanden`()
         }
 
         fun håndter(hendelse: MigrertProsessHendelse, søknad: Søknad) {
@@ -277,20 +236,23 @@ class Søknad private constructor(
                 // @todo: Oversette validringsfeil til frontend. Mulig lage et eller annet som frontend kan tolke
                 søknadInnsendtHendelse.severe("Alle faktum må være besvart")
             }
-            if (!søknad.dokumentkrav.ferdigBesvart()) {
-                // @todo: Oversette validringsfeil til frontend. Mulig lage et eller annet som frontend kan tolke
-                søknadInnsendtHendelse.severe("Alle dokumentkrav må være besvart")
-            }
+            // todo flyttet til dokumenkrav
+//            if (!søknad.dokumentkrav.ferdigBesvart()) {
+//                // @todo: Oversette validringsfeil til frontend. Mulig lage et eller annet som frontend kan tolke
+//                søknadInnsendtHendelse.severe("Alle dokumentkrav må være besvart")
+//            }
             søknadInnsendtHendelse.behov(
                 Behovtype.NyInnsending,
                 "Søknad innsendt, trenger ny innsending",
                 mapOf(
                     "innsendtTidspunkt" to søknadInnsendtHendelse.innsendtidspunkt(),
-                    "dokumentkrav" to søknad.dokumentkrav.tilDokument().map { it.toMap() }
+                    // todo flyttet
+//                    "dokumentkrav" to søknad.dokumentkrav.tilDokument().map { it.toMap() }
                 )
             )
 
-            søknad.dokumentkrav.håndter(søknadInnsendtHendelse)
+            // todo flyttet til dokumenkrav
+//            søknad.dokumentkrav.håndter(søknadInnsendtHendelse)
             søknad.innsendt(søknadInnsendtHendelse.innsendtidspunkt())
             søknad.endreTilstand(Innsendt, søknadInnsendtHendelse)
         }
@@ -302,28 +264,8 @@ class Søknad private constructor(
         override fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse, søknad: Søknad) {
         }
 
-        override fun håndter(dokumentasjonIkkeTilgjengelig: DokumentasjonIkkeTilgjengelig, søknad: Søknad) {
-            søknad.dokumentkrav.håndter(dokumentasjonIkkeTilgjengelig)
-        }
-
-        override fun håndter(leggTilFil: LeggTilFil, søknad: Søknad) {
-            søknad.dokumentkrav.håndter(leggTilFil)
-        }
-
-        override fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse, søknad: Søknad) {
-            søknad.håndter(søkeroppgaveHendelse.sannsynliggjøringer())
-        }
-
-        override fun håndter(slettFil: SlettFil, søknad: Søknad) {
-            søknad.dokumentkrav.håndter(slettFil)
-        }
-
         override fun håndter(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
             søknad.endreTilstand(Slettet, slettSøknadHendelse)
-        }
-
-        override fun håndter(dokumentKravSammenstilling: DokumentKravSammenstilling, søknad: Søknad) {
-            søknad.dokumentkrav.håndter(dokumentKravSammenstilling)
         }
 
         override fun håndter(hendelse: MigrertProsessHendelse, søknad: Søknad) {
@@ -337,33 +279,22 @@ class Søknad private constructor(
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.Innsendt
 
-        override fun håndter(leggTilFil: LeggTilFil, søknad: Søknad) {
-            søknad.dokumentkrav.håndter(leggTilFil)
-        }
-
-        override fun håndter(slettFil: SlettFil, søknad: Søknad) {
-            søknad.dokumentkrav.håndter(slettFil)
-        }
-
-        override fun håndter(dokumentKravSammenstilling: DokumentKravSammenstilling, søknad: Søknad) {
-            søknad.dokumentkrav.håndter(dokumentKravSammenstilling)
-        }
-
         override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
             if (!søknad.erDagpenger()) {
                 søknadInnsendtHendelse.severe("Kan ikke lage ettersending av prosess ${søknad.prosessversjon?.prosessnavn?.id}")
             }
 
+            // todo
             søknadInnsendtHendelse.behov(
                 Behovtype.NyEttersending,
                 "Søknad ettersend, trenger ny ettersending",
                 mapOf(
                     "innsendtTidspunkt" to søknadInnsendtHendelse.innsendtidspunkt(),
-                    "dokumentkrav" to søknad.dokumentkrav.tilDokument().map { it.toMap() }
+//                    "dokumentkrav" to søknad.dokumentkrav.tilDokument().map { it.toMap() }
                 )
             )
 
-            søknad.dokumentkrav.håndter(søknadInnsendtHendelse)
+//            søknad.dokumentkrav.håndter(søknadInnsendtHendelse)
         }
     }
 
@@ -374,10 +305,6 @@ class Søknad private constructor(
         override fun entering(søknadHendelse: Hendelse, søknad: Søknad) {
             søknad.slettet(søknad.ident)
         }
-    }
-
-    private fun håndter(nyeSannsynliggjøringer: Set<Sannsynliggjøring>) {
-        this.dokumentkrav.håndter(nyeSannsynliggjøringer)
     }
 
     private fun slettet(ident: String) {
@@ -408,13 +335,11 @@ class Søknad private constructor(
             innsendt = innsendt,
             tilstand = tilstand,
             språk = språk,
-            dokumentkrav = dokumentkrav,
             sistEndretAvBruker = sistEndretAvBruker,
             prosessversjon = prosessversjon
         )
         tilstand.accept(visitor)
         aktivitetslogg.accept(visitor)
-        dokumentkrav.accept(visitor)
     }
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst =

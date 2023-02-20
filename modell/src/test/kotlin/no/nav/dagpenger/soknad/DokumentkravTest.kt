@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 internal fun faktumJson(id: String, beskrivendeId: String) = jacksonObjectMapper().readTree(
     """{
@@ -34,10 +35,11 @@ internal class DokumentkravTest {
         faktum = dokumentFaktum,
         sannsynliggjør = faktaSomSannsynliggjøres
     )
+    val søknadId = UUID.randomUUID()
 
     @Test
     fun `håndtere dokumentkrav som et speil fra sannsynliggjøringer`() {
-        val dokumentkrav = Dokumentkrav()
+        val dokumentkrav = Dokumentkrav(søknadId = søknadId)
         assertTrue(dokumentkrav.aktiveDokumentKrav().isEmpty())
         assertTrue(dokumentkrav.inAktiveDokumentKrav().isEmpty())
 
@@ -99,25 +101,25 @@ internal class DokumentkravTest {
 
     @Test
     fun `likhet test`() {
-        val dokumentkrav = Dokumentkrav()
+        val dokumentkrav = Dokumentkrav(søknadId)
         assertEquals(dokumentkrav, dokumentkrav)
-        assertEquals(dokumentkrav, Dokumentkrav())
+        assertEquals(dokumentkrav, Dokumentkrav(søknadId))
         dokumentkrav.håndter(setOf(sannsynliggjøring))
 
         assertEquals(
-            Dokumentkrav().also {
+            Dokumentkrav(søknadId).also {
                 it.håndter(setOf(sannsynliggjøring))
             },
             dokumentkrav
         )
 
-        assertNotEquals(Dokumentkrav(), dokumentkrav)
+        assertNotEquals(Dokumentkrav(søknadId), dokumentkrav)
         assertNotEquals(dokumentkrav, Any())
         assertNotEquals(dokumentkrav, null)
         val nyttDokumentkrav = Faktum(faktumJson(id = "3", beskrivendeId = "f3"))
         val nySannsynliggjøring = Sannsynliggjøring(nyttDokumentkrav.id, nyttDokumentkrav, faktaSomSannsynliggjøres)
         assertNotEquals(
-            Dokumentkrav().also {
+            Dokumentkrav(søknadId).also {
                 it.håndter(setOf(sannsynliggjøring, nySannsynliggjøring))
             },
             dokumentkrav
@@ -128,7 +130,10 @@ internal class DokumentkravTest {
     fun `gir riktig skjemakode`() {
 
         assertEquals("N6", krav("ID").tilSkjemakode())
-        assertEquals("T3", krav("faktum.dokument-avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd-dokumentasjon").tilSkjemakode())
+        assertEquals(
+            "T3",
+            krav("faktum.dokument-avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd-dokumentasjon").tilSkjemakode()
+        )
         assertEquals("K1", krav("faktum.dokument-tjenestepensjon").tilSkjemakode())
         assertEquals("K1", krav("faktum.dokument-arbeidslos-GFF-hvilken-periode").tilSkjemakode())
         assertEquals("K1", krav("faktum.dokument-garantilott-GFF-hvilken-periode").tilSkjemakode())

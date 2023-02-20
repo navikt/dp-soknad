@@ -7,6 +7,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.DokumentkravVisitor
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.db.DBUtils.norskZonedDateTime
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
@@ -15,6 +16,7 @@ import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.serder.SøknadDTO
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
+import org.postgresql.util.PGobject
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -26,10 +28,59 @@ interface DokumentkravRepository {
     fun håndter(hendelse: DokumentasjonIkkeTilgjengelig)
     fun håndter(hendelse: DokumentKravSammenstilling)
     fun hent(søknadId: UUID): Dokumentkrav
+    fun lagre(søknadId: UUID, dokumentkrav: Dokumentkrav)
     fun hentDTO(søknadId: UUID): SøknadDTO.DokumentkravDTO
 }
 
+private class KravVisitor(dokumentkrav: Dokumentkrav) : DokumentkravVisitor {
+    val krav = mutableSetOf<Krav>()
+
+    init {
+        dokumentkrav.accept(this)
+    }
+
+    override fun visitKrav(krav: Krav) {
+        this.krav.add(krav)
+    }
+}
+
 internal class PostgresDokumentkravRepository(private val datasource: DataSource) : DokumentkravRepository {
+
+    override fun lagre(søknadId: UUID, dokumentkrav: Dokumentkrav) {
+        val params: List<Map<String, Any?>> =
+            KravVisitor(dokumentkrav).krav.map { krav ->
+                mapOf<String, Any>(
+                    "faktum_id" to krav.id,
+                    "soknad_uuid" to søknadId,
+                    "beskrivende_id" to krav.beskrivendeId,
+                    "faktum" to PGobject().apply {
+                        type = "jsonb"
+                        value = objectMapper.writeValueAsString(krav.sannsynliggjøring.faktum().originalJson())
+                    },
+                    "sannsynliggjoer" to PGobject().apply {
+                        type = "jsonb"
+                        value = objectMapper.writeValueAsString(
+                            krav.sannsynliggjøring.sannsynliggjør().map { it.originalJson() }
+                        )
+                    },
+                    "tilstand" to krav.tilstand.name,
+                    "innsendt" to krav.svar.innsendt
+                )
+            }.toMutableList()
+
+        using((sessionOf(datasource))) { session ->
+            //language=PostgreSQL
+            session.batchPreparedNamedStatement(
+                statement = """
+                INSERT INTO dokumentkrav_v1(faktum_id, beskrivende_id, soknad_uuid, faktum, sannsynliggjoer, tilstand)
+                VALUES (:faktum_id, :beskrivende_id, :soknad_uuid, :faktum, :sannsynliggjoer, :tilstand)
+                ON CONFLICT (faktum_id, soknad_uuid) DO UPDATE SET tilstand = :tilstand, innsendt = :innsendt
+                """.trimIndent(),
+                params = params
+
+            )
+        }
+    }
 
     override fun håndter(hendelse: LeggTilFil) {
         val fil = hendelse.fil
@@ -194,7 +245,7 @@ internal class PostgresDokumentkravRepository(private val datasource: DataSource
                 }.asList
             )
                 .toSet()
-                .let { SøknadDTO.DokumentkravDTO(it) }
+                .let { SøknadDTO.DokumentkravDTO(søknadId, it) }
         }
     }
 

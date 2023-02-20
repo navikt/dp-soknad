@@ -36,7 +36,6 @@ class SøknadDTO(
         opprettet = opprettet,
         innsendt = innsendt,
         språk = this.språkDTO.rehydrer(),
-        dokumentkrav = this.dokumentkrav.rehydrer(),
         sistEndretAvBruker = this.sistEndretAvBruker,
         tilstandsType = this.tilstandType.rehydrer(),
         aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
@@ -61,9 +60,11 @@ class SøknadDTO(
     }
 
     data class DokumentkravDTO(
+        val søknadsId: UUID,
         val kravData: Set<KravDTO>
     ) {
         fun rehydrer(): Dokumentkrav = Dokumentkrav.rehydrer(
+            søknadId = søknadsId,
             krav = kravData.map { it.rehydrer() }.toSet()
         )
 

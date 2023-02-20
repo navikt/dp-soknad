@@ -2,7 +2,6 @@ package no.nav.dagpenger.soknad.livssyklus.ferdigstilt
 
 import de.slub.urn.URN
 import mu.KotlinLogging
-import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
@@ -63,7 +62,6 @@ internal class SøknadInnsendtTidspunktTjeneste(
                             innsendt: ZonedDateTime?,
                             tilstand: Søknad.Tilstand,
                             språk: Språk,
-                            dokumentkrav: Dokumentkrav,
                             sistEndretAvBruker: ZonedDateTime,
                             prosessversjon: Prosessversjon?
                         ) {
