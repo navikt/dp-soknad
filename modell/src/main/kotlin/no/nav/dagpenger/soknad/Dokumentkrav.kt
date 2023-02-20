@@ -9,7 +9,6 @@ import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.IKKE_BESVART
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SEND_NÅ
 import no.nav.dagpenger.soknad.hendelse.DokumentKravHendelse
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
-import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import java.time.LocalDateTime
@@ -38,11 +37,6 @@ class Dokumentkrav private constructor(
     }
 
     fun håndter(hendelse: LeggTilFil) {
-        val krav = hentKrav(hendelse)
-        krav.svar.håndter(hendelse)
-    }
-
-    fun håndter(hendelse: DokumentasjonIkkeTilgjengelig) {
         val krav = hentKrav(hendelse)
         krav.svar.håndter(hendelse)
     }
@@ -223,7 +217,7 @@ data class Krav(
         var bundle: URN?,
         var innsendt: Boolean // todo slå sammen med bundle?
     ) {
-        internal constructor() : this(
+        constructor() : this(
             filer = mutableSetOf(),
             valg = IKKE_BESVART,
             begrunnelse = null,
@@ -235,11 +229,6 @@ data class Krav(
             filer.add(hendelse.fil)
             valg = SEND_NÅ
             begrunnelse = null
-        }
-
-        fun håndter(hendelse: DokumentasjonIkkeTilgjengelig) {
-            valg = hendelse.valg
-            begrunnelse = hendelse.begrunnelse
         }
 
         fun håndter(hendelse: SøknadInnsendtHendelse) {

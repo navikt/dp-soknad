@@ -23,6 +23,8 @@ import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SENDER_IKKE
+import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SEND_NÅ
+import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SEND_SENERE
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
@@ -63,6 +65,7 @@ internal class DokumentasjonKravApiTest {
         faktum = dokumentFaktum2,
         sannsynliggjør = faktaSomSannsynliggjøres
     )
+
     private val fil = Krav.Fil(
         "test.jpg",
         URN.rfc8141().parse("urn:nav:1"),
@@ -70,27 +73,37 @@ internal class DokumentasjonKravApiTest {
         ZonedDateTime.now(),
         bundlet = false
     )
-    private val dokumentKrav = Dokumentkrav().also {
-        it.håndter(setOf(sannsynliggjøring1, sannsynliggjøring2))
-        it.håndter(LeggTilFil(testSoknadId, defaultDummyFodselsnummer, "1", fil))
-        it.håndter(
-            DokumentKravSammenstilling(
-                testSoknadId,
-                defaultDummyFodselsnummer,
-                "1",
-                URN.rfc8141().parse("urn:bundle:1")
-            )
-        )
-        it.håndter(
-            DokumentasjonIkkeTilgjengelig(
-                testSoknadId,
-                defaultDummyFodselsnummer,
-                "2",
-                valg = SENDER_IKKE,
-                begrunnelse = "Har ikke dokumentasjon tilgjengelig"
-            )
-        )
-    }
+
+    private val krav1 = Krav(
+        id = dokumentFaktum1.id,
+        svar = Krav.Svar(
+            filer = mutableSetOf(fil),
+            valg = SEND_NÅ,
+            begrunnelse = null,
+            bundle = URN.rfc8141().parse("urn:bundle:1"),
+            innsendt = true
+        ),
+        sannsynliggjøring = sannsynliggjøring1,
+        tilstand = Krav.KravTilstand.AKTIV
+    )
+
+    private val krav2 = Krav(
+        id = dokumentFaktum2.id,
+        svar = Krav.Svar(
+            filer = mutableSetOf(),
+            valg = SENDER_IKKE,
+            begrunnelse = "Har ikke dokumentasjon tilgjengelig",
+            bundle = null,
+            innsendt = true
+        ),
+        sannsynliggjøring = sannsynliggjøring2,
+        tilstand = Krav.KravTilstand.AKTIV
+    )
+
+    private val dokumentKrav = Dokumentkrav.rehydrer(
+        setOf(krav1, krav2)
+    )
+
     private val søknad = Søknad.rehydrer(
         søknadId = testSoknadId,
         ident = defaultDummyFodselsnummer,

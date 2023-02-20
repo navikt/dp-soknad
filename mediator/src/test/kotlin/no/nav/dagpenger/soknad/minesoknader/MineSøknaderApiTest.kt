@@ -25,15 +25,11 @@ import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.soknad.faktumJson
-import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
-import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
-import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -47,13 +43,13 @@ class MineSøknaderApiTest {
     private val endepunktIncludeDokumentkrav = "${Configuration.basePath}/soknad/mine-soknader?include=dokumentkrav"
     private val nå = LocalDate.now()
 
-    private val dokumentfaktum = Faktum(faktumJson(id = "1", beskrivendeId = "f1", generertAv = "foo"))
+    private val dokumentfaktum1 = Faktum(faktumJson(id = "1", beskrivendeId = "f1", generertAv = "foo"))
     private val dokumentfaktum2 = Faktum(faktumJson(id = "2", beskrivendeId = "f2", generertAv = "foo"))
     private val faktaSomSannsynliggjøres = mutableSetOf(Faktum(faktumJson(id = "2", beskrivendeId = "f2")))
 
-    private val sannsynliggjøring = Sannsynliggjøring(
-        id = dokumentfaktum.id,
-        faktum = dokumentfaktum,
+    private val sannsynliggjøring1 = Sannsynliggjøring(
+        id = dokumentfaktum1.id,
+        faktum = dokumentfaktum1,
         sannsynliggjør = faktaSomSannsynliggjøres
     )
 
@@ -71,27 +67,35 @@ class MineSøknaderApiTest {
         bundlet = false
     )
 
-    private val dokumentkrav = Dokumentkrav().also {
-        it.håndter(setOf(sannsynliggjøring, sannsynliggjøring2))
-        it.håndter(LeggTilFil(søknadUuid, defaultDummyFodselsnummer, "1", fil))
-        it.håndter(
-            DokumentKravSammenstilling(
-                søknadID = søknadUuid,
-                ident = defaultDummyFodselsnummer,
-                kravId = "1",
-                urn = URN.rfc8141().parse("urn:bundle:1")
-            )
-        )
-        it.håndter(
-            DokumentasjonIkkeTilgjengelig(
-                søknadUuid,
-                defaultDummyFodselsnummer,
-                "2",
-                valg = Krav.Svar.SvarValg.SEND_SENERE,
-                begrunnelse = "Har ikke dokumentet tilgjengelig"
-            )
-        )
-    }
+    private val krav1 = Krav(
+        id = dokumentfaktum1.id,
+        svar = Krav.Svar(
+            filer = mutableSetOf(fil),
+            valg = Krav.Svar.SvarValg.SEND_NÅ,
+            begrunnelse = null,
+            bundle = URN.rfc8141().parse("urn:bundle:1"),
+            innsendt = true
+        ),
+        sannsynliggjøring = sannsynliggjøring1,
+        tilstand = Krav.KravTilstand.AKTIV
+    )
+
+    private val krav2 = Krav(
+        id = dokumentfaktum2.id,
+        svar = Krav.Svar(
+            filer = mutableSetOf(),
+            valg = Krav.Svar.SvarValg.SENDER_IKKE,
+            begrunnelse = "Har ikke dokumentet tilgjengelig",
+            bundle = null,
+            innsendt = true
+        ),
+        sannsynliggjøring = sannsynliggjøring2,
+        tilstand = Krav.KravTilstand.AKTIV
+    )
+
+    private val dokumentkrav = Dokumentkrav.rehydrer(
+        setOf(krav1, krav2)
+    )
 
     @Test
     fun `én påbegynt og to innsendte søknader`() {
@@ -277,8 +281,8 @@ class MineSøknaderApiTest {
         val dokumentkravUtenFil = mineSoknaderDokumenktravDTO.last()
 
         with(dokumenktravMedFil) {
-            assertEquals(dokumentfaktum.id, this.id)
-            assertEquals(dokumentfaktum.beskrivendeId, this.beskrivendeId)
+            assertEquals(dokumentfaktum1.id, this.id)
+            assertEquals(dokumentfaktum1.beskrivendeId, this.beskrivendeId)
             assertNull(this.begrunnelse)
             assertEquals(fil.filnavn, this.filer.first())
             assertEquals(Krav.Svar.SvarValg.SEND_NÅ.name, this.valg)
@@ -290,7 +294,7 @@ class MineSøknaderApiTest {
             assertEquals(dokumentfaktum2.beskrivendeId, this.beskrivendeId)
             assertEquals("Har ikke dokumentet tilgjengelig", this.begrunnelse)
             assertTrue(this.filer.isEmpty())
-            assertEquals(Krav.Svar.SvarValg.SEND_SENERE.name, this.valg)
+            assertEquals(Krav.Svar.SvarValg.SENDER_IKKE.name, this.valg)
             assertNull(this.bundleFilsti)
         }
     }
