@@ -11,7 +11,6 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.helpers.FerdigSøknadData
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
-import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
@@ -97,20 +96,18 @@ internal class SøknadTest {
         håndterSøkerOppgaveHendelse(
             setOf(
                 sannsynliggjøring("1", "f1-1", "f1-2"),
-                sannsynliggjøring("2", "f2-1", "f2-2"),
-                sannsynliggjøring("3", "f3-1", "f3-2")
+                sannsynliggjøring("2", "f2-1", "f2-2")
             )
         )
         håndterLeggtilFil("1", "urn:sid:f1.1")
         håndterLeggtilFil("1", "urn:sid:f1.2")
-        håndterDokumentasjonIkkeTilgjengelig("2", "Har ikke")
 
         assertThrows<AktivitetException>("Alle dokumentkrav må være besvart") { håndterSendInnSøknad() }
 
-        håndterLeggtilFil("3", "urn:sid:f3.1")
+        håndterLeggtilFil("2", "urn:sid:f2.1")
 
         håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
-        håndterDokumentkravSammenstilling(kravId = "3", urn = "urn:sid:bundle3")
+        håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle2")
         val søknadInnsendtHendelse = håndterSendInnSøknad()
 
         assertTilstander(
@@ -119,7 +116,7 @@ internal class SøknadTest {
             Innsendt
         )
         // Ettersending
-        håndterLeggtilFil("2", "urn:sid:f2.1")
+        håndterLeggtilFil("2", "urn:sid:f2.2")
         håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle2")
         assertBehovContains(
             Behovtype.DokumentkravSvar
@@ -184,20 +181,18 @@ internal class SøknadTest {
         håndterSøkerOppgaveHendelse(
             setOf(
                 sannsynliggjøring("1", "f1-1", "f1-2"),
-                sannsynliggjøring("2", "f2-1", "f2-2"),
-                sannsynliggjøring("3", "f3-1", "f3-2")
+                sannsynliggjøring("2", "f2-1", "f2-2")
             )
         )
-        håndterLeggtilFil("1", "urn:sid:1")
-        håndterLeggtilFil("1", "urn:sid:2")
-        håndterDokumentasjonIkkeTilgjengelig("2", "Har ikke")
+        håndterLeggtilFil("1", "urn:sid:f1.1")
+        håndterLeggtilFil("1", "urn:sid:f1.2")
 
         assertThrows<AktivitetException>("Alle dokumentkrav må være besvart") { håndterSendInnSøknad() }
 
-        håndterLeggtilFil("3", "urn:sid:3")
+        håndterLeggtilFil("2", "urn:sid:f2.1")
 
         håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
-        håndterDokumentkravSammenstilling(kravId = "3", urn = "urn:sid:bundle2")
+        håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle2")
         val hendelse = håndterSendInnSøknad()
 
         assertEquals(hendelse.innsendtidspunkt(), testSøknadObserver.innsendt)
@@ -237,12 +232,12 @@ internal class SøknadTest {
                 ),
                 Innsending.Dokument(
                     uuid = UUID.randomUUID(),
-                    kravId = "3",
+                    kravId = "2",
                     skjemakode = "N6",
                     varianter = listOf(
                         Dokumentvariant(
                             uuid = UUID.randomUUID(),
-                            filnavn = "f3-1",
+                            filnavn = "f2-1",
                             urn = "urn:sid:bundle2",
                             variant = "ARKIV",
                             type = "PDF"
@@ -396,17 +391,6 @@ internal class SøknadTest {
                 tidspunkt = ZonedDateTime.now(),
                 bundlet = false
             )
-        )
-        søknad.håndter(hendelse)
-    }
-
-    private fun håndterDokumentasjonIkkeTilgjengelig(kravId: String, begrunnelse: String) {
-        val hendelse = DokumentasjonIkkeTilgjengelig(
-            inspektør.søknadId,
-            testIdent,
-            kravId = kravId,
-            valg = Krav.Svar.SvarValg.SENDER_IKKE,
-            begrunnelse = begrunnelse
         )
         søknad.håndter(hendelse)
     }

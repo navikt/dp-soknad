@@ -3,7 +3,6 @@ package no.nav.dagpenger.soknad
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.SøknadObserver.SøknadSlettetEvent
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
-import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
@@ -150,11 +149,6 @@ class Søknad private constructor(
         tilstand.håndter(slettSøknadHendelse, this)
     }
 
-    fun håndter(dokumentasjonIkkeTilgjengelig: DokumentasjonIkkeTilgjengelig) {
-        kontekst(dokumentasjonIkkeTilgjengelig)
-        tilstand.håndter(dokumentasjonIkkeTilgjengelig, this)
-    }
-
     fun håndter(leggTilFil: LeggTilFil) {
         kontekst(leggTilFil)
         leggTilFil.info("Legger til fil")
@@ -201,10 +195,6 @@ class Søknad private constructor(
 
         fun håndter(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
             slettSøknadHendelse.severe("Kan ikke slette søknad i tilstand $tilstandType")
-        }
-
-        fun håndter(dokumentasjonIkkeTilgjengelig: DokumentasjonIkkeTilgjengelig, søknad: Søknad) {
-            dokumentasjonIkkeTilgjengelig.`kan ikke håndteres i denne tilstanden`()
         }
 
         fun håndter(leggTilFil: LeggTilFil, søknad: Søknad) {
@@ -290,10 +280,6 @@ class Søknad private constructor(
         }
 
         override fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse, søknad: Søknad) {
-        }
-
-        override fun håndter(dokumentasjonIkkeTilgjengelig: DokumentasjonIkkeTilgjengelig, søknad: Søknad) {
-            søknad.dokumentkrav.håndter(dokumentasjonIkkeTilgjengelig)
         }
 
         override fun håndter(leggTilFil: LeggTilFil, søknad: Søknad) {
