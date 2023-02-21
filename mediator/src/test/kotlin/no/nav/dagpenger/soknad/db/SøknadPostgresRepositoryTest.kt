@@ -1,7 +1,6 @@
 package no.nav.dagpenger.soknad.db
 
 import FerdigSøknadData
-import de.slub.urn.URN
 import io.mockk.every
 import io.mockk.mockk
 import kotliquery.queryOf
@@ -9,7 +8,6 @@ import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.DeepEquals.assertDeepEquals
-import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Prosessnavn
@@ -19,13 +17,8 @@ import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
-import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.db.Postgres.withMigratedDb
 import no.nav.dagpenger.soknad.faktumJson
-import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
-import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
-import no.nav.dagpenger.soknad.hendelse.LeggTilFil
-import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.mal.SøknadMal
 import no.nav.dagpenger.soknad.mal.SøknadMalPostgresRepository
@@ -35,9 +28,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
@@ -82,9 +73,6 @@ internal class SøknadPostgresRepositoryTest {
         opprettet = opprettet,
         innsendt = now,
         språk = Språk("NO"),
-        dokumentkrav = Dokumentkrav.rehydrer(
-            krav = setOf(krav)
-        ),
         sistEndretAvBruker = now,
         tilstandsType = Påbegynt,
         aktivitetslogg = Aktivitetslogg(),
@@ -125,9 +113,6 @@ internal class SøknadPostgresRepositoryTest {
             opprettet = opprettet,
             null,
             språk = Språk("NO"),
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav)
-            ),
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
@@ -152,18 +137,13 @@ internal class SøknadPostgresRepositoryTest {
     }
 
     @Test
-    fun `Lagre og hente søknad med dokumentkrav og aktivitetslogg`() {
-        val krav1 = Krav(sannsynliggjøring)
-        val krav2 = Krav(sannsynliggjøring2)
+    fun `Lagre og hente søknad med aktivitetslogg`() {
         val søknad = Søknad.rehydrer(
             søknadId = søknadId,
             ident = ident,
             opprettet = opprettet,
             null,
             språk = språk,
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav1, krav2)
-            ),
             sistEndretAvBruker = now.minusDays(1),
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
@@ -177,7 +157,6 @@ internal class SøknadPostgresRepositoryTest {
                 søknadPostgresRepository.lagre(søknad)
 
                 assertAntallRader("soknad_v1", 1)
-                assertAntallRader("dokumentkrav_v1", 2)
                 assertAntallRader("aktivitetslogg_v1", 1)
 
                 søknadPostgresRepository.hent(søknadId).let { rehydrertSøknad ->
@@ -195,202 +174,200 @@ internal class SøknadPostgresRepositoryTest {
         }
     }
 
-    @Test
-    fun `dokumentkrav som sannsynliggjøres skal lagres med samme struktur`() {
-        val originalFaktumJson = faktumJson("1", "f1")
-        val dokumentFaktum =
-            Faktum(originalFaktumJson)
-        val originalFaktumSomsannsynliggjøresFakta = faktumJson("2", "f2")
-        val faktaSomSannsynliggjøres =
-            mutableSetOf(
-                Faktum(originalFaktumSomsannsynliggjøresFakta)
-            )
-        val sannsynliggjøring = Sannsynliggjøring(
-            id = dokumentFaktum.id,
-            faktum = dokumentFaktum,
-            sannsynliggjør = faktaSomSannsynliggjøres
-        )
-        val krav = Krav(
-            sannsynliggjøring
-        )
-        val søknad = Søknad.rehydrer(
-            søknadId = søknadId,
-            ident = ident,
-            opprettet = opprettet,
-            null,
-            språk = språk,
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav)
-            ),
-            sistEndretAvBruker = now.minusDays(1),
-            tilstandsType = Påbegynt,
-            aktivitetslogg = Aktivitetslogg(),
-            prosessversjon = prosessversjon,
-            data = FerdigSøknadData,
-        )
+    // TODO: fjerne eller tilpasse
+//    @Test
+//    fun `dokumentkrav som sannsynliggjøres skal lagres med samme struktur`() {
+//        val originalFaktumJson = faktumJson("1", "f1")
+//        val dokumentFaktum =
+//            Faktum(originalFaktumJson)
+//        val originalFaktumSomsannsynliggjøresFakta = faktumJson("2", "f2")
+//        val faktaSomSannsynliggjøres =
+//            mutableSetOf(
+//                Faktum(originalFaktumSomsannsynliggjøresFakta)
+//            )
+//        val sannsynliggjøring = Sannsynliggjøring(
+//            id = dokumentFaktum.id,
+//            faktum = dokumentFaktum,
+//            sannsynliggjør = faktaSomSannsynliggjøres
+//        )
+//        val krav = Krav(
+//            sannsynliggjøring
+//        )
+//        val søknad = Søknad.rehydrer(
+//            søknadId = søknadId,
+//            ident = ident,
+//            opprettet = opprettet,
+//            null,
+//            språk = språk,
+//            sistEndretAvBruker = now.minusDays(1),
+//            tilstandsType = Påbegynt,
+//            aktivitetslogg = Aktivitetslogg(),
+//            prosessversjon = prosessversjon,
+//            data = FerdigSøknadData,
+//        )
+//
+//        withMigratedDb {
+//            SøknadPostgresRepository(dataSource).let { søknadPostgresRepository ->
+//                søknadPostgresRepository.lagre(søknad)
+//                val dokumentkrav = hentDokumentKrav(søknadPostgresRepository.hent(søknadId)!!)
+//                val rehydrertSannsynliggjøring = dokumentkrav.aktiveDokumentKrav().first().sannsynliggjøring
+//                assertEquals(originalFaktumJson, rehydrertSannsynliggjøring.faktum().originalJson())
+//                assertEquals(
+//                    originalFaktumSomsannsynliggjøresFakta,
+//                    rehydrertSannsynliggjøring.sannsynliggjør().first().originalJson()
+//                )
+//            }
+//        }
+//    }
 
-        withMigratedDb {
-            SøknadPostgresRepository(dataSource).let { søknadPostgresRepository ->
-                søknadPostgresRepository.lagre(søknad)
-                val dokumentkrav = hentDokumentKrav(søknadPostgresRepository.hent(søknadId)!!)
-                val rehydrertSannsynliggjøring = dokumentkrav.aktiveDokumentKrav().first().sannsynliggjøring
-                assertEquals(originalFaktumJson, rehydrertSannsynliggjøring.faktum().originalJson())
-                assertEquals(
-                    originalFaktumSomsannsynliggjøresFakta,
-                    rehydrertSannsynliggjøring.sannsynliggjør().first().originalJson()
-                )
-            }
-        }
-    }
-
-    @Test
-    fun `Kan hente ut søknad med dokumentasjonskrav svar`() {
-        val tidspunkt = now
-        val fil1 = Krav.Fil(
-            filnavn = "ja.jpg",
-            urn = URN.rfc8141().parse("urn:vedlegg:1111/12345"),
-            storrelse = 50000,
-            tidspunkt = tidspunkt,
-            bundlet = false
-        )
-        val fil2 = Krav.Fil(
-            filnavn = "nei.jpg",
-            urn = URN.rfc8141().parse("urn:vedlegg:1111/45678"),
-            storrelse = 50000,
-            tidspunkt = tidspunkt,
-            bundlet = false
-        )
-        withMigratedDb {
-            val søknadPostgresRepository = SøknadPostgresRepository(dataSource)
-            søknadPostgresRepository.lagre(søknad)
-            val søknadMediator = SøknadMediator(
-                rapidsConnection = mockk(relaxed = true),
-                søknadDataRepository = mockk(),
-                søknadMalRepository = mockk(),
-                ferdigstiltSøknadRepository = mockk(),
-                søknadRepository = søknadPostgresRepository,
-                søknadObservers = listOf(),
-                dokumentkravRepository = PostgresDokumentkravRepository(dataSource)
-            )
-
-            hentDokumentKrav(søknadMediator.hent(søknadId)!!).let {
-                it.aktiveDokumentKrav().forEach { krav ->
-                    assertTrue(krav.svar.filer.isEmpty())
-                    assertEquals(Krav.Svar.SvarValg.IKKE_BESVART, krav.svar.valg)
-                    assertNull(krav.svar.begrunnelse)
-                }
-            }
-
-            søknadMediator.behandle(
-                LeggTilFil(
-                    søknadId,
-                    ident,
-                    "1",
-                    fil1
-                )
-            )
-
-            søknadMediator.behandle(
-                LeggTilFil(
-                    søknadId,
-                    ident,
-                    "1",
-                    fil2
-                )
-            )
-            søknadMediator.behandle(
-                LeggTilFil(
-                    søknadId,
-                    ident,
-                    "1",
-                    fil2
-                )
-            )
-            hentDokumentKrav(søknadMediator.hent(søknadId)!!).let {
-                assertEquals(2, it.aktiveDokumentKrav().first().svar.filer.size)
-                it.aktiveDokumentKrav().first().svar.filer.forEach { kravFil ->
-                    assertFalse(kravFil.bundlet)
-                }
-                it.aktiveDokumentKrav().forEach { krav ->
-                    assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
-                    assertNull(krav.svar.begrunnelse)
-                }
-            }
-
-            søknadMediator.behandle(
-                DokumentKravSammenstilling(
-                    søknadID = søknadId,
-                    ident = ident,
-                    kravId = "1",
-                    urn = URN.rfc8141().parse("urn:vedlegg:bundle")
-                )
-            )
-
-            hentDokumentKrav(søknadMediator.hent(søknadId)!!).let { dokumentkrav ->
-                val filer = dokumentkrav.aktiveDokumentKrav().first().svar.filer
-                assertEquals(2, filer.size)
-                filer.forEach { fil ->
-                    assertTrue(fil.bundlet)
-                }
-            }
-
-            søknadMediator.behandle(
-                DokumentasjonIkkeTilgjengelig(
-                    søknadId,
-                    ident,
-                    "1",
-                    valg = Krav.Svar.SvarValg.SEND_SENERE,
-                    begrunnelse = "Har ikke"
-                )
-            )
-
-            hentDokumentKrav(søknadMediator.hent(søknadId)!!).let {
-                assertEquals(2, it.aktiveDokumentKrav().first().svar.filer.size)
-                it.aktiveDokumentKrav().forEach { krav ->
-                    assertEquals(Krav.Svar.SvarValg.SEND_SENERE, krav.svar.valg)
-                    assertEquals("Har ikke", krav.svar.begrunnelse)
-                }
-            }
-
-            søknadMediator.behandle(
-                SlettFil(
-                    søknadID = søknadId,
-                    ident = ident,
-                    kravId = "1",
-                    urn = fil1.urn
-                )
-            )
-            assertEquals(
-                1,
-                hentDokumentKrav(søknadMediator.hent(søknadId)!!).aktiveDokumentKrav().first().svar.filer.size
-            )
-
-            søknadMediator.behandle(
-                SlettFil(
-                    søknadID = søknadId,
-                    ident = ident,
-                    kravId = "1",
-                    urn = fil2.urn
-                )
-            )
-
-            assertEquals(
-                0,
-                hentDokumentKrav(søknadMediator.hent(søknadId)!!).aktiveDokumentKrav().first().svar.filer.size
-            )
-
-            assertDoesNotThrow {
-                søknadMediator.behandle(
-                    SlettFil(
-                        søknadID = søknadId,
-                        ident = ident,
-                        kravId = "1",
-                        urn = fil2.urn
-                    )
-                )
-            }
-        }
-    }
+//    @Test
+//    fun `Kan hente ut søknad med dokumentasjonskrav svar`() {
+//        val tidspunkt = now
+//        val fil1 = Krav.Fil(
+//            filnavn = "ja.jpg",
+//            urn = URN.rfc8141().parse("urn:vedlegg:1111/12345"),
+//            storrelse = 50000,
+//            tidspunkt = tidspunkt,
+//            bundlet = false
+//        )
+//        val fil2 = Krav.Fil(
+//            filnavn = "nei.jpg",
+//            urn = URN.rfc8141().parse("urn:vedlegg:1111/45678"),
+//            storrelse = 50000,
+//            tidspunkt = tidspunkt,
+//            bundlet = false
+//        )
+//        withMigratedDb {
+//            val søknadPostgresRepository = SøknadPostgresRepository(dataSource)
+//            søknadPostgresRepository.lagre(søknad)
+//            val søknadMediator = SøknadMediator(
+//                rapidsConnection = mockk(relaxed = true),
+//                søknadDataRepository = mockk(),
+//                søknadMalRepository = mockk(),
+//                ferdigstiltSøknadRepository = mockk(),
+//                søknadRepository = søknadPostgresRepository,
+//                søknadObservers = listOf(),
+//                dokumentkravRepository = PostgresDokumentkravRepository(dataSource)
+//            )
+//
+//            hentDokumentKrav(søknadMediator.hent(søknadId)!!).let {
+//                it.aktiveDokumentKrav().forEach { krav ->
+//                    assertTrue(krav.svar.filer.isEmpty())
+//                    assertEquals(Krav.Svar.SvarValg.IKKE_BESVART, krav.svar.valg)
+//                    assertNull(krav.svar.begrunnelse)
+//                }
+//            }
+//
+//            søknadMediator.behandle(
+//                LeggTilFil(
+//                    søknadId,
+//                    ident,
+//                    "1",
+//                    fil1
+//                )
+//            )
+//
+//            søknadMediator.behandle(
+//                LeggTilFil(
+//                    søknadId,
+//                    ident,
+//                    "1",
+//                    fil2
+//                )
+//            )
+//            søknadMediator.behandle(
+//                LeggTilFil(
+//                    søknadId,
+//                    ident,
+//                    "1",
+//                    fil2
+//                )
+//            )
+//            hentDokumentKrav(søknadMediator.hent(søknadId)!!).let {
+//                assertEquals(2, it.aktiveDokumentKrav().first().svar.filer.size)
+//                it.aktiveDokumentKrav().first().svar.filer.forEach { kravFil ->
+//                    assertFalse(kravFil.bundlet)
+//                }
+//                it.aktiveDokumentKrav().forEach { krav ->
+//                    assertEquals(Krav.Svar.SvarValg.SEND_NÅ, krav.svar.valg)
+//                    assertNull(krav.svar.begrunnelse)
+//                }
+//            }
+//
+//            søknadMediator.behandle(
+//                DokumentKravSammenstilling(
+//                    søknadID = søknadId,
+//                    ident = ident,
+//                    kravId = "1",
+//                    urn = URN.rfc8141().parse("urn:vedlegg:bundle")
+//                )
+//            )
+//
+//            hentDokumentKrav(søknadMediator.hent(søknadId)!!).let { dokumentkrav ->
+//                val filer = dokumentkrav.aktiveDokumentKrav().first().svar.filer
+//                assertEquals(2, filer.size)
+//                filer.forEach { fil ->
+//                    assertTrue(fil.bundlet)
+//                }
+//            }
+//
+//            søknadMediator.behandle(
+//                DokumentasjonIkkeTilgjengelig(
+//                    søknadId,
+//                    ident,
+//                    "1",
+//                    valg = Krav.Svar.SvarValg.SEND_SENERE,
+//                    begrunnelse = "Har ikke"
+//                )
+//            )
+//
+//            hentDokumentKrav(søknadMediator.hent(søknadId)!!).let {
+//                assertEquals(2, it.aktiveDokumentKrav().first().svar.filer.size)
+//                it.aktiveDokumentKrav().forEach { krav ->
+//                    assertEquals(Krav.Svar.SvarValg.SEND_SENERE, krav.svar.valg)
+//                    assertEquals("Har ikke", krav.svar.begrunnelse)
+//                }
+//            }
+//
+//            søknadMediator.behandle(
+//                SlettFil(
+//                    søknadID = søknadId,
+//                    ident = ident,
+//                    kravId = "1",
+//                    urn = fil1.urn
+//                )
+//            )
+//            assertEquals(
+//                1,
+//                hentDokumentKrav(søknadMediator.hent(søknadId)!!).aktiveDokumentKrav().first().svar.filer.size
+//            )
+//
+//            søknadMediator.behandle(
+//                SlettFil(
+//                    søknadID = søknadId,
+//                    ident = ident,
+//                    kravId = "1",
+//                    urn = fil2.urn
+//                )
+//            )
+//
+//            assertEquals(
+//                0,
+//                hentDokumentKrav(søknadMediator.hent(søknadId)!!).aktiveDokumentKrav().first().svar.filer.size
+//            )
+//
+//            assertDoesNotThrow {
+//                søknadMediator.behandle(
+//                    SlettFil(
+//                        søknadID = søknadId,
+//                        ident = ident,
+//                        kravId = "1",
+//                        urn = fil2.urn
+//                    )
+//                )
+//            }
+//        }
+//    }
 
     @Test
     fun `Hent påbegynt søknad henter kun ut dagpenger søknad`() {
@@ -422,9 +399,6 @@ internal class SøknadPostgresRepositoryTest {
             opprettet = ZonedDateTime.now(),
             null,
             språk = Språk("NO"),
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav)
-            ),
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
@@ -441,9 +415,6 @@ internal class SøknadPostgresRepositoryTest {
             opprettet = ZonedDateTime.now(),
             null,
             språk = Språk("NO"),
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav)
-            ),
             sistEndretAvBruker = now,
             tilstandsType = Innsendt,
             aktivitetslogg = Aktivitetslogg(),
@@ -478,9 +449,6 @@ internal class SøknadPostgresRepositoryTest {
             opprettet = ZonedDateTime.now(),
             null,
             språk = Språk("NO"),
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav)
-            ),
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
@@ -493,9 +461,6 @@ internal class SøknadPostgresRepositoryTest {
             opprettet = ZonedDateTime.now(),
             null,
             språk = Språk("NO"),
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav)
-            ),
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
@@ -508,9 +473,6 @@ internal class SøknadPostgresRepositoryTest {
             opprettet = ZonedDateTime.now(),
             null,
             språk = Språk("NO"),
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav)
-            ),
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
@@ -523,9 +485,6 @@ internal class SøknadPostgresRepositoryTest {
             opprettet = ZonedDateTime.now(),
             null,
             språk = Språk("NO"),
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav)
-            ),
             sistEndretAvBruker = now,
             tilstandsType = Innsendt,
             aktivitetslogg = Aktivitetslogg(),
@@ -558,10 +517,10 @@ internal class SøknadPostgresRepositoryTest {
         }
     }
 
-    private fun hentDokumentKrav(søknad: Søknad): Dokumentkrav {
-
-        return TestSøknadVisitor(søknad).dokumentKrav
-    }
+//    private fun hentDokumentKrav(søknad: Søknad): Dokumentkrav {
+//
+//        return TestSøknadVisitor(søknad).dokumentKrav
+//    }
 
     private fun assertAntallRader(tabell: String, antallRader: Int) {
         val faktiskeRader = using(sessionOf(dataSource)) { session ->

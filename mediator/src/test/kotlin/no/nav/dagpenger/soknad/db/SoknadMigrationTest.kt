@@ -2,7 +2,6 @@ package no.nav.dagpenger.soknad.db
 
 import FerdigSøknadData
 import no.nav.dagpenger.soknad.Aktivitetslogg
-import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Prosessversjon
 import no.nav.dagpenger.soknad.Språk
@@ -30,7 +29,6 @@ internal class SoknadMigrationTest {
             opprettet = now,
             innsendt = null,
             språk = Språk(verdi = "NN"),
-            dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = ZonedDateTime.now(),
             tilstandsType = Søknad.Tilstand.Type.Innsendt,
             aktivitetslogg = Aktivitetslogg(forelder = null),
@@ -43,7 +41,6 @@ internal class SoknadMigrationTest {
             opprettet = ZonedDateTime.now(),
             innsendt = null,
             språk = Språk(verdi = "NN"),
-            dokumentkrav = Dokumentkrav(),
             sistEndretAvBruker = ZonedDateTime.now(),
             tilstandsType = Søknad.Tilstand.Type.Innsendt,
             aktivitetslogg = Aktivitetslogg(forelder = null),

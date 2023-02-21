@@ -21,7 +21,6 @@ class Søknad private constructor(
     private var innsendt: ZonedDateTime?,
     private var tilstand: Tilstand,
     private val språk: Språk,
-//    private val dokumentkrav: Dokumentkrav,
     private var sistEndretAvBruker: ZonedDateTime,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
     private var prosessversjon: Prosessversjon?,
@@ -55,15 +54,10 @@ class Søknad private constructor(
         innsendt = null,
         tilstand = UnderOpprettelse,
         språk = språk,
-//        dokumentkrav = Dokumentkrav(),
         sistEndretAvBruker = ZonedDateTime.now(),
         prosessversjon = null,
         data = data
     )
-
-    init {
-//        dokumentkrav.addObserver(this)
-    }
 
     companion object {
         fun rehydrer(
@@ -72,7 +66,6 @@ class Søknad private constructor(
             opprettet: ZonedDateTime,
             innsendt: ZonedDateTime?,
             språk: Språk,
-//            dokumentkrav: Dokumentkrav,
             sistEndretAvBruker: ZonedDateTime,
             tilstandsType: Tilstand.Type,
             aktivitetslogg: Aktivitetslogg,
@@ -92,7 +85,6 @@ class Søknad private constructor(
                 innsendt = innsendt,
                 tilstand = tilstand,
                 språk = språk,
-//                dokumentkrav = dokumentkrav,
                 sistEndretAvBruker = sistEndretAvBruker,
                 aktivitetslogg = aktivitetslogg,
                 prosessversjon = prosessversjon,

@@ -3,7 +3,6 @@ package no.nav.dagpenger.soknad.livssyklus.ferdigstilt
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.Aktivitetslogg
-import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadData
@@ -37,7 +36,6 @@ class SøknadInnsendtTidspunktTjenesteTest {
                     opprettet = now,
                     innsendt = innsendtTidspunkt,
                     språk = Språk(verdi = "NN"),
-                    dokumentkrav = Dokumentkrav(),
                     sistEndretAvBruker = now,
                     tilstandsType = Søknad.Tilstand.Type.Innsendt,
                     aktivitetslogg = Aktivitetslogg(forelder = null),

@@ -41,7 +41,7 @@ internal fun Route.søknadApi(
         slettSøknadRoute(søknadMediator)
         statusRoute(søknadMediator, behandlingsstatusClient)
         dokumentasjonkravRoute(søknadMediator, dokumentasjonsKravMediator)
-        mineSoknaderRoute(søknadMediator)
+        mineSoknaderRoute(søknadMediator, dokumentasjonsKravMediator)
     }
 }
 

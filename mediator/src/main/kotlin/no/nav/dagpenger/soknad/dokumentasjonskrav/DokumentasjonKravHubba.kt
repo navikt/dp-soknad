@@ -4,7 +4,6 @@ import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyEttersending
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyInnsending
-import no.nav.dagpenger.soknad.innsending.meldinger.NyEttersendingMelding
 import no.nav.dagpenger.soknad.utils.asUUID
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext

@@ -20,7 +20,6 @@ internal class TestSøknadhåndtererInspektør(søknadhåndterer: Søknad) : Sø
         innsendt: ZonedDateTime?,
         tilstand: Søknad.Tilstand,
         språk: Språk,
-        dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime,
         prosessversjon: Prosessversjon?
     ) {

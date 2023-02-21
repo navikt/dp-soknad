@@ -29,7 +29,7 @@ internal class SøknadMediator(
     private val søknadMalRepository: SøknadMalRepository,
     private val ferdigstiltSøknadRepository: FerdigstiltSøknadRepository,
     private val søknadRepository: SøknadRepository,
-    private val dokumentkravRepository: DokumentkravRepository,
+    dokumentkravRepository: DokumentkravRepository,
     private val søknadObservers: List<SøknadObserver> = emptyList()
 ) : SøknadDataRepository by søknadDataRepository,
     SøknadMalRepository by søknadMalRepository,

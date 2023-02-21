@@ -13,7 +13,6 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Configuration
-import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
@@ -170,7 +169,6 @@ class StatusApiTest {
         opprettet = ZonedDateTime.of(opprettet, ZoneId.of("Europe/Oslo")),
         innsendt = innsendt,
         språk = Språk("NO"),
-        dokumentkrav = Dokumentkrav(),
         sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.now(), ZoneId.of("Europe/Oslo")),
         tilstandsType = tilstand,
         aktivitetslogg = Aktivitetslogg(),

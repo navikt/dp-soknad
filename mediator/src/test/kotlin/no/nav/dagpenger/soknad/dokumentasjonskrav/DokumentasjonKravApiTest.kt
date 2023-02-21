@@ -23,6 +23,7 @@ import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SENDER_IKKE
+import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SEND_NÅ
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
@@ -70,43 +71,58 @@ internal class DokumentasjonKravApiTest {
         ZonedDateTime.now(),
         bundlet = false
     )
-    private val dokumentKrav = Dokumentkrav().also {
-        it.håndter(setOf(sannsynliggjøring1, sannsynliggjøring2))
-        it.håndter(LeggTilFil(testSoknadId, defaultDummyFodselsnummer, "1", fil))
-        it.håndter(
-            DokumentKravSammenstilling(
-                testSoknadId,
-                defaultDummyFodselsnummer,
-                "1",
-                URN.rfc8141().parse("urn:bundle:1")
-            )
-        )
-        it.håndter(
-            DokumentasjonIkkeTilgjengelig(
-                testSoknadId,
-                defaultDummyFodselsnummer,
-                "2",
-                valg = SENDER_IKKE,
-                begrunnelse = "Har ikke dokumentasjon tilgjengelig"
-            )
-        )
-    }
+
+    private val krav1 = Krav(
+        id = dokumentFaktum1.id,
+        svar = Krav.Svar(
+            filer = mutableSetOf(fil),
+            valg = SEND_NÅ,
+            begrunnelse = null,
+            bundle = URN.rfc8141().parse("urn:bundle:1"),
+            innsendt = true
+        ),
+        sannsynliggjøring = sannsynliggjøring1,
+        tilstand = Krav.KravTilstand.AKTIV
+    )
+
+    private val krav2 = Krav(
+        id = dokumentFaktum2.id,
+        svar = Krav.Svar(
+            filer = mutableSetOf(),
+            valg = SENDER_IKKE,
+            begrunnelse = "Har ikke dokumentasjon tilgjengelig",
+            bundle = null,
+            innsendt = true
+        ),
+        sannsynliggjøring = sannsynliggjøring2,
+        tilstand = Krav.KravTilstand.AKTIV
+    )
+
+    private val dokumentKrav = Dokumentkrav.rehydrer(
+        testSoknadId,
+        setOf(krav1, krav2)
+    )
+
     private val søknad = Søknad.rehydrer(
         søknadId = testSoknadId,
         ident = defaultDummyFodselsnummer,
         opprettet = ZonedDateTime.now(),
         innsendt = null,
         språk = Språk("NO"),
-        dokumentkrav = dokumentKrav,
         sistEndretAvBruker = ZonedDateTime.now(),
         tilstandsType = Søknad.Tilstand.Type.Påbegynt,
         aktivitetslogg = Aktivitetslogg(),
         prosessversjon = null,
         data = FerdigSøknadData,
     )
+
     private val søknadMediatorMock = mockk<SøknadMediator>().also {
         every { it.hent(testSoknadId) } returns søknad
         every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
+    }
+
+    private val dokumentkravMediatorMock = mockk<DokumentasjonsKravMediator>().also {
+        every { it.hent(testSoknadId) } returns dokumentKrav
     }
 
     @Test
@@ -132,7 +148,7 @@ internal class DokumentasjonKravApiTest {
     fun `Skal avvise autentiserte kall der pid på token ikke er eier av søknaden`() {
         val søknadId = UUID.randomUUID()
         val mediatorMock = mockk<SøknadMediator>().also {
-            every { it.hentEier(søknadId) } returns "hubba"
+            every { it.hentEier(søknadId) } returns "feil eier"
         }
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -146,10 +162,11 @@ internal class DokumentasjonKravApiTest {
     }
 
     @Test
-    fun `skal vise dokumentasjons krav`() {
+    fun `kan hente ut dokumentasjonskrav`() {
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(
-                søknadMediator = søknadMediatorMock
+                søknadMediator = søknadMediatorMock,
+                dokumentasjonsKravMediator = dokumentkravMediatorMock
             )
         ) {
             autentisert(
@@ -218,16 +235,62 @@ internal class DokumentasjonKravApiTest {
     }
 
     @Test
-    fun `Skal kunne sende inn svar uten fil`() {
-        val slot = slot<DokumentasjonIkkeTilgjengelig>()
-        val mediatorMock = mockk<SøknadMediator>().also {
-            every { it.behandle(capture(slot)) } just Runs
-            every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
-        }
+    fun `Skal kunne besvare med fil`() {
+        val slot = slot<LeggTilFil>()
+        val tidspunkt = ZonedDateTime.now()
 
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(
-                søknadMediator = mediatorMock
+                søknadMediator = søknadMediatorMock,
+                dokumentasjonsKravMediator = dokumentkravMediatorMock.also {
+                    every { it.behandle(capture(slot)) } just Runs
+                }
+            )
+        ) {
+            client.put("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451/fil") {
+                autentisert()
+                header(HttpHeaders.ContentType, "application/json")
+                // language=JSON
+                setBody(
+                    """{
+  "filnavn": "ja.jpg",
+  "filsti": "1111/123234",
+  "storrelse": 50000,
+  "ikkeibruk": "ikkeibruk",
+  "urn": "urn:vedlegg:1111/123234",
+  "tidspunkt": "${tidspunkt.format(DateTimeFormatter.ISO_ZONED_DATE_TIME)}"
+ }"""
+                )
+            }.let { response ->
+                assertEquals(HttpStatusCode.Created, response.status)
+                assertTrue(slot.isCaptured)
+                with(slot.captured) {
+                    assertEquals("451", this.kravId)
+                    assertEquals(
+                        Krav.Fil(
+                            filnavn = "ja.jpg",
+                            urn = URN.rfc8141().parse("urn:vedlegg:1111/123234"),
+                            storrelse = 50000,
+                            tidspunkt = tidspunkt,
+                            bundlet = false
+                        ),
+                        this.fil
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `Skal kunne sende inn svar uten fil`() {
+        val slot = slot<DokumentasjonIkkeTilgjengelig>()
+
+        TestApplication.withMockAuthServerAndTestApplication(
+            mockedSøknadApi(
+                søknadMediator = søknadMediatorMock,
+                dokumentasjonsKravMediator = dokumentkravMediatorMock.also {
+                    every { it.behandle(capture(slot)) } just Runs
+                }
             )
         ) {
             client.put("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451/svar") {
@@ -257,12 +320,13 @@ internal class DokumentasjonKravApiTest {
     @Test
     fun `Skal kunne slette en fil`() {
         val slot = slot<SlettFil>()
-        val mediatorMock = mockk<SøknadMediator>().also {
-            every { it.behandle(capture(slot)) } just Runs
-        }
+
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(
-                søknadMediator = mediatorMock
+                søknadMediator = søknadMediatorMock,
+                dokumentasjonsKravMediator = dokumentkravMediatorMock.also {
+                    every { it.behandle(capture(slot)) } just Runs
+                }
             )
         ) {
             client.delete("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451/fil/soknadid/filid") {
@@ -280,63 +344,15 @@ internal class DokumentasjonKravApiTest {
     }
 
     @Test
-    fun `Skal kunne besvare med fil`() {
-        val slot = slot<LeggTilFil>()
-        val tidspunkt = ZonedDateTime.now()
-        val mediatorMock = mockk<SøknadMediator>().also {
-            every { it.behandle(capture(slot)) } just Runs
-            every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
-        }
-
-        TestApplication.withMockAuthServerAndTestApplication(
-            mockedSøknadApi(
-                søknadMediator = mediatorMock
-            )
-        ) {
-            client.put("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451/fil") {
-                autentisert()
-                header(HttpHeaders.ContentType, "application/json")
-                // language=JSON
-                setBody(
-                    """{
-  "filnavn": "ja.jpg",
-  "filsti": "1111/123234",
-  "storrelse": 50000,
-  "ikkeibruk": "ikkeibruk",
-  "urn": "urn:vedlegg:1111/123234",
-  "tidspunkt": "${tidspunkt.format(DateTimeFormatter.ISO_ZONED_DATE_TIME)}"
-}"""
-                )
-            }.let { response ->
-                assertEquals(HttpStatusCode.Created, response.status)
-                assertTrue(slot.isCaptured)
-                with(slot.captured) {
-                    assertEquals("451", this.kravId)
-                    assertEquals(
-                        Krav.Fil(
-                            filnavn = "ja.jpg",
-                            urn = URN.rfc8141().parse("urn:vedlegg:1111/123234"),
-                            storrelse = 50000,
-                            tidspunkt = tidspunkt,
-                            bundlet = false
-                        ),
-                        this.fil
-                    )
-                }
-            }
-        }
-    }
-
-    @Test
     fun `skal kunne besvare dokumentkrav med bundle URN`() {
         val slot = slot<DokumentKravSammenstilling>()
-        val mediatorMock = mockk<SøknadMediator>().also {
-            every { it.behandle(capture(slot)) } just Runs
-        }
 
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(
-                søknadMediator = mediatorMock
+                søknadMediator = søknadMediatorMock,
+                dokumentasjonsKravMediator = dokumentkravMediatorMock.also {
+                    every { it.behandle(capture(slot)) } just Runs
+                }
             )
         ) {
             client.put("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451/bundle") {

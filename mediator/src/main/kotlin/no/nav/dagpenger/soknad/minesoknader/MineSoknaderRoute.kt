@@ -7,12 +7,14 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import mu.KotlinLogging
+import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Companion.erDagpenger
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentasjonsKravMediator
 import no.nav.dagpenger.soknad.utils.auth.ident
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -21,24 +23,27 @@ import java.util.UUID
 
 private val logger = KotlinLogging.logger { }
 
-internal fun Route.mineSoknaderRoute(søknadMediator: SøknadMediator) {
+internal fun Route.mineSoknaderRoute(søknadMediator: SøknadMediator, dokumentasjonsKravMediator: DokumentasjonsKravMediator) {
     get("/mine-soknader") {
         val fom = queryParamToFom(call.request.queryParameters["fom"])
         val includeDokumentkrav = call.request.queryParameters["include"] == "dokumentkrav"
 
         val dagpengeSøknader = søknadMediator.hentSøknader(ident = call.ident()).filter { it.erDagpenger() }
-        val mineSøknaderDto = lagMineSøknaderDto(dagpengeSøknader, fom, includeDokumentkrav)
+
+        // TODO må se på dette, bør være en bedre måte enn å sende videre dokkrav-mediatoren
+        val mineSøknaderDto = lagMineSøknaderDto(dagpengeSøknader, fom, includeDokumentkrav, dokumentasjonsKravMediator)
 
         call.respond(HttpStatusCode.OK, mineSøknaderDto)
     }
 }
 
-private fun lagMineSøknaderDto(søknader: List<Søknad>, fom: LocalDate, includeDokumentkrav: Boolean): MineSoknaderDto {
+private fun lagMineSøknaderDto(søknader: List<Søknad>, fom: LocalDate, includeDokumentkrav: Boolean, dokumentasjonsKravMediator: DokumentasjonsKravMediator): MineSoknaderDto {
     var påbegyntSøknad: PåbegyntSøknadDto? = null
     val innsendteSøknader = mutableListOf<InnsendtSøknadDto>()
 
     søknader.map { søknad ->
-        val mineSøknaderVisitor = MineSøknaderVisitor(søknad)
+        val dokkrav: Dokumentkrav = dokumentasjonsKravMediator.hent(søknad.søknadUUID())
+        val mineSøknaderVisitor = MineSøknaderVisitor(søknad, dokkrav)
         val dokumentkrav = if (includeDokumentkrav) {
             mineSøknaderVisitor.dokumentkrav().toMineSoknaderDokumentkravDTO()
         } else null

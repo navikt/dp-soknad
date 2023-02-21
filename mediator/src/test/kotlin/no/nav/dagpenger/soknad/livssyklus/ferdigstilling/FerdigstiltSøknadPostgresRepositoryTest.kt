@@ -3,7 +3,6 @@ package no.nav.dagpenger.soknad.livssyklus.ferdigstilling
 import FerdigSøknadData
 import io.ktor.server.plugins.NotFoundException
 import no.nav.dagpenger.soknad.Aktivitetslogg
-import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
@@ -108,7 +107,6 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
                 opprettet = ZonedDateTime.now(),
                 innsendt = null,
                 språk = Språk(språkVerdi),
-                dokumentkrav = Dokumentkrav(),
                 sistEndretAvBruker = ZonedDateTime.now(),
                 tilstandsType = Påbegynt,
                 aktivitetslogg = Aktivitetslogg(),

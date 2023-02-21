@@ -15,6 +15,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.data.søknadData
+import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentasjonsKravMediator
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.ferdigStiltSøknadRouteBuilder
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
@@ -61,14 +62,16 @@ object TestApplication {
         personOppslag: PersonOppslag = mockk(relaxed = true),
         kontonummerOppslag: KontonummerOppslag = mockk(relaxed = true),
         søknadMediator: SøknadMediator = mockk(relaxed = true),
-        behandlingsstatusClient: BehandlingsstatusClient = mockk(relaxed = true)
+        behandlingsstatusClient: BehandlingsstatusClient = mockk(relaxed = true),
+        dokumentasjonsKravMediator: DokumentasjonsKravMediator = mockk(relaxed = true)
     ): Application.() -> Unit {
 
         return fun Application.() {
             api(
                 søknadApiRouteBuilder(
                     søknadMediator = søknadMediator,
-                    behandlingsstatusClient = behandlingsstatusClient
+                    behandlingsstatusClient = behandlingsstatusClient,
+                    dokumentasjonsKravMediator = dokumentasjonsKravMediator
                 ),
                 personaliaRouteBuilder(
                     personOppslag, kontonummerOppslag
