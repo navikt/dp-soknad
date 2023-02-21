@@ -17,7 +17,7 @@ class SøknadDokumentasjonskravTest {
         sannsynliggjør = faktaSomSannsynliggjøres
     )
 
-    //TODO: vurder å fjerne
+    // TODO: vurder å fjerne
 //    @Test
 //    fun `håndter svar på dokumentasjonskrav`() {
 //        val søknadId = UUID.randomUUID()
