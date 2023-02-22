@@ -121,7 +121,7 @@ internal class DokumentasjonKravApiTest {
         every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
     }
 
-    private val dokumentkravMediatorMock = mockk<DokumentasjonsKravMediator>().also {
+    private val dokumentkravMediatorMock = mockk<DokumentkravMediator>().also {
         every { it.hent(testSoknadId) } returns dokumentKrav
     }
 
@@ -166,7 +166,7 @@ internal class DokumentasjonKravApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(
                 søknadMediator = søknadMediatorMock,
-                dokumentasjonsKravMediator = dokumentkravMediatorMock
+                dokumentkravMediator = dokumentkravMediatorMock
             )
         ) {
             autentisert(
@@ -242,7 +242,7 @@ internal class DokumentasjonKravApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(
                 søknadMediator = søknadMediatorMock,
-                dokumentasjonsKravMediator = dokumentkravMediatorMock.also {
+                dokumentkravMediator = dokumentkravMediatorMock.also {
                     every { it.behandle(capture(slot)) } just Runs
                 }
             )
@@ -288,7 +288,7 @@ internal class DokumentasjonKravApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(
                 søknadMediator = søknadMediatorMock,
-                dokumentasjonsKravMediator = dokumentkravMediatorMock.also {
+                dokumentkravMediator = dokumentkravMediatorMock.also {
                     every { it.behandle(capture(slot)) } just Runs
                 }
             )
@@ -324,7 +324,7 @@ internal class DokumentasjonKravApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(
                 søknadMediator = søknadMediatorMock,
-                dokumentasjonsKravMediator = dokumentkravMediatorMock.also {
+                dokumentkravMediator = dokumentkravMediatorMock.also {
                     every { it.behandle(capture(slot)) } just Runs
                 }
             )
@@ -350,7 +350,7 @@ internal class DokumentasjonKravApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(
                 søknadMediator = søknadMediatorMock,
-                dokumentasjonsKravMediator = dokumentkravMediatorMock.also {
+                dokumentkravMediator = dokumentkravMediatorMock.also {
                     every { it.behandle(capture(slot)) } just Runs
                 }
             )

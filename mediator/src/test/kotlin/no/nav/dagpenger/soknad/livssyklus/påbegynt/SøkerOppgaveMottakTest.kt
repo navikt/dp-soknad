@@ -11,7 +11,7 @@ import no.nav.dagpenger.soknad.db.PostgresDokumentkravRepository
 import no.nav.dagpenger.soknad.db.SøkerOppgaveNotFoundException
 import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
-import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentasjonsKravMediator
+import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentkravMediator
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
@@ -47,7 +47,7 @@ class SøkerOppgaveMottakTest {
             ).also {
                 SøkerOppgaveMottak(
                     testRapid, it,
-                    DokumentasjonsKravMediator(testRapid, PostgresDokumentkravRepository(dataSource))
+                    DokumentkravMediator(testRapid, PostgresDokumentkravRepository(dataSource))
                 )
             }
             testRapid.reset()
@@ -103,7 +103,7 @@ class SøkerOppgaveMottakTest {
                 SøkerOppgaveMottak(
                     rapidsConnection = testRapid,
                     søknadMediator = it,
-                    dokumentasjonsKravMediator = DokumentasjonsKravMediator(testRapid, PostgresDokumentkravRepository(dataSource))
+                    dokumentkravMediator = DokumentkravMediator(testRapid, PostgresDokumentkravRepository(dataSource))
                 )
             }
 

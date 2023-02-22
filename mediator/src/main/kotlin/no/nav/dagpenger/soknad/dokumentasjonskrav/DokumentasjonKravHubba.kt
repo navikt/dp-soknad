@@ -12,7 +12,7 @@ import no.nav.helse.rapids_rivers.River
 
 internal class DokumentasjonKravHubba(
     rapidsConnection: RapidsConnection,
-    private val dokumentasjonsKravMediator: DokumentasjonsKravMediator
+    private val dokumentkravMediator: DokumentkravMediator
 ) :
     River.PacketListener {
     companion object {
@@ -34,7 +34,7 @@ internal class DokumentasjonKravHubba(
         withLoggingContext(
             "søknadId" to søknadId.toString(),
         ) {
-            val aktiveDokumentKrav = dokumentasjonsKravMediator.hent(søknadId).tilDokument()
+            val aktiveDokumentKrav = dokumentkravMediator.hent(søknadId).tilDokument()
 
             packet["dokumentkrav"] = aktiveDokumentKrav.map { it.toMap() }
             context.publish(packet.toJson())

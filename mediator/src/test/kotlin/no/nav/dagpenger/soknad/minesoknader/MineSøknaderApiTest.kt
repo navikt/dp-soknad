@@ -24,7 +24,7 @@ import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
 import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
-import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentasjonsKravMediator
+import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentkravMediator
 import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -250,7 +250,7 @@ class MineSøknaderApiTest {
                         )
                     )
                 },
-                dokumentasjonsKravMediator = mockk<DokumentasjonsKravMediator>().also {
+                dokumentkravMediator = mockk<DokumentkravMediator>().also {
                     every { it.hent(søknadUuid) } returns dokumentkrav
                 }
             )

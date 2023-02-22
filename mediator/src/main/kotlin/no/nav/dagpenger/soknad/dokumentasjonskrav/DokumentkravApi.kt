@@ -33,9 +33,9 @@ import java.util.UUID
 
 private val logger = KotlinLogging.logger { }
 
-internal fun Route.dokumentasjonkravRoute(
+internal fun Route.dokumentkravRoute(
     søknadMediator: SøknadMediator,
-    dokumentasjonsKravMediator: DokumentasjonsKravMediator
+    dokumentkravMediator: DokumentkravMediator
 ) {
     val validator = SøknadEierValidator(søknadMediator)
 
@@ -48,7 +48,7 @@ internal fun Route.dokumentasjonkravRoute(
                         validator.valider(søknadUuid, ident)
                     }
                     val dokumentkrav =
-                        dokumentasjonsKravMediator.hent(søknadUuid)
+                        dokumentkravMediator.hent(søknadUuid)
                     call.respond(ApiDokumentkravResponse(dokumentkrav))
                 }
             }
@@ -60,7 +60,7 @@ internal fun Route.dokumentasjonkravRoute(
             withLoggingContext("søknadid" to søknadUuid.toString()) {
                 validator.valider(søknadUuid, ident)
                 val fil = call.receive<ApiFil>().also { logger.info { "Received: $it" } }
-                dokumentasjonsKravMediator.behandle(LeggTilFil(søknadUuid, ident, kravId, fil.tilModell()))
+                dokumentkravMediator.behandle(LeggTilFil(søknadUuid, ident, kravId, fil.tilModell()))
                 call.respond(HttpStatusCode.Created)
             }
         }
@@ -71,7 +71,7 @@ internal fun Route.dokumentasjonkravRoute(
             withLoggingContext("søknadid" to søknadUuid.toString()) {
                 validator.valider(søknadUuid, ident)
                 val svar = call.receive<Svar>()
-                dokumentasjonsKravMediator.behandle(
+                dokumentkravMediator.behandle(
                     DokumentasjonIkkeTilgjengelig(
                         søknadUuid,
                         ident,
@@ -92,7 +92,7 @@ internal fun Route.dokumentasjonkravRoute(
                 val urn = URN.rfc8141().parse("urn:vedlegg:${call.nss()}").also {
                     logger.info { "Delete: $it" }
                 }
-                dokumentasjonsKravMediator.behandle(SlettFil(søknadUuid, ident, kravId, urn))
+                dokumentkravMediator.behandle(SlettFil(søknadUuid, ident, kravId, urn))
                 call.respond(HttpStatusCode.NoContent)
             }
         }
@@ -110,7 +110,7 @@ internal fun Route.dokumentasjonkravRoute(
                     kravId,
                     bundleSvar.tilURN()
                 )
-                dokumentasjonsKravMediator.behandle(dokumentkravSammenstilling)
+                dokumentkravMediator.behandle(dokumentkravSammenstilling)
                 call.respond(HttpStatusCode.Created)
             }
         }

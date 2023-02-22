@@ -5,8 +5,8 @@ import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 import io.ktor.util.pipeline.PipelineContext
-import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentasjonsKravMediator
-import no.nav.dagpenger.soknad.dokumentasjonskrav.dokumentasjonkravRoute
+import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentkravMediator
+import no.nav.dagpenger.soknad.dokumentasjonskrav.dokumentkravRoute
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.ferdigstillSøknadRoute
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.besvarFaktumRoute
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.nesteSøkeroppgaveRoute
@@ -21,27 +21,27 @@ import java.util.UUID
 
 internal fun søknadApiRouteBuilder(
     søknadMediator: SøknadMediator,
-    dokumentasjonsKravMediator: DokumentasjonsKravMediator,
+    dokumentkravMediator: DokumentkravMediator,
     behandlingsstatusClient: BehandlingsstatusClient
-): Route.() -> Unit = { søknadApi(søknadMediator, dokumentasjonsKravMediator, behandlingsstatusClient) }
+): Route.() -> Unit = { søknadApi(søknadMediator, dokumentkravMediator, behandlingsstatusClient) }
 
 internal fun Route.søknadApi(
     søknadMediator: SøknadMediator,
-    dokumentasjonsKravMediator: DokumentasjonsKravMediator,
+    dokumentkravMediator: DokumentkravMediator,
     behandlingsstatusClient: BehandlingsstatusClient
 ) {
 
     route("${Configuration.basePath}/soknad") {
         startSøknadRoute(søknadMediator)
         påbegyntSøknadRoute(søknadMediator)
-        ferdigstillSøknadRoute(søknadMediator, dokumentasjonsKravMediator)
+        ferdigstillSøknadRoute(søknadMediator, dokumentkravMediator)
         nesteSøkeroppgaveRoute(søknadMediator)
         besvarFaktumRoute(søknadMediator)
         nyesteMalRoute(søknadMediator)
         slettSøknadRoute(søknadMediator)
         statusRoute(søknadMediator, behandlingsstatusClient)
-        dokumentasjonkravRoute(søknadMediator, dokumentasjonsKravMediator)
-        mineSoknaderRoute(søknadMediator, dokumentasjonsKravMediator)
+        dokumentkravRoute(søknadMediator, dokumentkravMediator)
+        mineSoknaderRoute(søknadMediator, dokumentkravMediator)
     }
 }
 

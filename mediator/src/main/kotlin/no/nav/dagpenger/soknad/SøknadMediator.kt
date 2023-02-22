@@ -3,7 +3,7 @@ package no.nav.dagpenger.soknad
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.db.DokumentkravRepository
 import no.nav.dagpenger.soknad.db.SøknadDataRepository
-import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentasjonsKravMediator
+import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentkravMediator
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
@@ -41,7 +41,7 @@ internal class SøknadMediator(
     }
 
     private val behovMediator = BehovMediator(rapidsConnection, sikkerLogger)
-    private val dokumentasjonsKravMediator = DokumentasjonsKravMediator(rapidsConnection, dokumentkravRepository)
+    private val dokumentkravMediator = DokumentkravMediator(rapidsConnection, dokumentkravRepository)
 
     fun behandle(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         behandle(ønskeOmNySøknadHendelse) { søknad ->
@@ -63,7 +63,7 @@ internal class SøknadMediator(
 
     fun behandle(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
         behandle(søknadInnsendtHendelse) { søknad ->
-            dokumentasjonsKravMediator.håndter(søknadInnsendtHendelse)
+            dokumentkravMediator.håndter(søknadInnsendtHendelse)
             søknad.håndter(søknadInnsendtHendelse)
         }
     }

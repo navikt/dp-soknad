@@ -10,12 +10,11 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.content.TextContent
 import io.ktor.server.application.Application
-import io.ktor.server.routing.get
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.data.søknadData
-import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentasjonsKravMediator
+import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentkravMediator
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.ferdigStiltSøknadRouteBuilder
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
 import no.nav.dagpenger.soknad.personalia.PersonOppslag
@@ -63,7 +62,7 @@ object TestApplication {
         kontonummerOppslag: KontonummerOppslag = mockk(relaxed = true),
         søknadMediator: SøknadMediator = mockk(relaxed = true),
         behandlingsstatusClient: BehandlingsstatusClient = mockk(relaxed = true),
-        dokumentasjonsKravMediator: DokumentasjonsKravMediator = mockk(relaxed = true)
+        dokumentkravMediator: DokumentkravMediator = mockk(relaxed = true)
     ): Application.() -> Unit {
 
         return fun Application.() {
@@ -71,7 +70,7 @@ object TestApplication {
                 søknadApiRouteBuilder(
                     søknadMediator = søknadMediator,
                     behandlingsstatusClient = behandlingsstatusClient,
-                    dokumentasjonsKravMediator = dokumentasjonsKravMediator
+                    dokumentkravMediator = dokumentkravMediator
                 ),
                 personaliaRouteBuilder(
                     personOppslag, kontonummerOppslag

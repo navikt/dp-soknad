@@ -13,7 +13,7 @@ import no.nav.dagpenger.soknad.Søknad.Companion.erDagpenger
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentasjonsKravMediator
+import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentkravMediator
 import no.nav.dagpenger.soknad.utils.auth.ident
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -22,7 +22,7 @@ import java.util.UUID
 
 private val logger = KotlinLogging.logger { }
 
-internal fun Route.mineSoknaderRoute(søknadMediator: SøknadMediator, dokumentasjonsKravMediator: DokumentasjonsKravMediator) {
+internal fun Route.mineSoknaderRoute(søknadMediator: SøknadMediator, dokumentkravMediator: DokumentkravMediator) {
     get("/mine-soknader") {
         val fom = queryParamToFom(call.request.queryParameters["fom"])
         val includeDokumentkrav = call.request.queryParameters["include"] == "dokumentkrav"
@@ -30,7 +30,7 @@ internal fun Route.mineSoknaderRoute(søknadMediator: SøknadMediator, dokumenta
         val dagpengeSøknader = søknadMediator.hentSøknader(ident = call.ident()).filter { it.erDagpenger() }
 
         // TODO må se på dette, bør være en bedre måte enn å sende videre dokkrav-mediatoren
-        val mineSøknaderDto = lagMineSøknaderDto(dagpengeSøknader, fom, includeDokumentkrav, dokumentasjonsKravMediator)
+        val mineSøknaderDto = lagMineSøknaderDto(dagpengeSøknader, fom, includeDokumentkrav, dokumentkravMediator)
 
         call.respond(HttpStatusCode.OK, mineSøknaderDto)
     }
@@ -40,7 +40,7 @@ private fun lagMineSøknaderDto(
     søknader: List<Søknad>,
     fom: LocalDate,
     includeDokumentkrav: Boolean,
-    dokumentasjonsKravMediator: DokumentasjonsKravMediator,
+    dokumentkravMediator: DokumentkravMediator,
 ): MineSoknaderDto {
     var påbegyntSøknad: PåbegyntSøknadDto? = null
     val innsendteSøknader = mutableListOf<InnsendtSøknadDto>()
@@ -48,7 +48,7 @@ private fun lagMineSøknaderDto(
     søknader.map { søknad ->
         val mineSøknaderVisitor = MineSøknaderVisitor(søknad)
         val dokumentkrav = if (includeDokumentkrav) {
-            dokumentasjonsKravMediator.hent(søknad.søknadUUID()).aktiveDokumentKrav().toMineSoknaderDokumentkravDTO()
+            dokumentkravMediator.hent(søknad.søknadUUID()).aktiveDokumentKrav().toMineSoknaderDokumentkravDTO()
         } else null
 
         when {

@@ -11,7 +11,7 @@ import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentasjonsKravMediator
+import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentkravMediator
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
@@ -19,7 +19,7 @@ import no.nav.dagpenger.soknad.utils.auth.ident
 
 private val logger = KotlinLogging.logger {}
 
-internal fun Route.ferdigstillSøknadRoute(søknadMediator: SøknadMediator, dokumentasjonsKravMediator: DokumentasjonsKravMediator) {
+internal fun Route.ferdigstillSøknadRoute(søknadMediator: SøknadMediator, dokumentkravMediator: DokumentkravMediator) {
     val validator = SøknadEierValidator(søknadMediator)
     put("/{søknad_uuid}/ferdigstill") {
         val søknadUuid = søknadUuid()
@@ -29,7 +29,7 @@ internal fun Route.ferdigstillSøknadRoute(søknadMediator: SøknadMediator, dok
             val søknadstekstJson = call.receive<JsonNode>()
             val søknadInnsendtHendelse = SøknadInnsendtHendelse(søknadUuid, ident)
             try {
-                dokumentasjonsKravMediator.håndter(søknadInnsendtHendelse)
+                dokumentkravMediator.håndter(søknadInnsendtHendelse)
                 søknadMediator.behandle(søknadInnsendtHendelse)
                 søknadMediator.lagreSøknadsTekst(søknadUuid, søknadstekstJson.toString())
             } catch (err: Aktivitetslogg.AktivitetException) {
@@ -46,7 +46,7 @@ internal fun Route.ferdigstillSøknadRoute(søknadMediator: SøknadMediator, dok
         withLoggingContext("søknadid" to søknadUuid.toString()) {
             validator.valider(søknadUuid, ident)
             val søknadInnsendtHendelse = SøknadInnsendtHendelse(søknadUuid, ident)
-            dokumentasjonsKravMediator.håndter(søknadInnsendtHendelse)
+            dokumentkravMediator.håndter(søknadInnsendtHendelse)
             søknadMediator.behandle(søknadInnsendtHendelse)
         }
         call.respond(HttpStatusCode.NoContent)

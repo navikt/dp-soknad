@@ -12,7 +12,7 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.db.DokumentkravRepository
-import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentasjonsKravMediator
+import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentkravMediator
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
@@ -47,7 +47,7 @@ internal class SøknadMediatorTest {
 
     private lateinit var søknadMediator: SøknadMediator
     private lateinit var innsendingMediator: InnsendingMediator
-    private lateinit var dokumentasjonsKravMediator: DokumentasjonsKravMediator
+    private lateinit var dokumentkravMediator: DokumentkravMediator
     private val testRapid = TestRapid()
 
     private object TestSøknadRepository : SøknadRepository {
@@ -105,12 +105,12 @@ internal class SøknadMediatorTest {
             innsendingRepository = mockk()
         )
 
-        dokumentasjonsKravMediator = DokumentasjonsKravMediator(
+        dokumentkravMediator = DokumentkravMediator(
             rapidsConnection = testRapid,
             repository = dokumentkravRepository
         )
 
-        SøkerOppgaveMottak(testRapid, søknadMediator, dokumentasjonsKravMediator)
+        SøkerOppgaveMottak(testRapid, søknadMediator, dokumentkravMediator)
         SøknadOpprettetHendelseMottak(testRapid, søknadMediator)
         ArkiverbarSøknadMottattHendelseMottak(testRapid, innsendingMediator)
         NyJournalpostMottak(testRapid, innsendingMediator)

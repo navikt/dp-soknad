@@ -14,13 +14,13 @@ import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.helse.rapids_rivers.RapidsConnection
 import java.time.LocalDateTime
 
-internal class DokumentasjonsKravMediator(
+internal class DokumentkravMediator(
     rapidsConnection: RapidsConnection,
     private val repository: DokumentkravRepository
 ) : DokumentkravRepository by repository {
     private companion object {
         val logger = KotlinLogging.logger { }
-        val sikkerLogger = KotlinLogging.logger("tjenestekall.DokumentasjonsKravMediator")
+        val sikkerLogger = KotlinLogging.logger("tjenestekall.DokumentkravMediator")
     }
 
     private val behovMediator = BehovMediator(rapidsConnection, sikkerLogger)
