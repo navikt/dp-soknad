@@ -10,6 +10,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 
+// TODO: kan fjernes?
 internal class DokumentasjonKravHubba(
     rapidsConnection: RapidsConnection,
     private val dokumentkravMediator: DokumentkravMediator

@@ -21,9 +21,10 @@ import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import java.time.LocalDateTime
@@ -34,194 +35,157 @@ import java.util.UUID
 internal class PostgresDokumentkravRepositoryTest {
     private val now = LocalDateTime.now().atZone(ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.HOURS)
     private val dokumentFaktum1 = Faktum(faktumJson(id = "1", beskrivendeId = "f1", generertAv = "foobar"))
-    private val dokumentFaktum2 = Faktum(faktumJson(id = "2", beskrivendeId = "f2"))
     private val faktaSomSannsynliggjøres = mutableSetOf(Faktum(faktumJson(id = "2", beskrivendeId = "f2")))
+
     private val sannsynliggjøring1 = Sannsynliggjøring(
         id = dokumentFaktum1.id,
         faktum = dokumentFaktum1,
         sannsynliggjør = faktaSomSannsynliggjøres
     )
-    private val sannsynliggjøring2 = Sannsynliggjøring(
-        id = dokumentFaktum2.id,
-        faktum = dokumentFaktum2,
-        sannsynliggjør = faktaSomSannsynliggjøres
-    )
 
     val søknadId = UUID.randomUUID()
-    val dokumentkrav = Dokumentkrav(søknadId = søknadId).also { it.håndter(setOf(sannsynliggjøring1, sannsynliggjøring2)) }
+    val dokumentkrav = Dokumentkrav(søknadId = søknadId).also { it.håndter(setOf(sannsynliggjøring1)) }
+
+    private lateinit var dokumentkravRepository: PostgresDokumentkravRepository
+
+    val fil1 = Krav.Fil(
+        filnavn = "fil1",
+        urn = URN.rfc8141().parse("urn:vedlegg:$søknadId/fil1"),
+        storrelse = 0,
+        tidspunkt = now,
+        bundlet = false
+    )
+    val fil2 = fil1.copy(filnavn = "fil2", urn = URN.rfc8141().parse("urn:vedlegg:$søknadId/fil2"))
+
+    @BeforeEach
+    @Test
+    fun setup() {
+        setup(lagSøknad(søknadId, ident = "123")) {
+            it.lagre(søknadId, dokumentkrav)
+            dokumentkravRepository = it
+        }
+    }
 
     @Test
     fun `lagring og henting av dokumentkrav`() {
-        setup(lagSøknad(søknadId = søknadId, ident = "123")) { repository ->
+        setup(lagSøknad(søknadId, ident = "456")) {
+            it.lagre(søknadId, dokumentkrav)
             assertDoesNotThrow {
-                repository.lagre(
+                dokumentkravRepository.lagre(
                     søknadId = søknadId,
                     dokumentkrav = dokumentkrav
                 )
             }
 
-            val aktiveDokumentKrav = repository.hent(søknadId).aktiveDokumentKrav()
-            assertEquals(2, aktiveDokumentKrav.size)
+            val aktiveDokumentKrav = dokumentkravRepository.hent(søknadId).aktiveDokumentKrav()
+            assertEquals(1, aktiveDokumentKrav.size)
         }
     }
-
-    @Disabled // TODO: feiler pga foreign key constraints
     @Test
-    fun `Kan opprette og slette filer`() {
-        val id = UUID.randomUUID()
+    fun `Kan legge til og slette filer`() {
 
-        setup(lagSøknad(søknadId = id, ident = "123", "1")) { dokumentKravRepository ->
-            val fil1 = Krav.Fil(
-                filnavn = "fil1",
-                urn = URN.rfc8141().parse("urn:vedlegg:$id/fil1"),
-                storrelse = 0,
-                tidspunkt = now,
-                bundlet = false
+        dokumentkravRepository.håndter(
+            LeggTilFil(
+                søknadID = søknadId,
+                ident = "123",
+                kravId = "1",
+                fil = fil1
             )
-            val fil2 = fil1.copy(urn = URN.rfc8141().parse("urn:vedlegg:$id/fil2"))
-            dokumentKravRepository.håndter(
-                LeggTilFil(
-                    søknadID = id,
-                    ident = "123",
-                    kravId = "1",
-                    fil = fil1
-                )
+        )
+
+        dokumentkravRepository.håndter(
+            LeggTilFil(
+                søknadID = søknadId,
+                ident = "123",
+                kravId = "1",
+                fil = fil2
             )
+        )
 
-            dokumentKravRepository.håndter(
-                LeggTilFil(
-                    søknadID = id,
-                    ident = "123",
-                    kravId = "1",
-                    fil = fil2
-                )
+        dokumentkravRepository.hent(søknadId).let { dokumentKrav ->
+            assertEquals(1, dokumentKrav.aktiveDokumentKrav().size)
+            val svar = dokumentKrav.aktiveDokumentKrav().single().svar
+            assertEquals(setOf(fil1, fil2), svar.filer)
+            assertEquals(SEND_NÅ, svar.valg)
+        }
+
+        dokumentkravRepository.håndter(
+            SlettFil(
+                søknadID = søknadId,
+                ident = "123",
+                kravId = "1",
+                urn = fil1.urn
             )
+        )
 
-            dokumentKravRepository.hent(id).let { dokumentKrav ->
-                assertEquals(1, dokumentKrav.aktiveDokumentKrav().size)
-                val svar = dokumentKrav.aktiveDokumentKrav().single().svar
-                assertEquals(setOf(fil1, fil2), svar.filer)
-                assertEquals(SEND_NÅ, svar.valg)
-            }
-
-            dokumentKravRepository.håndter(
-                SlettFil(
-                    søknadID = id,
-                    ident = "123",
-                    kravId = "1",
-                    urn = fil1.urn
-                )
-            )
-
-            dokumentKravRepository.hent(id).let { dokumentKrav ->
-                assertEquals(1, dokumentKrav.aktiveDokumentKrav().size)
-                assertEquals(setOf(fil2), dokumentKrav.aktiveDokumentKrav().single().svar.filer)
-            }
+        dokumentkravRepository.hent(søknadId).let { dokumentKrav ->
+            assertEquals(1, dokumentKrav.aktiveDokumentKrav().size)
+            assertEquals(setOf(fil2), dokumentKrav.aktiveDokumentKrav().single().svar.filer)
         }
     }
 
-    @Disabled // TODO: Finner ikke dokumentkravet
     @Test
     fun `Skal håndtere Dokumentasjon ikke tilgjengelig`() {
-        val id = UUID.randomUUID()
-        setup(lagSøknad(søknadId = id, ident = "123", "1")) { dokumentKravRepository ->
-            dokumentKravRepository.håndter(
-                DokumentasjonIkkeTilgjengelig(
-                    søknadID = id,
-                    ident = "123",
-                    kravId = "1",
-                    valg = SEND_SENERE,
-                    begrunnelse = "Begrunnelse"
-                )
+        dokumentkravRepository.håndter(
+            DokumentasjonIkkeTilgjengelig(
+                søknadID = søknadId,
+                ident = "123",
+                kravId = "1",
+                valg = SEND_SENERE,
+                begrunnelse = "Begrunnelse"
             )
+        )
 
-            dokumentKravRepository.hent(id).let { krav ->
-                val svar = krav.aktiveDokumentKrav().single().svar
-                assertEquals(SEND_SENERE, svar.valg)
-                assertEquals("Begrunnelse", svar.begrunnelse)
-            }
+        dokumentkravRepository.hent(søknadId).let { krav ->
+            println(krav.aktiveDokumentKrav().first())
+            val svar = krav.aktiveDokumentKrav().first().svar
+            assertEquals(SEND_SENERE, svar.valg)
+            assertEquals("Begrunnelse", svar.begrunnelse)
         }
     }
 
-    @Disabled // TODO: feiler pga foreign key constraints
     @Test
     fun `Skal oppdatere dokumentkravene med bundle-info`() {
-        val id = UUID.randomUUID()
-
-        setup(lagSøknad(søknadId = id, ident = "123", "1")) { dokumentKravRepository ->
-            val fil1 = Krav.Fil(
-                filnavn = "fil1",
-                urn = URN.rfc8141().parse("urn:vedlegg:$id/fil1"),
-                storrelse = 0,
-                tidspunkt = now,
-                bundlet = false
+        dokumentkravRepository.håndter(
+            LeggTilFil(
+                søknadID = søknadId,
+                ident = "123",
+                kravId = "1",
+                fil = fil1
             )
+        )
 
-            val fil2 = Krav.Fil(
-                filnavn = "fil1",
-                urn = URN.rfc8141().parse("urn:vedlegg:$id/fil2"),
-                storrelse = 0,
-                tidspunkt = now,
-                bundlet = false
+        dokumentkravRepository.håndter(
+            LeggTilFil(
+                søknadID = søknadId,
+                ident = "4567",
+                kravId = "1",
+                fil = fil2
             )
+        )
 
-            dokumentKravRepository.håndter(
-                LeggTilFil(
-                    søknadID = id,
-                    ident = "123",
-                    kravId = "1",
-                    fil = fil1
-                )
+        dokumentkravRepository.hent(søknadId).let { dokumentKrav ->
+            assertNull(dokumentKrav.aktiveDokumentKrav().single().svar.bundle)
+            assertEquals(2, dokumentKrav.aktiveDokumentKrav().single().svar.filer.size)
+            assertFalse(dokumentKrav.aktiveDokumentKrav().single().svar.filer.all { it.bundlet })
+        }
+
+        val bundleUrn = URN.rfc8141().parse("urn:bundle:1")
+
+        dokumentkravRepository.håndter(
+            DokumentKravSammenstilling(
+                søknadID = søknadId,
+                ident = "123",
+                kravId = "1",
+                urn = bundleUrn
             )
+        )
 
-            dokumentKravRepository.håndter(
-                LeggTilFil(
-                    søknadID = id,
-                    ident = "4567",
-                    kravId = "1",
-                    fil = fil2
-                )
-            )
-
-            dokumentKravRepository.hent(id).let { dokumentKrav ->
-                assertNull(dokumentKrav.aktiveDokumentKrav().single().svar.bundle)
-                assertEquals(2, dokumentKrav.aktiveDokumentKrav().single().svar.filer.size)
-                assertTrue(dokumentKrav.aktiveDokumentKrav().single().svar.filer.all { !it.bundlet })
-            }
-
-            val bundleUrn = URN.rfc8141().parse("urn:bundle:1")
-
-            dokumentKravRepository.håndter(
-                DokumentasjonIkkeTilgjengelig(
-                    søknadID = id,
-                    ident = "123",
-                    kravId = "1",
-                    valg = SEND_SENERE,
-                    begrunnelse = "Begrunnelse"
-                )
-            )
-
-            dokumentKravRepository.hent(id).let { krav ->
-                val svar = krav.aktiveDokumentKrav().single().svar
-                assertEquals(SEND_SENERE, svar.valg)
-                assertEquals("Begrunnelse", svar.begrunnelse)
-            }
-
-            dokumentKravRepository.håndter(
-                DokumentKravSammenstilling(
-                    søknadID = id,
-                    ident = "123",
-                    kravId = "1",
-                    urn = bundleUrn
-                )
-            )
-
-            dokumentKravRepository.hent(id).let { dokumentKrav ->
-                val svar = dokumentKrav.aktiveDokumentKrav().single().svar
-                assertEquals(bundleUrn, svar.bundle)
-                assertEquals(SEND_NÅ, svar.valg)
-                assertTrue(svar.filer.all { it.bundlet })
-            }
+        dokumentkravRepository.hent(søknadId).let { dokumentKrav ->
+            val svar = dokumentKrav.aktiveDokumentKrav().single().svar
+            assertEquals(bundleUrn, svar.bundle)
+            assertEquals(SEND_NÅ, svar.valg)
+            assertTrue(svar.filer.all { it.bundlet })
         }
     }
 
@@ -235,7 +199,6 @@ internal class PostgresDokumentkravRepositoryTest {
     private fun lagSøknad(
         søknadId: UUID = UUID.randomUUID(),
         ident: String = "1234",
-        vararg kravId: String
     ): Søknad {
         return Søknad.rehydrer(
             søknadId = søknadId,

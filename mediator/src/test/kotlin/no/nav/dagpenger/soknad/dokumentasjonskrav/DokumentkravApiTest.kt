@@ -49,7 +49,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
-internal class DokumentasjonKravApiTest {
+internal class DokumentkravApiTest {
     private val testSoknadId = UUID.fromString("d172a832-4f52-4e1f-ab5f-8be8348d9280")
     private val dokumentFaktum1 = Faktum(faktumJson(id = "1", beskrivendeId = "f1", generertAv = "foobar"))
     private val dokumentFaktum2 = Faktum(faktumJson(id = "2", beskrivendeId = "f2"))
