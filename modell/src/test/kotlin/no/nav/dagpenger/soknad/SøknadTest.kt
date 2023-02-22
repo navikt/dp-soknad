@@ -88,15 +88,8 @@ internal class SøknadTest {
         )
         håndterNySøknadOpprettet()
         håndterFaktumOppdatering()
-        håndterSøkerOppgaveHendelse(
-            setOf(
-                sannsynliggjøring("1", "f1-1", "f1-2"),
-                sannsynliggjøring("2", "f2-1", "f2-2")
-            )
-        )
-
-        håndterSendInnSøknad() // TODO: skal ikke kunne sende inn søknad med ubesvarte dokumentkrav
-        // assertThrows<AktivitetException>("Alle dokumentkrav må være besvart") { håndterSendInnSøknad() }
+        håndterSøkerOppgaveHendelse() // TODO: denne gjør ingenting bortsett fra å logge?
+        håndterSendInnSøknad()
     }
 
     @Test
