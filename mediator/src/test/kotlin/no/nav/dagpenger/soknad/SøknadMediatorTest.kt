@@ -140,7 +140,7 @@ internal class SøknadMediatorTest {
         testRapid.sendTestMessage(nySøknadBehovsløsning(testSøknadId.toString()))
         assertEquals(Påbegynt, oppdatertInspektør().gjeldendetilstand)
 
-        testRapid.sendTestMessage(søkerOppgave(testSøknadId.toString().toUUID(), testIdent))
+        testRapid.sendTestMessage(søkerOppgave(testSøknadId.toString().toUUID()))
 
         søknadMediator.behandle(
             FaktumSvar(
@@ -159,7 +159,7 @@ internal class SøknadMediatorTest {
         )
         assertTrue("faktum_svar" in testRapid.inspektør.message(1).toString())
 
-        testRapid.sendTestMessage(ferdigSøkerOppgave(testSøknadId.toString().toUUID(), testIdent))
+        testRapid.sendTestMessage(ferdigSøkerOppgave(testSøknadId.toString().toUUID()))
         søknadMediator.behandle(SøknadInnsendtHendelse(testSøknadId, testIdent))
 
         assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
@@ -204,7 +204,6 @@ internal class SøknadMediatorTest {
     fun `Hva skjer om en får JournalførtHendelse som ikke er tilknyttet en søknad`() {
         testRapid.sendTestMessage(
             journalførtHendelse(
-                ident = testIdent,
                 journalpostId = "UKJENT"
             )
         )
@@ -216,7 +215,7 @@ internal class SøknadMediatorTest {
         TestSøknadhåndtererInspektør(søknadMediator.hentSøknader(ident).first())
 
     // language=JSON
-    private fun søkerOppgave(søknadUuid: UUID, ident: String) = """{
+    private fun søkerOppgave(søknadUuid: UUID, ident: String = testIdent) = """{
       "@event_name": "søker_oppgave",
       "fødselsnummer": $ident,
       "versjon_id": 0,
@@ -235,7 +234,7 @@ internal class SøknadMediatorTest {
     """.trimIndent()
 
     // language=JSON
-    private fun ferdigSøkerOppgave(søknadUuid: UUID, ident: String) = """{
+    private fun ferdigSøkerOppgave(søknadUuid: UUID, ident: String = testIdent) = """{
       "@event_name": "søker_oppgave",
       "fødselsnummer": $ident,
       "versjon_id": 0,
@@ -285,7 +284,7 @@ internal class SøknadMediatorTest {
     """.trimMargin()
 
     // language=JSON
-    private fun journalførtHendelse(ident: String, journalpostId: String) = """
+    private fun journalførtHendelse(ident: String = testIdent, journalpostId: String) = """
     {
       "@id": "7d1938c6-f1ae-435d-8d83-c7f200b9cc2b",
       "@opprettet": "2022-04-04T10:39:58.621716",
