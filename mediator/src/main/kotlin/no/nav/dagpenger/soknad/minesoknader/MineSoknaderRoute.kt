@@ -7,7 +7,6 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import mu.KotlinLogging
-import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Companion.erDagpenger
@@ -37,15 +36,19 @@ internal fun Route.mineSoknaderRoute(søknadMediator: SøknadMediator, dokumenta
     }
 }
 
-private fun lagMineSøknaderDto(søknader: List<Søknad>, fom: LocalDate, includeDokumentkrav: Boolean, dokumentasjonsKravMediator: DokumentasjonsKravMediator): MineSoknaderDto {
+private fun lagMineSøknaderDto(
+    søknader: List<Søknad>,
+    fom: LocalDate,
+    includeDokumentkrav: Boolean,
+    dokumentasjonsKravMediator: DokumentasjonsKravMediator,
+): MineSoknaderDto {
     var påbegyntSøknad: PåbegyntSøknadDto? = null
     val innsendteSøknader = mutableListOf<InnsendtSøknadDto>()
 
     søknader.map { søknad ->
-        val dokkrav: Dokumentkrav = dokumentasjonsKravMediator.hent(søknad.søknadUUID())
-        val mineSøknaderVisitor = MineSøknaderVisitor(søknad, dokkrav)
+        val mineSøknaderVisitor = MineSøknaderVisitor(søknad)
         val dokumentkrav = if (includeDokumentkrav) {
-            mineSøknaderVisitor.dokumentkrav().toMineSoknaderDokumentkravDTO()
+            dokumentasjonsKravMediator.hent(søknad.søknadUUID()).aktiveDokumentKrav().toMineSoknaderDokumentkravDTO()
         } else null
 
         when {
