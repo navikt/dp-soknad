@@ -6,11 +6,14 @@ import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import no.nav.dagpenger.soknad.Aktivitetslogg.AktivitetException
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
+import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.db.DokumentkravRepository
 import no.nav.dagpenger.soknad.dokumentasjonskrav.DokumentasjonsKravMediator
+import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
@@ -30,6 +33,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class SøknadMediatorTest {
@@ -119,7 +124,7 @@ internal class SøknadMediatorTest {
     }
 
     @Test
-    fun `Søknaden går gjennom livssyklusen med alle tilstander`() {
+    fun `Søknaden går gjennom livssyklusen med alle tilstander og kan ikke slettes når innsendt`() {
         søknadMediator.behandle(
             ØnskeOmNySøknadHendelse(
                 testSøknadId,
@@ -137,7 +142,15 @@ internal class SøknadMediatorTest {
 
         testRapid.sendTestMessage(søkerOppgave(testSøknadId.toString().toUUID(), testIdent))
 
-        søknadMediator.behandle(FaktumSvar(testSøknadId, "1234", "boolean", testIdent, BooleanNode.TRUE))
+        søknadMediator.behandle(
+            FaktumSvar(
+                testSøknadId,
+                "1234",
+                "boolean",
+                testIdent,
+                BooleanNode.TRUE
+            )
+        )
         val partisjonsnøkkel = testRapid.inspektør.key(1)
         assertEquals(
             testIdent,
@@ -150,6 +163,41 @@ internal class SøknadMediatorTest {
         søknadMediator.behandle(SøknadInnsendtHendelse(testSøknadId, testIdent))
 
         assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
+
+        assertThrows<AktivitetException>("Kan ikke slette søknad i tilstand $Slettet") {
+            søknadMediator.behandle(
+                SlettSøknadHendelse(
+                    søknadID = testSøknadId,
+                    ident = testIdent
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `Kan slette en søknad med tilstand påbegynt`() {
+        søknadMediator.behandle(
+            ØnskeOmNySøknadHendelse(
+                testSøknadId,
+                testIdent,
+                språkVerdi,
+                prosessnavn = Prosessnavn("prosessnavn")
+            )
+        )
+
+        testRapid.sendTestMessage(nySøknadBehovsløsning(testSøknadId.toString()))
+        assertEquals(Påbegynt, oppdatertInspektør().gjeldendetilstand)
+
+        assertDoesNotThrow {
+            søknadMediator.behandle(
+                SlettSøknadHendelse(
+                    søknadID = testSøknadId,
+                    ident = testIdent
+                )
+            )
+        }
+
+        assertEquals(Slettet, oppdatertInspektør().gjeldendetilstand)
     }
 
     @Test
