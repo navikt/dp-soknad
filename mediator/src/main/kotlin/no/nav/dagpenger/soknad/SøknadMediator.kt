@@ -63,7 +63,7 @@ internal class SøknadMediator(
 
     fun behandle(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
         behandle(søknadInnsendtHendelse) { søknad ->
-            dokumentkravMediator.håndter(søknadInnsendtHendelse)
+            dokumentkravMediator.håndter(søknadInnsendtHendelse.copy(søknad))
             søknad.håndter(søknadInnsendtHendelse)
         }
     }

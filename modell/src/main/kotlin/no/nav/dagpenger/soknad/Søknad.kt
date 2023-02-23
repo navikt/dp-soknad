@@ -7,7 +7,6 @@ import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
-import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
@@ -127,12 +126,6 @@ class Søknad private constructor(
         tilstand.håndter(faktumOppdatertHendelse, this)
     }
 
-    fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse) {
-        kontekst(søkeroppgaveHendelse)
-        søkeroppgaveHendelse.info("Søkeroppgave mottatt")
-        tilstand.håndter(søkeroppgaveHendelse, this)
-    }
-
     fun håndter(slettSøknadHendelse: SlettSøknadHendelse) {
         kontekst(slettSøknadHendelse)
         slettSøknadHendelse.info("Forsøker å slette søknad")
@@ -167,10 +160,6 @@ class Søknad private constructor(
 
         fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse, søknad: Søknad): Unit =
             faktumOppdatertHendelse.severe("Kan ikke oppdatere faktum for søknader i tilstand ${tilstandType.name}")
-
-        fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse, søknad: Søknad) {
-            søkeroppgaveHendelse.`kan ikke håndteres i denne tilstanden`()
-        }
 
         fun håndter(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
             slettSøknadHendelse.severe("Kan ikke slette søknad i tilstand $tilstandType")

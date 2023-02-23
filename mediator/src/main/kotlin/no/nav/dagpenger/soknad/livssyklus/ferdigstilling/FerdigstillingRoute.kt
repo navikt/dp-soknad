@@ -29,7 +29,7 @@ internal fun Route.ferdigstillSøknadRoute(søknadMediator: SøknadMediator, dok
             val søknadstekstJson = call.receive<JsonNode>()
             val søknadInnsendtHendelse = SøknadInnsendtHendelse(søknadUuid, ident)
             try {
-                dokumentkravMediator.håndter(søknadInnsendtHendelse)
+                // dokumentkravMediator.håndter(søknadInnsendtHendelse)
                 søknadMediator.behandle(søknadInnsendtHendelse)
                 søknadMediator.lagreSøknadsTekst(søknadUuid, søknadstekstJson.toString())
             } catch (err: Aktivitetslogg.AktivitetException) {
@@ -46,7 +46,7 @@ internal fun Route.ferdigstillSøknadRoute(søknadMediator: SøknadMediator, dok
         withLoggingContext("søknadid" to søknadUuid.toString()) {
             validator.valider(søknadUuid, ident)
             val søknadInnsendtHendelse = SøknadInnsendtHendelse(søknadUuid, ident)
-            dokumentkravMediator.håndter(søknadInnsendtHendelse)
+            // dokumentkravMediator.håndter(søknadInnsendtHendelse)
             søknadMediator.behandle(søknadInnsendtHendelse)
         }
         call.respond(HttpStatusCode.NoContent)

@@ -81,6 +81,12 @@ class Dokumentkrav private constructor(
                     skjemakode = it.tilSkjemakode(),
                     valg = it.svar.valg.name
                 )
+            },
+            søknadType = hendelse.prosessversjon?.prosessnavn?.id,
+            innsendingstype = when (hendelse.tilstand?.tilstandType) {
+                Søknad.Tilstand.Type.Påbegynt -> "NyInnsending"
+                Søknad.Tilstand.Type.Innsendt -> "Ettersending"
+                else -> throw IllegalStateException("")
             }
         )
         observers.forEach { it.dokumentkravInnsendt(event) }
@@ -131,7 +137,7 @@ data class Krav(
     val id: String,
     val svar: Svar,
     val sannsynliggjøring: Sannsynliggjøring,
-    var tilstand: KravTilstand
+    var tilstand: KravTilstand,
 ) {
     companion object {
         fun aktive(): (Krav) -> Boolean = { it.tilstand == KravTilstand.AKTIV }
@@ -234,7 +240,7 @@ data class Krav(
         var valg: SvarValg,
         var begrunnelse: String?,
         var bundle: URN?,
-        var innsendt: Boolean // todo slå sammen med bundle?
+        var innsendt: Boolean, // todo slå sammen med bundle?
     ) {
         internal constructor() : this(
             filer = mutableSetOf(),
@@ -315,7 +321,7 @@ data class Krav(
         val urn: URN,
         val storrelse: Long,
         val tidspunkt: ZonedDateTime,
-        var bundlet: Boolean
+        var bundlet: Boolean,
     ) {
         init {
             require(urn.supports(RFC.RFC_8141)) {

@@ -11,7 +11,6 @@ import no.nav.dagpenger.soknad.helpers.FerdigSøknadData
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
-import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
@@ -69,27 +68,6 @@ internal class SøknadTest {
         assertThrows<AktivitetException> {
             håndterFaktumOppdatering()
         }
-    }
-
-    @Test
-    fun `håndterer søkeroppgave hendelse`() {
-        håndterØnskeOmNySøknadHendelse()
-        with(inspektør.opprettet) {
-            assertNotNull(this)
-            assertEquals(LocalDate.now(), this.toLocalDate())
-        }
-        assertBehov(
-            Behovtype.NySøknad,
-            mapOf(
-                "prosessnavn" to "Dagpenger",
-                "søknad_uuid" to inspektør.søknadId.toString(),
-                "ident" to testIdent
-            )
-        )
-        håndterNySøknadOpprettet()
-        håndterFaktumOppdatering()
-        håndterSøkerOppgaveHendelse() // TODO: denne gjør ingenting bortsett fra å logge?
-        håndterSendInnSøknad()
     }
 
     @Test
@@ -172,16 +150,6 @@ internal class SøknadTest {
 
     private fun håndterFaktumOppdatering() {
         søknad.håndter(FaktumOppdatertHendelse(inspektør.søknadId, testIdent))
-    }
-
-    private fun håndterSøkerOppgaveHendelse(sannsynliggjøringer: Set<Sannsynliggjøring> = emptySet()) {
-        søknad.håndter(
-            SøkeroppgaveHendelse(
-                inspektør.søknadId,
-                testIdent,
-                sannsynliggjøringer
-            )
-        )
     }
 
     private fun håndterSendInnSøknad(): SøknadInnsendtHendelse {
