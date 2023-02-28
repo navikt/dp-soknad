@@ -110,7 +110,7 @@ internal fun Application.api(
                 }
 
                 is SøkerOppgaveNotFoundException -> {
-                    logger.warn { "Søkeroppgave ikke funnet" }
+                    logger.warn(cause) { "Søkeroppgave ikke funnet" }
                     call.respond(
                         ServiceUnavailable,
                         HttpProblem(
