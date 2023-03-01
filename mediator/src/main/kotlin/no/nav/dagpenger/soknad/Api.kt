@@ -42,7 +42,7 @@ internal fun Application.api(
     søknadRouteBuilder: Route.() -> Unit,
     personaliaRouteBuilder: Route.() -> Unit,
     ferdigstiltRouteBuilder: Route.() -> Unit,
-    søknadDataRouteBuilder: Route.() -> Unit
+    søknadDataRouteBuilder: Route.() -> Unit,
 ) {
     install(CallLogging) {
         callIdMdc("call-id")
@@ -52,7 +52,7 @@ internal fun Application.api(
             !setOf(
                 "isalive",
                 "isready",
-                "metrics"
+                "metrics",
             ).contains(call.request.document())
         }
     }
@@ -72,8 +72,8 @@ internal fun Application.api(
                             title = "Feil ved uthenting av personalia",
                             detail = cause.message,
                             status = cause.response.status.value,
-                            instance = URI(call.request.uri)
-                        )
+                            instance = URI(call.request.uri),
+                        ),
                     )
                 }
 
@@ -81,7 +81,7 @@ internal fun Application.api(
                     logger.info(cause) { "Kunne ikke håndtere API kall - Bad request" }
                     call.respond(
                         BadRequest,
-                        HttpProblem(title = "Feilet", detail = cause.message, status = 400)
+                        HttpProblem(title = "Feilet", detail = cause.message, status = 400),
                     )
                 }
 
@@ -89,7 +89,7 @@ internal fun Application.api(
                     logger.info(cause) { "Kunne ikke håndtere API kall - Ikke funnet" }
                     call.respond(
                         NotFound,
-                        HttpProblem(title = "Feilet", detail = cause.message, status = 404)
+                        HttpProblem(title = "Feilet", detail = cause.message, status = 404),
                     )
                 }
 
@@ -97,7 +97,7 @@ internal fun Application.api(
                     logger.error(cause) { "Kunne ikke håndtere API kall - feil i request" }
                     call.respond(
                         BadRequest,
-                        HttpProblem(title = "Feilet", detail = cause.message, status = 400)
+                        HttpProblem(title = "Feilet", detail = cause.message, status = 400),
                     )
                 }
 
@@ -105,7 +105,7 @@ internal fun Application.api(
                     logger.warn { "Kunne ikke håndtere API kall - Ikke tilgang" }
                     call.respond(
                         Forbidden,
-                        HttpProblem(title = "Ikke tilgang", status = 403, detail = cause.message)
+                        HttpProblem(title = "Ikke tilgang", status = 403, detail = cause.message),
                     )
                 }
 
@@ -117,8 +117,8 @@ internal fun Application.api(
                             title = "Søkeroppgave ikke funnet",
                             status = 503,
                             detail = cause.message,
-                            errorType = "UNAVAILABLE"
-                        )
+                            errorType = "UNAVAILABLE",
+                        ),
                     )
                 }
 
@@ -126,7 +126,7 @@ internal fun Application.api(
                     logger.error(cause) { "Kunne ikke håndtere API kall" }
                     call.respond(
                         InternalServerError,
-                        HttpProblem(title = "Feilet", detail = cause.message)
+                        HttpProblem(title = "Feilet", detail = cause.message),
                     )
                 }
             }
@@ -168,5 +168,5 @@ data class HttpProblem(
     val status: Int? = 500,
     val detail: String? = null,
     val instance: URI = URI.create("about:blank"),
-    val errorType: String? = null
+    val errorType: String? = null,
 )

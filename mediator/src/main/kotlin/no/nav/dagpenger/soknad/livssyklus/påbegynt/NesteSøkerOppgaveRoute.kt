@@ -21,7 +21,7 @@ internal fun Route.nesteSøkeroppgaveRoute(søknadMediator: SøknadMediator) {
         val sistLagret: Int = call.parameters["sistLagret"]?.toInt() ?: 0
         withLoggingContext(
             "søknadId" to id.toString(),
-            "versjon" to sistLagret.toString()
+            "versjon" to sistLagret.toString(),
         ) {
             validator.valider(id, ident)
             val søkerOppgave: SøkerOppgave = hentNesteSøkerOppgave(søknadMediator, id, sistLagret)

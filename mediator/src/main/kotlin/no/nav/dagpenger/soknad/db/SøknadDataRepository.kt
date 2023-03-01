@@ -3,7 +3,6 @@ package no.nav.dagpenger.soknad.db
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.dagpenger.soknad.Metrics
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMelding
 import org.postgresql.util.PGobject
@@ -22,7 +21,8 @@ class SøknadDataPostgresRepository(private val dataSource: DataSource) : Søkna
     override fun lagre(søkerOppgave: SøkerOppgave) {
         using(sessionOf(dataSource)) { session ->
             session.run(
-                queryOf( // language=PostgreSQL
+                queryOf(
+                    // language=PostgreSQL
                     """INSERT INTO soknad_data(uuid, eier, soknad_data)
                             VALUES (:uuid, :eier, :data)
                             ON CONFLICT(uuid, eier)
@@ -36,39 +36,40 @@ class SøknadDataPostgresRepository(private val dataSource: DataSource) : Søkna
                         "data" to PGobject().also {
                             it.type = "jsonb"
                             it.value = søkerOppgave.toJson()
-                        }
-                    )
-                ).asUpdate
+                        },
+                    ),
+                ).asUpdate,
             )
         }
     }
 
     override fun besvart(søknadUUID: UUID): Int = using(sessionOf(dataSource)) { session ->
         session.run(
-            queryOf( // language=PostgreSQL
+            queryOf(
+                // language=PostgreSQL
                 "SELECT versjon FROM soknad_data WHERE uuid = :uuid",
-                mapOf("uuid" to søknadUUID)
+                mapOf("uuid" to søknadUUID),
             ).map {
                 it.int("versjon")
-            }.asSingle
+            }.asSingle,
         )
     } ?: 1
 
     override fun hentSøkerOppgave(søknadUUID: UUID, nyereEnn: Int): SøkerOppgave =
         using(sessionOf(dataSource)) { session ->
             session.run(
-                queryOf( // language=PostgreSQL
+                queryOf(
+                    // language=PostgreSQL
                     "SELECT uuid, eier, soknad_data FROM soknad_data WHERE uuid = :uuid AND versjon > :nyereEnn",
                     mapOf(
                         "uuid" to søknadUUID,
-                        "nyereEnn" to nyereEnn
-                    )
+                        "nyereEnn" to nyereEnn,
+                    ),
                 ).map { row ->
                     SøkerOppgaveMelding(row.binaryStream("soknad_data"))
-                }.asSingle
+                }.asSingle,
             )
                 ?: throw SøkerOppgaveNotFoundException("Fant ikke søker_oppgave for søknad med id $søknadUUID med nyereEnn=$nyereEnn")
-                    .also { Metrics.søknadDataTimeouts.inc() }
         }
 
     override fun slett(søknadUUID: UUID) =
@@ -77,8 +78,8 @@ class SøknadDataPostgresRepository(private val dataSource: DataSource) : Søkna
                 queryOf(
                     //language=PostgreSQL
                     "DELETE FROM soknad_data WHERE uuid = ?",
-                    søknadUUID
-                ).asExecute
+                    søknadUUID,
+                ).asExecute,
             )
         }
 }
