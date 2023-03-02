@@ -8,9 +8,12 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.db.Postgres
+import no.nav.dagpenger.soknad.db.PostgresDokumentkravRepository
 import no.nav.dagpenger.soknad.db.SøknadDataPostgresRepository
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
+import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
+import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
@@ -31,6 +34,8 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
+import java.time.ZonedDateTime
 import java.util.UUID
 
 internal class SøknadMediatorIntegrasjonTest {
@@ -63,7 +68,8 @@ internal class SøknadMediatorIntegrasjonTest {
             },
             ferdigstiltSøknadRepository = mockk(),
             søknadRepository = SøknadPostgresRepository(dataSource),
-            dokumentkravRepository = mockk(relaxed = true), søknadObservers = listOf()
+            dokumentkravRepository = PostgresDokumentkravRepository(dataSource),
+            søknadObservers = listOf()
         )
 
         innsendingMediator = InnsendingMediator(
@@ -138,6 +144,112 @@ internal class SøknadMediatorIntegrasjonTest {
     }
 
     @Test
+    fun `Søker oppretter dagpenger søknad og ferdigstiller den`() {
+        val søknadUuid = UUID.randomUUID()
+        søknadMediator.behandle(
+            ØnskeOmNySøknadHendelse(
+                søknadUuid,
+                testIdent,
+                språkVerdi,
+                prosessnavn = Prosessnavn("prosessnavn")
+            )
+        )
+        assertEquals(1, testRapid.inspektør.size)
+        assertEquals(listOf("NySøknad"), behov(0))
+        assertEquals(UnderOpprettelse, oppdatertInspektør().gjeldendetilstand)
+
+        testRapid.sendTestMessage(nySøknadBehovsløsning(søknadUuid.toString()))
+        assertEquals(Påbegynt, oppdatertInspektør().gjeldendetilstand)
+
+        testRapid.sendTestMessage(søkerOppgave(søknadUuid.toString().toUUID(), testIdent))
+
+        søknadMediator.behandle(FaktumSvar(søknadUuid, "1234", "boolean", testIdent, BooleanNode.TRUE))
+        val partisjonsnøkkel = testRapid.inspektør.key(1)
+        assertEquals(
+            testIdent,
+            partisjonsnøkkel,
+            "Partisjonsnøkkel for faktum_svar skal være ident '$testIdent' var '$partisjonsnøkkel"
+        )
+        assertTrue("faktum_svar" in testRapid.inspektør.message(1).toString())
+
+        assertThrows<Aktivitetslogg.AktivitetException>("Alle dokumentkrav må være besvart") {
+            søknadMediator.behandle(
+                SøknadInnsendtHendelse(
+                    søknadID = søknadUuid,
+                    ident = testIdent,
+                    aktivitetslogg = Aktivitetslogg(forelder = null)
+
+                )
+            )
+        }
+
+        søknadMediator.behandle(
+            LeggTilFil(
+                søknadID = søknadUuid,
+                ident = testIdent,
+                kravId = "22.1",
+                fil = Krav.Fil(
+                    filnavn = "f22",
+                    urn = URN.rfc8141().parse("urn:vedlegg:f22"),
+                    storrelse = 0,
+                    tidspunkt = ZonedDateTime.now(),
+                    bundlet = false
+                )
+            )
+        )
+
+        søknadMediator.behandle(
+            LeggTilFil(
+                søknadID = søknadUuid,
+                ident = testIdent,
+                kravId = "22.1",
+                fil = Krav.Fil(
+                    filnavn = "f22.1",
+                    urn = URN.rfc8141().parse("urn:vedlegg:f22.1"),
+                    storrelse = 0,
+                    tidspunkt = ZonedDateTime.now(),
+                    bundlet = false
+                )
+            )
+        )
+
+        assertThrows<Aktivitetslogg.AktivitetException>("Alle dokumentkrav må være besvart") {
+            søknadMediator.behandle(
+                SøknadInnsendtHendelse(
+                    søknadID = søknadUuid,
+                    ident = testIdent,
+                    aktivitetslogg = Aktivitetslogg(forelder = null)
+
+                )
+            )
+        }
+
+        søknadMediator.behandle(
+            DokumentasjonIkkeTilgjengelig(
+                søknadID = søknadUuid,
+                ident = testIdent,
+                kravId = "1.1",
+                valg = Krav.Svar.SvarValg.SEND_SENERE,
+                begrunnelse = "Sender senerere"
+            )
+        )
+
+        søknadMediator.behandle(
+            DokumentKravSammenstilling(
+                søknadID = søknadUuid,
+                ident = testIdent,
+                kravId = "22.1",
+                urn = URN.rfc8141().parse("urn:dokumentsammenstilling:f22"),
+            )
+        )
+
+        testRapid.sendTestMessage(ferdigSøkerOppgave(søknadUuid.toString().toUUID(), testIdent))
+        søknadMediator.behandle(SøknadInnsendtHendelse(søknadUuid, testIdent))
+
+        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
+    }
+
+    @Test
     fun `Hva skjer om en får JournalførtHendelse som ikke er tilknyttet en søknad`() {
         testRapid.sendTestMessage(
             journalførtHendelse(
@@ -154,40 +266,134 @@ internal class SøknadMediatorIntegrasjonTest {
 
     // language=JSON
     private fun søkerOppgave(søknadUuid: UUID, ident: String) = """{
-      "@event_name": "søker_oppgave",
-      "fødselsnummer": $ident,
-      "versjon_id": 0,
-      "versjon_navn": "test",
-      "@opprettet": "2022-05-13T14:48:09.059643",
-      "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
-      "søknad_uuid": "$søknadUuid",
-      "ferdig": false,
-      "seksjoner": [
+  "@event_name": "søker_oppgave",
+  "fødselsnummer": $ident,
+  "versjon_id": 0,
+  "versjon_navn": "test",
+  "@opprettet": "2022-05-13T14:48:09.059643",
+  "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
+  "søknad_uuid": "$søknadUuid",
+  "ferdig": false,
+  "seksjoner": [
+    {
+      "beskrivendeId": "seksjon1",
+      "fakta": [
         {
-          "beskrivendeId": "seksjon1",
-          "fakta": []
+          "id": "1",
+          "type": "int",
+          "beskrivendeId": "1",
+          "sannsynliggjoresAv": [
+            {
+              "id": "1.1",
+              "type": "dokument",
+              "beskrivendeId": "f1.1",
+              "roller": [
+                "saksbehandler"
+              ],
+              "sannsynliggjoresAv": []
+            }
+          ],
+          "svar": 11
+          
+        },
+        {
+          "id": "67",
+          "type": "generator",
+          "beskrivendeId": "f67",
+          "svar": [
+            [
+              {
+                "id": "6.1",
+                "type": "int",
+                "beskrivendeId": "f6",
+                "svar": 11,
+                "roller": [
+                  "søker"
+                ],
+                "sannsynliggjoresAv": [
+                  {
+                    "id": "22.1",
+                    "type": "dokument",
+                    "beskrivendeId": "f22",
+                    "roller": [
+                      "saksbehandler"                    ],
+                    "sannsynliggjoresAv": []
+                  }
+                ]
+              }
+            ]
+          ]
         }
       ]
     }
+  ]
+}
     """.trimIndent()
 
     // language=JSON
     private fun ferdigSøkerOppgave(søknadUuid: UUID, ident: String) = """{
-      "@event_name": "søker_oppgave",
-      "fødselsnummer": $ident,
-      "versjon_id": 0,
-      "versjon_navn": "test",
-      "@opprettet": "2022-05-13T14:48:09.059643",
-      "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
-      "søknad_uuid": "$søknadUuid",
-      "ferdig": true,
-      "seksjoner": [
+  "@event_name": "søker_oppgave",
+  "fødselsnummer": $ident,
+  "versjon_id": 0,
+  "versjon_navn": "test",
+  "@opprettet": "2022-05-13T14:48:09.059643",
+  "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
+  "søknad_uuid": "$søknadUuid",
+  "ferdig": true,
+  "seksjoner": [
+    {
+      "beskrivendeId": "seksjon1",
+      "fakta": [
         {
-          "beskrivendeId": "seksjon1",
-          "fakta": []
+          "id": "1",
+          "type": "int",
+          "beskrivendeId": "1",
+          "sannsynliggjoresAv": [
+            {
+              "id": "1.1",
+              "type": "dokument",
+              "beskrivendeId": "f1.1",
+              "roller": [
+                "saksbehandler"
+              ],
+              "sannsynliggjoresAv": []
+            }
+          ],
+          "svar": 11
+          
+        },
+        {
+          "id": "67",
+          "type": "generator",
+          "beskrivendeId": "f67",
+          "svar": [
+            [
+              {
+                "id": "6.1",
+                "type": "int",
+                "beskrivendeId": "f6",
+                "svar": 11,
+                "roller": [
+                  "søker"
+                ],
+                "sannsynliggjoresAv": [
+                  {
+                    "id": "22.1",
+                    "type": "dokument",
+                    "beskrivendeId": "f22",
+                    "roller": [
+                      "saksbehandler"                    ],
+                    "sannsynliggjoresAv": []
+                  }
+                ]
+              }
+            ]
+          ]
         }
       ]
     }
+  ]
+}
     """.trimIndent()
 
     // language=JSON

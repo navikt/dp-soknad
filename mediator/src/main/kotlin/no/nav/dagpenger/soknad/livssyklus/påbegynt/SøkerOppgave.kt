@@ -45,7 +45,9 @@ internal open class SøkerOppgaveMelding(private val jsonMessage: JsonNode) : S�
                 }
                 acc
             }
-        }.filter { it.sannsynliggjøresAv.isNotEmpty() }
+        }.filter {
+            it.sannsynliggjøresAv.isNotEmpty()
+        }
 
         fakta.forEach { faktum ->
             faktum.sannsynliggjøresAv.forEach { sannsynliggjøring ->

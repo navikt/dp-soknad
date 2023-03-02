@@ -11,6 +11,7 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.helpers.FerdigSøknadData
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
+import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
@@ -20,6 +21,7 @@ import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -76,59 +78,6 @@ internal class SøknadTest {
     }
 
     @Test
-    fun `håndterer søkeroppgave hendelse`() {
-        håndterØnskeOmNySøknadHendelse()
-        with(inspektør.opprettet) {
-            assertNotNull(this)
-            assertEquals(LocalDate.now(), this.toLocalDate())
-        }
-        assertBehov(
-            Behovtype.NySøknad,
-            mapOf(
-                "prosessnavn" to "Dagpenger",
-                "søknad_uuid" to inspektør.søknadId.toString(),
-                "ident" to testIdent
-            )
-        )
-        håndterNySøknadOpprettet()
-        håndterFaktumOppdatering()
-        håndterSøkerOppgaveHendelse(
-            setOf(
-                sannsynliggjøring("1", "f1-1", "f1-2"),
-                sannsynliggjøring("2", "f2-1", "f2-2")
-            )
-        )
-
-        assertThrows<AktivitetException>("Alle dokumentkrav må være besvart") { håndterSendInnSøknad() }
-    }
-
-    @Test
-    fun `Søker oppretter dagpenger søknad uten dokumentkrav og ferdigstiller den`() {
-        håndterØnskeOmNySøknadHendelse()
-        with(inspektør.opprettet) {
-            assertNotNull(this)
-            assertEquals(LocalDate.now(), this.toLocalDate())
-        }
-        assertBehov(
-            Behovtype.NySøknad,
-            mapOf(
-                "prosessnavn" to "Dagpenger",
-                "søknad_uuid" to inspektør.søknadId.toString(),
-                "ident" to testIdent
-            )
-        )
-        håndterNySøknadOpprettet()
-        håndterFaktumOppdatering()
-        håndterSendInnSøknad()
-
-        assertTilstander(
-            UnderOpprettelse,
-            Påbegynt,
-            Innsendt
-        )
-    }
-
-    @Test
     fun `Søker oppretter dagpenger søknad, ferdigstiller den og ettersender til søknad`() {
         håndterØnskeOmNySøknadHendelse()
         with(inspektør.opprettet) {
@@ -148,73 +97,75 @@ internal class SøknadTest {
         håndterSøkerOppgaveHendelse(
             setOf(
                 sannsynliggjøring("1", "f1-1", "f1-2"),
-                sannsynliggjøring("2", "f2-1", "f2-2")
+                sannsynliggjøring("2", "f2-1", "f2-2"),
+                sannsynliggjøring("3", "f3-1", "f3-2")
             )
         )
         håndterLeggtilFil("1", "urn:sid:f1.1")
         håndterLeggtilFil("1", "urn:sid:f1.2")
+        håndterDokumentasjonIkkeTilgjengelig("2", "Har ikke")
 
         assertThrows<AktivitetException>("Alle dokumentkrav må være besvart") { håndterSendInnSøknad() }
 
-        håndterLeggtilFil("2", "urn:sid:f2.1")
+        håndterLeggtilFil("3", "urn:sid:f3.1")
 
         håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
-        håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle2")
+        håndterDokumentkravSammenstilling(kravId = "3", urn = "urn:sid:bundle3")
         val søknadInnsendtHendelse = håndterSendInnSøknad()
-//
-//        assertTilstander(
-//            UnderOpprettelse,
-//            Påbegynt,
-//            Innsendt
-//        )
-//        // Ettersending
-//        håndterLeggtilFil("2", "urn:sid:f2.2")
-//        håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle2")
-//        assertBehovContains(
-//            Behovtype.DokumentkravSvar
-//        ) { behovParametre ->
-//            assertEquals("2", behovParametre["id"])
-//            assertEquals("dokument", behovParametre["type"])
-//            assertEquals("urn:sid:bundle2", behovParametre["urn"])
-//            assertNotNull(behovParametre["lastOppTidsstempel"])
-//            assertEquals(inspektør.søknadId.toString(), behovParametre["søknad_uuid"])
-//            assertEquals(testIdent, behovParametre["ident"])
-//        }
-//
-//        Thread.sleep(1000)
-//        val ettersendingHendelse = håndterSendInnSøknad()
-//        assertEquals(søknadInnsendtHendelse.innsendtidspunkt(), testSøknadObserver.innsendt)
-//        assertNotEquals(ettersendingHendelse.innsendtidspunkt(), testSøknadObserver.innsendt)
-//        assertBehovContains(
-//            behovtype = Behovtype.NyEttersending
-//        ) { behovParametre ->
-//            assertEquals(ettersendingHendelse.innsendtidspunkt(), behovParametre["innsendtTidspunkt"])
-//            assertEquals(søknadId.toString(), behovParametre["søknad_uuid"])
-//            assertEquals(testIdent, behovParametre["ident"])
-//        }
-//        assertDokumenter(
-//            behovtype = Behovtype.NyEttersending,
-//            expected = listOf(
-//                Innsending.Dokument(
-//                    uuid = UUID.randomUUID(),
-//                    kravId = "2",
-//                    skjemakode = "N6",
-//                    varianter = listOf(
-//                        Innsending.Dokument.Dokumentvariant(
-//                            uuid = UUID.randomUUID(),
-//                            filnavn = "f2-1",
-//                            urn = "urn:sid:bundle2",
-//                            variant = "ARKIV",
-//                            type = "PDF"
-//                        )
-//                    )
-//                )
-//            )
-//        )
+
+        assertTilstander(
+            UnderOpprettelse,
+            Påbegynt,
+            Innsendt
+        )
+        // Ettersending
+        håndterLeggtilFil("2", "urn:sid:f2.1")
+        håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle2")
+        assertBehovContains(
+            Behovtype.DokumentkravSvar
+        ) { behovParametre ->
+            assertEquals("2", behovParametre["id"])
+            assertEquals("dokument", behovParametre["type"])
+            assertEquals("urn:sid:bundle2", behovParametre["urn"])
+            assertNotNull(behovParametre["lastOppTidsstempel"])
+            assertEquals(inspektør.søknadId.toString(), behovParametre["søknad_uuid"])
+            assertEquals(testIdent, behovParametre["ident"])
+        }
+
+        Thread.sleep(1000)
+        val ettersendingHendelse = håndterSendInnSøknad()
+        assertEquals(søknadInnsendtHendelse.innsendtidspunkt(), testSøknadObserver.innsendt)
+        assertNotEquals(ettersendingHendelse.innsendtidspunkt(), testSøknadObserver.innsendt)
+        assertBehovContains(
+            behovtype = Behovtype.NyEttersending
+        ) { behovParametre ->
+            assertEquals(ettersendingHendelse.innsendtidspunkt(), behovParametre["innsendtTidspunkt"])
+            assertEquals(søknadId.toString(), behovParametre["søknad_uuid"])
+            assertEquals(testIdent, behovParametre["ident"])
+        }
+        assertDokumenter(
+            behovtype = Behovtype.NyEttersending,
+            expected = listOf(
+                Innsending.Dokument(
+                    uuid = UUID.randomUUID(),
+                    kravId = "2",
+                    skjemakode = "N6",
+                    varianter = listOf(
+                        Innsending.Dokument.Dokumentvariant(
+                            uuid = UUID.randomUUID(),
+                            filnavn = "f2-1",
+                            urn = "urn:sid:bundle2",
+                            variant = "ARKIV",
+                            type = "PDF"
+                        )
+                    )
+                )
+            )
+        )
     }
 
     @Test
-    fun `Søker oppretter dagpenger søknad med dokumentkrav og ferdigstiller den`() {
+    fun `Søker oppretter dagpenger søknad og ferdigstiller den`() {
         håndterØnskeOmNySøknadHendelse()
         with(inspektør.opprettet) {
             assertNotNull(this)
@@ -233,18 +184,20 @@ internal class SøknadTest {
         håndterSøkerOppgaveHendelse(
             setOf(
                 sannsynliggjøring("1", "f1-1", "f1-2"),
-                sannsynliggjøring("2", "f2-1", "f2-2")
+                sannsynliggjøring("2", "f2-1", "f2-2"),
+                sannsynliggjøring("3", "f3-1", "f3-2")
             )
         )
-        håndterLeggtilFil("1", "urn:sid:f1.1")
-        håndterLeggtilFil("1", "urn:sid:f1.2")
+        håndterLeggtilFil("1", "urn:sid:1")
+        håndterLeggtilFil("1", "urn:sid:2")
+        håndterDokumentasjonIkkeTilgjengelig("2", "Har ikke")
 
         assertThrows<AktivitetException>("Alle dokumentkrav må være besvart") { håndterSendInnSøknad() }
 
-        håndterLeggtilFil("2", "urn:sid:f2.1")
+        håndterLeggtilFil("3", "urn:sid:3")
 
         håndterDokumentkravSammenstilling(kravId = "1", urn = "urn:sid:bundle1")
-        håndterDokumentkravSammenstilling(kravId = "2", urn = "urn:sid:bundle2")
+        håndterDokumentkravSammenstilling(kravId = "3", urn = "urn:sid:bundle2")
         val hendelse = håndterSendInnSøknad()
 
         assertEquals(hendelse.innsendtidspunkt(), testSøknadObserver.innsendt)
@@ -284,12 +237,12 @@ internal class SøknadTest {
                 ),
                 Innsending.Dokument(
                     uuid = UUID.randomUUID(),
-                    kravId = "2",
+                    kravId = "3",
                     skjemakode = "N6",
                     varianter = listOf(
                         Dokumentvariant(
                             uuid = UUID.randomUUID(),
-                            filnavn = "f2-1",
+                            filnavn = "f3-1",
                             urn = "urn:sid:bundle2",
                             variant = "ARKIV",
                             type = "PDF"
@@ -443,6 +396,17 @@ internal class SøknadTest {
                 tidspunkt = ZonedDateTime.now(),
                 bundlet = false
             )
+        )
+        søknad.håndter(hendelse)
+    }
+
+    private fun håndterDokumentasjonIkkeTilgjengelig(kravId: String, begrunnelse: String) {
+        val hendelse = DokumentasjonIkkeTilgjengelig(
+            inspektør.søknadId,
+            testIdent,
+            kravId = kravId,
+            valg = Krav.Svar.SvarValg.SENDER_IKKE,
+            begrunnelse = begrunnelse
         )
         søknad.håndter(hendelse)
     }
