@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.db
 
+import com.zaxxer.hikari.HikariDataSource
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import org.flywaydb.core.internal.configuration.ConfigUtils
 import org.testcontainers.containers.PostgreSQLContainer
@@ -16,6 +17,12 @@ internal object Postgres {
             PostgresDataSourceBuilder.runMigration()
             block()
         }
+    }
+
+    fun withMigratedDb(): HikariDataSource {
+        setup()
+        PostgresDataSourceBuilder.runMigration()
+        return PostgresDataSourceBuilder.dataSource
     }
 
     fun setup() {
