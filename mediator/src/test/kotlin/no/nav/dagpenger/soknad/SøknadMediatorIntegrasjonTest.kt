@@ -1,9 +1,14 @@
 package no.nav.dagpenger.soknad
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.BooleanNode
+import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import de.slub.urn.URN
 import io.mockk.mockk
+import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.DokumentkravSvar
+import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyEttersending
+import no.nav.dagpenger.soknad.Aktivitetslogg.AktivitetException
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
@@ -26,10 +31,12 @@ import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak
 import no.nav.dagpenger.soknad.mal.SøknadMal
 import no.nav.dagpenger.soknad.mal.SøknadMalPostgresRepository
+import no.nav.dagpenger.soknad.utils.asZonedDateTime
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.rapids_rivers.toUUID
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -39,11 +46,9 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 internal class SøknadMediatorIntegrasjonTest {
-    companion object {
-        private const val testIdent = "12345678913"
-        private const val testJournalpostId = "123455PDS"
-        private val språkVerdi = "NO"
-    }
+    private val søknadUuid = UUID.randomUUID()
+    private val testIdent = "12345678913"
+    private val språkVerdi = "NO"
 
     private lateinit var søknadMediator: SøknadMediator
     private lateinit var innsendingMediator: InnsendingMediator
@@ -59,7 +64,7 @@ internal class SøknadMediatorIntegrasjonTest {
                 it.lagre(
                     søknadMal = SøknadMal(
                         prosessversjon = Prosessversjon(
-                            navn = "prosessnavn",
+                            navn = "Dagpenger",
                             versjon = 123
                         ),
                         mal = jacksonObjectMapper().createObjectNode()
@@ -87,19 +92,14 @@ internal class SøknadMediatorIntegrasjonTest {
 
     @Test
     fun `håndtere dokumentkrav sammenstilling`() {
-        val søknadUuid = UUID.randomUUID()
-        søknadMediator.behandle(
-            DokumentKravSammenstilling(
-                søknadID = søknadUuid, ident = testIdent, kravId = "1", urn = URN.rfc8141().parse("urn:vedlegg:krav1")
-            )
-        )
+        behandleDokumentkravSammenstilling(kravId = "1", urn = "urn:vedlegg:krav1")
+
         assertEquals(1, testRapid.inspektør.size)
         val behovJson = testRapid.inspektør.message(0)
         assertEquals("DokumentkravSvar", behovJson["@behov"].single().asText())
         assertEquals("$søknadUuid", behovJson["søknad_uuid"].asText())
 
         behovJson["DokumentkravSvar"].let { dokumentKravNode ->
-            assertEquals("1", dokumentKravNode["id"].asText())
             assertEquals("1", dokumentKravNode["id"].asText())
             assertEquals("dokument", dokumentKravNode["type"].asText())
             assertDoesNotThrow {
@@ -109,59 +109,33 @@ internal class SøknadMediatorIntegrasjonTest {
     }
 
     @Test
-    fun `Søknaden går gjennom livssyklusen med alle tilstander`() {
-        val søknadUuid = UUID.randomUUID()
-        søknadMediator.behandle(
-            ØnskeOmNySøknadHendelse(
-                søknadUuid,
-                testIdent,
-                språkVerdi,
-                prosessnavn = Prosessnavn("prosessnavn")
-            )
-        )
+    fun `Kan ikke sende inn en søknad med ubesvarte dokumentkrav`() {
+        behandleØnskeOmNySøknadHendelse()
         assertEquals(1, testRapid.inspektør.size)
         assertEquals(listOf("NySøknad"), behov(0))
-        assertEquals(UnderOpprettelse, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(UnderOpprettelse, gjeldendeTilstand())
 
         testRapid.sendTestMessage(nySøknadBehovsløsning(søknadUuid.toString()))
-        assertEquals(Påbegynt, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(Påbegynt, gjeldendeTilstand())
 
-        testRapid.sendTestMessage(søkerOppgave(søknadUuid.toString().toUUID(), testIdent))
+        testRapid.sendTestMessage(søkerOppgave(søknadUuid.toString().toUUID(), testIdent, ferdig = false))
 
-        søknadMediator.behandle(FaktumSvar(søknadUuid, "1234", "boolean", testIdent, BooleanNode.TRUE))
-        val partisjonsnøkkel = testRapid.inspektør.key(1)
-        assertEquals(
-            testIdent,
-            partisjonsnøkkel,
-            "Partisjonsnøkkel for faktum_svar skal være ident '$testIdent' var '$partisjonsnøkkel"
-        )
-        assertTrue("faktum_svar" in testRapid.inspektør.message(1).toString())
-
-        testRapid.sendTestMessage(ferdigSøkerOppgave(søknadUuid.toString().toUUID(), testIdent))
-        søknadMediator.behandle(SøknadInnsendtHendelse(søknadUuid, testIdent))
-
-        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
+        assertThrows<AktivitetException>("Alle dokumentkrav må være besvart") {
+            behandleSøknadInnsendtHendelse()
+        }
     }
 
     @Test
-    fun `Søker oppretter dagpenger søknad og ferdigstiller den`() {
-        val søknadUuid = UUID.randomUUID()
-        søknadMediator.behandle(
-            ØnskeOmNySøknadHendelse(
-                søknadUuid,
-                testIdent,
-                språkVerdi,
-                prosessnavn = Prosessnavn("prosessnavn")
-            )
-        )
+    fun `Søker oppretter dagpengesøknad med dokumenktrav, ferdigstiller den og ettersender et dokument`() {
+        behandleØnskeOmNySøknadHendelse()
         assertEquals(1, testRapid.inspektør.size)
         assertEquals(listOf("NySøknad"), behov(0))
-        assertEquals(UnderOpprettelse, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(UnderOpprettelse, gjeldendeTilstand())
 
         testRapid.sendTestMessage(nySøknadBehovsløsning(søknadUuid.toString()))
-        assertEquals(Påbegynt, oppdatertInspektør().gjeldendetilstand)
+        assertEquals(Påbegynt, gjeldendeTilstand())
 
-        testRapid.sendTestMessage(søkerOppgave(søknadUuid.toString().toUUID(), testIdent))
+        testRapid.sendTestMessage(søkerOppgave(søknadUuid.toString().toUUID(), testIdent, ferdig = false))
 
         søknadMediator.behandle(FaktumSvar(søknadUuid, "1234", "boolean", testIdent, BooleanNode.TRUE))
         val partisjonsnøkkel = testRapid.inspektør.key(1)
@@ -172,81 +146,63 @@ internal class SøknadMediatorIntegrasjonTest {
         )
         assertTrue("faktum_svar" in testRapid.inspektør.message(1).toString())
 
-        assertThrows<Aktivitetslogg.AktivitetException>("Alle dokumentkrav må være besvart") {
-            søknadMediator.behandle(
-                SøknadInnsendtHendelse(
-                    søknadID = søknadUuid,
-                    ident = testIdent,
-                    aktivitetslogg = Aktivitetslogg(forelder = null)
-
-                )
-            )
+        assertThrows<AktivitetException>("Alle dokumentkrav må være besvart") {
+            behandleSøknadInnsendtHendelse()
         }
 
-        søknadMediator.behandle(
-            LeggTilFil(
-                søknadID = søknadUuid,
-                ident = testIdent,
-                kravId = "22.1",
-                fil = Krav.Fil(
-                    filnavn = "f22",
-                    urn = URN.rfc8141().parse("urn:vedlegg:f22"),
-                    storrelse = 0,
-                    tidspunkt = ZonedDateTime.now(),
-                    bundlet = false
-                )
-            )
-        )
+        behandleLeggTilFil(kravId = "1", urn = "urn:vedlegg:f1.1")
+        behandleLeggTilFil(kravId = "1", urn = "urn:vedlegg:f1.2")
+        behandleDokumentkravSammenstilling(kravId = "1", urn = "urn:dokumentsammenstilling:f1")
 
-        søknadMediator.behandle(
-            LeggTilFil(
-                søknadID = søknadUuid,
-                ident = testIdent,
-                kravId = "22.1",
-                fil = Krav.Fil(
-                    filnavn = "f22.1",
-                    urn = URN.rfc8141().parse("urn:vedlegg:f22.1"),
-                    storrelse = 0,
-                    tidspunkt = ZonedDateTime.now(),
-                    bundlet = false
-                )
-            )
-        )
-
-        assertThrows<Aktivitetslogg.AktivitetException>("Alle dokumentkrav må være besvart") {
-            søknadMediator.behandle(
-                SøknadInnsendtHendelse(
-                    søknadID = søknadUuid,
-                    ident = testIdent,
-                    aktivitetslogg = Aktivitetslogg(forelder = null)
-
-                )
-            )
+        assertThrows<AktivitetException>("Alle dokumentkrav må være besvart") {
+            behandleSøknadInnsendtHendelse()
         }
 
-        søknadMediator.behandle(
-            DokumentasjonIkkeTilgjengelig(
-                søknadID = søknadUuid,
-                ident = testIdent,
-                kravId = "1.1",
-                valg = Krav.Svar.SvarValg.SEND_SENERE,
-                begrunnelse = "Sender senerere"
+        behandleDokumentasjonIkkeTilgjengelig(kravId = "2", begrunnelse = "Har det ikke")
+
+        testRapid.sendTestMessage(søkerOppgave(søknadUuid.toString().toUUID(), testIdent, ferdig = true))
+
+        behandleSøknadInnsendtHendelse()
+        assertEquals(Innsendt, gjeldendeTilstand())
+
+        // Ettersending
+        behandleLeggTilFil(kravId = "2", urn = "urn:vedlegg:f2.1")
+        behandleDokumentkravSammenstilling(kravId = "2", urn = "urn:dokumentsammenstilling:f2")
+
+        assertBehovContains(DokumentkravSvar) {
+            assertEquals("2", it["id"].asText())
+            assertEquals("dokument", it["type"].asText())
+            assertEquals("urn:dokumentsammenstilling:f2", it["urn"].asText())
+            assertNotNull(it["lastOppTidsstempel"].asLocalDateTime())
+            assertEquals(søknadUuid.toString(), it["søknad_uuid"].asText())
+        }
+
+        behandleSøknadInnsendtHendelse()
+
+        assertBehovContains(NyEttersending) {
+            assertNotNull(it["innsendtTidspunkt"].asZonedDateTime())
+            assertEquals(søknadUuid.toString(), it["søknad_uuid"].asText())
+            assertEquals(testIdent, it["ident"].asText())
+        }
+
+        assertDokumenter(
+            listOf(
+                Innsending.Dokument(
+                    uuid = UUID.randomUUID(),
+                    kravId = "2",
+                    skjemakode = "N6",
+                    varianter = listOf(
+                        Innsending.Dokument.Dokumentvariant(
+                            uuid = UUID.randomUUID(),
+                            filnavn = "d2",
+                            urn = "urn:dokumentsammenstilling:f2",
+                            variant = "ARKIV",
+                            type = "PDF"
+                        )
+                    )
+                )
             )
         )
-
-        søknadMediator.behandle(
-            DokumentKravSammenstilling(
-                søknadID = søknadUuid,
-                ident = testIdent,
-                kravId = "22.1",
-                urn = URN.rfc8141().parse("urn:dokumentsammenstilling:f22"),
-            )
-        )
-
-        testRapid.sendTestMessage(ferdigSøkerOppgave(søknadUuid.toString().toUUID(), testIdent))
-        søknadMediator.behandle(SøknadInnsendtHendelse(søknadUuid, testIdent))
-
-        assertEquals(Innsendt, oppdatertInspektør().gjeldendetilstand)
     }
 
     @Test
@@ -259,13 +215,116 @@ internal class SøknadMediatorIntegrasjonTest {
         )
     }
 
+    private fun assertBehovContains(behovtype: Aktivitetslogg.Aktivitet.Behov.Behovtype, block: (JsonNode) -> Unit) {
+        val behov: JsonNode = sisteBehov()
+        assertTrue(
+            behov["@behov"].map {
+                it.asText()
+            }.contains(behovtype.name)
+        )
+        block(behov)
+    }
+
+    private fun sisteBehov() = testRapid.inspektør.message(testRapid.inspektør.size - 1)
+
+    private fun assertDokumenter(expected: List<Innsending.Dokument>) {
+        val behov = sisteBehov()
+        val jacksonObjectMapper = jacksonObjectMapper()
+
+        val dokumenter = behov["dokumentkrav"].let {
+            jacksonObjectMapper.convertValue<List<Innsending.Dokument>>(it)
+        }
+
+        expected.forEachIndexed { index, dokument ->
+            val actual = dokumenter[index]
+            assertEquals(dokument.skjemakode, actual.skjemakode)
+            assertEquals(dokument.kravId, actual.kravId)
+            assertVarianter(dokument.varianter, actual.varianter)
+        }
+    }
+
+    private fun assertVarianter(
+        expectedVarianter: List<Innsending.Dokument.Dokumentvariant>,
+        actualVarianter: List<Innsending.Dokument.Dokumentvariant>,
+    ) {
+        expectedVarianter.forEachIndexed { index, expected ->
+            val actual = actualVarianter[index]
+            assertEquals(expected.filnavn, actual.filnavn)
+            assertEquals(expected.variant, actual.variant)
+            assertEquals(expected.type, actual.type)
+            assertEquals(expected.urn, actual.urn)
+        }
+    }
+
+    private fun behandleDokumentkravSammenstilling(kravId: String, urn: String) {
+        søknadMediator.behandle(
+            DokumentKravSammenstilling(
+                søknadID = søknadUuid,
+                ident = testIdent,
+                kravId = kravId,
+                urn = URN.rfc8141().parse(urn)
+            )
+        )
+    }
+
+    private fun behandleDokumentasjonIkkeTilgjengelig(kravId: String, begrunnelse: String) {
+        søknadMediator.behandle(
+            DokumentasjonIkkeTilgjengelig(
+                søknadID = søknadUuid,
+                ident = testIdent,
+                kravId = kravId,
+                valg = Krav.Svar.SvarValg.SEND_SENERE,
+                begrunnelse = begrunnelse
+            )
+        )
+    }
+
+    private fun gjeldendeTilstand() = oppdatertInspektør().gjeldendetilstand
+
+    private fun behandleØnskeOmNySøknadHendelse() {
+        søknadMediator.behandle(
+            ØnskeOmNySøknadHendelse(
+                søknadUuid,
+                testIdent,
+                språkVerdi,
+                prosessnavn = Prosessnavn("Dagpenger")
+            )
+        )
+    }
+
+    private fun behandleSøknadInnsendtHendelse() {
+        søknadMediator.behandle(
+            SøknadInnsendtHendelse(
+                søknadID = søknadUuid,
+                ident = testIdent
+            )
+        )
+    }
+
+    private fun behandleLeggTilFil(kravId: String, urn: String) {
+        søknadMediator.behandle(
+            LeggTilFil(
+                søknadID = søknadUuid,
+                ident = testIdent,
+                kravId = kravId,
+                fil = Krav.Fil(
+                    filnavn = "test.jpg",
+                    urn = URN.rfc8141().parse(urn),
+                    storrelse = 0,
+                    tidspunkt = ZonedDateTime.now(),
+                    bundlet = false
+                )
+            )
+        )
+    }
+
     private fun behov(indeks: Int) = testRapid.inspektør.message(indeks)["@behov"].map { it.asText() }
 
     private fun oppdatertInspektør(ident: String = testIdent) =
         TestSøknadhåndtererInspektør(søknadMediator.hentSøknader(ident).first())
 
     // language=JSON
-    private fun søkerOppgave(søknadUuid: UUID, ident: String) = """{
+    private fun søkerOppgave(søknadUuid: UUID, ident: String, ferdig: Boolean) = """{
   "@event_name": "søker_oppgave",
   "fødselsnummer": $ident,
   "versjon_id": 0,
@@ -273,7 +332,7 @@ internal class SøknadMediatorIntegrasjonTest {
   "@opprettet": "2022-05-13T14:48:09.059643",
   "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
   "søknad_uuid": "$søknadUuid",
-  "ferdig": false,
+  "ferdig": $ferdig,
   "seksjoner": [
     {
       "beskrivendeId": "seksjon1",
@@ -281,12 +340,12 @@ internal class SøknadMediatorIntegrasjonTest {
         {
           "id": "1",
           "type": "int",
-          "beskrivendeId": "1",
+          "beskrivendeId": "f1",
           "sannsynliggjoresAv": [
             {
-              "id": "1.1",
+              "id": "1",
               "type": "dokument",
-              "beskrivendeId": "f1.1",
+              "beskrivendeId": "d1.1",
               "roller": [
                 "saksbehandler"
               ],
@@ -297,90 +356,24 @@ internal class SøknadMediatorIntegrasjonTest {
           
         },
         {
-          "id": "67",
+          "id": "2",
           "type": "generator",
-          "beskrivendeId": "f67",
+          "beskrivendeId": "f2",
           "svar": [
             [
               {
-                "id": "6.1",
+                "id": "2",
                 "type": "int",
-                "beskrivendeId": "f6",
+                "beskrivendeId": "f2",
                 "svar": 11,
                 "roller": [
                   "søker"
                 ],
                 "sannsynliggjoresAv": [
                   {
-                    "id": "22.1",
+                    "id": "2",
                     "type": "dokument",
-                    "beskrivendeId": "f22",
-                    "roller": [
-                      "saksbehandler"                    ],
-                    "sannsynliggjoresAv": []
-                  }
-                ]
-              }
-            ]
-          ]
-        }
-      ]
-    }
-  ]
-}
-    """.trimIndent()
-
-    // language=JSON
-    private fun ferdigSøkerOppgave(søknadUuid: UUID, ident: String) = """{
-  "@event_name": "søker_oppgave",
-  "fødselsnummer": $ident,
-  "versjon_id": 0,
-  "versjon_navn": "test",
-  "@opprettet": "2022-05-13T14:48:09.059643",
-  "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
-  "søknad_uuid": "$søknadUuid",
-  "ferdig": true,
-  "seksjoner": [
-    {
-      "beskrivendeId": "seksjon1",
-      "fakta": [
-        {
-          "id": "1",
-          "type": "int",
-          "beskrivendeId": "1",
-          "sannsynliggjoresAv": [
-            {
-              "id": "1.1",
-              "type": "dokument",
-              "beskrivendeId": "f1.1",
-              "roller": [
-                "saksbehandler"
-              ],
-              "sannsynliggjoresAv": []
-            }
-          ],
-          "svar": 11
-          
-        },
-        {
-          "id": "67",
-          "type": "generator",
-          "beskrivendeId": "f67",
-          "svar": [
-            [
-              {
-                "id": "6.1",
-                "type": "int",
-                "beskrivendeId": "f6",
-                "svar": 11,
-                "roller": [
-                  "søker"
-                ],
-                "sannsynliggjoresAv": [
-                  {
-                    "id": "22.1",
-                    "type": "dokument",
-                    "beskrivendeId": "f22",
+                    "beskrivendeId": "d2",
                     "roller": [
                       "saksbehandler"                    ],
                     "sannsynliggjoresAv": []
@@ -419,7 +412,7 @@ internal class SøknadMediatorIntegrasjonTest {
       "@løsning": {
         "NySøknad": {
           "prosessversjon": {
-            "prosessnavn": "prosessnavn",
+            "prosessnavn": "Dagpenger",
             "versjon": 123
           }
         }
