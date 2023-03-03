@@ -3,11 +3,11 @@ package no.nav.dagpenger.soknad.livssyklus.påbegynt
 import io.prometheus.client.Histogram
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
-import no.nav.dagpenger.soknad.Metrics
-import no.nav.dagpenger.soknad.Metrics.søknadDataRequests
-import no.nav.dagpenger.soknad.Metrics.søknadDataResultat
-import no.nav.dagpenger.soknad.Metrics.søknadDataTidBrukt
 import no.nav.dagpenger.soknad.db.SøkerOppgaveNotFoundException
+import no.nav.dagpenger.soknad.monitoring.Metrics
+import no.nav.dagpenger.soknad.monitoring.Metrics.søknadDataRequests
+import no.nav.dagpenger.soknad.monitoring.Metrics.søknadDataResultat
+import no.nav.dagpenger.soknad.monitoring.Metrics.søknadDataTidBrukt
 
 private val logger = KotlinLogging.logger {}
 

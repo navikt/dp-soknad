@@ -1,6 +1,5 @@
 package no.nav.dagpenger.soknad
 
-import SøknadMetrikkObserver
 import no.nav.dagpenger.pdl.createPersonOppslag
 import no.nav.dagpenger.soknad.data.søknadData
 import no.nav.dagpenger.soknad.db.PostgresDokumentkravRepository
@@ -22,6 +21,7 @@ import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak
 import no.nav.dagpenger.soknad.mal.SøknadMalPostgresRepository
 import no.nav.dagpenger.soknad.mal.SøknadsMalMottak
+import no.nav.dagpenger.soknad.monitoring.SøknadMetrikkObserver
 import no.nav.dagpenger.soknad.observers.SøknadLoggerObserver
 import no.nav.dagpenger.soknad.observers.SøknadTilstandObserver
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag

@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad
+package no.nav.dagpenger.soknad.monitoring
 
 import io.prometheus.client.Counter
 import io.prometheus.client.Gauge

@@ -1,4 +1,5 @@
-import no.nav.dagpenger.soknad.Metrics
+package no.nav.dagpenger.soknad.monitoring
+
 import no.nav.dagpenger.soknad.SøknadObserver
 
 object SøknadMetrikkObserver : SøknadObserver {
