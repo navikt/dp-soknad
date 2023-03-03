@@ -10,7 +10,7 @@ object SøknadMetrikkObserver : SøknadObserver {
 
     override fun innsendingTilstandEndret(event: SøknadObserver.SøknadInnsendingEndretTilstandEvent) {
         val innsendingEvent = event.innsending
-        Metrics.søknadInnsendingTilstandTeller.labels(
+        Metrics.innsendingTilstandTeller.labels(
             innsendingEvent.innsendingType.name,
             innsendingEvent.gjeldendeTilstand.name,
             innsendingEvent.forrigeTilstand.name,

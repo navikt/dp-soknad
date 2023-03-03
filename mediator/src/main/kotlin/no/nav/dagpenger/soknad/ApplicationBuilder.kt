@@ -21,6 +21,7 @@ import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak
 import no.nav.dagpenger.soknad.mal.SøknadMalPostgresRepository
 import no.nav.dagpenger.soknad.mal.SøknadsMalMottak
+import no.nav.dagpenger.soknad.monitoring.InnsendingMetrikkObserver
 import no.nav.dagpenger.soknad.monitoring.SøknadMetrikkObserver
 import no.nav.dagpenger.soknad.observers.SøknadLoggerObserver
 import no.nav.dagpenger.soknad.observers.SøknadTilstandObserver
@@ -90,7 +91,10 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
 
     private val innsendingMediator = InnsendingMediator(
         rapidsConnection = rapidsConnection,
-        innsendingRepository = InnsendingPostgresRepository(PostgresDataSourceBuilder.dataSource)
+        innsendingRepository = InnsendingPostgresRepository(PostgresDataSourceBuilder.dataSource),
+        innsendingObservers = listOf(
+            InnsendingMetrikkObserver
+        )
     ).also {
         ArkiverbarSøknadMottattHendelseMottak(rapidsConnection, it)
         NyJournalpostMottak(rapidsConnection, it)
