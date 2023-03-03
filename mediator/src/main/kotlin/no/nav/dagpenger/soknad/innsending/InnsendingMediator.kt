@@ -76,7 +76,9 @@ internal class InnsendingMediator(
     }
 
     private fun behandle(hendelse: JournalførtHendelse, håndter: (Innsending) -> Unit) {
-        val innsending = innsendingRepository.hentInnsending(hendelse.journalpostId())
+        val innsending = innsendingRepository.hentInnsending(hendelse.journalpostId()).also { innsending ->
+            innsendingObservers.forEach { innsending.addObserver(it) }
+        }
         behandle(hendelse, innsending, håndter)
     }
 
