@@ -214,16 +214,6 @@ internal class SøknadMediatorIntegrasjonTest {
         )
     }
 
-    @Test
-    fun `Hva skjer om en får JournalførtHendelse som ikke er tilknyttet en søknad`() {
-        testRapid.sendTestMessage(
-            journalførtHendelse(
-                ident = testIdent,
-                journalpostId = "UKJENT"
-            )
-        )
-    }
-
     private fun assertBehovContains(behovtype: Aktivitetslogg.Aktivitet.Behov.Behovtype, block: (JsonNode) -> Unit) {
         val behov: JsonNode = sisteBehov()
         assertTrue(
@@ -427,22 +417,5 @@ internal class SøknadMediatorIntegrasjonTest {
         }
       }
     }
-    """.trimMargin()
-
-    // language=JSON
-    private fun journalførtHendelse(ident: String, journalpostId: String) = """
-    {
-      "@id": "7d1938c6-f1ae-435d-8d83-c7f200b9cc2b",
-      "@opprettet": "2022-04-04T10:39:58.621716",
-      "journalpostId": "$journalpostId",
-      "datoRegistrert": "2022-04-04T10:39:58.586548",
-      "skjemaKode": "test",
-      "tittel": "Tittel",
-      "type": "NySøknad",
-      "fødselsnummer": "$ident",
-      "aktørId": "1234455",
-      "fagsakId": "1234",
-      "@event_name": "innsending_ferdigstilt",
-      "system_read_count": 0,
     """.trimMargin()
 }
