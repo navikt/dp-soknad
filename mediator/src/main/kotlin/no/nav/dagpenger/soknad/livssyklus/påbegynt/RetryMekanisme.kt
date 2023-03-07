@@ -3,9 +3,11 @@ package no.nav.dagpenger.soknad.livssyklus.påbegynt
 import io.prometheus.client.Histogram
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
-import no.nav.dagpenger.soknad.Metrics.søknadDataRequests
-import no.nav.dagpenger.soknad.Metrics.søknadDataResultat
-import no.nav.dagpenger.soknad.Metrics.søknadDataTidBrukt
+import no.nav.dagpenger.soknad.db.SøkerOppgaveNotFoundException
+import no.nav.dagpenger.soknad.monitoring.Metrics
+import no.nav.dagpenger.soknad.monitoring.Metrics.søknadDataRequests
+import no.nav.dagpenger.soknad.monitoring.Metrics.søknadDataResultat
+import no.nav.dagpenger.soknad.monitoring.Metrics.søknadDataTidBrukt
 
 private val logger = KotlinLogging.logger {}
 
@@ -14,7 +16,7 @@ suspend fun <T> retryIO(
     initialDelay: Long = 100, // 0.1 second
     maxDelay: Long = 1000, // 1 second
     factor: Double = 2.0,
-    block: suspend () -> T
+    block: suspend () -> T,
 ): T {
     var currentDelay = initialDelay
     var antallForsøk = 1
@@ -33,9 +35,15 @@ suspend fun <T> retryIO(
         delay(currentDelay)
         currentDelay = (currentDelay * factor).toLong().coerceAtMost(maxDelay)
     }
-    return block().also { // last attempt
-        val faktiskTid: Double = tidBrukt.observeDuration()
-        logger.info { "Brukte $antallForsøk forsøk og $faktiskTid sekund på henting av neste seksjon." }
-        søknadDataResultat.labels(antallForsøk.toString()).inc()
+    return try {
+        block().also { // last attempt
+            val faktiskTid: Double = tidBrukt.observeDuration()
+            logger.info { "Brukte $antallForsøk forsøk og $faktiskTid sekund på henting av neste seksjon." }
+            søknadDataResultat.labels(antallForsøk.toString()).inc()
+        }
+    } catch (e: SøkerOppgaveNotFoundException) {
+        logger.info { "Brukte $antallForsøk forsøk uten å få hentet neste seksjon." }
+        Metrics.søknadDataTimeouts.inc()
+        throw e
     }
 }

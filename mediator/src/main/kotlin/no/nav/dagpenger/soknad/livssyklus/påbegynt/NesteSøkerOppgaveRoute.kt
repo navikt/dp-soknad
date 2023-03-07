@@ -21,7 +21,7 @@ internal fun Route.nesteSøkeroppgaveRoute(søknadMediator: SøknadMediator) {
         val sistLagret: Int = call.parameters["sistLagret"]?.toInt() ?: 0
         withLoggingContext(
             "søknadId" to id.toString(),
-            "versjon" to sistLagret.toString()
+            "versjon" to sistLagret.toString(),
         ) {
             validator.valider(id, ident)
             val søkerOppgave: SøkerOppgave = hentNesteSøkerOppgave(søknadMediator, id, sistLagret)
@@ -31,6 +31,6 @@ internal fun Route.nesteSøkeroppgaveRoute(søknadMediator: SøknadMediator) {
 }
 
 private suspend fun hentNesteSøkerOppgave(søknadMediator: SøknadMediator, id: UUID, sistLagret: Int): SøkerOppgave =
-    retryIO(times = 30, initialDelay = 20, factor = 1.2) {
+    retryIO(times = 45, initialDelay = 20, factor = 1.2) {
         søknadMediator.hentSøkerOppgave(id, sistLagret)
     }

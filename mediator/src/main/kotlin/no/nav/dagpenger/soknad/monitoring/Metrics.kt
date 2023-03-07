@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad
+package no.nav.dagpenger.soknad.monitoring
 
 import io.prometheus.client.Counter
 import io.prometheus.client.Gauge
@@ -57,7 +57,7 @@ object Metrics {
         .help("Teller tilstandsendringer på søknad")
         .labelNames("tilstand", "forrigetilstand")
         .register()
-    val søknadInnsendingTilstandTeller = Counter
+    val innsendingTilstandTeller = Counter
         .build()
         .namespace(namespace)
         .name("innsending_tilstand_teller")

@@ -1,4 +1,5 @@
-import no.nav.dagpenger.soknad.Metrics
+package no.nav.dagpenger.soknad.monitoring
+
 import no.nav.dagpenger.soknad.SøknadObserver
 
 object SøknadMetrikkObserver : SøknadObserver {
@@ -9,7 +10,7 @@ object SøknadMetrikkObserver : SøknadObserver {
 
     override fun innsendingTilstandEndret(event: SøknadObserver.SøknadInnsendingEndretTilstandEvent) {
         val innsendingEvent = event.innsending
-        Metrics.søknadInnsendingTilstandTeller.labels(
+        Metrics.innsendingTilstandTeller.labels(
             innsendingEvent.innsendingType.name,
             innsendingEvent.gjeldendeTilstand.name,
             innsendingEvent.forrigeTilstand.name,

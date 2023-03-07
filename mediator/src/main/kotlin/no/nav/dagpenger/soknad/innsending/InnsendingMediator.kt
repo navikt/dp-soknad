@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.BehovMediator
 import no.nav.dagpenger.soknad.Innsending
+import no.nav.dagpenger.soknad.InnsendingObserver
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.ArkiverbarSøknadMottattHendelse
@@ -17,7 +18,8 @@ import no.nav.helse.rapids_rivers.withMDC
 
 internal class InnsendingMediator(
     rapidsConnection: RapidsConnection,
-    private val innsendingRepository: InnsendingRepository
+    private val innsendingRepository: InnsendingRepository,
+    private val innsendingObservers: List<InnsendingObserver> = emptyList()
 ) : InnsendingRepository by innsendingRepository {
     private companion object {
         val logger = KotlinLogging.logger { }
@@ -74,12 +76,16 @@ internal class InnsendingMediator(
     }
 
     private fun behandle(hendelse: JournalførtHendelse, håndter: (Innsending) -> Unit) {
-        val innsending = innsendingRepository.hentInnsending(hendelse.journalpostId())
+        val innsending = innsendingRepository.hentInnsending(hendelse.journalpostId()).also { innsending ->
+            innsendingObservers.forEach { innsending.addObserver(it) }
+        }
         behandle(hendelse, innsending, håndter)
     }
 
     private fun behandle(hendelse: InnsendingHendelse, håndter: (Innsending) -> Unit) {
-        val innsending = hentEllerOpprettInnsending(hendelse)
+        val innsending = hentEllerOpprettInnsending(hendelse).also { innsending ->
+            innsendingObservers.forEach { innsending.addObserver(it) }
+        }
         behandle(hendelse, innsending, håndter)
     }
 
