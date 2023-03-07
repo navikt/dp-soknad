@@ -2,16 +2,11 @@ package no.nav.dagpenger.soknad
 
 import de.slub.urn.RFC
 import de.slub.urn.URN
-import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.DokumentkravSvar
 import no.nav.dagpenger.soknad.Innsending.Dokument
 import no.nav.dagpenger.soknad.Krav.Companion.aktive
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.IKKE_BESVART
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SEND_NÅ
-import no.nav.dagpenger.soknad.hendelse.DokumentKravHendelse
-import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
-import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
-import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
 class Dokumentkrav private constructor(
@@ -36,16 +31,6 @@ class Dokumentkrav private constructor(
         )
     }
 
-    fun håndter(hendelse: LeggTilFil) {
-        val krav = hentKrav(hendelse)
-        krav.svar.håndter(hendelse)
-    }
-
-    fun håndter(hendelse: DokumentKravSammenstilling) {
-        val krav = hentKrav(hendelse)
-        krav.håndter(hendelse)
-    }
-
     fun håndter(hendelse: SøknadInnsendtHendelse) {
         val aktiveDokumentKrav = aktiveDokumentKrav()
         aktiveDokumentKrav.forEach {
@@ -65,7 +50,6 @@ class Dokumentkrav private constructor(
             }
         )
         observers.forEach { it.dokumentkravInnsendt(event) }
-        // emit(it.first().beskrivendeId)
     }
 
     fun addObserver(dokumentkravObserver: DokumentkravObserver) {
@@ -97,10 +81,6 @@ class Dokumentkrav private constructor(
         other is Dokumentkrav && this.krav == other.krav
 
     override fun hashCode(): Int = 31 * krav.hashCode()
-
-    private fun hentKrav(hendelse: DokumentKravHendelse) =
-        this.aktiveDokumentKrav().find { krav -> krav.id == hendelse.kravId }
-            ?: hendelse.severe("Fant ikke Dokumentasjonskrav id")
 
     fun accept(dokumentkravVisitor: DokumentkravVisitor) = krav.forEach { it.accept(dokumentkravVisitor) }
 
@@ -136,21 +116,6 @@ data class Krav(
                 false -> KravTilstand.INAKTIV
             }
         }
-
-    fun håndter(hendelse: DokumentKravSammenstilling) {
-        // TODO: Dette må skje ved innsending
-        hendelse.behov(
-            DokumentkravSvar,
-            "Må svare dokumentkravet i Quiz",
-            mapOf(
-                "id" to this.id,
-                "type" to "dokument",
-                "urn" to hendelse.urn().toString(),
-                "lastOppTidsstempel" to LocalDateTime.now()
-            )
-        )
-        this.svar.håndter(hendelse)
-    }
 
     fun accept(dokumentkravVisitor: DokumentkravVisitor) {
         dokumentkravVisitor.visitKrav(this)
@@ -225,22 +190,9 @@ data class Krav(
             innsendt = false
         )
 
-        fun håndter(hendelse: LeggTilFil) {
-            filer.add(hendelse.fil)
-            valg = SEND_NÅ
-            begrunnelse = null
-        }
-
         fun håndter(hendelse: SøknadInnsendtHendelse) {
             innsendt = true
         }
-
-        fun håndter(hendelse: DokumentKravSammenstilling) {
-            bundle = hendelse.urn()
-            filer.forEach { fil -> fil.bundlet = true }
-            innsendt = false
-        }
-
         fun besvart() = TilstandStrategy.strategy(this).besvart(this)
 
         private sealed interface TilstandStrategy {
