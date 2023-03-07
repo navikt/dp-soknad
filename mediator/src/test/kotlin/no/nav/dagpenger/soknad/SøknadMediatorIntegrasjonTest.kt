@@ -110,7 +110,7 @@ internal class SøknadMediatorIntegrasjonTest {
 
     @Test
     fun `Kan ikke sende inn en søknad med ubesvarte dokumentkrav`() {
-        behandleØnskeOmNySøknadHendelse()
+        behandleØnskeOmNySøknadHendelse(Prosessnavn("Dagpenger"))
         assertEquals(1, testRapid.inspektør.size)
         assertEquals(listOf("NySøknad"), behov(0))
         assertEquals(UnderOpprettelse, gjeldendeTilstand())
@@ -126,8 +126,17 @@ internal class SøknadMediatorIntegrasjonTest {
     }
 
     @Test
+    fun `Opprette generell innsending og journalføre`() {
+        val prosessnavn = Prosessnavn("Innsending")
+        behandleØnskeOmNySøknadHendelse(prosessnavn)
+        assertEquals(1, testRapid.inspektør.size)
+        assertEquals(listOf("NySøknad"), behov(0))
+        assertEquals(UnderOpprettelse, gjeldendeTilstand())
+    }
+
+    @Test
     fun `Søker oppretter dagpengesøknad med dokumenktrav, ferdigstiller den og ettersender et dokument`() {
-        behandleØnskeOmNySøknadHendelse()
+        behandleØnskeOmNySøknadHendelse(Prosessnavn("Dagpenger"))
         assertEquals(1, testRapid.inspektør.size)
         assertEquals(listOf("NySøknad"), behov(0))
         assertEquals(UnderOpprettelse, gjeldendeTilstand())
@@ -281,13 +290,13 @@ internal class SøknadMediatorIntegrasjonTest {
 
     private fun gjeldendeTilstand() = oppdatertInspektør().gjeldendetilstand
 
-    private fun behandleØnskeOmNySøknadHendelse() {
+    private fun behandleØnskeOmNySøknadHendelse(prosessnavn: Prosessnavn) {
         søknadMediator.behandle(
             ØnskeOmNySøknadHendelse(
                 søknadUuid,
                 testIdent,
                 språkVerdi,
-                prosessnavn = Prosessnavn("Dagpenger")
+                prosessnavn = prosessnavn
             )
         )
     }

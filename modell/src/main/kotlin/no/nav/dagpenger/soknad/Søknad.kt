@@ -2,11 +2,9 @@ package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.SøknadObserver.SøknadSlettetEvent
-import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.Hendelse
-import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
@@ -148,18 +146,6 @@ class Søknad private constructor(
         slettSøknadHendelse.info("Forsøker å slette søknad")
         tilstand.håndter(slettSøknadHendelse, this)
     }
-
-    fun håndter(leggTilFil: LeggTilFil) {
-        kontekst(leggTilFil)
-        leggTilFil.info("Legger til fil")
-        tilstand.håndter(leggTilFil, this)
-    }
-
-    fun håndter(hendelse: DokumentKravSammenstilling) {
-        kontekst(hendelse)
-        tilstand.håndter(hendelse, this)
-    }
-
     fun håndter(hendelse: MigrertProsessHendelse) {
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
@@ -195,14 +181,6 @@ class Søknad private constructor(
 
         fun håndter(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
             slettSøknadHendelse.severe("Kan ikke slette søknad i tilstand $tilstandType")
-        }
-
-        fun håndter(leggTilFil: LeggTilFil, søknad: Søknad) {
-            leggTilFil.`kan ikke håndteres i denne tilstanden`()
-        }
-
-        fun håndter(hendelse: DokumentKravSammenstilling, søknad: Søknad) {
-            hendelse.`kan ikke håndteres i denne tilstanden`()
         }
 
         fun håndter(hendelse: MigrertProsessHendelse, søknad: Søknad) {
@@ -282,20 +260,12 @@ class Søknad private constructor(
         override fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse, søknad: Søknad) {
         }
 
-        override fun håndter(leggTilFil: LeggTilFil, søknad: Søknad) {
-            søknad.dokumentkrav.håndter(leggTilFil)
-        }
-
         override fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse, søknad: Søknad) {
             søknad.håndter(søkeroppgaveHendelse.sannsynliggjøringer())
         }
 
         override fun håndter(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
             søknad.endreTilstand(Slettet, slettSøknadHendelse)
-        }
-
-        override fun håndter(dokumentKravSammenstilling: DokumentKravSammenstilling, søknad: Søknad) {
-            søknad.dokumentkrav.håndter(dokumentKravSammenstilling)
         }
 
         override fun håndter(hendelse: MigrertProsessHendelse, søknad: Søknad) {
@@ -308,14 +278,6 @@ class Søknad private constructor(
     private object Innsendt : Tilstand {
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.Innsendt
-
-        override fun håndter(leggTilFil: LeggTilFil, søknad: Søknad) {
-            søknad.dokumentkrav.håndter(leggTilFil)
-        }
-
-        override fun håndter(dokumentKravSammenstilling: DokumentKravSammenstilling, søknad: Søknad) {
-            søknad.dokumentkrav.håndter(dokumentKravSammenstilling)
-        }
 
         override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
             if (!søknad.erDagpenger()) {
