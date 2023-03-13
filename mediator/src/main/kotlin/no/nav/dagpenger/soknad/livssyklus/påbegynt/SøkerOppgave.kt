@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.SøknadData
+import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import java.io.InputStream
 import java.util.UUID
@@ -20,6 +21,8 @@ interface SøkerOppgave : SøknadData {
         val FØDSELSNUMMER = "fødselsnummer"
         val FERDIG = "ferdig"
     }
+
+    fun hendelse(): SøkeroppgaveHendelse = SøkeroppgaveHendelse(søknadUUID(), eier(), sannsynliggjøringer())
 }
 
 internal open class SøkerOppgaveMelding(private val jsonMessage: JsonNode) : SøkerOppgave {
@@ -52,7 +55,7 @@ internal open class SøkerOppgaveMelding(private val jsonMessage: JsonNode) : S�
         fakta.forEach { faktum ->
             faktum.sannsynliggjøresAv.forEach { sannsynliggjøring ->
                 sannsynliggjøringer.getOrPut(
-                    sannsynliggjøring.id
+                    sannsynliggjøring.id,
                 ) { Sannsynliggjøring(sannsynliggjøring.id, sannsynliggjøring) }.sannsynliggjør(faktum)
             }
         }

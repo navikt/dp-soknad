@@ -40,7 +40,7 @@ class SøkerOppgaveMottakTest {
                 mockk(),
                 mockk(),
                 SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource),
-                mockk()
+                mockk(),
             ).also {
                 SøkerOppgaveMottak(testRapid, it)
             }
@@ -52,8 +52,8 @@ class SøkerOppgaveMottakTest {
                     søknadUuid,
                     ident,
                     språkVerdi,
-                    prosessnavn = Prosessnavn("prosessnavn")
-                )
+                    prosessnavn = Prosessnavn("prosessnavn"),
+                ),
             )
             testRapid.sendTestMessage(nySøknad(søknadUuid, ident))
             søknadMediator.hentSøkerOppgave(søknadUuid).also {
@@ -89,7 +89,7 @@ class SøkerOppgaveMottakTest {
             søknadMalRepository = mockk(),
             ferdigstiltSøknadRepository = mockk(),
             søknadRepository = søknadRepository,
-            dokumentkravRepository = mockk()
+            dokumentkravRepository = mockk(),
         )
             .also {
                 SøkerOppgaveMottak(testRapid, it)

@@ -25,7 +25,7 @@ class Søknad private constructor(
     private var sistEndretAvBruker: ZonedDateTime,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
     private var prosessversjon: Prosessversjon?,
-    private var data: Lazy<SøknadData>
+    private var data: Lazy<SøknadData>,
 ) : Aktivitetskontekst, DokumentkravObserver {
     private val observers = mutableListOf<SøknadObserver>()
 
@@ -47,7 +47,7 @@ class Søknad private constructor(
         søknadId: UUID,
         språk: Språk,
         ident: String,
-        data: Lazy<SøknadData> = lazy { throw IllegalStateException("Mangler søknadsdata") }
+        data: Lazy<SøknadData> = lazy { throw IllegalStateException("Mangler søknadsdata") },
     ) : this(
         søknadId = søknadId,
         ident = ident,
@@ -58,7 +58,7 @@ class Søknad private constructor(
         dokumentkrav = Dokumentkrav(),
         sistEndretAvBruker = ZonedDateTime.now(),
         prosessversjon = null,
-        data = data
+        data = data,
     )
 
     init {
@@ -77,7 +77,7 @@ class Søknad private constructor(
             tilstandsType: Tilstand.Type,
             aktivitetslogg: Aktivitetslogg,
             prosessversjon: Prosessversjon?,
-            data: Lazy<SøknadData>
+            data: Lazy<SøknadData>,
         ): Søknad {
             val tilstand: Tilstand = when (tilstandsType) {
                 Tilstand.Type.UnderOpprettelse -> UnderOpprettelse
@@ -96,7 +96,7 @@ class Søknad private constructor(
                 sistEndretAvBruker = sistEndretAvBruker,
                 aktivitetslogg = aktivitetslogg,
                 prosessversjon = prosessversjon,
-                data = data
+                data = data,
             )
         }
 
@@ -146,6 +146,7 @@ class Søknad private constructor(
         slettSøknadHendelse.info("Forsøker å slette søknad")
         tilstand.håndter(slettSøknadHendelse, this)
     }
+
     fun håndter(hendelse: MigrertProsessHendelse) {
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
@@ -204,7 +205,7 @@ class Søknad private constructor(
             UnderOpprettelse,
             Påbegynt,
             Innsendt,
-            Slettet
+            Slettet,
         }
     }
 
@@ -216,8 +217,12 @@ class Søknad private constructor(
             ønskeOmNySøknadHendelse.behov(
                 Behovtype.NySøknad,
                 "Behov for å starte søknadsprosess",
-                mapOf("prosessnavn" to ønskeOmNySøknadHendelse.prosessnavn.id)
+                mapOf("prosessnavn" to ønskeOmNySøknadHendelse.prosessnavn.id),
             )
+        }
+
+        override fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse, søknad: Søknad) {
+            søkeroppgaveHendelse.håndter(søknad)
         }
 
         override fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse, søknad: Søknad) {
@@ -244,8 +249,8 @@ class Søknad private constructor(
                 "Søknad innsendt, trenger ny innsending",
                 mapOf(
                     "innsendtTidspunkt" to søknadInnsendtHendelse.innsendtidspunkt(),
-                    "dokumentkrav" to søknad.dokumentkrav.tilDokument().map { it.toMap() }
-                )
+                    "dokumentkrav" to søknad.dokumentkrav.tilDokument().map { it.toMap() },
+                ),
             )
 
             søknad.dokumentkrav.håndter(søknadInnsendtHendelse)
@@ -261,7 +266,7 @@ class Søknad private constructor(
         }
 
         override fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse, søknad: Søknad) {
-            søknad.håndter(søkeroppgaveHendelse.sannsynliggjøringer())
+            søkeroppgaveHendelse.håndter(søknad)
         }
 
         override fun håndter(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
@@ -289,8 +294,8 @@ class Søknad private constructor(
                 "Søknad ettersend, trenger ny ettersending",
                 mapOf(
                     "innsendtTidspunkt" to søknadInnsendtHendelse.innsendtidspunkt(),
-                    "dokumentkrav" to søknad.dokumentkrav.tilDokument().map { it.toMap() }
-                )
+                    "dokumentkrav" to søknad.dokumentkrav.tilDokument().map { it.toMap() },
+                ),
             )
 
             søknad.dokumentkrav.håndter(søknadInnsendtHendelse)
@@ -306,7 +311,7 @@ class Søknad private constructor(
         }
     }
 
-    private fun håndter(nyeSannsynliggjøringer: Set<Sannsynliggjøring>) {
+    internal fun håndter(nyeSannsynliggjøringer: Set<Sannsynliggjøring>) {
         this.dokumentkrav.håndter(nyeSannsynliggjøringer)
     }
 
@@ -324,8 +329,8 @@ class Søknad private constructor(
                     søknadId,
                     ident,
                     forrigeProsessversjon,
-                    gjeldendeVersjon
-                )
+                    gjeldendeVersjon,
+                ),
             )
         }
     }
@@ -340,7 +345,7 @@ class Søknad private constructor(
             språk = språk,
             dokumentkrav = dokumentkrav,
             sistEndretAvBruker = sistEndretAvBruker,
-            prosessversjon = prosessversjon
+            prosessversjon = prosessversjon,
         )
         tilstand.accept(visitor)
         aktivitetslogg.accept(visitor)
@@ -383,8 +388,8 @@ class Søknad private constructor(
                     ident = ident,
                     prosessversjon = prosessversjon,
                     gjeldendeTilstand = tilstand.tilstandType,
-                    forrigeTilstand = forrigeTilstand.tilstandType
-                )
+                    forrigeTilstand = forrigeTilstand.tilstandType,
+                ),
             )
         }
     }

@@ -13,7 +13,6 @@ import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.MigrertProsessHendelse
 import no.nav.dagpenger.soknad.hendelse.SlettFil
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
-import no.nav.dagpenger.soknad.hendelse.SøkeroppgaveHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
@@ -36,7 +35,7 @@ internal class SøknadMediator(
     private val ferdigstiltSøknadRepository: FerdigstiltSøknadRepository,
     private val søknadRepository: SøknadRepository,
     private val dokumentkravRepository: DokumentkravRepository,
-    private val søknadObservers: List<SøknadObserver> = emptyList()
+    private val søknadObservers: List<SøknadObserver> = emptyList(),
 ) : SøknadDataRepository by søknadDataRepository,
     SøknadMalRepository by søknadMalRepository,
     FerdigstiltSøknadRepository by ferdigstiltSøknadRepository,
@@ -88,17 +87,20 @@ internal class SøknadMediator(
     }
 
     fun behandle(søkerOppgave: SøkerOppgave) {
-        val søkeroppgaveHendelse =
-            SøkeroppgaveHendelse(søkerOppgave.søknadUUID(), søkerOppgave.eier(), søkerOppgave.sannsynliggjøringer())
-        behandle(søkeroppgaveHendelse) { søknad ->
-            søknad.håndter(søkeroppgaveHendelse)
-            søknadDataRepository.lagre(søkerOppgave)
+        val hendelse = søkerOppgave.hendelse().apply {
+            addObserver {
+                // Lagre oppgaven hver gang modellen har håndtert hendelsen
+                søknadDataRepository.lagre(søkerOppgave)
+            }
+        }
+        behandle(hendelse) { søknad ->
+            søknad.håndter(hendelse)
         }
     }
 
     private fun behandleDokumentasjonkravHendelse(
         hendelse: DokumentKravHendelse,
-        block: (repository: DokumentkravRepository) -> Unit
+        block: (repository: DokumentkravRepository) -> Unit,
     ) {
         block(dokumentkravRepository)
         finalize(hendelse)
@@ -132,8 +134,8 @@ internal class SøknadMediator(
                     "id" to hendelse.kravId,
                     "type" to "dokument",
                     "urn" to hendelse.urn().toString(),
-                    "lastOppTidsstempel" to LocalDateTime.now()
-                )
+                    "lastOppTidsstempel" to LocalDateTime.now(),
+                ),
             )
         }
     }
@@ -148,7 +150,7 @@ internal class SøknadMediator(
     internal fun opprettSøknadsprosess(
         ident: String,
         språk: String,
-        prosessnavn: Prosessnavn
+        prosessnavn: Prosessnavn,
     ) = Søknadsprosess.NySøknadsProsess().also {
         behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident, språk, prosessnavn))
     }
@@ -180,7 +182,7 @@ internal class SøknadMediator(
             is ØnskeOmNySøknadHendelse -> søknad ?: søknadRepository.opprett(
                 hendelse.søknadID(),
                 hendelse.språk(),
-                hendelse.ident()
+                hendelse.ident(),
             )
 
             else -> søknad ?: throw SøknadIkkeFunnet("Søknaden med id ${hendelse.søknadID()} finnes ikke")
