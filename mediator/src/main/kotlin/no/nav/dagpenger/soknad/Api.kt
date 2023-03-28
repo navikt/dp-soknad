@@ -121,6 +121,13 @@ internal fun Application.api(
                         ),
                     )
                 }
+                is Aktivitetslogg.AktivitetException -> {
+                    logger.error { "Feil i aktivitetslogg ${cause.message} (se sikkerlogg for detaljer)" }
+                    call.respond(
+                        InternalServerError,
+                        HttpProblem(title = "Feilet", detail = cause.message),
+                    )
+                }
 
                 else -> {
                     logger.error(cause) { "Kunne ikke håndtere API kall" }
