@@ -54,11 +54,13 @@ spec:
         - application: dp-innsyn
         - application: sokos-kontoregister-person
           namespace: okonomi
+      external:
+        - host: {{ PDL_API_HOST }}
   env:
     - name: PERSON_KONTO_REGISTER_SCOPE
       value: {{PERSON_KONTO_REGISTER_SCOPE}}
-    - name: PDL_API_URL
-      value: {{PDL_API_URL}}
+    - name: PDL_API_HOST
+      value: {{PDL_API_HOST}}
     - name: PDL_AUDIENCE
       value: {{PDL_AUDIENCE}}
     - name: DP_INNSYN_AUDIENCE

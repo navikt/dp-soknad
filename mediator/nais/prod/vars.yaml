@@ -4,7 +4,7 @@ team: teamdagpenger
 alerts_slack_channel: "#team-dagpenger-alert"
 PERSON_KONTO_REGISTER_SCOPE: prod-gcp:okonomi:sokos-kontoregister-person
 DP_INNSYN_AUDIENCE: prod-gcp:teamdagpenger:dp-innsyn
-PDL_API_URL: https://pdl-api.prod-fss-pub.nais.io/graphql
+PDL_API_HOST: pdl-api.prod-fss-pub.nais.io
 PDL_AUDIENCE: prod-fss:pdl:pdl-api
 kafka_pool: nav-prod
 db_tier: db-custom-4-15360

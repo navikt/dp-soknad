@@ -34,7 +34,11 @@ internal object Configuration {
 
     val kontoRegisterUrl by lazy { properties[Key("PERSON_KONTO_REGISTER_URL", stringType)] }
     val kontoRegisterScope by lazy { properties[Key("PERSON_KONTO_REGISTER_SCOPE", stringType)] }
-    val pdlUrl by lazy { properties[Key("PDL_API_URL", stringType)] }
+    val pdlUrl by lazy {
+        properties[Key("PDL_API_HOST", stringType)].let {
+            "https://$it/graphql"
+        }
+    }
     val pdlAudience by lazy { properties[Key("PDL_AUDIENCE", stringType)] }
     val dpInnsynAudience by lazy { properties[Key("DP_INNSYN_AUDIENCE", stringType)] }
     val dpInnsynUrl by lazy { properties[Key("DP_INNSYN_URL", stringType)] }
