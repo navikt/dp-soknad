@@ -1,3 +1,4 @@
+import com.diffplug.spotless.LineEnding.PLATFORM_NATIVE
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -12,6 +13,11 @@ spotless {
         target("*.gradle.kts")
         ktlint("0.40.0")
     }
+
+    // Workaround for <https://github.com/diffplug/spotless/issues/1644>
+    // using idea found at
+    // <https://github.com/diffplug/spotless/issues/1527#issuecomment-1409142798>.
+    lineEndings = PLATFORM_NATIVE // or any other except GIT_ATTRIBUTES
 }
 
 tasks.withType<KotlinCompile>().configureEach {
