@@ -13,7 +13,3 @@ spotless {
         ktlint("0.40.0")
     }
 }
-
-tasks.withType<KotlinCompile>().configureEach {
-    dependsOn("spotlessApply")
-}
