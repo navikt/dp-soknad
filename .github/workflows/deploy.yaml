@@ -24,7 +24,7 @@ jobs:
           arguments: build installDist --configuration-cache
 
       - name: docker-build-push
-        uses: nais/docker-build-push@v1
+        uses: nais/docker-build-push@v0
         id: docker-build-push
         with:
           team: teamdagpenger
