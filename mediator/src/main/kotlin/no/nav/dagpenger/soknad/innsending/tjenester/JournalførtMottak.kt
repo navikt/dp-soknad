@@ -16,6 +16,7 @@ internal class JournalførtMottak(
 ) : River.PacketListener {
     companion object {
         private val logger = KotlinLogging.logger {}
+        private val sikkerLogg = KotlinLogging.logger("tjenestekall.JournalførtMottak")
     }
 
     init {
@@ -55,6 +56,7 @@ internal class JournalførtMottak(
             logger.info { "Fått løsning for innsending_ferdigstilt for $journalpostId" }
             if (journalpostId == "615962521") {
                 logger.warn { "Finner ikke journalpost med id $journalpostId. Skipper behandling" }
+                sikkerLogg.warn { "Finner ikke journalpost med id $journalpostId. Pakke ${packet.toJson()}" }
             } else {
                 mediator.behandle(journalførtHendelse)
             }
