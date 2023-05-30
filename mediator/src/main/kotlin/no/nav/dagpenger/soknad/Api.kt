@@ -122,7 +122,7 @@ internal fun Application.api(
                     )
                 }
                 is Aktivitetslogg.AktivitetException -> {
-                    logger.error { "Feil i aktivitetslogg ${cause.message} (se sikkerlogg for detaljer)" }
+                    logger.error { "Feil i aktivitetslogg (se sikkerlogg for detaljer)" }
                     call.respond(
                         InternalServerError,
                         HttpProblem(title = "Feilet", detail = cause.message),
