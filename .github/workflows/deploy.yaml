@@ -46,6 +46,7 @@ jobs:
     needs: [ build ]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    environment: dev-gcp
     steps:
       - name: Fetch NAIS yaml
         uses: actions/download-artifact@v3
@@ -65,6 +66,7 @@ jobs:
     needs: [ build ]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    environment: prod-gcp
     steps:
       - name: Fetch NAIS yaml
         uses: actions/download-artifact@v3
