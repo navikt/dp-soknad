@@ -12,6 +12,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helse.rapids_rivers.withMDC
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -19,7 +20,7 @@ import java.util.UUID
 
 internal class SøknadInnsendtTidspunktTjeneste(
     rapidsConnection: RapidsConnection,
-    private val mediator: SøknadMediator
+    private val mediator: SøknadMediator,
 ) : River.PacketListener {
 
     private companion object {
@@ -31,10 +32,10 @@ internal class SøknadInnsendtTidspunktTjeneste(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "faktum_svar") }
+            validate { it.demandAny("@event_name", listOf("faktum_svar", "behov")) }
             validate { it.requireContains("@behov", behov) }
             validate { it.rejectKey("@løsning") }
-            validate { it.requireKey("InnsendtSøknadsId") }
+            validate { it.interestedIn("InnsendtSøknadsId", "Søknadstidspunkt.søknad_uuid") }
             validate { it.interestedIn("søknad_uuid", "@behovId") }
         }.register(this)
     }
@@ -47,7 +48,8 @@ internal class SøknadInnsendtTidspunktTjeneste(
             )
         ) {
             try {
-                val innsendtSøknadsId = packet.getInnsendtSøknadsId()
+
+                val innsendtSøknadsId = packet.getSøknadIdForRapporteringBehov() ?: packet.getSøknadIdForQuizBehov()
                 val innsendtTidspunkt: LocalDate? = mediator.hent(UUID.fromString(innsendtSøknadsId))?.let {
                     object : SøknadVisitor {
                         var innsendt: LocalDate? = null
@@ -65,7 +67,7 @@ internal class SøknadInnsendtTidspunktTjeneste(
                             språk: Språk,
                             dokumentkrav: Dokumentkrav,
                             sistEndretAvBruker: ZonedDateTime,
-                            prosessversjon: Prosessversjon?
+                            prosessversjon: Prosessversjon?,
                         ) {
                             this.innsendt = innsendt?.toLocalDate()
                         }
@@ -87,10 +89,18 @@ internal class SøknadInnsendtTidspunktTjeneste(
     }
 }
 
-private fun JsonMessage.getInnsendtSøknadsId(): String {
+private fun JsonMessage.getSøknadIdForQuizBehov(): String {
     return this["InnsendtSøknadsId"]["urn"]
         .asText()
         .let { URN.rfc8141().parse(it) }
         .namespaceSpecificString()
         .toString()
+}
+
+private fun JsonMessage.getSøknadIdForRapporteringBehov(): String? {
+    val søknadId = this["Søknadstidspunkt.søknad_uuid"]
+
+    return if (søknadId.isMissingOrNull()) {
+        null
+    } else søknadId.asText()
 }
