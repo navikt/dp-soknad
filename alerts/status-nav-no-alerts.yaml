@@ -1,0 +1,50 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: status-nav-no-alerts
+  namespace: teamdagpenger
+  labels:
+    team: teamdagpenger
+spec:
+  groups:
+    - name: soknadsdialogen-status-alert
+      rules:
+        - alert: InstanceDown
+          expr: sum(kube_deployment_status_replicas_available{namespace="teamdagpenger", deployment=~"dp-soknad|dp-quiz-mediator|dp-soknadsdialog"} offset 5m) by (deployment, namespace) == 0
+          for: 5m
+          annotations:
+            nav_description: |-
+              Applikasjon *{{ $labels.deployment }}* er nede. 
+              
+              Dette påvirker søknadsdialogen for Dagpenger. Sjekk monitorlenke.
+          labels:
+            namespace:
+            status_alert: soknadsdialogen-status-alert
+            alert_type: custom
+            nav_service_id: 5fd70660-ed27-496c-949b-7715510e8038 # https://status.nav.no/sp/Admin?tab=Tjenester -> Tjenesten 'Søk dagpenger' sin ID
+            nav_status: down
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: status-alert
+  namespace: teamdagpenger
+  labels:
+    alertmanagerConfig: teamdagpenger-status-nav-no-webhook
+spec:
+  receivers:
+    - name: status_proxy
+      webhookConfigs:
+        - url: 'https://promstatusproxy.intern.nav.no/alert' #For prod
+  route:
+    groupBy:
+      - alertname
+    matchers:
+      - name: "status_alert"
+        matchType: "="
+        value: "soknadsdialogen-status-alert"
+    groupInterval: 10s
+    groupWait: 5s
+    receiver: status_proxy
+    repeatInterval: 1s

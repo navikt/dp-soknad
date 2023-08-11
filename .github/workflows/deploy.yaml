@@ -5,6 +5,8 @@ on:
     branches: [ main ]
     paths-ignore:
       - 'docs/**'
+      - 'alerts/**'
+      - '.github/workflows/deploy-staus-no-alert.yaml'
 
 jobs:
   build:

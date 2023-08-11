@@ -1,0 +1,28 @@
+name: status nav-no alert
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - alerts/**
+      - .github/workflows/deploy-staus-no-alert.yaml
+
+jobs:
+  deploy-prod:
+    name: Deploy to prod
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cluster: [ dev-gcp, prod-gcp, dev-fss, prod-fss ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: ${{ matrix.cluster }}
+          RESOURCE: alerts/felles-alerts.yaml
+          PRINT_PAYLOAD: true
