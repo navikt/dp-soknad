@@ -108,12 +108,8 @@ class SøknadInnsendtTidspunktTjenesteTest {
               "@event_name": "behov",
               "@behovId": "05a2b4e3-def6-4973-9f67-52bc66e55b1a",
               "@behov": [
-                "Virkningsdatoer",
                 "Søknadstidspunkt"
               ],
-              "Virkningsdatoer": {
-                "søknad_uuid": "$soknadId"
-              },
               "Søknadstidspunkt": {
                 "søknad_uuid": "$soknadId"
               },
