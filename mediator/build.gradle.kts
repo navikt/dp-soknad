@@ -30,7 +30,7 @@ dependencies {
     implementation(Database.HikariCP)
     implementation(Database.Postgres)
     implementation(Database.Kotlinquery)
-    implementation("com.github.ben-manes.caffeine:caffeine:3.1.1")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 
     testImplementation(Ktor2.Server.library("test-host"))
     testImplementation(Ktor2.Client.library("mock"))
