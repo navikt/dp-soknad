@@ -28,6 +28,6 @@ tasks.test {
     }
 }
 
-javaToolchains {
-    version = JavaVersion.VERSION_17
+kotlin {
+    jvmToolchain(17)
 }
