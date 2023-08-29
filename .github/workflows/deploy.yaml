@@ -7,6 +7,7 @@ on:
       - 'docs/**'
       - 'alerts/**'
       - '.github/workflows/deploy-staus-no-alert.yaml'
+      - '.github/workflows/reviewdog.yaml'
 
 jobs:
   build:
