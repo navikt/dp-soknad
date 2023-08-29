@@ -36,7 +36,7 @@ dependencies {
     testImplementation(Ktor2.Client.library("mock"))
     testImplementation(Mockk.mockk)
     testImplementation(Junit5.params)
-    testImplementation("no.nav.security:mock-oauth2-server:0.5.6")
+    testImplementation("no.nav.security:mock-oauth2-server:1.0.0")
     testImplementation("org.testcontainers:testcontainers:${TestContainers.version}")
     testImplementation(TestContainers.postgresql)
 }
