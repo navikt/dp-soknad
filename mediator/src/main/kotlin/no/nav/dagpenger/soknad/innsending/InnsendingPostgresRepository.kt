@@ -26,11 +26,11 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
                     SELECT innsending_uuid FROM innsending_v1 WHERE journalpost_id = :journalpost_id
                     """.trimIndent(),
                     paramMap = mapOf(
-                        "journalpost_id" to journalpostId
-                    )
+                        "journalpost_id" to journalpostId,
+                    ),
                 ).map { row ->
                     row.uuid("innsending_uuid")
-                }.asSingle
+                }.asSingle,
             )
         } ?: throw DataConstraintException("Fant ikke innsending knyttet til journalpostId $journalpostId")
 
@@ -49,8 +49,8 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
                     WHERE innsending_uuid = :innsending_uuid 
                     """.trimIndent(),
                     paramMap = mapOf(
-                        "innsending_uuid" to innsendingId
-                    )
+                        "innsending_uuid" to innsendingId,
+                    ),
                 ).map { row: Row ->
                     val dialogId = row.uuid("soknad_uuid")
                     val dokumenter = session.hentDokumenter(innsendingId)
@@ -64,9 +64,9 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
                         tilstandsType = Innsending.TilstandType.valueOf(row.string("tilstand")),
                         hovedDokument = dokumenter.hovedDokument,
                         dokumenter = dokumenter.dokumenter,
-                        metadata = session.hentMetadata(innsendingId)
+                        metadata = session.hentMetadata(innsendingId),
                     )
-                }.asSingle
+                }.asSingle,
             )
         }
     }
@@ -95,9 +95,9 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
             queryOf(
                 statement = """SELECT person_ident FROM soknad_v1 WHERE uuid = :uuid""",
                 paramMap = mapOf(
-                    "uuid" to dialogId
-                )
-            ).map { row -> row.string("person_ident") }.asSingle
+                    "uuid" to dialogId,
+                ),
+            ).map { row -> row.string("person_ident") }.asSingle,
         ) ?: throw DataConstraintException("Fant ikke ident for dialogId: $dialogId")
     }
 
@@ -105,53 +105,53 @@ internal class InnsendingPostgresRepository(private val ds: DataSource) : Innsen
         return this.run(
             queryOf( //language=PostgreSQL
                 "SELECT * FROM dokument_v1 WHERE innsending_uuid = :innsendingId",
-                mapOf("innsendingId" to innsendingId)
+                mapOf("innsendingId" to innsendingId),
             ).map { row ->
                 val dokumentUUID = row.uuid("dokument_uuid")
                 val dokument = Innsending.Dokument(
                     uuid = dokumentUUID,
                     kravId = row.stringOrNull("kravid"),
                     skjemakode = row.string("brevkode"),
-                    varianter = hentVarianter(dokumentUUID)
+                    varianter = hentVarianter(dokumentUUID),
                 )
                 dokument
-            }.asList
+            }.asList,
         ).let { Dokumenter(it, this.getHovedDokumentUUID(innsendingId)) }
     }
 
     private fun Session.getHovedDokumentUUID(innsendingId: UUID): UUID? = this.run(
         queryOf( //language=PostgreSQL
             "SELECT dokument_uuid FROM hoveddokument_v1 WHERE innsending_uuid = :innsendingId",
-            mapOf("innsendingId" to innsendingId)
+            mapOf("innsendingId" to innsendingId),
         ).map { row ->
             row.uuidOrNull("dokument_uuid")
-        }.asSingle
+        }.asSingle,
     )
 
     private fun Session.hentVarianter(dokumentUuid: UUID) = run(
         queryOf( //language=PostgreSQL
             "SELECT * FROM dokumentvariant_v1 WHERE dokument_uuid = :dokument_uuid",
-            mapOf("dokument_uuid" to dokumentUuid)
+            mapOf("dokument_uuid" to dokumentUuid),
         ).map { row ->
             Dokumentvariant(
                 row.uuid("dokumentvariant_uuid"),
                 row.string("filnavn"),
                 row.string("urn"),
                 row.string("variant"),
-                row.string("type")
+                row.string("type"),
             )
-        }.asList
+        }.asList,
     )
 
     private fun Session.hentMetadata(innsendingId: UUID): Innsending.Metadata? = run(
         queryOf( //language=PostgreSQL
             "SELECT * FROM metadata WHERE innsending_uuid = :innsending_uuid",
-            mapOf("innsending_uuid" to innsendingId)
+            mapOf("innsending_uuid" to innsendingId),
         ).map { row ->
             row.stringOrNull("skjemakode")?.let { skjemakode ->
                 Innsending.Metadata(skjemakode)
             }
-        }.asSingle
+        }.asSingle,
     )
 }
 
@@ -196,15 +196,15 @@ private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingV
                                                             journalpost_id = :journalpost_id,
                                                             innsendingtype = :innsendingtype,
                                                             tilstand = :tilstand
-                """.trimMargin(),
+            """.trimMargin(),
             paramMap = mutableMapOf(
                 "innsending_uuid" to innsendingId,
                 "soknad_uuid" to søknadId,
                 "innsendt" to innsendt,
                 "journalpost_id" to journalpost,
                 "tilstand" to tilstand.name,
-                "innsendingtype" to innsendingType.name
-            )
+                "innsendingtype" to innsendingType.name,
+            ),
         )
 
         val dokumentParams: MutableList<Map<String, Any?>> = mutableListOf()
@@ -218,8 +218,8 @@ private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingV
                     "dokument_uuid" to dokument.uuid,
                     "innsending_uuid" to innsendingId,
                     "brevkode" to dokument.skjemakode,
-                    "kravId" to dokument.kravId
-                )
+                    "kravId" to dokument.kravId,
+                ),
             )
 
             dokument.varianter.forEach { variant ->
@@ -230,8 +230,8 @@ private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingV
                         "filnavn" to variant.filnavn,
                         "urn" to variant.urn,
                         "variant" to variant.variant,
-                        "type" to variant.type
-                    )
+                        "type" to variant.type,
+                    ),
                 )
             }
         }
@@ -242,8 +242,8 @@ private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingV
                 statement = """ INSERT INTO dokument_v1 (dokument_uuid, innsending_uuid, brevkode, kravid)
                     VALUES (:dokument_uuid, :innsending_uuid, :brevkode, :kravId)
                     ON CONFLICT (dokument_uuid) DO UPDATE SET brevkode = :brevkode, kravid = :kravId""",
-                params = dokumentParams
-            )
+                params = dokumentParams,
+            ),
         )
 
         batchPreparedStatements.add(
@@ -257,8 +257,8 @@ private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingV
                                                                          variant = :variant,
                                                                          type = :type
                 """.trimIndent(),
-                params = dokumentvariantParams
-            )
+                params = dokumentvariantParams,
+            ),
         )
 
         hovedDokument?.let {
@@ -272,9 +272,9 @@ private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingV
                     """.trimIndent(),
                     paramMap = mapOf(
                         "innsending_uuid" to innsendingId,
-                        "dokument_uuid" to it.uuid
-                    )
-                )
+                        "dokument_uuid" to it.uuid,
+                    ),
+                ),
             )
         }
 
@@ -288,9 +288,9 @@ private class InnsendingPersistenceVisitor(innsending: Innsending) : InnsendingV
                     """.trimIndent(),
                     mapOf(
                         "innsending_uuid" to innsendingId,
-                        "skjemakode" to it.skjemakode
-                    )
-                )
+                        "skjemakode" to it.skjemakode,
+                    ),
+                ),
             )
         }
     }

@@ -23,7 +23,7 @@ internal object UtdaterteSøknaderJob {
                 } catch (e: Exception) {
                     logger.error { "Sletterutine feilet: $e" }
                 }
-            }
+            },
         )
     }
 

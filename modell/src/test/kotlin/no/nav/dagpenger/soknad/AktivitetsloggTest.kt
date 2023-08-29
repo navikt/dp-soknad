@@ -64,7 +64,7 @@ internal class AktivitetsloggTest {
     fun `Melding sendt til forelder`() {
         val hendelse = TestHendelse(
             "Hendelse",
-            aktivitetslogg.barn()
+            aktivitetslogg.barn(),
         )
         "info message".also {
             hendelse.info(it)
@@ -82,7 +82,7 @@ internal class AktivitetsloggTest {
     fun `Melding sendt fra barnebarn til forelder`() {
         val hendelse = TestHendelse(
             "Hendelse",
-            aktivitetslogg.barn()
+            aktivitetslogg.barn(),
         )
         hendelse.kontekst(person)
         val arbeidsgiver =
@@ -111,7 +111,7 @@ internal class AktivitetsloggTest {
     fun `Vis bare arbeidsgiveraktivitet`() {
         val hendelse1 = TestHendelse(
             "Hendelse1",
-            aktivitetslogg.barn()
+            aktivitetslogg.barn(),
         )
         hendelse1.kontekst(person)
         val arbeidsgiver1 =
@@ -125,7 +125,7 @@ internal class AktivitetsloggTest {
         hendelse1.error("error message")
         val hendelse2 = TestHendelse(
             "Hendelse2",
-            aktivitetslogg.barn()
+            aktivitetslogg.barn(),
         )
         hendelse2.kontekst(person)
         val arbeidsgiver2 =
@@ -145,7 +145,7 @@ internal class AktivitetsloggTest {
     fun `Behov kan ha detaljer`() {
         val hendelse1 = TestHendelse(
             "Hendelse1",
-            aktivitetslogg.barn()
+            aktivitetslogg.barn(),
         )
         hendelse1.kontekst(person)
         val param1 = "value"
@@ -155,8 +155,8 @@ internal class AktivitetsloggTest {
             "Oppretter ny søknad",
             mapOf(
                 "param1" to param1,
-                "param2" to param2
-            )
+                "param2" to param2,
+            ),
         )
 
         assertEquals(1, aktivitetslogg.behov().size)
@@ -189,12 +189,12 @@ internal class AktivitetsloggTest {
                     kontekster: List<SpesifikkKontekst>,
                     aktivitet: Aktivitetslogg.Aktivitet.Info,
                     melding: String,
-                    tidsstempel: String
+                    tidsstempel: String,
                 ) {
                     visitorCalled = true
                     assertEquals(message, melding)
                 }
-            }
+            },
         )
         assertTrue(visitorCalled)
     }
@@ -207,12 +207,12 @@ internal class AktivitetsloggTest {
                     kontekster: List<SpesifikkKontekst>,
                     aktivitet: Aktivitetslogg.Aktivitet.Warn,
                     melding: String,
-                    tidsstempel: String
+                    tidsstempel: String,
                 ) {
                     visitorCalled = true
                     assertEquals(message, melding)
                 }
-            }
+            },
         )
         assertTrue(visitorCalled)
     }
@@ -225,12 +225,12 @@ internal class AktivitetsloggTest {
                     kontekster: List<SpesifikkKontekst>,
                     aktivitet: Aktivitetslogg.Aktivitet.Error,
                     melding: String,
-                    tidsstempel: String
+                    tidsstempel: String,
                 ) {
                     visitorCalled = true
                     assertTrue(message in aktivitet.toString(), aktivitetslogg.toString())
                 }
-            }
+            },
         )
         assertTrue(visitorCalled)
     }
@@ -243,25 +243,25 @@ internal class AktivitetsloggTest {
                     kontekster: List<SpesifikkKontekst>,
                     aktivitet: Aktivitetslogg.Aktivitet.Severe,
                     melding: String,
-                    tidsstempel: String
+                    tidsstempel: String,
                 ) {
                     visitorCalled = true
                     assertEquals(message, melding)
                 }
-            }
+            },
         )
         assertTrue(visitorCalled)
     }
 
     private class TestKontekst(
-        private val melding: String
+        private val melding: String,
     ) : Aktivitetskontekst {
         override fun toSpesifikkKontekst() = SpesifikkKontekst(melding, mapOf(melding to melding))
     }
 
     private class TestHendelse(
         private val melding: String,
-        internal val logg: Aktivitetslogg
+        internal val logg: Aktivitetslogg,
     ) : Aktivitetskontekst, IAktivitetslogg by logg {
         init {
             logg.kontekst(this)

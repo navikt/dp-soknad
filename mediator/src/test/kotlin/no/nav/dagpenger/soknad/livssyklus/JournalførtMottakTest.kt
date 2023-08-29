@@ -30,7 +30,7 @@ internal class JournalførtMottakTest {
                 testRapid,
                 mockk<InnsendingMediator>().also {
                     every { it.behandle(capture(slot)) } just Runs
-                }
+                },
             )
 
             testRapid.sendTestMessage(
@@ -38,8 +38,8 @@ internal class JournalførtMottakTest {
                     søknadId = søknadId,
                     journalpostId = journalpostId,
                     type = type,
-                    ident = ident
-                )
+                    ident = ident,
+                ),
             )
             assertTrue(slot.isCaptured)
             with(slot.captured) {
@@ -53,7 +53,7 @@ internal class JournalførtMottakTest {
         søknadId: UUID,
         journalpostId: String,
         type: String,
-        ident: String
+        ident: String,
     ): String {
         return """
 {

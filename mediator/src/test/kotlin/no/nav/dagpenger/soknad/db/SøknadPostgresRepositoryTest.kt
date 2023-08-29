@@ -52,24 +52,24 @@ internal class SøknadPostgresRepositoryTest {
         Faktum(faktumJson("3", "f3"))
     private val faktaSomSannsynliggjøres =
         mutableSetOf(
-            Faktum(faktumJson("2", "f2"))
+            Faktum(faktumJson("2", "f2")),
         )
     private val faktaSomSannsynliggjøres2 =
         mutableSetOf(
-            Faktum(faktumJson("4", "f4"))
+            Faktum(faktumJson("4", "f4")),
         )
     private val sannsynliggjøring = Sannsynliggjøring(
         id = dokumentFaktum.id,
         faktum = dokumentFaktum,
-        sannsynliggjør = faktaSomSannsynliggjøres
+        sannsynliggjør = faktaSomSannsynliggjøres,
     )
     private val sannsynliggjøring2 = Sannsynliggjøring(
         id = dokumentFaktum2.id,
         faktum = dokumentFaktum2,
-        sannsynliggjør = faktaSomSannsynliggjøres2
+        sannsynliggjør = faktaSomSannsynliggjøres2,
     )
     private val krav = Krav(
-        sannsynliggjøring
+        sannsynliggjøring,
     )
     private val opprettet = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.SECONDS)
     private val now = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.SECONDS)
@@ -83,7 +83,7 @@ internal class SøknadPostgresRepositoryTest {
         innsendt = now,
         språk = Språk("NO"),
         dokumentkrav = Dokumentkrav.rehydrer(
-            krav = setOf(krav)
+            krav = setOf(krav),
         ),
         sistEndretAvBruker = now,
         tilstandsType = Påbegynt,
@@ -126,7 +126,7 @@ internal class SøknadPostgresRepositoryTest {
             null,
             språk = Språk("NO"),
             dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav)
+                krav = setOf(krav),
             ),
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
@@ -140,8 +140,8 @@ internal class SøknadPostgresRepositoryTest {
                 søknad.håndter(
                     SlettSøknadHendelse(
                         søknadId,
-                        ident
-                    )
+                        ident,
+                    ),
                 )
                 repository.lagre(søknad)
 
@@ -162,7 +162,7 @@ internal class SøknadPostgresRepositoryTest {
             null,
             språk = språk,
             dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav1, krav2)
+                krav = setOf(krav1, krav2),
             ),
             sistEndretAvBruker = now.minusDays(1),
             tilstandsType = Påbegynt,
@@ -203,15 +203,15 @@ internal class SøknadPostgresRepositoryTest {
         val originalFaktumSomsannsynliggjøresFakta = faktumJson("2", "f2")
         val faktaSomSannsynliggjøres =
             mutableSetOf(
-                Faktum(originalFaktumSomsannsynliggjøresFakta)
+                Faktum(originalFaktumSomsannsynliggjøresFakta),
             )
         val sannsynliggjøring = Sannsynliggjøring(
             id = dokumentFaktum.id,
             faktum = dokumentFaktum,
-            sannsynliggjør = faktaSomSannsynliggjøres
+            sannsynliggjør = faktaSomSannsynliggjøres,
         )
         val krav = Krav(
-            sannsynliggjøring
+            sannsynliggjøring,
         )
         val søknad = Søknad.rehydrer(
             søknadId = søknadId,
@@ -220,7 +220,7 @@ internal class SøknadPostgresRepositoryTest {
             null,
             språk = språk,
             dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav)
+                krav = setOf(krav),
             ),
             sistEndretAvBruker = now.minusDays(1),
             tilstandsType = Påbegynt,
@@ -237,7 +237,7 @@ internal class SøknadPostgresRepositoryTest {
                 assertEquals(originalFaktumJson, rehydrertSannsynliggjøring.faktum().originalJson())
                 assertEquals(
                     originalFaktumSomsannsynliggjøresFakta,
-                    rehydrertSannsynliggjøring.sannsynliggjør().first().originalJson()
+                    rehydrertSannsynliggjøring.sannsynliggjør().first().originalJson(),
                 )
             }
         }
@@ -251,14 +251,14 @@ internal class SøknadPostgresRepositoryTest {
             urn = URN.rfc8141().parse("urn:vedlegg:1111/12345"),
             storrelse = 50000,
             tidspunkt = tidspunkt,
-            bundlet = false
+            bundlet = false,
         )
         val fil2 = Krav.Fil(
             filnavn = "nei.jpg",
             urn = URN.rfc8141().parse("urn:vedlegg:1111/45678"),
             storrelse = 50000,
             tidspunkt = tidspunkt,
-            bundlet = false
+            bundlet = false,
         )
         withMigratedDb {
             val søknadPostgresRepository = SøknadPostgresRepository(dataSource)
@@ -270,7 +270,7 @@ internal class SøknadPostgresRepositoryTest {
                 ferdigstiltSøknadRepository = mockk(),
                 søknadRepository = søknadPostgresRepository,
                 søknadObservers = listOf(),
-                dokumentkravRepository = PostgresDokumentkravRepository(dataSource)
+                dokumentkravRepository = PostgresDokumentkravRepository(dataSource),
             )
 
             hentDokumentKrav(søknadMediator.hent(søknadId)!!).let {
@@ -286,8 +286,8 @@ internal class SøknadPostgresRepositoryTest {
                     søknadId,
                     ident,
                     "1",
-                    fil1
-                )
+                    fil1,
+                ),
             )
 
             søknadMediator.behandle(
@@ -295,16 +295,16 @@ internal class SøknadPostgresRepositoryTest {
                     søknadId,
                     ident,
                     "1",
-                    fil2
-                )
+                    fil2,
+                ),
             )
             søknadMediator.behandle(
                 LeggTilFil(
                     søknadId,
                     ident,
                     "1",
-                    fil2
-                )
+                    fil2,
+                ),
             )
             hentDokumentKrav(søknadMediator.hent(søknadId)!!).let {
                 assertEquals(2, it.aktiveDokumentKrav().first().svar.filer.size)
@@ -322,8 +322,8 @@ internal class SøknadPostgresRepositoryTest {
                     søknadID = søknadId,
                     ident = ident,
                     kravId = "1",
-                    urn = URN.rfc8141().parse("urn:vedlegg:bundle")
-                )
+                    urn = URN.rfc8141().parse("urn:vedlegg:bundle"),
+                ),
             )
 
             hentDokumentKrav(søknadMediator.hent(søknadId)!!).let { dokumentkrav ->
@@ -340,8 +340,8 @@ internal class SøknadPostgresRepositoryTest {
                     ident,
                     "1",
                     valg = Krav.Svar.SvarValg.SEND_SENERE,
-                    begrunnelse = "Har ikke"
-                )
+                    begrunnelse = "Har ikke",
+                ),
             )
 
             hentDokumentKrav(søknadMediator.hent(søknadId)!!).let {
@@ -357,12 +357,12 @@ internal class SøknadPostgresRepositoryTest {
                     søknadID = søknadId,
                     ident = ident,
                     kravId = "1",
-                    urn = fil1.urn
-                )
+                    urn = fil1.urn,
+                ),
             )
             assertEquals(
                 1,
-                hentDokumentKrav(søknadMediator.hent(søknadId)!!).aktiveDokumentKrav().first().svar.filer.size
+                hentDokumentKrav(søknadMediator.hent(søknadId)!!).aktiveDokumentKrav().first().svar.filer.size,
             )
 
             søknadMediator.behandle(
@@ -370,13 +370,13 @@ internal class SøknadPostgresRepositoryTest {
                     søknadID = søknadId,
                     ident = ident,
                     kravId = "1",
-                    urn = fil2.urn
-                )
+                    urn = fil2.urn,
+                ),
             )
 
             assertEquals(
                 0,
-                hentDokumentKrav(søknadMediator.hent(søknadId)!!).aktiveDokumentKrav().first().svar.filer.size
+                hentDokumentKrav(søknadMediator.hent(søknadId)!!).aktiveDokumentKrav().first().svar.filer.size,
             )
 
             assertDoesNotThrow {
@@ -385,8 +385,8 @@ internal class SøknadPostgresRepositoryTest {
                         søknadID = søknadId,
                         ident = ident,
                         kravId = "1",
-                        urn = fil2.urn
-                    )
+                        urn = fil2.urn,
+                    ),
                 )
             }
         }
@@ -401,10 +401,10 @@ internal class SøknadPostgresRepositoryTest {
         val søknadPostgresRepository = mockk<SøknadPostgresRepository>().also {
             every { it.hentSøknader(ident) } returns setOf(
                 dagpengerSøknad,
-                generellInnsending
+                generellInnsending,
             )
             every { it.hentSøknader(ident2) } returns setOf(
-                generellInnsending
+                generellInnsending,
             )
             every { it.hentPåbegyntSøknad(any()) } answers { callOriginal() }
         }
@@ -423,7 +423,7 @@ internal class SøknadPostgresRepositoryTest {
             null,
             språk = Språk("NO"),
             dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav)
+                krav = setOf(krav),
             ),
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
@@ -442,7 +442,7 @@ internal class SøknadPostgresRepositoryTest {
             null,
             språk = Språk("NO"),
             dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav)
+                krav = setOf(krav),
             ),
             sistEndretAvBruker = now,
             tilstandsType = Innsendt,
@@ -479,7 +479,7 @@ internal class SøknadPostgresRepositoryTest {
             null,
             språk = Språk("NO"),
             dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav)
+                krav = setOf(krav),
             ),
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
@@ -494,7 +494,7 @@ internal class SøknadPostgresRepositoryTest {
             null,
             språk = Språk("NO"),
             dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav)
+                krav = setOf(krav),
             ),
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
@@ -509,7 +509,7 @@ internal class SøknadPostgresRepositoryTest {
             null,
             språk = Språk("NO"),
             dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav)
+                krav = setOf(krav),
             ),
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
@@ -524,7 +524,7 @@ internal class SøknadPostgresRepositoryTest {
             null,
             språk = Språk("NO"),
             dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav)
+                krav = setOf(krav),
             ),
             sistEndretAvBruker = now,
             tilstandsType = Innsendt,
@@ -551,7 +551,7 @@ internal class SøknadPostgresRepositoryTest {
                     assertEquals(
                         listOf(søknadIdForPreMigrert, søknadIdForPåbegynt),
                         this,
-                        "Bare søknader uten versjon eller lavere versjon skal migreres"
+                        "Bare søknader uten versjon eller lavere versjon skal migreres",
                     )
                 }
             }
@@ -559,7 +559,6 @@ internal class SøknadPostgresRepositoryTest {
     }
 
     private fun hentDokumentKrav(søknad: Søknad): Dokumentkrav {
-
         return TestSøknadVisitor(søknad).dokumentKrav
     }
 
@@ -568,7 +567,7 @@ internal class SøknadPostgresRepositoryTest {
             session.run(
                 queryOf("select count(1) from $tabell").map { row ->
                     row.int(1)
-                }.asSingle
+                }.asSingle,
             )
         }
         assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: $tabell")

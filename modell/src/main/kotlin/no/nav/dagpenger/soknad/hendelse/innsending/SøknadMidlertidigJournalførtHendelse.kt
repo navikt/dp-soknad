@@ -7,11 +7,11 @@ class SøknadMidlertidigJournalførtHendelse(
     innsendingId: UUID,
     ident: String,
     private val journalpostId: String,
-    aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+    aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : InnsendingHendelse(
     innsendingId,
     ident,
-    aktivitetslogg
+    aktivitetslogg,
 ) {
     fun journalpostId() = journalpostId
 }

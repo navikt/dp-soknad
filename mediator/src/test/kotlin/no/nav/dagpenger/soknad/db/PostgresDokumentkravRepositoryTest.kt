@@ -42,7 +42,7 @@ internal class PostgresDokumentkravRepositoryTest {
                 urn = URN.rfc8141().parse("urn:vedlegg:$id/fil1"),
                 storrelse = 0,
                 tidspunkt = now,
-                bundlet = false
+                bundlet = false,
             )
             val fil2 = fil1.copy(urn = URN.rfc8141().parse("urn:vedlegg:$id/fil2"))
             dokumentKravRepository.håndter(
@@ -50,8 +50,8 @@ internal class PostgresDokumentkravRepositoryTest {
                     søknadID = id,
                     ident = "123",
                     kravId = "1",
-                    fil = fil1
-                )
+                    fil = fil1,
+                ),
             )
 
             dokumentKravRepository.håndter(
@@ -59,8 +59,8 @@ internal class PostgresDokumentkravRepositoryTest {
                     søknadID = id,
                     ident = "123",
                     kravId = "1",
-                    fil = fil2
-                )
+                    fil = fil2,
+                ),
             )
 
             dokumentKravRepository.hent(id).let { dokumentKrav ->
@@ -75,8 +75,8 @@ internal class PostgresDokumentkravRepositoryTest {
                     søknadID = id,
                     ident = "123",
                     kravId = "1",
-                    urn = fil1.urn
-                )
+                    urn = fil1.urn,
+                ),
             )
 
             dokumentKravRepository.hent(id).let { dokumentKrav ->
@@ -96,8 +96,8 @@ internal class PostgresDokumentkravRepositoryTest {
                     ident = "123",
                     kravId = "1",
                     valg = SEND_SENERE,
-                    begrunnelse = "Begrunnelse"
-                )
+                    begrunnelse = "Begrunnelse",
+                ),
             )
 
             dokumentKravRepository.hent(id).let { krav ->
@@ -118,7 +118,7 @@ internal class PostgresDokumentkravRepositoryTest {
                 urn = URN.rfc8141().parse("urn:vedlegg:$id/fil1"),
                 storrelse = 0,
                 tidspunkt = now,
-                bundlet = false
+                bundlet = false,
             )
 
             val fil2 = Krav.Fil(
@@ -126,7 +126,7 @@ internal class PostgresDokumentkravRepositoryTest {
                 urn = URN.rfc8141().parse("urn:vedlegg:$id/fil2"),
                 storrelse = 0,
                 tidspunkt = now,
-                bundlet = false
+                bundlet = false,
             )
 
             dokumentKravRepository.håndter(
@@ -134,8 +134,8 @@ internal class PostgresDokumentkravRepositoryTest {
                     søknadID = id,
                     ident = "123",
                     kravId = "1",
-                    fil = fil1
-                )
+                    fil = fil1,
+                ),
             )
 
             dokumentKravRepository.håndter(
@@ -143,8 +143,8 @@ internal class PostgresDokumentkravRepositoryTest {
                     søknadID = id,
                     ident = "4567",
                     kravId = "1",
-                    fil = fil2
-                )
+                    fil = fil2,
+                ),
             )
 
             dokumentKravRepository.hent(id).let { dokumentKrav ->
@@ -161,8 +161,8 @@ internal class PostgresDokumentkravRepositoryTest {
                     ident = "123",
                     kravId = "1",
                     valg = SEND_SENERE,
-                    begrunnelse = "Begrunnelse"
-                )
+                    begrunnelse = "Begrunnelse",
+                ),
             )
 
             dokumentKravRepository.hent(id).let { krav ->
@@ -176,8 +176,8 @@ internal class PostgresDokumentkravRepositoryTest {
                     søknadID = id,
                     ident = "123",
                     kravId = "1",
-                    urn = bundleUrn
-                )
+                    urn = bundleUrn,
+                ),
             )
 
             dokumentKravRepository.hent(id).let { dokumentKrav ->
@@ -199,7 +199,7 @@ internal class PostgresDokumentkravRepositoryTest {
     private fun lagSøknad(
         søknadId: UUID = UUID.randomUUID(),
         ident: String = "1234",
-        vararg kravId: String
+        vararg kravId: String,
     ): Søknad {
         return Søknad.rehydrer(
             søknadId = søknadId,
@@ -215,18 +215,18 @@ internal class PostgresDokumentkravRepositoryTest {
                             json = faktumJson(
                                 id = it,
                                 beskrivendeId = "f$it",
-                            )
-                        )
+                            ),
+                        ),
                     )
                 }.map {
                     Krav(it)
-                }.toSet()
+                }.toSet(),
             ),
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
             prosessversjon = Prosessversjon("Dagpenger", 1),
-            data = FerdigSøknadData
+            data = FerdigSøknadData,
         )
     }
 }

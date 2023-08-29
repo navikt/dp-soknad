@@ -65,21 +65,21 @@ internal class SøknadMediatorIntegrasjonTest {
                     søknadMal = SøknadMal(
                         prosessversjon = Prosessversjon(
                             navn = "Dagpenger",
-                            versjon = 123
+                            versjon = 123,
                         ),
-                        mal = jacksonObjectMapper().createObjectNode()
-                    )
+                        mal = jacksonObjectMapper().createObjectNode(),
+                    ),
                 )
             },
             ferdigstiltSøknadRepository = mockk(),
             søknadRepository = SøknadPostgresRepository(dataSource),
             dokumentkravRepository = PostgresDokumentkravRepository(dataSource),
-            søknadObservers = listOf()
+            søknadObservers = listOf(),
         )
 
         innsendingMediator = InnsendingMediator(
             rapidsConnection = testRapid,
-            innsendingRepository = mockk()
+            innsendingRepository = mockk(),
         )
 
         SøkerOppgaveMottak(testRapid, søknadMediator)
@@ -151,7 +151,7 @@ internal class SøknadMediatorIntegrasjonTest {
         assertEquals(
             testIdent,
             partisjonsnøkkel,
-            "Partisjonsnøkkel for faktum_svar skal være ident '$testIdent' var '$partisjonsnøkkel"
+            "Partisjonsnøkkel for faktum_svar skal være ident '$testIdent' var '$partisjonsnøkkel",
         )
         assertTrue("faktum_svar" in testRapid.inspektør.message(1).toString())
 
@@ -206,11 +206,11 @@ internal class SøknadMediatorIntegrasjonTest {
                             filnavn = "d2",
                             urn = "urn:dokumentsammenstilling:f2",
                             variant = "ARKIV",
-                            type = "PDF"
-                        )
-                    )
-                )
-            )
+                            type = "PDF",
+                        ),
+                    ),
+                ),
+            ),
         )
     }
 
@@ -219,7 +219,7 @@ internal class SøknadMediatorIntegrasjonTest {
         assertTrue(
             behov["@behov"].map {
                 it.asText()
-            }.contains(behovtype.name)
+            }.contains(behovtype.name),
         )
         block(behov)
     }
@@ -261,8 +261,8 @@ internal class SøknadMediatorIntegrasjonTest {
                 søknadID = søknadUuid,
                 ident = testIdent,
                 kravId = kravId,
-                urn = URN.rfc8141().parse(urn)
-            )
+                urn = URN.rfc8141().parse(urn),
+            ),
         )
     }
 
@@ -273,8 +273,8 @@ internal class SøknadMediatorIntegrasjonTest {
                 ident = testIdent,
                 kravId = kravId,
                 valg = Krav.Svar.SvarValg.SEND_SENERE,
-                begrunnelse = begrunnelse
-            )
+                begrunnelse = begrunnelse,
+            ),
         )
     }
 
@@ -286,8 +286,8 @@ internal class SøknadMediatorIntegrasjonTest {
                 søknadUuid,
                 testIdent,
                 språkVerdi,
-                prosessnavn = prosessnavn
-            )
+                prosessnavn = prosessnavn,
+            ),
         )
     }
 
@@ -295,8 +295,8 @@ internal class SøknadMediatorIntegrasjonTest {
         søknadMediator.behandle(
             SøknadInnsendtHendelse(
                 søknadID = søknadUuid,
-                ident = testIdent
-            )
+                ident = testIdent,
+            ),
         )
     }
 
@@ -311,9 +311,9 @@ internal class SøknadMediatorIntegrasjonTest {
                     urn = URN.rfc8141().parse(urn),
                     storrelse = 0,
                     tidspunkt = ZonedDateTime.now(),
-                    bundlet = false
-                )
-            )
+                    bundlet = false,
+                ),
+            ),
         )
     }
 

@@ -44,8 +44,8 @@ class StatusApiTest {
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
                     every { it.hent(søknadUuid) } returns søknadMed(tilstand = Påbegynt, opprettet)
-                }
-            )
+                },
+            ),
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
@@ -63,8 +63,8 @@ class StatusApiTest {
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
                     every { it.hent(søknadUuid) } returns søknadMed(tilstand = UnderOpprettelse)
-                }
-            )
+                },
+            ),
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
                 assertEquals(BadRequest, this.status)
@@ -87,11 +87,11 @@ class StatusApiTest {
                     coEvery {
                         it.hentBehandlingsstatus(
                             any(),
-                            any()
+                            any(),
                         )
                     } returns BehandlingsstatusDto(behandlingsstatus = "UnderBehandling")
-                }
-            )
+                },
+            ),
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
@@ -117,11 +117,11 @@ class StatusApiTest {
                     coEvery {
                         it.hentBehandlingsstatus(
                             any(),
-                            any()
+                            any(),
                         )
                     } returns BehandlingsstatusDto(behandlingsstatus = "Ukjent")
-                }
-            )
+                },
+            ),
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
@@ -139,7 +139,7 @@ class StatusApiTest {
         }
 
         TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi(søknadMediator = mediatorMock)
+            TestApplication.mockedSøknadApi(søknadMediator = mediatorMock),
         ) {
             assertEquals(HttpStatusCode.Forbidden, autentisert(endepunkt).status)
         }
@@ -151,8 +151,8 @@ class StatusApiTest {
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentEier(søknadUuid) } throws NotFoundException()
-                }
-            )
+                },
+            ),
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
                 assertEquals(NotFound, this.status)
@@ -163,7 +163,7 @@ class StatusApiTest {
     private fun søknadMed(
         tilstand: Søknad.Tilstand.Type,
         opprettet: LocalDateTime = LocalDateTime.now(),
-        innsendt: ZonedDateTime? = null
+        innsendt: ZonedDateTime? = null,
     ) = Søknad.rehydrer(
         søknadId = søknadUuid,
         ident = TestApplication.defaultDummyFodselsnummer,

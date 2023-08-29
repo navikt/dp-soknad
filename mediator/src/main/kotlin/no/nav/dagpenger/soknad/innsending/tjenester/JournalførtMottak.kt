@@ -12,7 +12,7 @@ import no.nav.helse.rapids_rivers.River
 
 internal class JournalførtMottak(
     rapidsConnection: RapidsConnection,
-    private val mediator: InnsendingMediator
+    private val mediator: InnsendingMediator,
 ) : River.PacketListener {
     companion object {
         private val logger = KotlinLogging.logger {}
@@ -49,7 +49,7 @@ internal class JournalførtMottak(
         val søknadID = packet["søknadsData"]["søknad_uuid"].asUUID()
         withLoggingContext(
             "søknadId" to søknadID.toString(),
-            "journalpostId" to journalpostId
+            "journalpostId" to journalpostId,
         ) {
             val journalførtHendelse = JournalførtHendelse(ident, journalpostId)
             logger.info { "Fått løsning for innsending_ferdigstilt for $journalpostId" }

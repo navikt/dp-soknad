@@ -25,7 +25,7 @@ internal object SlettSøknaderJob {
                 } catch (e: Exception) {
                     logger.error(e) { "Sletting av søknader feilet" }
                 }
-            }
+            },
         )
     }
 }

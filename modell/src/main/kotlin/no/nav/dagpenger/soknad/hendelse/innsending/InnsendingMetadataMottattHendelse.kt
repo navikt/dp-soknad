@@ -8,7 +8,7 @@ class InnsendingMetadataMottattHendelse(
     innsendingId: UUID,
     ident: String,
     skjemaKode: String,
-    aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+    aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : InnsendingHendelse(innsendingId, ident, aktivitetslogg) {
     val metadata: Metadata = Metadata(skjemaKode)
 }

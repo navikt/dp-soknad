@@ -29,7 +29,7 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator, behandlingsstat
 
         validator.valider(søknadUuid, ident)
         val søknadStatusDto = withLoggingContext(
-            "søknadId" to søknadUuid.toString()
+            "søknadId" to søknadUuid.toString(),
         ) {
             val søknad = søknadMediator.hent(søknadUuid)!!
             val søknadStatusVisitor = SøknadStatusVisitor(søknad)
@@ -43,7 +43,7 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator, behandlingsstat
 private suspend fun createSøknadStatusDto(
     statusVisitor: SøknadStatusVisitor,
     behandlingsstatusClient: BehandlingsstatusClient,
-    token: String
+    token: String,
 ) = when (statusVisitor.søknadTilstand()) {
     Påbegynt -> SøknadStatusDto(Paabegynt, statusVisitor.søknadOpprettet())
     Innsendt -> {
@@ -51,10 +51,10 @@ private suspend fun createSøknadStatusDto(
             status = hentSøknadStatus(
                 behandlingsstatusClient,
                 førsteInnsendingTidspunkt = statusVisitor.søknadInnsendt().toLocalDate(),
-                token
+                token,
             ),
             opprettet = statusVisitor.søknadOpprettet(),
-            innsendt = statusVisitor.søknadInnsendt().toLocalDateTime()
+            innsendt = statusVisitor.søknadInnsendt().toLocalDateTime(),
         )
     }
 
@@ -65,7 +65,7 @@ private suspend fun createSøknadStatusDto(
 private suspend fun hentSøknadStatus(
     behandlingsstatusClient: BehandlingsstatusClient,
     førsteInnsendingTidspunkt: LocalDate,
-    token: String
+    token: String,
 ): SøknadStatus {
     val behandlingsstatus =
         behandlingsstatusClient.hentBehandlingsstatus(fom = førsteInnsendingTidspunkt, token).behandlingsstatus
@@ -75,5 +75,5 @@ private suspend fun hentSøknadStatus(
 data class SøknadStatusDto(
     val status: SøknadStatus,
     val opprettet: LocalDateTime,
-    val innsendt: LocalDateTime? = null
+    val innsendt: LocalDateTime? = null,
 )

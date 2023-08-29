@@ -79,8 +79,8 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
                         ident,
                         kravId,
                         svar.svar.tilSvarValg(),
-                        svar.begrunnelse
-                    )
+                        svar.begrunnelse,
+                    ),
                 )
                 call.respond(HttpStatusCode.Created)
             }
@@ -110,7 +110,7 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
                     søknadUuid,
                     ident,
                     kravId,
-                    bundleSvar.tilURN()
+                    bundleSvar.tilURN(),
                 )
                 søknadMediator.behandle(dokumentkravSammenstilling)
                 call.respond(HttpStatusCode.Created)
@@ -141,17 +141,17 @@ internal data class ApiFil(
         urn = this._urn,
         storrelse = this.storrelse,
         tidspunkt = this.tidspunkt,
-        bundlet = false
+        bundlet = false,
     )
 }
 
 private data class Svar(
     val svar: GyldigValg,
-    val begrunnelse: String?
+    val begrunnelse: String?,
 )
 
 private data class BundleSvar(
-    val urn: String
+    val urn: String,
 ) {
 
     private val _urn: URN
@@ -164,7 +164,7 @@ private data class BundleSvar(
 }
 
 private class ApiDokumentkravResponse(
-    søknad: Søknad
+    søknad: Søknad,
 ) : SøknadVisitor {
     init {
         søknad.accept(this)
@@ -182,7 +182,7 @@ private class ApiDokumentkravResponse(
         språk: Språk,
         dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime,
-        prosessversjon: Prosessversjon?
+        prosessversjon: Prosessversjon?,
     ) {
         soknad_uuid = søknadId
         krav = dokumentkrav.aktiveDokumentKrav().toApiKrav()
@@ -203,13 +203,13 @@ private class ApiDokumentkravResponse(
                         urn = fil.urn.toString(),
                         storrelse = fil.storrelse,
                         tidspunkt = fil.tidspunkt,
-                        bundlet = fil.bundlet
+                        bundlet = fil.bundlet,
                     )
                 },
                 bundle = it.svar.bundle?.toString(),
                 bundleFilsti = it.svar.bundle?.namespaceSpecificString()?.toString(),
                 svar = it.svar.valg.fraSvarValg(),
-                begrunnelse = it.svar.begrunnelse
+                begrunnelse = it.svar.begrunnelse,
             )
         }.sortedBy { it.beskrivendeId }
     }
@@ -225,7 +225,7 @@ data class ApiDokumentKrav(
     val begrunnelse: String? = null,
     val svar: GyldigValg? = null,
     val bundle: String? = null,
-    val bundleFilsti: String? = null
+    val bundleFilsti: String? = null,
 ) {
     data class ApiDokumentkravFiler(
         val filnavn: String,
@@ -233,7 +233,7 @@ data class ApiDokumentKrav(
         val urn: String,
         val storrelse: Long,
         val tidspunkt: ZonedDateTime,
-        val bundlet: Boolean
+        val bundlet: Boolean,
     )
 }
 
@@ -251,7 +251,9 @@ enum class GyldigValg {
     SENDER_IKKE,
 
     @JsonProperty("dokumentkrav.svar.andre.sender")
-    ANDRE_SENDER;
+    ANDRE_SENDER,
+
+    ;
 
     fun tilSvarValg(): Krav.Svar.SvarValg = when (this) {
         SEND_NAA -> Krav.Svar.SvarValg.SEND_NÅ

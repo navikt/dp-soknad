@@ -13,8 +13,8 @@ internal class SannsynliggjøringTest {
         "1",
         dokfaktum,
         sannsynliggjør = mutableSetOf(
-            faktumSomSannsynliggjøres
-        )
+            faktumSomSannsynliggjøres,
+        ),
     )
 
     @Test
@@ -25,10 +25,10 @@ internal class SannsynliggjøringTest {
                 "1",
                 dokfaktum,
                 sannsynliggjør = mutableSetOf(
-                    faktumSomSannsynliggjøres
-                )
+                    faktumSomSannsynliggjøres,
+                ),
             ),
-            sannsynliggjøring
+            sannsynliggjøring,
         )
 
         assertNotEquals(
@@ -36,10 +36,10 @@ internal class SannsynliggjøringTest {
                 "2",
                 dokfaktum,
                 sannsynliggjør = mutableSetOf(
-                    faktumSomSannsynliggjøres
-                )
+                    faktumSomSannsynliggjøres,
+                ),
             ),
-            sannsynliggjøring
+            sannsynliggjøring,
         )
         assertNotEquals(Any(), sannsynliggjøring)
         assertNotEquals(null, sannsynliggjøring)
@@ -53,10 +53,10 @@ internal class SannsynliggjøringTest {
                 "1",
                 dokfaktum,
                 sannsynliggjør = mutableSetOf(
-                    faktumSomSannsynliggjøres
-                )
+                    faktumSomSannsynliggjøres,
+                ),
             ).hashCode(),
-            sannsynliggjøring.hashCode()
+            sannsynliggjøring.hashCode(),
         )
     }
 }

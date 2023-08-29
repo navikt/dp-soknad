@@ -7,11 +7,11 @@ plugins {
 
 spotless {
     kotlin {
-        ktlint("0.40.0")
+        ktlint("0.50.0")
     }
     kotlinGradle {
         target("*.gradle.kts")
-        ktlint("0.40.0")
+        ktlint("0.50.0")
     }
 
     // Workaround for <https://github.com/diffplug/spotless/issues/1644>

@@ -24,7 +24,7 @@ internal fun Route.ferdigstiltSøknadsApi(ferdigstiltSøknadDb: FerdigstiltSøkn
                 call.respondText(
                     contentType = ContentType.Application.Json,
                     status = HttpStatusCode.OK,
-                    text = ferdigstiltSøknadDb.hentTekst(søknadUuid())
+                    text = ferdigstiltSøknadDb.hentTekst(søknadUuid()),
                 )
             }
         }
@@ -33,7 +33,7 @@ internal fun Route.ferdigstiltSøknadsApi(ferdigstiltSøknadDb: FerdigstiltSøkn
                 call.respondText(
                     contentType = ContentType.Application.Json,
                     status = HttpStatusCode.OK,
-                    text = ferdigstiltSøknadDb.hentFakta(søknadUuid())
+                    text = ferdigstiltSøknadDb.hentFakta(søknadUuid()),
                 )
             }
         }

@@ -17,7 +17,7 @@ internal class PDLVegadresseMapperTest {
                 husbokstav = "husbokstav",
                 husnummer = "husnummer",
                 postnummer = "2013",
-            )
+            ),
         ).let { adresse ->
             assertEquals("coadressenavn", adresse.adresselinje1)
             assertEquals("adressenavn husnummerhusbokstav", adresse.adresselinje2)
@@ -34,8 +34,8 @@ internal class PDLVegadresseMapperTest {
         PDLAdresseMapper.formatertAdresse(
             createVegAdresse(
                 adressenavn = "adressenavn",
-                postnummer = "2013"
-            )
+                postnummer = "2013",
+            ),
         ).let { adresse ->
             assertEquals("adressenavn", adresse.adresselinje1)
             assertEquals("", adresse.adresselinje2)
@@ -50,7 +50,7 @@ internal class PDLVegadresseMapperTest {
     @Test
     fun `Ingen felter utfylt`() {
         PDLAdresseMapper.formatertAdresse(
-            createVegAdresse()
+            createVegAdresse(),
         ).let { adresse ->
             assertEquals("", adresse.adresselinje1)
             assertEquals("", adresse.adresselinje2)

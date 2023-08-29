@@ -16,8 +16,8 @@ internal class PDLPostAdresseIFrittFormatMapperTest {
                 adresseLinje3 = "adresseLinje3",
                 postkode = "postkode",
                 byEllerStedsnavn = "byEllerStedsnavn",
-                landKode = "DNK"
-            )
+                landKode = "DNK",
+            ),
         ).let { adresse ->
             assertEquals("adresseLinje1", adresse.adresselinje1)
             assertEquals("adresseLinje2", adresse.adresselinje2)
@@ -38,8 +38,8 @@ internal class PDLPostAdresseIFrittFormatMapperTest {
                 adresseLinje3 = "   ",
                 postkode = "postkode",
                 byEllerStedsnavn = "byEllerStedsnavn",
-                landKode = "ERI"
-            )
+                landKode = "ERI",
+            ),
         ).let { adresse ->
             assertEquals("adresseLinje2", adresse.adresselinje1)
             assertEquals("", adresse.adresselinje2)
@@ -54,7 +54,7 @@ internal class PDLPostAdresseIFrittFormatMapperTest {
     @Test
     fun `Ingen felter utfylt`() {
         PDLAdresseMapper.formatertAdresse(
-            createUtenlandsAdresseIFrittFormat()
+            createUtenlandsAdresseIFrittFormat(),
         ).let { adresse ->
             assertEquals("", adresse.adresselinje1)
             assertEquals("", adresse.adresselinje2)
@@ -72,7 +72,7 @@ internal class PDLPostAdresseIFrittFormatMapperTest {
         adresseLinje3: String? = null,
         postkode: String? = null,
         byEllerStedsnavn: String? = null,
-        landKode: String? = null
+        landKode: String? = null,
     ): PDLAdresse.UtenlandsAdresseIFrittFormat {
         return PDLAdresse.UtenlandsAdresseIFrittFormat(
             adresseMetadata = createAdresseMetadata(),
@@ -81,7 +81,7 @@ internal class PDLPostAdresseIFrittFormatMapperTest {
             adresseLinje3 = adresseLinje3,
             postkode = postkode,
             byEllerStedsnavn = byEllerStedsnavn,
-            landKode = landKode
+            landKode = landKode,
         )
     }
 }

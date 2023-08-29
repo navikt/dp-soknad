@@ -34,5 +34,5 @@ internal fun faktumJson(id: String, beskrivendeId: String, generertAv: String? =
     |  "readOnly": false,
     |  "generertAv": "$generertAv"
     |}
-    """.trimMargin()
+    """.trimMargin(),
 )

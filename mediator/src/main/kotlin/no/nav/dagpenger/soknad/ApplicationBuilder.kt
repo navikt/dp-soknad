@@ -39,30 +39,30 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnection.StatusListener {
 
     private val rapidsConnection: RapidsConnection = RapidApplication.Builder(
-        RapidApplication.RapidApplicationConfig.fromEnv(config)
+        RapidApplication.RapidApplicationConfig.fromEnv(config),
     ).withKtorModule {
         api(
             personaliaRouteBuilder = personaliaRouteBuilder(
                 personOppslag = PersonOppslag(createPersonOppslag(Configuration.pdlUrl)),
                 kontonummerOppslag = KontonummerOppslag(
                     kontoRegisterUrl = Configuration.kontoRegisterUrl,
-                    tokenProvider = Configuration.tokenXClient(Configuration.kontoRegisterScope)
-                )
+                    tokenProvider = Configuration.tokenXClient(Configuration.kontoRegisterScope),
+                ),
             ),
             søknadRouteBuilder = søknadApiRouteBuilder(
                 søknadMediator(),
-                BehandlingsstatusHttpClient()
+                BehandlingsstatusHttpClient(),
             ),
             ferdigstiltRouteBuilder = ferdigStiltSøknadRouteBuilder(
-                ferdigstiltRepository
+                ferdigstiltRepository,
             ),
-            søknadDataRouteBuilder = søknadData(mediator = søknadMediator)
+            søknadDataRouteBuilder = søknadData(mediator = søknadMediator),
         )
     }.build()
 
     private val søknadMalRepository = SøknadMalPostgresRepository(PostgresDataSourceBuilder.dataSource)
     private val ferdigstiltRepository = FerdigstiltSøknadPostgresRepository(
-        PostgresDataSourceBuilder.dataSource
+        PostgresDataSourceBuilder.dataSource,
     )
     private val søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).also {
         SøknadMigrering(it, søknadMalRepository, rapidsConnection)
@@ -80,8 +80,8 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         søknadObservers = listOf(
             SøknadLoggerObserver,
             SøknadMetrikkObserver,
-            SøknadTilstandObserver(rapidsConnection)
-        )
+            SøknadTilstandObserver(rapidsConnection),
+        ),
     ).also {
         SøknadOpprettetHendelseMottak(rapidsConnection, it)
         SøkerOppgaveMottak(rapidsConnection, it)
@@ -93,8 +93,8 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         rapidsConnection = rapidsConnection,
         innsendingRepository = InnsendingPostgresRepository(PostgresDataSourceBuilder.dataSource),
         innsendingObservers = listOf(
-            InnsendingMetrikkObserver
-        )
+            InnsendingMetrikkObserver,
+        ),
     ).also {
         ArkiverbarSøknadMottattHendelseMottak(rapidsConnection, it)
         NyJournalpostMottak(rapidsConnection, it)

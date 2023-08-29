@@ -8,7 +8,7 @@ import java.util.UUID
 abstract class InnsendingHendelse(
     val innsendingId: UUID,
     ident: String,
-    aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+    aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : Hendelse(ident = ident, aktivitetslogg = aktivitetslogg) {
     fun innsendingId() = innsendingId
 

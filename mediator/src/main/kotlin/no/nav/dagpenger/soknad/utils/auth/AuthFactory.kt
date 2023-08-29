@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit
 private val logger = KotlinLogging.logger {}
 
 object TokenXFactory {
+    @Suppress("ktlint:standard:class-naming")
     private object token_x : PropertyGroup() {
         val well_known_url by stringType
         val client_id by stringType
@@ -52,12 +53,13 @@ object TokenXFactory {
             .rateLimited(
                 10,
                 1,
-                TimeUnit.MINUTES
+                TimeUnit.MINUTES,
             ) // if not cached, only allow max 10 different keys per minute to be fetched from external provider
             .build()
 }
 
 object AzureAdFactory {
+    @Suppress("ktlint:standard:class-naming")
     private object azure_app : PropertyGroup() {
         val well_known_url by stringType
         val client_id by stringType
@@ -86,7 +88,7 @@ object AzureAdFactory {
             .rateLimited(
                 10,
                 1,
-                TimeUnit.MINUTES
+                TimeUnit.MINUTES,
             ) // if not cached, only allow max 10 different keys per minute to be fetched from external provider
             .build()
 }
@@ -99,7 +101,7 @@ private data class AzureAdOpenIdConfiguration(
     @JsonProperty("token_endpoint")
     val tokenEndpoint: String,
     @JsonProperty("authorization_endpoint")
-    val authorizationEndpoint: String
+    val authorizationEndpoint: String,
 )
 
 private val httpClient = HttpClient(CIO) {

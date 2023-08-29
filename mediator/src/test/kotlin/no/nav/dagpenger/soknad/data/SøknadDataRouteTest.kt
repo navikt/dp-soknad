@@ -22,15 +22,15 @@ internal class SøknadDataRouteTest {
         TestApplication.withMockAuthServerAndTestApplication() {
             Assertions.assertEquals(
                 HttpStatusCode.Unauthorized,
-                client.get("${Configuration.basePath}/soknad/id/data").status
+                client.get("${Configuration.basePath}/soknad/id/data").status,
             )
 
             Assertions.assertEquals(
                 HttpStatusCode.Unauthorized,
                 autentisert(
                     "${Configuration.basePath}/soknad/id/data",
-                    token = testTokenXToken
-                ).status
+                    token = testTokenXToken,
+                ).status,
             )
         }
     }
@@ -48,12 +48,12 @@ internal class SøknadDataRouteTest {
         }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                søknadMediator = mockSøknadMediator
-            )
+                søknadMediator = mockSøknadMediator,
+            ),
         ) {
             autentisert(
                 endepunkt = "${Configuration.basePath}/soknad/$testSøknadUuid/data",
-                token = TestApplication.azureAdToken
+                token = TestApplication.azureAdToken,
             ).apply {
                 Assertions.assertEquals(HttpStatusCode.OK, this.status)
                 Assertions.assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])

@@ -22,7 +22,7 @@ internal class KontonummerOppslagTest {
                 tokenProvider = { "token" },
                 MockEngine() {
                     respondError(HttpStatusCode.NotFound)
-                }
+                },
             )
         runBlocking {
             assertEquals(Kontonummer.TOM, kontonummerOppslag.hentKontonummer(""))
@@ -41,19 +41,19 @@ internal class KontonummerOppslagTest {
                             respond(
                                 content = testNorskKontoResponse,
                                 status = HttpStatusCode.OK,
-                                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
                             )
                         }
                         "utenlandskkonto" -> {
                             respond(
                                 content = utenlandskKontoResponse,
                                 status = HttpStatusCode.OK,
-                                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
                             )
                         }
                         else -> fail()
                     }
-                }
+                },
             )
         runBlocking {
             assertEquals(kontonummerOppslag.hentKontonummer("norskkonto"), Kontonummer(kontonummer = "123"))
@@ -62,8 +62,8 @@ internal class KontonummerOppslagTest {
                 Kontonummer(
                     kontonummer = "456",
                     banknavn = "banknavn",
-                    bankLandkode = "SE"
-                )
+                    bankLandkode = "SE",
+                ),
             )
         }
     }

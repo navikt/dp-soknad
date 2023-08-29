@@ -16,15 +16,14 @@ import kotlin.coroutines.CoroutineContext
 internal fun personaliaRouteBuilder(
     personOppslag: PersonOppslag,
     kontonummerOppslag: KontonummerOppslag,
-    coroutineContext: CoroutineContext = Dispatchers.IO
+    coroutineContext: CoroutineContext = Dispatchers.IO,
 ): Route.() -> Unit = { personalia(personOppslag, kontonummerOppslag, coroutineContext) }
 
 internal fun Route.personalia(
     personOppslag: PersonOppslag,
     kontonummerOppslag: KontonummerOppslag,
-    coroutineContext: CoroutineContext = Dispatchers.IO
+    coroutineContext: CoroutineContext = Dispatchers.IO,
 ) {
-
     route("${Configuration.basePath}/personalia") {
         get {
             val fnr = call.ident()

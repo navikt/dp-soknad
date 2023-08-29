@@ -9,6 +9,7 @@ import java.util.UUID
 
 internal class FaktumSvarTest {
     private val jackson = jacksonObjectMapper()
+
     @Test
     fun ` Skal lage faktum_svar event  `() {
         FaktumSvar(
@@ -16,7 +17,7 @@ internal class FaktumSvarTest {
             faktumId = "1",
             type = "localdate",
             ident = "1234567890",
-            svar = BooleanNode.TRUE
+            svar = BooleanNode.TRUE,
         ).toJson().also {
             val content = jackson.readTree(it)
             assertNotNull(content["@id"])

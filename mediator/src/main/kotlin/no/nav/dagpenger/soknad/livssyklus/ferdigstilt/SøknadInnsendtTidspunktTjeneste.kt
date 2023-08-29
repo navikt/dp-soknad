@@ -44,11 +44,10 @@ internal class SøknadInnsendtTidspunktTjeneste(
         withMDC(
             mapOf(
                 "søknad_uuid" to packet["søknad_uuid"].asText(),
-                "behovId" to packet["@behovId"].asText()
-            )
+                "behovId" to packet["@behovId"].asText(),
+            ),
         ) {
             try {
-
                 val innsendtSøknadsId = packet.getSøknadIdForRapporteringBehov() ?: packet.getSøknadIdForQuizBehov()
                 val innsendtTidspunkt: LocalDate? = mediator.hent(UUID.fromString(innsendtSøknadsId))?.let {
                     object : SøknadVisitor {
@@ -102,5 +101,7 @@ private fun JsonMessage.getSøknadIdForRapporteringBehov(): String? {
 
     return if (søknadId.isMissingOrNull()) {
         null
-    } else søknadId.asText()
+    } else {
+        søknadId.asText()
+    }
 }

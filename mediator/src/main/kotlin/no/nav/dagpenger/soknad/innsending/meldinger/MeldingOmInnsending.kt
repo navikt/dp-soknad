@@ -23,7 +23,7 @@ abstract class MeldingOmInnsending(packet: JsonMessage) {
                 uuid = jsonNode["uuid"].asUUID(),
                 kravId = jsonNode["kravId"].asNullableText(),
                 skjemakode = jsonNode["skjemakode"].asNullableText(),
-                varianter = jsonNode.varianter()
+                varianter = jsonNode.varianter(),
             )
         }
     }
@@ -35,7 +35,7 @@ abstract class MeldingOmInnsending(packet: JsonMessage) {
                 filnavn = jsonNode["filnavn"].asText(),
                 urn = jsonNode["urn"].asText(),
                 variant = jsonNode["variant"].asText(),
-                type = jsonNode["type"].asText()
+                type = jsonNode["type"].asText(),
             )
         }
     }

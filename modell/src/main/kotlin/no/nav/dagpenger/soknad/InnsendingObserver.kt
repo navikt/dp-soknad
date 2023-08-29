@@ -9,6 +9,6 @@ interface InnsendingObserver {
         val innsendingId: UUID,
         val innsendingType: Innsending.InnsendingType,
         val gjeldendeTilstand: Innsending.TilstandType,
-        val forrigeTilstand: Innsending.TilstandType
+        val forrigeTilstand: Innsending.TilstandType,
     )
 }

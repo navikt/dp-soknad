@@ -23,7 +23,7 @@ private val logger = KotlinLogging.logger {}
 internal class KontonummerOppslag(
     private val kontoRegisterUrl: String,
     private val tokenProvider: (subjektToken: String) -> String,
-    httpClientEngine: HttpClientEngine = CIO.create()
+    httpClientEngine: HttpClientEngine = CIO.create(),
 ) {
 
     private val kontoNummberClient = HttpClient(httpClientEngine) {
@@ -62,7 +62,7 @@ internal class KontonummerOppslag(
             Kontonummer(
                 kontonummer = response.utenlandskKontoInfo.bankkode,
                 banknavn = response.utenlandskKontoInfo.banknavn,
-                bankLandkode = response.utenlandskKontoInfo.bankLandkode
+                bankLandkode = response.utenlandskKontoInfo.bankLandkode,
             )
         } else {
             Kontonummer.TOM
@@ -71,7 +71,7 @@ internal class KontonummerOppslag(
 
     private data class KontoNummerRespsonse(
         val kontonummer: String? = null,
-        val utenlandskKontoInfo: UtenlandskKontoInfoResponse? = null
+        val utenlandskKontoInfo: UtenlandskKontoInfoResponse? = null,
     ) {
         data class UtenlandskKontoInfoResponse(
             val banknavn: String? = null,

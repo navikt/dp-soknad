@@ -38,7 +38,7 @@ object TestApplication {
         mockOAuth2Server.issueToken(
             issuerId = TOKENX_ISSUER_ID,
             audience = CLIENT_ID,
-            claims = mapOf("pid" to defaultDummyFodselsnummer)
+            claims = mapOf("pid" to defaultDummyFodselsnummer),
         ).serialize()
     }
 
@@ -53,7 +53,7 @@ object TestApplication {
         return mockOAuth2Server.issueToken(
             issuerId = TOKENX_ISSUER_ID,
             audience = CLIENT_ID,
-            claims = mapOf("pid" to pid)
+            claims = mapOf("pid" to pid),
         ).serialize()
     }
 
@@ -61,17 +61,17 @@ object TestApplication {
         personOppslag: PersonOppslag = mockk(relaxed = true),
         kontonummerOppslag: KontonummerOppslag = mockk(relaxed = true),
         søknadMediator: SøknadMediator = mockk(relaxed = true),
-        behandlingsstatusClient: BehandlingsstatusClient = mockk(relaxed = true)
+        behandlingsstatusClient: BehandlingsstatusClient = mockk(relaxed = true),
     ): Application.() -> Unit {
-
         return fun Application.() {
             api(
                 søknadApiRouteBuilder(
                     søknadMediator = søknadMediator,
-                    behandlingsstatusClient = behandlingsstatusClient
+                    behandlingsstatusClient = behandlingsstatusClient,
                 ),
                 personaliaRouteBuilder(
-                    personOppslag, kontonummerOppslag
+                    personOppslag,
+                    kontonummerOppslag,
                 ),
                 ferdigStiltSøknadRouteBuilder(mockk(relaxed = true)),
                 søknadDataRouteBuilder = søknadData(søknadMediator),
@@ -81,7 +81,7 @@ object TestApplication {
 
     internal fun withMockAuthServerAndTestApplication(
         moduleFunction: Application.() -> Unit = mockedSøknadApi(),
-        test: suspend ApplicationTestBuilder.() -> Unit
+        test: suspend ApplicationTestBuilder.() -> Unit,
     ) {
         System.setProperty("token-x.client-id", CLIENT_ID)
         System.setProperty("token-x.well-known-url", "${mockOAuth2Server.wellKnownUrl(TOKENX_ISSUER_ID)}")

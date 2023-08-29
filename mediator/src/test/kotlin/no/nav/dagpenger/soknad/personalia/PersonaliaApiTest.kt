@@ -40,8 +40,8 @@ internal class PersonaliaApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 personOppslag = mockPersonOppslag,
-                kontonummerOppslag = mockKontonummerOppslag
-            )
+                kontonummerOppslag = mockKontonummerOppslag,
+            ),
         ) {
             autentisert(
                 endepunkt = "${Configuration.basePath}/personalia",
@@ -64,7 +64,7 @@ internal class PersonaliaApiTest {
         val mockPersonOppslag = mockk<PersonOppslag>().also {
             coEvery { it.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) } throws ClientRequestException(
                 mockResponse,
-                "FEil"
+                "FEil",
             )
         }
 
@@ -74,8 +74,8 @@ internal class PersonaliaApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 personOppslag = mockPersonOppslag,
-                kontonummerOppslag = mockKontonummerOppslag
-            )
+                kontonummerOppslag = mockKontonummerOppslag,
+            ),
         ) {
             autentisert(
                 "${Configuration.basePath}/personalia",
@@ -105,7 +105,7 @@ internal class PersonaliaApiTest {
                 postnummer = "2013",
                 poststed = "Skjetten",
                 landkode = "NOR",
-                land = "NORGE"
+                land = "NORGE",
             )
             return Person(
                 forNavn = "forNavn",
@@ -114,7 +114,7 @@ internal class PersonaliaApiTest {
                 fødselsDato = LocalDate.of(2000, 5, 1),
                 ident = TestApplication.defaultDummyFodselsnummer,
                 postAdresse = adresse,
-                folkeregistrertAdresse = adresse
+                folkeregistrertAdresse = adresse,
             )
         }
     private val testKontonummer: Kontonummer

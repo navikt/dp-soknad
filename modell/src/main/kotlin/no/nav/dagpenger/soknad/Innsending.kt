@@ -20,7 +20,7 @@ class Innsending private constructor(
     private var tilstand: Tilstand,
     private var hovedDokument: Dokument? = null,
     private val dokumenter: List<Dokument>,
-    internal var metadata: Metadata?
+    internal var metadata: Metadata?,
 ) : Aktivitetskontekst {
     private val innsendinger get() = (listOf(this))
     private val observers = mutableListOf<InnsendingObserver>()
@@ -31,7 +31,7 @@ class Innsending private constructor(
         søknadId: UUID,
         innsendt: ZonedDateTime,
         dokumentkrav: List<Dokument>,
-        metadata: Metadata? = null
+        metadata: Metadata? = null,
     ) : this(
         innsendingId = UUID.randomUUID(),
         ident = ident,
@@ -41,7 +41,7 @@ class Innsending private constructor(
         journalpostId = null,
         tilstand = Opprettet,
         dokumenter = dokumentkrav,
-        metadata = metadata
+        metadata = metadata,
     )
 
     companion object {
@@ -62,7 +62,7 @@ class Innsending private constructor(
             tilstandsType: TilstandType,
             hovedDokument: Dokument? = null,
             dokumenter: List<Dokument>,
-            metadata: Metadata?
+            metadata: Metadata?,
         ): Innsending {
             val tilstand: Tilstand = when (tilstandsType) {
                 TilstandType.Opprettet -> Opprettet
@@ -82,7 +82,7 @@ class Innsending private constructor(
                 tilstand = tilstand,
                 hovedDokument = hovedDokument,
                 dokumenter = dokumenter,
-                metadata = metadata
+                metadata = metadata,
             )
         }
     }
@@ -160,8 +160,8 @@ class Innsending private constructor(
                     innsendingId = innsendingId,
                     innsendingType = type,
                     gjeldendeTilstand = tilstand.tilstandType,
-                    forrigeTilstand = forrigeTilstand.tilstandType
-                )
+                    forrigeTilstand = forrigeTilstand.tilstandType,
+                ),
             )
         }
     }
@@ -182,7 +182,7 @@ class Innsending private constructor(
 
         fun håndter(
             hendelse: SøknadMidlertidigJournalførtHendelse,
-            innsending: Innsending
+            innsending: Innsending,
         ) =
             hendelse.`kan ikke håndteres i denne tilstanden`()
 
@@ -213,7 +213,7 @@ class Innsending private constructor(
             if (innsending.metadata != null) return innsending.endreTilstand(AvventerArkiverbarSøknad, hendelse)
             hendelse.behov(
                 Aktivitetslogg.Aktivitet.Behov.Behovtype.InnsendingMetadata,
-                "Trenger metadata/klassifisering av innsending"
+                "Trenger metadata/klassifisering av innsending",
             )
         }
 
@@ -234,8 +234,8 @@ class Innsending private constructor(
                 mapOf(
                     "innsendtTidspunkt" to innsending.innsendt.toString(),
                     "dokumentasjonKravId" to innsending.dokumenter.map { it.kravId },
-                    "skjemakode" to metadata.skjemakode
-                )
+                    "skjemakode" to metadata.skjemakode,
+                ),
             )
         }
 
@@ -244,11 +244,11 @@ class Innsending private constructor(
             innsending.hovedDokument = Dokument(
                 kravId = null,
                 skjemakode = metadata.skjemakode,
-                varianter = hendelse.dokumentvarianter()
+                varianter = hendelse.dokumentvarianter(),
             )
             innsending.endreTilstand(
                 AvventerMidlertidligJournalføring,
-                hendelse
+                hendelse,
             )
         }
     }
@@ -265,8 +265,8 @@ class Innsending private constructor(
                 "Trenger å journalføre søknad",
                 mapOf(
                     "hovedDokument" to hovedDokument.toMap(), // urn til netto/brutto
-                    "dokumenter" to dokumenter.map { it.toMap() }
-                )
+                    "dokumenter" to dokumenter.map { it.toMap() },
+                ),
             )
         }
 
@@ -301,7 +301,7 @@ class Innsending private constructor(
             journalpost = journalpostId,
             hovedDokument = hovedDokument,
             dokumenter = dokumenter,
-            metadata = metadata
+            metadata = metadata,
         )
     }
 
@@ -316,8 +316,8 @@ class Innsending private constructor(
             "type" to type.name,
             "innsendingId" to innsendingId.toString(),
             "søknad_uuid" to søknadId.toString(),
-            "ident" to ident
-        )
+            "ident" to ident,
+        ),
     )
 
     fun addObserver(innsendingObserver: InnsendingObserver) {
@@ -330,18 +330,18 @@ class Innsending private constructor(
         AvventerArkiverbarSøknad,
         AvventerMidlertidligJournalføring,
         AvventerJournalføring,
-        Journalført
+        Journalført,
     }
 
     data class Dokument(
         val uuid: UUID = UUID.randomUUID(),
         val kravId: String?,
         val skjemakode: String?,
-        val varianter: List<Dokumentvariant>
+        val varianter: List<Dokumentvariant>,
     ) {
         fun toMap() = mutableMapOf<String, Any>(
             "uuid" to uuid.toString(),
-            "varianter" to varianter.map { it.toMap() }
+            "varianter" to varianter.map { it.toMap() },
         ).also { map ->
             skjemakode?.let { map["skjemakode"] = it }
             kravId?.let { map["kravId"] = kravId }
@@ -352,7 +352,7 @@ class Innsending private constructor(
             val filnavn: String,
             val urn: String,
             val variant: String,
-            val type: String
+            val type: String,
         ) {
             init {
                 kotlin.runCatching {
@@ -367,7 +367,7 @@ class Innsending private constructor(
                 "filnavn" to filnavn,
                 "urn" to urn,
                 "variant" to variant,
-                "type" to type
+                "type" to type,
             )
         }
     }
@@ -376,6 +376,6 @@ class Innsending private constructor(
 
     enum class InnsendingType {
         NY_DIALOG,
-        ETTERSENDING_TIL_DIALOG
+        ETTERSENDING_TIL_DIALOG,
     }
 }

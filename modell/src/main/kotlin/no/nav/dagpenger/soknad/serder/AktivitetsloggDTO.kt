@@ -4,7 +4,7 @@ import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.SpesifikkKontekst
 
 data class AktivitetsloggDTO(
-    val aktiviteter: List<AktivitetDTO>
+    val aktiviteter: List<AktivitetDTO>,
 ) {
     data class AktivitetDTO(
         val alvorlighetsgrad: Alvorlighetsgrad,
@@ -13,12 +13,12 @@ data class AktivitetsloggDTO(
         val melding: String,
         val tidsstempel: String,
         val kontekster: List<SpesifikkKontekstDTO>,
-        val detaljer: Map<String, Any>
+        val detaljer: Map<String, Any>,
     )
 
     data class SpesifikkKontekstDTO(
         val kontekstType: String,
-        val kontekstMap: Map<String, String>
+        val kontekstMap: Map<String, String>,
     )
 
     enum class Alvorlighetsgrad {
@@ -26,7 +26,7 @@ data class AktivitetsloggDTO(
         WARN,
         BEHOV,
         ERROR,
-        SEVERE
+        SEVERE,
     }
 
     fun konverterTilAktivitetslogg(): Aktivitetslogg = konverterTilAktivitetslogg(this)
@@ -37,7 +37,7 @@ data class AktivitetsloggDTO(
             val kontekster = it.kontekster.map { spesifikkKontekstData ->
                 SpesifikkKontekst(
                     spesifikkKontekstData.kontekstType,
-                    spesifikkKontekstData.kontekstMap
+                    spesifikkKontekstData.kontekstMap,
                 )
             }
             aktiviteter.add(
@@ -45,35 +45,35 @@ data class AktivitetsloggDTO(
                     Alvorlighetsgrad.INFO -> Aktivitetslogg.Aktivitet.Info(
                         kontekster,
                         it.melding,
-                        it.tidsstempel
+                        it.tidsstempel,
                     )
                     Alvorlighetsgrad.WARN -> Aktivitetslogg.Aktivitet.Warn(
                         kontekster,
                         it.melding,
-                        it.tidsstempel
+                        it.tidsstempel,
                     )
                     Alvorlighetsgrad.BEHOV -> Aktivitetslogg.Aktivitet.Behov(
                         Aktivitetslogg.Aktivitet.Behov.Behovtype.valueOf(it.behovtype!!),
                         kontekster,
                         it.melding,
                         it.detaljer,
-                        it.tidsstempel
+                        it.tidsstempel,
                     )
                     Alvorlighetsgrad.ERROR -> Aktivitetslogg.Aktivitet.Error(
                         kontekster,
                         it.melding,
-                        it.tidsstempel
+                        it.tidsstempel,
                     )
                     Alvorlighetsgrad.SEVERE -> Aktivitetslogg.Aktivitet.Severe(
                         kontekster,
                         it.melding,
-                        it.tidsstempel
+                        it.tidsstempel,
                     )
-                }
+                },
             )
         }
         return Aktivitetslogg.rehyder(
-            aktiviteter = aktiviteter
+            aktiviteter = aktiviteter,
         )
     }
 }

@@ -26,12 +26,12 @@ internal class NyEttersendingBehovMottakTest {
             return listOf(
                 TestFixture(
                     behov = listOf(Behovtype.NyEttersending),
-                    innsendingType = ETTERSENDING_TIL_DIALOG
+                    innsendingType = ETTERSENDING_TIL_DIALOG,
                 ),
                 TestFixture(
                     behov = listOf(Behovtype.NyEttersending, Behovtype.InnsendingMetadata),
-                    innsendingType = ETTERSENDING_TIL_DIALOG
-                )
+                    innsendingType = ETTERSENDING_TIL_DIALOG,
+                ),
             )
         }
     }
@@ -50,11 +50,11 @@ internal class NyEttersendingBehovMottakTest {
     fun `Skal håndtere NyInnsending hendelse`(testFixture: TestFixture) {
         NyEttersendingBehovMottak(
             rapidsConnection = testRapid,
-            mediator = mediator
+            mediator = mediator,
         )
 
         testRapid.sendTestMessage(
-            lagTestJson(fixture = testFixture)
+            lagTestJson(fixture = testFixture),
         )
 
         verify(exactly = 1) { mediator.behandle(any<NyInnsendingHendelse>()) }
@@ -70,8 +70,8 @@ internal class NyEttersendingBehovMottakTest {
         assertNotNull(
             testRapid.inspektør.field(
                 index = 0,
-                field = "@løsning"
-            ).get(testFixture.behov[0].name)
+                field = "@løsning",
+            ).get(testFixture.behov[0].name),
         )
     }
 
@@ -80,7 +80,7 @@ internal class NyEttersendingBehovMottakTest {
     fun `Skal ikke håndtere NyInnsending hendelse med løsning`(testFixture: TestFixture) {
         NyEttersendingBehovMottak(
             rapidsConnection = testRapid,
-            mediator = mediator
+            mediator = mediator,
         )
 
         testRapid.sendTestMessage(
@@ -88,11 +88,11 @@ internal class NyEttersendingBehovMottakTest {
                 testFixture.copy(
                     løsning = mapOf(
                         "@løsning" to mapOf(
-                            "innsendingId" to UUID.randomUUID().toString()
-                        )
-                    )
-                )
-            )
+                            "innsendingId" to UUID.randomUUID().toString(),
+                        ),
+                    ),
+                ),
+            ),
         )
 
         verify(exactly = 0) { mediator.behandle(any<NyInnsendingHendelse>()) }
@@ -103,7 +103,7 @@ internal class NyEttersendingBehovMottakTest {
     fun `Skal håndtere NyInnsending uten dokumenter`(testFixture: TestFixture) {
         NyEttersendingBehovMottak(
             rapidsConnection = testRapid,
-            mediator = mediator
+            mediator = mediator,
         )
 
         testRapid.sendTestMessage(lagTestJson(testFixture.copy(dokumenter = emptyList())))

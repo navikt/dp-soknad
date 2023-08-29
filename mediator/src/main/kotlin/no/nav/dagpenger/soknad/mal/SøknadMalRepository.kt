@@ -38,14 +38,16 @@ class SøknadMalPostgresRepository(private val dataSource: DataSource) : Søknad
                         "mal" to PGobject().apply {
                             this.type = "jsonb"
                             this.value = søknadMal.mal.toString()
-                        }
-                    )
-                ).asUpdate
+                        },
+                    ),
+                ).asUpdate,
             )
         }
     }.also { nyMal ->
-        if (nyMal == 1) observers.forEach { it.nyMal(søknadMal) }.also {
-            logger.info { "Varsler ${observers.size} om ny mal" }
+        if (nyMal == 1) {
+            observers.forEach { it.nyMal(søknadMal) }.also {
+                logger.info { "Varsler ${observers.size} om ny mal" }
+            }
         }
     }
 
@@ -54,16 +56,16 @@ class SøknadMalPostgresRepository(private val dataSource: DataSource) : Søknad
             queryOf(
                 //language=PostgreSQL
                 "SELECT * FROM soknadmal WHERE prosessnavn = :prosessnavn ORDER BY prosessversjon DESC LIMIT 1",
-                mapOf("prosessnavn" to prosessnavn.id)
+                mapOf("prosessnavn" to prosessnavn.id),
             ).map { row ->
                 SøknadMal(
                     Prosessversjon(
                         Prosessnavn(row.string("prosessnavn")),
-                        row.int("prosessversjon")
+                        row.int("prosessversjon"),
                     ),
-                    objectMapper.readTree(row.binaryStream("mal"))
+                    objectMapper.readTree(row.binaryStream("mal")),
                 )
-            }.asSingle
+            }.asSingle,
         )
     } ?: throw IngenMalFunnetException()
 
@@ -71,10 +73,10 @@ class SøknadMalPostgresRepository(private val dataSource: DataSource) : Søknad
         session.run(
             queryOf( // language=PostgreSQL
                 "SELECT prosessnavn FROM soknadmal WHERE prosessnavn = ?",
-                prosessnavn
+                prosessnavn,
             ).map {
                 Prosessnavn(it.string("prosessnavn"))
-            }.asSingle
+            }.asSingle,
         )
     } ?: throw IllegalArgumentException("Kjenner ikke til prosessnavn=$prosessnavn")
 
@@ -84,13 +86,13 @@ class SøknadMalPostgresRepository(private val dataSource: DataSource) : Søknad
                 queryOf( // language=PostgreSQL
                     "SELECT prosessnavn, prosessversjon FROM soknadmal WHERE prosessnavn = ? AND prosessversjon = ?",
                     prosessnavn,
-                    versjon
+                    versjon,
                 ).map {
                     Prosessversjon(
                         Prosessnavn(it.string("prosessnavn")),
-                        it.int("prosessversjon")
+                        it.int("prosessversjon"),
                     )
-                }.asSingle
+                }.asSingle,
             )
         } ?: throw IllegalArgumentException("Kjenner ikke til prosessnavn=$prosessnavn, prosessversjon=$versjon")
 

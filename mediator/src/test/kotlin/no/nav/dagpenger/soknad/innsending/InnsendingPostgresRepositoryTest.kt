@@ -28,7 +28,7 @@ internal class InnsendingPostgresRepositoryTest {
                     søknadId = dialogId,
                     språk = Språk(verdi = "NO"),
                     ident = testPersonIdent,
-                )
+                ),
             )
             test()
         }
@@ -46,16 +46,16 @@ internal class InnsendingPostgresRepositoryTest {
                 filnavn = "filnavn1",
                 urn = "urn:vedlegg:filnavn1",
                 variant = "NETTO",
-                type = "PDF"
+                type = "PDF",
             ),
             Innsending.Dokument.Dokumentvariant(
                 uuid = UUID.randomUUID(),
                 filnavn = "filnavn2",
                 urn = "urn:vedlegg:filnavn2",
                 variant = "NETTO",
-                type = "JSON"
-            )
-        )
+                type = "JSON",
+            ),
+        ),
     )
     private val dokument1 = Innsending.Dokument(
         uuid = UUID.randomUUID(),
@@ -67,16 +67,16 @@ internal class InnsendingPostgresRepositoryTest {
                 filnavn = "filnavn1",
                 urn = "urn:vedlegg:filnavn1",
                 variant = "NETTO",
-                type = "PDF"
+                type = "PDF",
             ),
             Innsending.Dokument.Dokumentvariant(
                 uuid = UUID.randomUUID(),
                 filnavn = "filnavn2",
                 urn = "urn:vedlegg:filnavn2",
                 variant = "NETTO",
-                type = "JSON"
-            )
-        )
+                type = "JSON",
+            ),
+        ),
     )
 
     private val dokument2 = Innsending.Dokument(
@@ -89,16 +89,16 @@ internal class InnsendingPostgresRepositoryTest {
                 filnavn = "filnavn1",
                 urn = "urn:vedlegg:filnavn1",
                 variant = "NETTO",
-                type = "PDF"
+                type = "PDF",
             ),
             Innsending.Dokument.Dokumentvariant(
                 uuid = UUID.randomUUID(),
                 filnavn = "filnavn2",
                 urn = "urn:vedlegg:filnavn2",
                 variant = "NETTO",
-                type = "JSON"
-            )
-        )
+                type = "JSON",
+            ),
+        ),
     )
 
     private val dokumenter = listOf(dokument1, dokument2)
@@ -113,7 +113,7 @@ internal class InnsendingPostgresRepositoryTest {
         tilstandsType = Innsending.TilstandType.AvventerJournalføring,
         hovedDokument = hovedDokument,
         dokumenter = dokumenter,
-        metadata = Innsending.Metadata("NAV-04")
+        metadata = Innsending.Metadata("NAV-04"),
     )
 
     @Test

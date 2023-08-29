@@ -8,11 +8,11 @@ class ArkiverbarSøknadMottattHendelse(
     innsendingId: UUID,
     ident: String,
     private val dokumentvarianter: List<Dokumentvariant>,
-    aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+    aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : InnsendingHendelse(
     innsendingId,
     ident,
-    aktivitetslogg
+    aktivitetslogg,
 ) {
     fun dokumentvarianter() = dokumentvarianter
     fun valider(): Boolean {

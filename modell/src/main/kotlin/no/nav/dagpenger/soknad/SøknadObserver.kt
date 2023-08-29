@@ -13,14 +13,14 @@ interface DokumentkravObserver {
         var innsendingstype: String? = null,
         var innsendttidspunkt: LocalDateTime,
         val ferdigBesvart: Boolean,
-        val dokumentkrav: List<DokumentkravInnsendingSomethingSomething>
+        val dokumentkrav: List<DokumentkravInnsendingSomethingSomething>,
     ) {
         val hendelseId: UUID = UUID.randomUUID()
 
         data class DokumentkravInnsendingSomethingSomething(
             val dokumentnavn: String,
             val skjemakode: String,
-            val valg: String
+            val valg: String,
         )
     }
 }
@@ -36,7 +36,7 @@ interface SøknadObserver : DokumentkravObserver {
 
     data class SøknadInnsendtEvent(
         val søknadId: UUID,
-        val innsendt: ZonedDateTime?
+        val innsendt: ZonedDateTime?,
     )
 
     data class SøknadEndretTilstandEvent(
@@ -44,23 +44,23 @@ interface SøknadObserver : DokumentkravObserver {
         val ident: String,
         val prosessversjon: Prosessversjon?,
         val gjeldendeTilstand: Søknad.Tilstand.Type,
-        val forrigeTilstand: Søknad.Tilstand.Type
+        val forrigeTilstand: Søknad.Tilstand.Type,
     )
 
     data class SøknadInnsendingEndretTilstandEvent(
         val søknadId: UUID,
-        val innsending: InnsendingObserver.InnsendingEndretTilstandEvent
+        val innsending: InnsendingObserver.InnsendingEndretTilstandEvent,
     )
 
     data class SøknadSlettetEvent(
         val søknadId: UUID,
-        val ident: String
+        val ident: String,
     )
 
     data class SøknadMigrertEvent(
         val søknkadId: UUID,
         val ident: String,
         val forrigeProsessversjon: Prosessversjon,
-        val gjeldendeProsessversjon: Prosessversjon
+        val gjeldendeProsessversjon: Prosessversjon,
     )
 }

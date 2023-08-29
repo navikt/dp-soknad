@@ -52,30 +52,30 @@ class SøknadDTO(
 
     data class ProsessversjonDTO(
         val prosessnavn: String,
-        val versjon: Int
+        val versjon: Int,
     ) {
         fun rehydrer() = Prosessversjon(
             prosessnavn = Prosessnavn(this.prosessnavn),
-            versjon = this.versjon
+            versjon = this.versjon,
         )
     }
 
     data class DokumentkravDTO(
-        val kravData: Set<KravDTO>
+        val kravData: Set<KravDTO>,
     ) {
         fun rehydrer(): Dokumentkrav = Dokumentkrav.rehydrer(
-            krav = kravData.map { it.rehydrer() }.toSet()
+            krav = kravData.map { it.rehydrer() }.toSet(),
         )
 
         data class SannsynliggjøringDTO(
             val id: String,
             val faktum: JsonNode,
-            val sannsynliggjør: Set<JsonNode>
+            val sannsynliggjør: Set<JsonNode>,
         ) {
             fun rehydrer() = Sannsynliggjøring(
                 id = this.id,
                 faktum = Faktum(this.faktum),
-                sannsynliggjør = this.sannsynliggjør.map { Faktum(it) }.toMutableSet()
+                sannsynliggjør = this.sannsynliggjør.map { Faktum(it) }.toMutableSet(),
             )
         }
 
@@ -84,7 +84,7 @@ class SøknadDTO(
             val filer: Set<KravDTO.FilDTO>,
             val valg: SvarValgDTO,
             val bundle: URN?,
-            val innsendt: Boolean
+            val innsendt: Boolean,
         ) {
             fun rehydrer() = Svar(
                 filer = this.filer.map { it.rehydrer() }.toMutableSet(),
@@ -98,7 +98,7 @@ class SøknadDTO(
                 },
                 begrunnelse = this.begrunnelse,
                 bundle = bundle,
-                innsendt = innsendt
+                innsendt = innsendt,
             )
 
             enum class SvarValgDTO {
@@ -107,7 +107,7 @@ class SøknadDTO(
                 SEND_SENERE,
                 ANDRE_SENDER,
                 SEND_TIDLIGERE,
-                SENDER_IKKE;
+                SENDER_IKKE,
             }
         }
 
@@ -116,7 +116,7 @@ class SøknadDTO(
             val beskrivendeId: String,
             val sannsynliggjøring: SannsynliggjøringDTO,
             val tilstand: KravTilstandDTO,
-            val svar: SvarDTO
+            val svar: SvarDTO,
         ) {
             fun rehydrer() = Krav(
                 id = this.id,
@@ -125,12 +125,12 @@ class SøknadDTO(
                 tilstand = when (this.tilstand) {
                     KravTilstandDTO.AKTIV -> Krav.KravTilstand.AKTIV
                     KravTilstandDTO.INAKTIV -> Krav.KravTilstand.INAKTIV
-                }
+                },
             )
 
             enum class KravTilstandDTO {
                 AKTIV,
-                INAKTIV
+                INAKTIV,
             }
 
             data class FilDTO(
@@ -138,14 +138,14 @@ class SøknadDTO(
                 val urn: URN,
                 val storrelse: Long,
                 val tidspunkt: ZonedDateTime,
-                val bundlet: Boolean
+                val bundlet: Boolean,
             ) {
                 fun rehydrer() = Krav.Fil(
                     filnavn = this.filnavn,
                     urn = this.urn,
                     storrelse = this.storrelse,
                     tidspunkt = this.tidspunkt,
-                    bundlet = this.bundlet
+                    bundlet = this.bundlet,
                 )
             }
         }
@@ -155,7 +155,8 @@ class SøknadDTO(
         UnderOpprettelse,
         Påbegynt,
         Innsendt,
-        Slettet;
+        Slettet,
+        ;
 
         fun rehydrer(): Søknad.Tilstand.Type = when (this) {
             UnderOpprettelse -> Søknad.Tilstand.Type.UnderOpprettelse

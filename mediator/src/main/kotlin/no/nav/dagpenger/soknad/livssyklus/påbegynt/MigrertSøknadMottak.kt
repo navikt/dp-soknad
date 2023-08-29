@@ -14,7 +14,7 @@ import no.nav.helse.rapids_rivers.River
 
 internal class MigrertSøknadMottak(
     rapidsConnection: RapidsConnection,
-    private val mediator: SøknadMediator
+    private val mediator: SøknadMediator,
 ) : River.PacketListener {
     private val skipManglendeSøknader = true
     private val behov = "MigrerProsess"
@@ -36,7 +36,7 @@ internal class MigrertSøknadMottak(
         val søknadId = packet["søknad_uuid"].asUUID()
         val ident = packet["ident"].asText()
         withLoggingContext(
-            "søknadId" to søknadId.toString()
+            "søknadId" to søknadId.toString(),
         ) {
             val prosessnavn = packet["@løsning"][behov]["prosessnavn"].asText()
             val versjon = packet["@løsning"][behov]["versjon"].asInt()
@@ -49,9 +49,9 @@ internal class MigrertSøknadMottak(
                     MigrertProsessHendelse(
                         søknadId,
                         ident,
-                        prosessversjon = Prosessversjon(prosessnavn, versjon)
+                        prosessversjon = Prosessversjon(prosessnavn, versjon),
                     ),
-                    SøkerOppgaveMelding(data.asText())
+                    SøkerOppgaveMelding(data.asText()),
                 )
             } catch (e: SøknadIkkeFunnet) {
                 logger.warn(e) { "Fant ikke søknad som har blitt migrert" }

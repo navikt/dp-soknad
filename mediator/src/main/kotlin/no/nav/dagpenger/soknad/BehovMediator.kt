@@ -8,7 +8,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 
 class BehovMediator(
     private val rapidsConnection: RapidsConnection,
-    private val sikkerLogg: KLogger
+    private val sikkerLogg: KLogger,
 ) {
 
     private companion object {
@@ -21,14 +21,14 @@ class BehovMediator(
 
     private fun håndter(
         hendelse: Hendelse,
-        behov: List<Aktivitetslogg.Aktivitet.Behov>
+        behov: List<Aktivitetslogg.Aktivitet.Behov>,
     ) {
         behov
             .groupBy { it.kontekst() }
             .onEach { (_, behovMap) ->
                 require(
                     behovMap.size == behovMap.map { it.type.name }
-                        .toSet().size
+                        .toSet().size,
                 ) { "Kan ikke produsere samme behov på samme kontekst" }
             }
             .forEach { (kontekst, behov) ->

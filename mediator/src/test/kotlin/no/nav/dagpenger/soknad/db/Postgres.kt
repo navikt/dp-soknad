@@ -30,7 +30,7 @@ internal object Postgres {
         System.setProperty(PostgresDataSourceBuilder.DB_HOST_KEY, instance.host)
         System.setProperty(
             PostgresDataSourceBuilder.DB_PORT_KEY,
-            instance.getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT).toString()
+            instance.getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT).toString(),
         )
         System.setProperty(PostgresDataSourceBuilder.DB_DATABASE_KEY, instance.databaseName)
         System.setProperty(PostgresDataSourceBuilder.DB_PASSWORD_KEY, instance.password)

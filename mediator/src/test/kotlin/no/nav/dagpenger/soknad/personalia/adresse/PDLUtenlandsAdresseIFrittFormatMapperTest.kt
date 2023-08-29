@@ -15,7 +15,7 @@ internal class PDLUtenlandsAdresseIFrittFormatMapperTest {
                 adresseLinje2 = "adresseLinje2",
                 adresseLinje3 = "adresseLinje3",
                 postnummer = "2001",
-            )
+            ),
         ).let { adresse ->
             assertEquals("adresseLinje1", adresse.adresselinje1)
             assertEquals("adresseLinje2", adresse.adresselinje2)
@@ -35,7 +35,7 @@ internal class PDLUtenlandsAdresseIFrittFormatMapperTest {
                 adresseLinje2 = "adresseLinje2",
                 adresseLinje3 = "   ",
                 postnummer = "2013",
-            )
+            ),
         ).let { adresse ->
             assertEquals("adresseLinje2", adresse.adresselinje1)
             assertEquals("", adresse.adresselinje2)
@@ -50,7 +50,7 @@ internal class PDLUtenlandsAdresseIFrittFormatMapperTest {
     @Test
     fun `Ingen felter utfylt`() {
         PDLAdresseMapper.formatertAdresse(
-            createPostAdresseIFrittFormat()
+            createPostAdresseIFrittFormat(),
         ).let { adresse ->
             assertEquals("", adresse.adresselinje1)
             assertEquals("", adresse.adresselinje2)
@@ -66,14 +66,14 @@ internal class PDLUtenlandsAdresseIFrittFormatMapperTest {
         adresseLinje1: String? = null,
         adresseLinje2: String? = null,
         adresseLinje3: String? = null,
-        postnummer: String? = null
+        postnummer: String? = null,
     ): PDLAdresse.PostAdresseIFrittFormat {
         return PDLAdresse.PostAdresseIFrittFormat(
             adresseMetadata = createAdresseMetadata(),
             adresseLinje1 = adresseLinje1,
             adresseLinje2 = adresseLinje2,
             adresseLinje3 = adresseLinje3,
-            postnummer = postnummer
+            postnummer = postnummer,
         )
     }
 }

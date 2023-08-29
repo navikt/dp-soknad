@@ -29,6 +29,6 @@ tasks.test {
     }
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = JavaVersion.VERSION_17.toString()
+javaToolchains {
+    version = JavaVersion.VERSION_17
 }

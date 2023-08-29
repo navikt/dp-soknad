@@ -25,7 +25,7 @@ class SøknadsMalMottakTest {
         testRapid.sendTestMessage(testSøknadMalMelding())
         verify(exactly = 1) {
             søknadMalRepositoryMock.lagre(
-                any()
+                any(),
             )
         }
 

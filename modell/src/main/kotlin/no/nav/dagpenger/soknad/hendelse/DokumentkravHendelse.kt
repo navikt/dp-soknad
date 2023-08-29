@@ -11,8 +11,8 @@ sealed class DokumentKravHendelse(val søknadID: UUID, ident: String, val kravId
             this.klasseNavn,
             mapOf(
                 "søknad_uuid" to søknadID.toString(),
-                "krav_id" to kravId
-            )
+                "krav_id" to kravId,
+            ),
         )
     }
 }
@@ -28,7 +28,7 @@ class DokumentasjonIkkeTilgjengelig(
     ident: String,
     kravId: String,
     val valg: Krav.Svar.SvarValg,
-    val begrunnelse: String?
+    val begrunnelse: String?,
 ) : DokumentKravHendelse(søknadID, ident, kravId)
 
 class DokumentKravSammenstilling(

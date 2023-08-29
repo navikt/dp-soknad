@@ -18,7 +18,7 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
         val innsendt: ZonedDateTime,
         val journalpost: String?,
         val hovedDokument: Innsending.Dokument?,
-        val dokumenter: List<Innsending.Dokument>
+        val dokumenter: List<Innsending.Dokument>,
     )
 
     init {
@@ -34,7 +34,7 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
         språk: Språk,
         dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime,
-        prosessversjon: Prosessversjon?
+        prosessversjon: Prosessversjon?,
     ) {
         this.søknadId = søknadId
         this.dokumentkrav = dokumentkrav

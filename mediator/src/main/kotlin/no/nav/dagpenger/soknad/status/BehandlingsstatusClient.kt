@@ -30,7 +30,7 @@ internal class BehandlingsstatusHttpClient(
     private val baseUrl: String = Configuration.dpInnsynUrl,
     private val innsynAudience: String = Configuration.dpInnsynAudience,
     private val tokenProvider: (token: String, audience: String) -> String = exchangeToOboToken,
-    engine: HttpClientEngine = CIO.create()
+    engine: HttpClientEngine = CIO.create(),
 ) : BehandlingsstatusClient {
     private companion object {
         val logger = KotlinLogging.logger {}
@@ -45,7 +45,7 @@ internal class BehandlingsstatusHttpClient(
                 registerModule(
                     KotlinModule.Builder()
                         .configure(KotlinFeature.NullIsSameAsDefault, enabled = true)
-                        .build()
+                        .build(),
                 )
             }
         }
@@ -77,7 +77,7 @@ internal class BehandlingsstatusHttpClient(
 }
 
 internal data class BehandlingsstatusDto(
-    val behandlingsstatus: String = "Ukjent"
+    val behandlingsstatus: String = "Ukjent",
 )
 
 private val exchangeToOboToken = { token: String, audience: String ->

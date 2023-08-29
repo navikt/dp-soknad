@@ -58,12 +58,12 @@ internal class DokumentasjonKravApiTest {
     private val sannsynliggjøring1 = Sannsynliggjøring(
         id = dokumentFaktum1.id,
         faktum = dokumentFaktum1,
-        sannsynliggjør = faktaSomSannsynliggjøres
+        sannsynliggjør = faktaSomSannsynliggjøres,
     )
     private val sannsynliggjøring2 = Sannsynliggjøring(
         id = dokumentFaktum2.id,
         faktum = dokumentFaktum2,
-        sannsynliggjør = faktaSomSannsynliggjøres
+        sannsynliggjør = faktaSomSannsynliggjøres,
     )
 
     private val fil = Krav.Fil(
@@ -71,7 +71,7 @@ internal class DokumentasjonKravApiTest {
         URN.rfc8141().parse("urn:nav:1"),
         89900,
         ZonedDateTime.now(),
-        bundlet = false
+        bundlet = false,
     )
 
     private val krav1 = Krav(
@@ -81,10 +81,10 @@ internal class DokumentasjonKravApiTest {
             valg = SEND_NÅ,
             begrunnelse = null,
             bundle = URN.rfc8141().parse("urn:bundle:1"),
-            innsendt = true
+            innsendt = true,
         ),
         sannsynliggjøring = sannsynliggjøring1,
-        tilstand = Krav.KravTilstand.AKTIV
+        tilstand = Krav.KravTilstand.AKTIV,
     )
 
     private val krav2 = Krav(
@@ -94,14 +94,14 @@ internal class DokumentasjonKravApiTest {
             valg = SENDER_IKKE,
             begrunnelse = "Har ikke dokumentasjon tilgjengelig",
             bundle = null,
-            innsendt = true
+            innsendt = true,
         ),
         sannsynliggjøring = sannsynliggjøring2,
-        tilstand = Krav.KravTilstand.AKTIV
+        tilstand = Krav.KravTilstand.AKTIV,
     )
 
     private val dokumentKrav = Dokumentkrav.rehydrer(
-        setOf(krav1, krav2)
+        setOf(krav1, krav2),
     )
 
     private val søknad = Søknad.rehydrer(
@@ -128,15 +128,15 @@ internal class DokumentasjonKravApiTest {
         TestApplication.withMockAuthServerAndTestApplication {
             assertEquals(
                 HttpStatusCode.Unauthorized,
-                client.get("${Configuration.basePath}/soknad/id/dokumentasjonskrav").status
+                client.get("${Configuration.basePath}/soknad/id/dokumentasjonskrav").status,
             )
 
             assertEquals(
                 HttpStatusCode.Unauthorized,
                 autentisert(
                     "${Configuration.basePath}/soknad/$søknadId/dokumentasjonskrav",
-                    token = "hubba"
-                ).status
+                    token = "hubba",
+                ).status,
             )
         }
     }
@@ -149,11 +149,11 @@ internal class DokumentasjonKravApiTest {
         }
 
         TestApplication.withMockAuthServerAndTestApplication(
-            mockedSøknadApi(søknadMediator = mediatorMock)
+            mockedSøknadApi(søknadMediator = mediatorMock),
         ) {
             assertEquals(
                 HttpStatusCode.Forbidden,
-                autentisert("${Configuration.basePath}/soknad/$søknadId/dokumentasjonskrav").status
+                autentisert("${Configuration.basePath}/soknad/$søknadId/dokumentasjonskrav").status,
             )
         }
     }
@@ -162,13 +162,13 @@ internal class DokumentasjonKravApiTest {
     fun `skal vise dokumentasjons krav`() {
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(
-                søknadMediator = søknadMediatorMock
-            )
+                søknadMediator = søknadMediatorMock,
+            ),
         ) {
             autentisert(
                 httpMethod = Get,
                 endepunkt = "${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav",
-                token = TestApplication.azureAdToken
+                token = TestApplication.azureAdToken,
             ).let { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
             }
@@ -176,7 +176,7 @@ internal class DokumentasjonKravApiTest {
             autentisert(
                 httpMethod = Get,
                 endepunkt = "${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav",
-                token = TestApplication.testTokenXToken
+                token = TestApplication.testTokenXToken,
             ).let { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
                 assertEquals("application/json; charset=UTF-8", response.contentType().toString())
@@ -195,7 +195,7 @@ internal class DokumentasjonKravApiTest {
                         assertEquals(fil.storrelse, this["storrelse"].asLong())
                         assertEquals(
                             fil.tidspunkt.toOffsetDateTime(),
-                            ZonedDateTime.parse(this["tidspunkt"].asText()).toOffsetDateTime()
+                            ZonedDateTime.parse(this["tidspunkt"].asText()).toOffsetDateTime(),
                         )
                         assertEquals(fil.bundlet, this["bundlet"].asBoolean())
                     }
@@ -240,8 +240,8 @@ internal class DokumentasjonKravApiTest {
 
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(
-                søknadMediator = mediatorMock
-            )
+                søknadMediator = mediatorMock,
+            ),
         ) {
             client.put("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451/svar") {
                 autentisert()
@@ -253,7 +253,7 @@ internal class DokumentasjonKravApiTest {
                       "begrunnelse": "har ikke",
                       "svar": "dokumentkrav.svar.send.senere"
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 )
             }.let { response ->
                 assertEquals(HttpStatusCode.Created, response.status)
@@ -275,8 +275,8 @@ internal class DokumentasjonKravApiTest {
         }
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(
-                søknadMediator = mediatorMock
-            )
+                søknadMediator = mediatorMock,
+            ),
         ) {
             client.delete("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451/fil/soknadid/filid") {
                 autentisert()
@@ -303,8 +303,8 @@ internal class DokumentasjonKravApiTest {
 
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(
-                søknadMediator = mediatorMock
-            )
+                søknadMediator = mediatorMock,
+            ),
         ) {
             client.put("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451/fil") {
                 autentisert()
@@ -318,7 +318,7 @@ internal class DokumentasjonKravApiTest {
   "ikkeibruk": "ikkeibruk",
   "urn": "urn:vedlegg:1111/123234",
   "tidspunkt": "${tidspunkt.format(DateTimeFormatter.ISO_ZONED_DATE_TIME)}"
-}"""
+}""",
                 )
             }.let { response ->
                 assertEquals(HttpStatusCode.Created, response.status)
@@ -331,9 +331,9 @@ internal class DokumentasjonKravApiTest {
                             urn = URN.rfc8141().parse("urn:vedlegg:1111/123234"),
                             storrelse = 50000,
                             tidspunkt = tidspunkt,
-                            bundlet = false
+                            bundlet = false,
                         ),
-                        this.fil
+                        this.fil,
                     )
                 }
             }
@@ -349,8 +349,8 @@ internal class DokumentasjonKravApiTest {
 
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(
-                søknadMediator = mediatorMock
-            )
+                søknadMediator = mediatorMock,
+            ),
         ) {
             client.put("${Configuration.basePath}/soknad/$testSoknadId/dokumentasjonskrav/451/bundle") {
                 autentisert()
@@ -359,7 +359,7 @@ internal class DokumentasjonKravApiTest {
                 setBody(
                     """{
                         "urn": "urn:bundle:1"
-                        }"""
+                        }""",
                 )
             }.let { response ->
                 assertEquals(HttpStatusCode.Created, response.status)

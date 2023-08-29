@@ -66,7 +66,7 @@ class SøknadMalRepositoryTest {
             SøknadMalPostgresRepository(PostgresDataSourceBuilder.dataSource).let { repo ->
                 val prosessversjon = Prosessversjon(
                     Prosessnavn("Dagpenger"),
-                    123
+                    123,
                 )
                 val førsteMal = SøknadMal(prosessversjon, jacksonObjectMapper().createObjectNode())
 
@@ -101,7 +101,7 @@ class SøknadMalRepositoryTest {
             session.run(
                 queryOf("SELECT COUNT(*) FROM soknadmal").map {
                     assertEquals(antall, it.int(1))
-                }.asSingle
+                }.asSingle,
             )
         }
     }

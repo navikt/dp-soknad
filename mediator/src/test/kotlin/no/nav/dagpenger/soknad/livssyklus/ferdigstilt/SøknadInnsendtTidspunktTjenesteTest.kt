@@ -46,11 +46,11 @@ class SøknadInnsendtTidspunktTjenesteTest {
                         object : SøknadData {
                             override fun erFerdig() = true
                         }
-                    }
+                    },
                 )
                 every { it.hent(finnesIkkeSoknadId) } returns null
                 every { it.hent(kasterFeilSoknadId) } throws RuntimeException("test")
-            }
+            },
         )
     }
 
