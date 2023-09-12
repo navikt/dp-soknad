@@ -11,5 +11,5 @@ dependencies {
 
     testImplementation(Junit5.params)
     testImplementation(Mockk.mockk)
-    testImplementation("com.approvaltests:approvaltests:18.7.1")
+    testImplementation("com.approvaltests:approvaltests:19.0.0")
 }
