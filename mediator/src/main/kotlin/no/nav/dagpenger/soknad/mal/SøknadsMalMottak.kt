@@ -11,7 +11,7 @@ import no.nav.helse.rapids_rivers.River
 
 class SøknadsMalMottak(
     rapidsConnection: RapidsConnection,
-    private val søknadMalRepository: SøknadMalRepository
+    private val søknadMalRepository: SøknadMalRepository,
 ) : River.PacketListener {
 
     init {
@@ -33,8 +33,8 @@ class SøknadsMalMottak(
                 eventName = "ny_quiz_mal",
                 map = mapOf(
                     "versjon_navn" to versjonNavn,
-                    "versjon_id" to versjonId
-                )
+                    "versjon_id" to versjonId,
+                ),
             )
             context.publish(nyMalMelding.toJson())
         }

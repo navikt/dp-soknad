@@ -15,7 +15,7 @@ import no.nav.helse.rapids_rivers.River
 
 internal class ArkiverbarSøknadMottattHendelseMottak(
     rapidsConnection: RapidsConnection,
-    private val mediator: InnsendingMediator
+    private val mediator: InnsendingMediator,
 ) : River.PacketListener {
     companion object {
         private val logger = KotlinLogging.logger {}
@@ -41,12 +41,12 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
         val innsendingId = packet["innsendingId"].asUUID()
         withLoggingContext(
             "søknadId" to søknadID.toString(),
-            "innsendingId" to innsendingId.toString()
+            "innsendingId" to innsendingId.toString(),
         ) {
             val arkiverbarSøknadMottattHendelse = ArkiverbarSøknadMottattHendelse(
                 innsendingId = innsendingId,
                 ident = packet["ident"].asText(),
-                dokumentvarianter = packet["@løsning"][behov].dokumentVarianter()
+                dokumentvarianter = packet["@løsning"][behov].dokumentVarianter(),
             )
             logger.info { "Fått løsning for $behov for $innsendingId" }
             mediator.behandle(arkiverbarSøknadMottattHendelse)
@@ -65,7 +65,7 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
             filnavn = node["metainfo"]["innhold"].asText(),
             urn = node["urn"].asText(),
             variant = format,
-            type = node["metainfo"]["filtype"].asText()
+            type = node["metainfo"]["filtype"].asText(),
         )
     }
 }

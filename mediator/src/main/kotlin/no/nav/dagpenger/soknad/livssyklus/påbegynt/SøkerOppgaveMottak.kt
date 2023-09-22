@@ -11,7 +11,7 @@ import no.nav.helse.rapids_rivers.asLocalDateTime
 
 internal class SøkerOppgaveMottak(
     rapidsConnection: RapidsConnection,
-    private val søknadMediator: SøknadMediator
+    private val søknadMediator: SøknadMediator,
 ) : River.PacketListener {
     private companion object {
         val logger = KotlinLogging.logger {}
@@ -27,7 +27,7 @@ internal class SøkerOppgaveMottak(
                     SøkerOppgave.Keys.SØKNAD_UUID,
                     SøkerOppgave.Keys.FØDSELSNUMMER,
                     "@opprettet",
-                    SøkerOppgave.Keys.FERDIG
+                    SøkerOppgave.Keys.FERDIG,
                 )
             }
         }.register(this)
@@ -38,7 +38,7 @@ internal class SøkerOppgaveMottak(
         withLoggingContext(
             "søknadId" to søkerOppgave.søknadUUID().toString(),
             "packetId" to packet.id,
-            "opprettet" to packet["@opprettet"].asLocalDateTime().toString()
+            "opprettet" to packet["@opprettet"].asLocalDateTime().toString(),
         ) {
             logger.info { "Mottatt pakke ${packet["@event_name"].asText()}" }
             try {

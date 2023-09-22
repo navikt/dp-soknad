@@ -27,7 +27,7 @@ class GyldigSvarTest {
         """tekst | "en tekst"""",
         """land | "NOR"""",
         """dokument |{"urn":"urn:vedlegg:5cf29893-e948-4d64-a295-2f6c5153ba44/c7cb3716-8750-4898-a90e-5ad90067760e","lastOppTidsstempel":"2023-02-14T13:36:31.479923"}""",
-        delimiter = '|'
+        delimiter = '|',
     )
     fun `Skal kunne opprette boolean type svar `(type: String, forventetSvar: String) {
         val jsonSvar = objectMapper.readTree("""{"type": "$type", "svar": $forventetSvar}""")
@@ -54,7 +54,7 @@ class GyldigSvarTest {
         """land | "NORWAY"""",
         """dokument |{"urn":"fd","lastOppTidsstempel":"2023-02-14T13:36:31.479923"}""",
         """dokument |{"urn":"urn:vedlegg:5cf29893-e948-4d64-a295-2f6c5153ba44/c7cb3716-8750-4898-a90e-5ad90067760e","lastOppTidsstempel":"sdf"}""",
-        delimiter = '|'
+        delimiter = '|',
     )
     fun `Skal validere svar i henhold til type`(type: String, forventetSvar: String) {
         val jsonSvar = objectMapper.readTree("""{"type": "$type", "svar": $forventetSvar}""")
@@ -74,7 +74,7 @@ class GyldigSvarTest {
         """periode | null""",
         """land | null""",
         """dokument | null""",
-        delimiter = '|'
+        delimiter = '|',
     )
     fun `Skal tillate null som svar`(type: String, forventetSvar: String) {
         val jsonSvar = objectMapper.readTree("""{"type": "$type", "svar": $forventetSvar}""")

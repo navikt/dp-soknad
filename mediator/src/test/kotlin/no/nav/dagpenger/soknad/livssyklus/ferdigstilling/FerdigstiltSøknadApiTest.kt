@@ -26,19 +26,19 @@ internal class FerdigstiltSøknadApiTest {
         TestApplication.withMockAuthServerAndTestApplication() {
             assertEquals(
                 HttpStatusCode.Unauthorized,
-                client.get("${Configuration.basePath}/${UUID.randomUUID()}/ferdigstilt/tekst").status
+                client.get("${Configuration.basePath}/${UUID.randomUUID()}/ferdigstilt/tekst").status,
             )
             assertEquals(
                 HttpStatusCode.Unauthorized,
-                client.get("${Configuration.basePath}/${UUID.randomUUID()}/ferdigstilt/fakta").status
+                client.get("${Configuration.basePath}/${UUID.randomUUID()}/ferdigstilt/fakta").status,
             )
             assertEquals(
                 HttpStatusCode.Unauthorized,
                 autentisert(
                     endepunkt = "${Configuration.basePath}/${UUID.randomUUID()}/ferdigstilt/fakta",
                     token = TestApplication.testTokenXToken,
-                    httpMethod = HttpMethod.Get
-                ).status
+                    httpMethod = HttpMethod.Get,
+                ).status,
             )
         }
     }
@@ -50,15 +50,15 @@ internal class FerdigstiltSøknadApiTest {
                 HttpStatusCode.OK,
                 autentisert(
                     token = TestApplication.azureAdToken,
-                    endepunkt = "${Configuration.basePath}/${UUID.randomUUID()}/ferdigstilt/tekst"
-                ).status
+                    endepunkt = "${Configuration.basePath}/${UUID.randomUUID()}/ferdigstilt/tekst",
+                ).status,
             )
             assertEquals(
                 HttpStatusCode.OK,
                 autentisert(
                     token = TestApplication.azureAdToken,
-                    endepunkt = "${Configuration.basePath}/${UUID.randomUUID()}/ferdigstilt/tekst"
-                ).status
+                    endepunkt = "${Configuration.basePath}/${UUID.randomUUID()}/ferdigstilt/tekst",
+                ).status,
             )
         }
     }
@@ -72,7 +72,7 @@ internal class FerdigstiltSøknadApiTest {
                     ferdigstiltSøknadsApi(
                         mockk<FerdigstiltSøknadPostgresRepository>().also {
                             every { it.hentTekst(søknadId) } returns dummySøknadsTekst
-                        }
+                        },
                     )
                 }
             }
@@ -94,7 +94,7 @@ internal class FerdigstiltSøknadApiTest {
                     ferdigstiltSøknadsApi(
                         mockk<FerdigstiltSøknadPostgresRepository>().also {
                             every { it.hentTekst(søknadId) } throws NotFoundException(søknadId.toString())
-                        }
+                        },
                     )
                 }
             }
@@ -114,7 +114,7 @@ internal class FerdigstiltSøknadApiTest {
                     ferdigstiltSøknadsApi(
                         mockk<FerdigstiltSøknadPostgresRepository>().also {
                             every { it.hentFakta(søknadId) } returns dummyFakta
-                        }
+                        },
                     )
                 }
             }
@@ -136,7 +136,7 @@ internal class FerdigstiltSøknadApiTest {
                     ferdigstiltSøknadsApi(
                         mockk<FerdigstiltSøknadPostgresRepository>().also {
                             every { it.hentFakta(søknadId) } throws NotFoundException(søknadId.toString())
-                        }
+                        },
                     )
                 }
             }

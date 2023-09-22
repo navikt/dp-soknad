@@ -41,8 +41,8 @@ internal class NyEttersendingBehovMottak(rapidsConnection: RapidsConnection, pri
 
             packet["@løsning"] = mapOf(
                 behov to mapOf(
-                    "innsendingId" to hendelse.innsendingId
-                )
+                    "innsendingId" to hendelse.innsendingId,
+                ),
             )
             context.publish(packet.toJson())
         }

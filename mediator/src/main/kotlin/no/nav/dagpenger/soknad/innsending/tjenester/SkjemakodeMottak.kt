@@ -39,15 +39,15 @@ internal class SkjemakodeMottak(rapidsConnection: RapidsConnection, private val 
 
         withLoggingContext(
             "søknadId" to søknadId.toString(),
-            "innsendingId" to innsendingId.toString()
+            "innsendingId" to innsendingId.toString(),
         ) {
             logger.info { "Mottatt løsning for $behov for $innsendingId med skjemakode=${packet.skjemakode()}" }
             mediator.behandle(
                 InnsendingMetadataMottattHendelse(
                     innsendingId = innsendingId,
                     ident = ident,
-                    skjemaKode = packet.skjemakode()
-                )
+                    skjemaKode = packet.skjemakode(),
+                ),
             )
         }
     }

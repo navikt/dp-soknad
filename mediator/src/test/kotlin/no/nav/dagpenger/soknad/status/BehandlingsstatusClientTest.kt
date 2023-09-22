@@ -35,19 +35,19 @@ class BehandlingsstatusClientTest {
                     assertEquals(HttpMethod.Get, request.method)
                     assertEquals(
                         "Bearer ${testTokenProvider.invoke(subjectToken, innsynAudience)}",
-                        request.headers[HttpHeaders.Authorization]
+                        request.headers[HttpHeaders.Authorization],
                     )
                     assertEquals(callId, request.headers[HttpHeaders.XRequestId])
                     respond(
                         content = """{"behandlingsstatus":"UnderBehandling"}""".trimMargin(),
-                        headers = headersOf(HttpHeaders.ContentType, "application/json")
+                        headers = headersOf(HttpHeaders.ContentType, "application/json"),
                     )
-                }
+                },
             )
 
             assertEquals(
                 BehandlingsstatusDto("UnderBehandling"),
-                behandlingsstatusClient.hentBehandlingsstatus(fom, subjectToken)
+                behandlingsstatusClient.hentBehandlingsstatus(fom, subjectToken),
             )
         }
     }
@@ -61,12 +61,12 @@ class BehandlingsstatusClientTest {
                 testTokenProvider,
                 engine = MockEngine {
                     this.respondError(status = HttpStatusCode.InternalServerError)
-                }
+                },
             )
 
             assertEquals(
                 BehandlingsstatusDto("Ukjent"),
-                behandlingsstatusClient.hentBehandlingsstatus(LocalDate.now(), subjectToken)
+                behandlingsstatusClient.hentBehandlingsstatus(LocalDate.now(), subjectToken),
             )
         }
     }
@@ -81,14 +81,14 @@ class BehandlingsstatusClientTest {
                 engine = MockEngine {
                     respond(
                         content = """{"behandlingsstatus":null}""".trimMargin(),
-                        headers = headersOf(HttpHeaders.ContentType, "application/json")
+                        headers = headersOf(HttpHeaders.ContentType, "application/json"),
                     )
-                }
+                },
             )
 
             assertEquals(
                 BehandlingsstatusDto("Ukjent"),
-                behandlingsstatusClient.hentBehandlingsstatus(LocalDate.now(), subjectToken)
+                behandlingsstatusClient.hentBehandlingsstatus(LocalDate.now(), subjectToken),
             )
         }
     }

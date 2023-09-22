@@ -54,13 +54,13 @@ private class PåbegynteSøknadVisitor(søknad: Søknad) : SøknadVisitor {
         språk: Språk,
         dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime,
-        prosessversjon: Prosessversjon?
+        prosessversjon: Prosessversjon?,
     ) {
         påbegyntSøknad = PåbegyntSøknad(
             uuid = søknadId,
             opprettet = opprettet,
             spraak = språk.verdi.toLanguageTag(),
-            sistEndret = sistEndretAvBruker
+            sistEndret = sistEndretAvBruker,
         )
     }
 }
@@ -69,5 +69,5 @@ private data class PåbegyntSøknad(
     val uuid: UUID,
     val opprettet: ZonedDateTime,
     val spraak: String,
-    val sistEndret: ZonedDateTime?
+    val sistEndret: ZonedDateTime?,
 )

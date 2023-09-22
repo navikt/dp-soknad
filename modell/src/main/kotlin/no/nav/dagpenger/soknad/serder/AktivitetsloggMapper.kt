@@ -16,7 +16,7 @@ class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
         WARN,
         BEHOV,
         ERROR,
-        SEVERE
+        SEVERE,
     }
 
     companion object {
@@ -33,7 +33,7 @@ class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
     private val aktiviteter = Aktivitetslogginspektør(aktivitetslogg).aktiviteter
 
     internal fun toMap() = mutableMapOf(
-        "aktiviteter" to aktiviteter
+        "aktiviteter" to aktiviteter,
     )
 
     private inner class Aktivitetslogginspektør(aktivitetslogg: Aktivitetslogg) : AktivitetsloggVisitor {
@@ -47,7 +47,7 @@ class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
             kontekster: List<SpesifikkKontekst>,
             aktivitet: Aktivitetslogg.Aktivitet.Info,
             melding: String,
-            tidsstempel: String
+            tidsstempel: String,
         ) {
             leggTilMelding(kontekster, Alvorlighetsgrad.INFO, melding, tidsstempel)
         }
@@ -56,7 +56,7 @@ class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
             kontekster: List<SpesifikkKontekst>,
             aktivitet: Aktivitetslogg.Aktivitet.Warn,
             melding: String,
-            tidsstempel: String
+            tidsstempel: String,
         ) {
             leggTilMelding(kontekster, Alvorlighetsgrad.WARN, melding, tidsstempel)
         }
@@ -67,7 +67,7 @@ class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
             type: Aktivitetslogg.Aktivitet.Behov.Behovtype,
             melding: String,
             detaljer: Map<String, Any>,
-            tidsstempel: String
+            tidsstempel: String,
         ) {
             leggTilBehov(
                 kontekster,
@@ -75,7 +75,7 @@ class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
                 type,
                 melding,
                 detaljer,
-                tidsstempel
+                tidsstempel,
             )
         }
 
@@ -83,7 +83,7 @@ class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
             kontekster: List<SpesifikkKontekst>,
             aktivitet: Aktivitetslogg.Aktivitet.Error,
             melding: String,
-            tidsstempel: String
+            tidsstempel: String,
         ) {
             leggTilMelding(kontekster, Alvorlighetsgrad.ERROR, melding, tidsstempel)
         }
@@ -92,7 +92,7 @@ class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
             kontekster: List<SpesifikkKontekst>,
             aktivitet: Aktivitetslogg.Aktivitet.Severe,
             melding: String,
-            tidsstempel: String
+            tidsstempel: String,
         ) {
             leggTilMelding(kontekster, Alvorlighetsgrad.SEVERE, melding, tidsstempel)
         }
@@ -101,7 +101,7 @@ class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
             kontekster: List<SpesifikkKontekst>,
             alvorlighetsgrad: Alvorlighetsgrad,
             melding: String,
-            tidsstempel: String
+            tidsstempel: String,
         ) {
             aktiviteter.add(
                 mutableMapOf<String, Any>(
@@ -109,8 +109,8 @@ class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
                     "alvorlighetsgrad" to alvorlighetsgrad.name,
                     "melding" to melding,
                     "detaljer" to emptyMap<String, Any>(),
-                    "tidsstempel" to tidsstempel
-                )
+                    "tidsstempel" to tidsstempel,
+                ),
             )
         }
 
@@ -120,7 +120,7 @@ class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
             type: Aktivitetslogg.Aktivitet.Behov.Behovtype,
             melding: String,
             detaljer: Map<String, Any>,
-            tidsstempel: String
+            tidsstempel: String,
         ) {
             aktiviteter.add(
                 mutableMapOf<String, Any>(
@@ -129,8 +129,8 @@ class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
                     "behovtype" to type.toString(),
                     "melding" to melding,
                     "detaljer" to detaljer,
-                    "tidsstempel" to tidsstempel
-                )
+                    "tidsstempel" to tidsstempel,
+                ),
             )
         }
 
@@ -138,7 +138,7 @@ class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
             return kontekster.map {
                 mutableMapOf(
                     "kontekstType" to it.kontekstType,
-                    "kontekstMap" to it.kontekstMap
+                    "kontekstMap" to it.kontekstMap,
                 )
             }
         }

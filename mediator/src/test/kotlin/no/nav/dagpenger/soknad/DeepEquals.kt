@@ -37,7 +37,7 @@ private class ModelDeepEquals {
         Assertions.assertEquals(
             one::class,
             other::class,
-            "Mismatching classes: ${one.javaClass.simpleName} vs ${other.javaClass.simpleName} for field: $fieldName"
+            "Mismatching classes: ${one.javaClass.simpleName} vs ${other.javaClass.simpleName} for field: $fieldName",
         )
         if (one is Enum<*> && other is Enum<*>) {
             Assertions.assertEquals(one, other, "Failure on enum: $fieldName")

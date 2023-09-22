@@ -33,7 +33,7 @@ internal fun Route.besvarFaktumRoute(søknadMediator: SøknadMediator) {
                     faktumId = faktumId,
                     type = input.type,
                     ident = ident,
-                    svar = input.svarAsJson
+                    svar = input.svarAsJson,
                 )
                 val sistBesvart = søknadMediator.besvart(faktumSvar.søknadUuid())
                 søknadMediator.behandle(faktumSvar)
@@ -47,7 +47,7 @@ internal fun Route.besvarFaktumRoute(søknadMediator: SøknadMediator) {
 
 private data class BesvartFaktum(
     val status: String,
-    val sistBesvart: Int
+    val sistBesvart: Int,
 )
 
 private fun PipelineContext<Unit, ApplicationCall>.faktumId(): String {

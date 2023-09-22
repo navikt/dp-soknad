@@ -14,15 +14,15 @@ internal class PersonOppslag(
     private val tokenProvider: (token: String, audience: String) -> String = { s: String, a: String ->
         tokenXClient.tokenExchange(s, a).accessToken
     },
-    private val pdlAudience: String = Configuration.pdlAudience
+    private val pdlAudience: String = Configuration.pdlAudience,
 ) {
 
     suspend fun hentPerson(fnr: String, subjectToken: String): Person {
         val person = personOppslag.hentPerson(
             fnr,
             mapOf(
-                HttpHeaders.Authorization to "Bearer ${tokenProvider.invoke(subjectToken, pdlAudience)}"
-            )
+                HttpHeaders.Authorization to "Bearer ${tokenProvider.invoke(subjectToken, pdlAudience)}",
+            ),
         )
 
         val adresseMapper = AdresseMapper(AdresseVisitor(person).adresser)
@@ -34,7 +34,7 @@ internal class PersonOppslag(
             fødselsDato = person.fodselsdato,
             ident = fnr,
             postAdresse = adresseMapper.postAdresse,
-            folkeregistrertAdresse = adresseMapper.folkeregistertAdresse
+            folkeregistrertAdresse = adresseMapper.folkeregistertAdresse,
         )
     }
 }

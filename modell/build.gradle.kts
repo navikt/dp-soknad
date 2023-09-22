@@ -1,15 +1,25 @@
 plugins {
-    id("dagpenger.common")
+    id("common")
 }
 
 dependencies {
-    implementation(Jackson.core)
-    implementation(Jackson.kotlin)
-    implementation(Jackson.jsr310)
-    api("de.slub-dresden:urnlib:2.0.1")
-    api("no.bekk.bekkopen:nocommons:0.12.0")
 
-    testImplementation(Junit5.params)
-    testImplementation(Mockk.mockk)
+    implementation(libs.bundles.jackson)
+    api("de.slub-dresden:urnlib:2.0.1")
+
+    testImplementation("io.kotest:kotest-assertions-core-jvm:${libs.versions.kotest.get()}")
+
+    testImplementation("io.mockk:mockk:${libs.versions.mockk.get()}")
+    testImplementation(libs.mock.oauth2.server)
+    testImplementation(libs.ktor.server.test.host.jvm)
     testImplementation("com.approvaltests:approvaltests:11.2.3")
+//    implementation(Jackson.core)
+//    implementation(Jackson.kotlin)
+//    implementation(Jackson.jsr310)
+//    api("de.slub-dresden:urnlib:2.0.1")
+//    api("no.bekk.bekkopen:nocommons:0.12.0")
+//
+//    testImplementation(Junit5.params)
+//    testImplementation(Mockk.mockk)
+//    testImplementation("com.approvaltests:approvaltests:11.2.3")
 }

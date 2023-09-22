@@ -41,14 +41,16 @@ private fun lagMineSøknaderDto(søknader: List<Søknad>, fom: LocalDate, includ
         val mineSøknaderVisitor = MineSøknaderVisitor(søknad)
         val dokumentkrav = if (includeDokumentkrav) {
             mineSøknaderVisitor.dokumentkrav().toMineSoknaderDokumentkravDTO()
-        } else null
+        } else {
+            null
+        }
 
         when {
             mineSøknaderVisitor.søknadTilstand() == Påbegynt ->
                 påbegyntSøknad = PåbegyntSøknadDto(
                     søknad.søknadUUID(),
                     mineSøknaderVisitor.søknadOpprettet(),
-                    mineSøknaderVisitor.sistEndretAvBruker()
+                    mineSøknaderVisitor.sistEndretAvBruker(),
                 )
 
             mineSøknaderVisitor.søknadTilstand() == Innsendt -> {
@@ -57,8 +59,8 @@ private fun lagMineSøknaderDto(søknader: List<Søknad>, fom: LocalDate, includ
                         InnsendtSøknadDto(
                             søknad.søknadUUID(),
                             mineSøknaderVisitor.søknadInnsendt(),
-                            dokumentkrav
-                        )
+                            dokumentkrav,
+                        ),
                     )
                 }
             }
@@ -76,7 +78,7 @@ internal fun Set<Krav>.toMineSoknaderDokumentkravDTO(): List<MineSoknaderDokumen
         begrunnelse = krav.svar.begrunnelse,
         filer = krav.svar.filer.map { it.filnavn },
         valg = krav.svar.valg.name,
-        bundleFilsti = krav.svar.bundle?.namespaceSpecificString()?.toString()
+        bundleFilsti = krav.svar.bundle?.namespaceSpecificString()?.toString(),
     )
 }
 

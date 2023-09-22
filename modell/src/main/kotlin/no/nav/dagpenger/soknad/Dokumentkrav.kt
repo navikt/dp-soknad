@@ -10,7 +10,7 @@ import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import java.time.ZonedDateTime
 
 class Dokumentkrav private constructor(
-    private val krav: MutableSet<Krav> = mutableSetOf()
+    private val krav: MutableSet<Krav> = mutableSetOf(),
 ) {
     private val observers = mutableListOf<DokumentkravObserver>()
 
@@ -27,7 +27,7 @@ class Dokumentkrav private constructor(
         krav.addAll(
             ikkeHåndterte.map {
                 Krav(it)
-            }
+            },
         )
     }
 
@@ -45,9 +45,9 @@ class Dokumentkrav private constructor(
                 DokumentkravObserver.DokumentkravInnsendtEvent.DokumentkravInnsendingSomethingSomething(
                     dokumentnavn = it.beskrivendeId,
                     skjemakode = it.tilSkjemakode(),
-                    valg = it.svar.valg.name
+                    valg = it.svar.valg.name,
                 )
-            }
+            },
         )
         observers.forEach { it.dokumentkravInnsendt(event) }
     }
@@ -67,9 +67,9 @@ class Dokumentkrav private constructor(
                             filnavn = krav.beskrivendeId,
                             urn = krav.svar.bundle.toString(),
                             variant = "ARKIV", // TODO: hent filtype fra bundle
-                            type = "PDF" // TODO: Hva setter vi her?
-                        )
-                    )
+                            type = "PDF", // TODO: Hva setter vi her?
+                        ),
+                    ),
                 )
             }
 
@@ -92,7 +92,7 @@ data class Krav(
     val id: String,
     val svar: Svar,
     val sannsynliggjøring: Sannsynliggjøring,
-    var tilstand: KravTilstand
+    var tilstand: KravTilstand,
 ) {
     companion object {
         fun aktive(): (Krav) -> Boolean = { it.tilstand == KravTilstand.AKTIV }
@@ -102,7 +102,7 @@ data class Krav(
         sannsynliggjøring.id,
         Svar(),
         sannsynliggjøring,
-        KravTilstand.AKTIV
+        KravTilstand.AKTIV,
     )
 
     val beskrivendeId: String get() = sannsynliggjøring.faktum().beskrivendeId
@@ -165,14 +165,15 @@ data class Krav(
         DOKUMENTASJON_AV_HELSE_OG_FUNKSJONSNIVÅ("T9"),
         UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL("Y2"),
         FODSELSATTEST_BOSTEDSBEVIS_BARN_UNDER_18("X8"),
-        ANNET("N6");
+        ANNET("N6"),
+        ;
 
         fun verdi() = skjemakodeverdi
     }
 
     enum class KravTilstand {
         AKTIV,
-        INAKTIV
+        INAKTIV,
     }
 
     data class Svar(
@@ -180,14 +181,14 @@ data class Krav(
         var valg: SvarValg,
         var begrunnelse: String?,
         var bundle: URN?,
-        var innsendt: Boolean // todo slå sammen med bundle?
+        var innsendt: Boolean, // todo slå sammen med bundle?
     ) {
         constructor() : this(
             filer = mutableSetOf(),
             valg = IKKE_BESVART,
             begrunnelse = null,
             bundle = null,
-            innsendt = false
+            innsendt = false,
         )
 
         fun håndter(hendelse: SøknadInnsendtHendelse) {
@@ -230,7 +231,7 @@ data class Krav(
             SEND_SENERE,
             ANDRE_SENDER,
             SEND_TIDLIGERE,
-            SENDER_IKKE
+            SENDER_IKKE,
         }
     }
 
@@ -239,7 +240,7 @@ data class Krav(
         val urn: URN,
         val storrelse: Long,
         val tidspunkt: ZonedDateTime,
-        var bundlet: Boolean
+        var bundlet: Boolean,
     ) {
         init {
             require(urn.supports(RFC.RFC_8141)) {

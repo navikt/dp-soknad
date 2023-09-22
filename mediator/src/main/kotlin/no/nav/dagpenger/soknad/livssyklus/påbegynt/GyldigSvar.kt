@@ -27,13 +27,13 @@ class GyldigSvar(json: JsonNode) {
             "boolean" -> require(svarAsJson.isBoolean, feilmelding())
             "flervalg" -> require(
                 erValg() && svarAsJson.size() > 0,
-                feilmelding()
+                feilmelding(),
             )
 
             "envalg" -> require((erTekst()), feilmelding())
             "localdate" -> require(
                 svarAsJson.isTextual && kotlin.runCatching { svarAsJson.asLocalDate() }.isSuccess,
-                feilmelding()
+                feilmelding(),
             )
 
             "double" -> require(svarAsJson.isDouble || svarAsJson.isNumber, feilmelding())
@@ -85,7 +85,7 @@ class GyldigSvar(json: JsonNode) {
             {},
             {
                 throw IllegalArgumentException("Ikke gyldig '$type', feil i underliggende faktum ${it.message}, svar: $svarAsJson")
-            }
+            },
         )
     }
 
@@ -101,7 +101,7 @@ class GyldigSvar(json: JsonNode) {
                     }
                 }
             }.isSuccess,
-            feilmelding()
+            feilmelding(),
         )
     }
 }

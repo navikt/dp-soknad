@@ -23,7 +23,7 @@ internal fun faktumJson(id: String, beskrivendeId: String) = jacksonObjectMapper
     |  "sannsynliggjoresAv": [],
     |  "readOnly": false
     |}
-    """.trimMargin()
+    """.trimMargin(),
 )
 
 internal class DokumentkravTest {
@@ -32,7 +32,7 @@ internal class DokumentkravTest {
     private val sannsynliggjøring = Sannsynliggjøring(
         id = dokumentFaktum.id,
         faktum = dokumentFaktum,
-        sannsynliggjør = faktaSomSannsynliggjøres
+        sannsynliggjør = faktaSomSannsynliggjøres,
     )
 
     @Test
@@ -108,7 +108,7 @@ internal class DokumentkravTest {
             Dokumentkrav().also {
                 it.håndter(setOf(sannsynliggjøring))
             },
-            dokumentkrav
+            dokumentkrav,
         )
 
         assertNotEquals(Dokumentkrav(), dokumentkrav)
@@ -120,13 +120,12 @@ internal class DokumentkravTest {
             Dokumentkrav().also {
                 it.håndter(setOf(sannsynliggjøring, nySannsynliggjøring))
             },
-            dokumentkrav
+            dokumentkrav,
         )
     }
 
     @Test
     fun `gir riktig skjemakode`() {
-
         assertEquals("N6", krav("ID").tilSkjemakode())
         assertEquals("T3", krav("faktum.dokument-avtjent-militaer-sivilforsvar-tjeneste-siste-12-mnd-dokumentasjon").tilSkjemakode())
         assertEquals("K1", krav("faktum.dokument-tjenestepensjon").tilSkjemakode())

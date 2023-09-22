@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter
 // Implements Visitor pattern to traverse the messages
 class Aktivitetslogg private constructor(
     private var forelder: Aktivitetslogg? = null,
-    private val aktiviteter: MutableList<Aktivitet>
+    private val aktiviteter: MutableList<Aktivitet>,
 ) : IAktivitetslogg {
     private val kontekster: MutableList<Aktivitetskontekst> = mutableListOf()
 
@@ -20,7 +20,7 @@ class Aktivitetslogg private constructor(
 
         private val MODELL_KONTEKSTER = listOf("søknad")
         fun rehyder(
-            aktiviteter: MutableList<Aktivitet>
+            aktiviteter: MutableList<Aktivitet>,
         ) = Aktivitetslogg(null, aktiviteter)
     }
 
@@ -118,7 +118,7 @@ class Aktivitetslogg private constructor(
         private val label: Char,
         private var melding: String,
         private val tidsstempel: String,
-        internal val kontekster: List<SpesifikkKontekst>
+        internal val kontekster: List<SpesifikkKontekst>,
     ) : Comparable<Aktivitet> {
         private companion object {
             private val tidsstempelformat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
@@ -147,7 +147,7 @@ class Aktivitetslogg private constructor(
         class Info(
             kontekster: List<SpesifikkKontekst>,
             private val melding: String,
-            private val tidsstempel: String = LocalDateTime.now().format(tidsstempelformat)
+            private val tidsstempel: String = LocalDateTime.now().format(tidsstempelformat),
         ) : Aktivitet(0, 'I', melding, tidsstempel, kontekster) {
             companion object {
                 internal fun filter(aktiviteter: List<Aktivitet>): List<Info> {
@@ -163,7 +163,7 @@ class Aktivitetslogg private constructor(
         class Warn(
             kontekster: List<SpesifikkKontekst>,
             private val melding: String,
-            private val tidsstempel: String = LocalDateTime.now().format(tidsstempelformat)
+            private val tidsstempel: String = LocalDateTime.now().format(tidsstempelformat),
         ) : Aktivitet(25, 'W', melding, tidsstempel, kontekster) {
             companion object {
                 internal fun filter(aktiviteter: List<Aktivitet>): List<Warn> {
@@ -181,7 +181,7 @@ class Aktivitetslogg private constructor(
             kontekster: List<SpesifikkKontekst>,
             private val melding: String,
             private val detaljer: Map<String, Any> = emptyMap(),
-            private val tidsstempel: String = LocalDateTime.now().format(tidsstempelformat)
+            private val tidsstempel: String = LocalDateTime.now().format(tidsstempelformat),
         ) : Aktivitet(50, 'N', melding, tidsstempel, kontekster) {
             companion object {
                 internal fun filter(aktiviteter: List<Aktivitet>): List<Behov> {
@@ -203,15 +203,16 @@ class Aktivitetslogg private constructor(
                 NyJournalpost,
                 NyInnsending,
                 NyEttersending,
+
                 // Historiske behov som ikke lengre brukes aktivt, men må være tilgjengelig for aktivitetsloggen.
-                OppgaveOmEttersending
+                OppgaveOmEttersending,
             }
         }
 
         class Error(
             kontekster: List<SpesifikkKontekst>,
             private val melding: String,
-            private val tidsstempel: String = LocalDateTime.now().format(tidsstempelformat)
+            private val tidsstempel: String = LocalDateTime.now().format(tidsstempelformat),
         ) : Aktivitet(75, 'E', melding, tidsstempel, kontekster) {
             companion object {
                 internal fun filter(aktiviteter: List<Aktivitet>): List<Error> {
@@ -227,7 +228,7 @@ class Aktivitetslogg private constructor(
         class Severe(
             kontekster: List<SpesifikkKontekst>,
             private val melding: String,
-            private val tidsstempel: String = LocalDateTime.now().format(tidsstempelformat)
+            private val tidsstempel: String = LocalDateTime.now().format(tidsstempelformat),
         ) : Aktivitet(100, 'S', melding, tidsstempel, kontekster) {
             companion object {
                 internal fun filter(aktiviteter: List<Aktivitet>): List<Severe> {
@@ -270,7 +271,7 @@ interface AktivitetsloggVisitor {
         kontekster: List<SpesifikkKontekst>,
         aktivitet: Aktivitetslogg.Aktivitet.Info,
         melding: String,
-        tidsstempel: String
+        tidsstempel: String,
     ) {
     }
 
@@ -278,7 +279,7 @@ interface AktivitetsloggVisitor {
         kontekster: List<SpesifikkKontekst>,
         aktivitet: Aktivitetslogg.Aktivitet.Warn,
         melding: String,
-        tidsstempel: String
+        tidsstempel: String,
     ) {
     }
 
@@ -288,7 +289,7 @@ interface AktivitetsloggVisitor {
         type: Behov.Behovtype,
         melding: String,
         detaljer: Map<String, Any>,
-        tidsstempel: String
+        tidsstempel: String,
     ) {
     }
 
@@ -296,7 +297,7 @@ interface AktivitetsloggVisitor {
         kontekster: List<SpesifikkKontekst>,
         aktivitet: Aktivitetslogg.Aktivitet.Error,
         melding: String,
-        tidsstempel: String
+        tidsstempel: String,
     ) {
     }
 
@@ -304,7 +305,7 @@ interface AktivitetsloggVisitor {
         kontekster: List<SpesifikkKontekst>,
         aktivitet: Aktivitetslogg.Aktivitet.Severe,
         melding: String,
-        tidsstempel: String
+        tidsstempel: String,
     ) {
     }
 

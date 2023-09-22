@@ -50,13 +50,13 @@ class MineSøknaderApiTest {
     private val sannsynliggjøring1 = Sannsynliggjøring(
         id = dokumentfaktum1.id,
         faktum = dokumentfaktum1,
-        sannsynliggjør = faktaSomSannsynliggjøres
+        sannsynliggjør = faktaSomSannsynliggjøres,
     )
 
     private val sannsynliggjøring2 = Sannsynliggjøring(
         id = dokumentfaktum2.id,
         faktum = dokumentfaktum2,
-        sannsynliggjør = faktaSomSannsynliggjøres
+        sannsynliggjør = faktaSomSannsynliggjøres,
     )
 
     private val fil = Krav.Fil(
@@ -64,7 +64,7 @@ class MineSøknaderApiTest {
         urn = URN.rfc8141().parse("urn:nav:1"),
         storrelse = 89900,
         tidspunkt = ZonedDateTime.now(),
-        bundlet = false
+        bundlet = false,
     )
 
     private val krav1 = Krav(
@@ -74,10 +74,10 @@ class MineSøknaderApiTest {
             valg = Krav.Svar.SvarValg.SEND_NÅ,
             begrunnelse = null,
             bundle = URN.rfc8141().parse("urn:bundle:1"),
-            innsendt = true
+            innsendt = true,
         ),
         sannsynliggjøring = sannsynliggjøring1,
-        tilstand = Krav.KravTilstand.AKTIV
+        tilstand = Krav.KravTilstand.AKTIV,
     )
 
     private val krav2 = Krav(
@@ -87,14 +87,14 @@ class MineSøknaderApiTest {
             valg = Krav.Svar.SvarValg.SENDER_IKKE,
             begrunnelse = "Har ikke dokumentet tilgjengelig",
             bundle = null,
-            innsendt = true
+            innsendt = true,
         ),
         sannsynliggjøring = sannsynliggjøring2,
-        tilstand = Krav.KravTilstand.AKTIV
+        tilstand = Krav.KravTilstand.AKTIV,
     )
 
     private val dokumentkrav = Dokumentkrav.rehydrer(
-        setOf(krav1, krav2)
+        setOf(krav1, krav2),
     )
 
     @Test
@@ -105,10 +105,10 @@ class MineSøknaderApiTest {
                     every { it.hentSøknader(defaultDummyFodselsnummer) } returns setOf(
                         søknadMed(tilstand = Påbegynt),
                         søknadMed(tilstand = Innsendt),
-                        søknadMed(tilstand = Innsendt)
+                        søknadMed(tilstand = Innsendt),
                     )
-                }
-            )
+                },
+            ),
         ) {
             autentisert("$endepunkt?fom=$nå", httpMethod = HttpMethod.Get).also { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
@@ -132,15 +132,15 @@ class MineSøknaderApiTest {
                     every { it.hentSøknader(defaultDummyFodselsnummer) } returns setOf(
                         søknadMed(
                             tilstand = Påbegynt,
-                            prosessversjon = Prosessversjon(Prosessnavn("Innsending"), 1)
+                            prosessversjon = Prosessversjon(Prosessnavn("Innsending"), 1),
                         ),
                         søknadMed(
                             tilstand = Innsendt,
-                            prosessversjon = Prosessversjon(Prosessnavn("Innsending"), 1)
+                            prosessversjon = Prosessversjon(Prosessnavn("Innsending"), 1),
                         ),
                     )
-                }
-            )
+                },
+            ),
         ) {
             autentisert("$endepunkt?fom=$nå", httpMethod = HttpMethod.Get).also { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
@@ -158,8 +158,8 @@ class MineSøknaderApiTest {
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentSøknader(defaultDummyFodselsnummer) } returns emptySet()
-                }
-            )
+                },
+            ),
         ) {
             autentisert("$endepunkt?fom=$nå", httpMethod = HttpMethod.Get).also { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
@@ -177,10 +177,10 @@ class MineSøknaderApiTest {
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentSøknader(defaultDummyFodselsnummer) } returns setOf(
-                        søknadMed(tilstand = Innsendt)
+                        søknadMed(tilstand = Innsendt),
                     )
-                }
-            )
+                },
+            ),
         ) {
             autentisert("$endepunkt?fom=$nå", httpMethod = HttpMethod.Get).also { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
@@ -200,7 +200,7 @@ class MineSøknaderApiTest {
     fun `tar ikke med søknader som er innsendt før fom queryparam`() {
         val gammelInnsendtSøknad = søknadMed(
             tilstand = Innsendt,
-            innsendt = nå.atStartOfDay().minusDays(2).atZone(ZoneId.of("Europe/Oslo"))
+            innsendt = nå.atStartOfDay().minusDays(2).atZone(ZoneId.of("Europe/Oslo")),
         )
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -208,10 +208,10 @@ class MineSøknaderApiTest {
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentSøknader(defaultDummyFodselsnummer) } returns setOf(
                         søknadMed(tilstand = Innsendt),
-                        gammelInnsendtSøknad
+                        gammelInnsendtSøknad,
                     )
-                }
-            )
+                },
+            ),
         ) {
             autentisert("$endepunkt?fom=$nå", httpMethod = HttpMethod.Get).also { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
@@ -245,11 +245,11 @@ class MineSøknaderApiTest {
                     every { it.hentSøknader(defaultDummyFodselsnummer) } returns setOf(
                         søknadMed(
                             tilstand = Innsendt,
-                            dokumentkrav = dokumentkrav
-                        )
+                            dokumentkrav = dokumentkrav,
+                        ),
                     )
-                }
-            )
+                },
+            ),
         ) {
             autentisert("$endepunktIncludeDokumentkrav&fom=$nå", httpMethod = HttpMethod.Get).let { response ->
                 assertEquals(HttpStatusCode.OK, response.status)

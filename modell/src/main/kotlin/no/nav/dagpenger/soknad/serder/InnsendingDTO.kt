@@ -15,7 +15,7 @@ data class InnsendingDTO(
     var hovedDokument: Innsending.Dokument? = null,
     val dokumenter: List<Innsending.Dokument>,
     val metadata: MetadataDTO?,
-    val ettersendinger: List<InnsendingDTO>
+    val ettersendinger: List<InnsendingDTO>,
 ) {
     fun rehydrer(): Innsending {
         return Innsending.rehydrer(
@@ -28,7 +28,7 @@ data class InnsendingDTO(
             tilstandsType = this.tilstand.rehydrer(),
             hovedDokument = hovedDokument,
             dokumenter = dokumenter,
-            metadata = metadata?.rehydrer()
+            metadata = metadata?.rehydrer(),
         )
     }
 
@@ -38,7 +38,8 @@ data class InnsendingDTO(
         AvventerArkiverbarSøknad,
         AvventerMidlertidligJournalføring,
         AvventerJournalføring,
-        Journalført;
+        Journalført,
+        ;
 
         fun rehydrer(): Innsending.TilstandType {
             return when (this) {
@@ -58,7 +59,8 @@ data class InnsendingDTO(
 
     enum class InnsendingTypeDTO {
         NY_DIALOG,
-        ETTERSENDING_TIL_DIALOG;
+        ETTERSENDING_TIL_DIALOG,
+        ;
 
         fun rehydrer(): Innsending.InnsendingType {
             return when (this) {
@@ -74,7 +76,7 @@ data class InnsendingDTO(
 
     data class DokumenterDTO(
         var hovedDokument: Innsending.Dokument? = null,
-        val dokumenter: MutableList<Innsending.Dokument> = mutableListOf()
+        val dokumenter: MutableList<Innsending.Dokument> = mutableListOf(),
     )
 
     data class MetadataDTO(val skjemakode: String) {

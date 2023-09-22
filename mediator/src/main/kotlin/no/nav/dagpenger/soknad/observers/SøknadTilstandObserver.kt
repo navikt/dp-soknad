@@ -18,8 +18,8 @@ internal class SøknadTilstandObserver(private val rapidsConnection: RapidsConne
             "ident" to event.ident,
             "forrigeTilstand" to event.forrigeTilstand,
             "gjeldendeTilstand" to event.gjeldendeTilstand,
-            event.prosessversjon?.prosessnavn?.let { "prosessnavn" to it.id }
-        ).toMap()
+            event.prosessversjon?.prosessnavn?.let { "prosessnavn" to it.id },
+        ).toMap(),
     ).toJson()
 
     override fun søknadSlettet(event: SøknadSlettetEvent) =
@@ -29,8 +29,8 @@ internal class SøknadTilstandObserver(private val rapidsConnection: RapidsConne
         eventName = "søknad_slettet",
         map = mapOf(
             "søknad_uuid" to event.søknadId,
-            "ident" to event.ident
-        )
+            "ident" to event.ident,
+        ),
     ).toJson()
 
     override fun dokumentkravInnsendt(event: DokumentkravObserver.DokumentkravInnsendtEvent) =
@@ -51,9 +51,9 @@ internal class SøknadTilstandObserver(private val rapidsConnection: RapidsConne
                     mapOf(
                         "dokumentnavn" to it.dokumentnavn,
                         "skjemakode" to it.skjemakode,
-                        "valg" to it.valg
+                        "valg" to it.valg,
                     )
-                }
-            )
+                },
+            ),
         ).toJson()
 }

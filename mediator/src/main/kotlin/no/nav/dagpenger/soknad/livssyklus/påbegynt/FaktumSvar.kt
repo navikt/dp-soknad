@@ -11,7 +11,7 @@ internal class FaktumSvar(
     private val type: String,
     private val ident: String,
     private val svar: JsonNode,
-    private val besvart: LocalDateTime = LocalDateTime.now()
+    private val besvart: LocalDateTime = LocalDateTime.now(),
 ) {
     private val navn = "faktum_svar"
     private val opprettet = LocalDateTime.now()
@@ -31,10 +31,10 @@ internal class FaktumSvar(
                 mapOf(
                     "id" to faktumId,
                     "type" to type,
-                    "svar" to svar
-                )
+                    "svar" to svar,
+                ),
             ),
-            "søknad_uuid" to søknadUuid
-        )
+            "søknad_uuid" to søknadUuid,
+        ),
     ).toJson()
 }

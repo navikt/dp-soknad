@@ -24,14 +24,14 @@ import java.util.concurrent.TimeUnit
 private val logger = KotlinLogging.logger {}
 
 object TokenXFactory {
-    private object token_x : PropertyGroup() {
+    private object TokenX : PropertyGroup() {
         val well_known_url by stringType
         val client_id by stringType
     }
 
     private val tokenXConfiguration: AzureAdOpenIdConfiguration =
         runBlocking {
-            httpClient.get(Configuration.properties[token_x.well_known_url]).body()
+            httpClient.get(Configuration.properties[TokenX.well_known_url]).body()
         }
 
     fun JWTAuthenticationProvider.Config.tokenX() {
@@ -44,7 +44,7 @@ object TokenXFactory {
         }
     }
 
-    val tokenXclientId: String = Configuration.properties[token_x.client_id]
+    val tokenXclientId: String = Configuration.properties[TokenX.client_id]
     val issuer = tokenXConfiguration.issuer
     val jwkProvider: JwkProvider
         get() = JwkProviderBuilder(URL(tokenXConfiguration.jwksUri))
@@ -52,20 +52,20 @@ object TokenXFactory {
             .rateLimited(
                 10,
                 1,
-                TimeUnit.MINUTES
+                TimeUnit.MINUTES,
             ) // if not cached, only allow max 10 different keys per minute to be fetched from external provider
             .build()
 }
 
 object AzureAdFactory {
-    private object azure_app : PropertyGroup() {
+    private object AzureApp : PropertyGroup() {
         val well_known_url by stringType
         val client_id by stringType
     }
 
     private val azureConfiguration: AzureAdOpenIdConfiguration =
         runBlocking {
-            httpClient.get(Configuration.properties[azure_app.well_known_url]).body()
+            httpClient.get(Configuration.properties[AzureApp.well_known_url]).body()
         }
 
     fun JWTAuthenticationProvider.Config.azure() {
@@ -78,7 +78,7 @@ object AzureAdFactory {
         realm = Configuration.appName
     }
 
-    val azureClientId: String = Configuration.properties[azure_app.client_id]
+    val azureClientId: String = Configuration.properties[AzureApp.client_id]
     val issuer = azureConfiguration.issuer
     val jwkProvider: JwkProvider
         get() = JwkProviderBuilder(URL(azureConfiguration.jwksUri))
@@ -86,7 +86,7 @@ object AzureAdFactory {
             .rateLimited(
                 10,
                 1,
-                TimeUnit.MINUTES
+                TimeUnit.MINUTES,
             ) // if not cached, only allow max 10 different keys per minute to be fetched from external provider
             .build()
 }
@@ -99,7 +99,7 @@ private data class AzureAdOpenIdConfiguration(
     @JsonProperty("token_endpoint")
     val tokenEndpoint: String,
     @JsonProperty("authorization_endpoint")
-    val authorizationEndpoint: String
+    val authorizationEndpoint: String,
 )
 
 private val httpClient = HttpClient(CIO) {

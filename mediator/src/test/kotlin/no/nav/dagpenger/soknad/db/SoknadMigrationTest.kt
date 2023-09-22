@@ -35,7 +35,7 @@ internal class SoknadMigrationTest {
             tilstandsType = Søknad.Tilstand.Type.Innsendt,
             aktivitetslogg = Aktivitetslogg(forelder = null),
             prosessversjon = Prosessversjon("Dagpenger", 1),
-            data = FerdigSøknadData
+            data = FerdigSøknadData,
         ),
         Søknad.rehydrer(
             søknadId = søknadId2,
@@ -48,8 +48,8 @@ internal class SoknadMigrationTest {
             tilstandsType = Søknad.Tilstand.Type.Innsendt,
             aktivitetslogg = Aktivitetslogg(forelder = null),
             prosessversjon = Prosessversjon("Dagpenger", 1),
-            data = FerdigSøknadData
-        )
+            data = FerdigSøknadData,
+        ),
     )
 
     private val innsendinger = listOf<Innsending>(
@@ -63,7 +63,7 @@ internal class SoknadMigrationTest {
             tilstandsType = Innsending.TilstandType.Journalført,
             hovedDokument = null,
             dokumenter = listOf(),
-            metadata = null
+            metadata = null,
         ),
         Innsending.rehydrer(
             innsendingId = UUID.randomUUID(),
@@ -75,7 +75,7 @@ internal class SoknadMigrationTest {
             tilstandsType = Innsending.TilstandType.Journalført,
             hovedDokument = null,
             dokumenter = listOf(),
-            metadata = null
+            metadata = null,
         ),
         Innsending.rehydrer(
             innsendingId = UUID.randomUUID(),
@@ -87,8 +87,8 @@ internal class SoknadMigrationTest {
             tilstandsType = Innsending.TilstandType.Journalført,
             hovedDokument = null,
             dokumenter = listOf(),
-            metadata = null
-        )
+            metadata = null,
+        ),
     )
 
     @Test

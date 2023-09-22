@@ -44,9 +44,9 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                     WHERE uuid = :uuid
                     """.trimIndent(),
                     paramMap = mapOf(
-                        "uuid" to søknadId
-                    )
-                ).map { it.stringOrNull("person_ident") }.asSingle
+                        "uuid" to søknadId,
+                    ),
+                ).map { it.stringOrNull("person_ident") }.asSingle,
             )
         }
     }
@@ -62,9 +62,9 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                     WHERE uuid = :uuid AND tilstand != 'Slettet'
                     """.trimIndent(),
                     paramMap = mapOf(
-                        "uuid" to søknadId
-                    )
-                ).map(rowToSøknadDTO(session)).asSingle
+                        "uuid" to søknadId,
+                    ),
+                ).map(rowToSøknadDTO(session)).asSingle,
             )?.rehydrer()
         }
     }
@@ -79,9 +79,9 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 ORDER BY sist_endret_av_bruker DESC
                 """.trimIndent(),
                 mapOf(
-                    "ident" to ident
-                )
-            ).map(rowToSøknadDTO(session)).asList
+                    "ident" to ident,
+                ),
+            ).map(rowToSøknadDTO(session)).asList,
         ).map { it.rehydrer() }.toSet()
     }
 
@@ -120,9 +120,9 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                     mapOf(
                         "tilstand" to Tilstand.Type.Påbegynt.toString(),
                         "prosessnavn" to prosessversjon.prosessnavn.id,
-                        "prosessversjon" to prosessversjon.versjon
-                    )
-                ).map(rowToSøknadDTO(session)).asList
+                        "prosessversjon" to prosessversjon.versjon,
+                    ),
+                ).map(rowToSøknadDTO(session)).asList,
             ).map { it.rehydrer() }
         }
     }
@@ -150,11 +150,11 @@ internal fun Session.hentAktivitetslogg(søknadId: UUID): AktivitetsloggDTO? = r
         WHERE a.soknad_uuid = :soknadId
         """.trimIndent(),
         mapOf(
-            "soknadId" to søknadId
-        )
+            "soknadId" to søknadId,
+        ),
     ).map { row ->
         row.binaryStream("aktivitetslogg").aktivitetslogg()
-    }.asSingle
+    }.asSingle,
 )
 
 internal fun Session.hentProsessversjon(søknadId: UUID): ProsessversjonDTO? = run(
@@ -166,11 +166,11 @@ internal fun Session.hentProsessversjon(søknadId: UUID): ProsessversjonDTO? = r
                     WHERE soknad.uuid = :soknadId
         """.trimIndent(),
         mapOf(
-            "soknadId" to søknadId
-        )
+            "soknadId" to søknadId,
+        ),
     ).map { row ->
         ProsessversjonDTO(prosessnavn = row.string("prosessnavn"), versjon = row.int("prosessversjon"))
-    }.asSingle
+    }.asSingle,
 )
 
 private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
@@ -192,15 +192,15 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         språk: Språk,
         dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime,
-        prosessversjon: Prosessversjon?
+        prosessversjon: Prosessversjon?,
     ) {
         this.søknadId = søknadId
         queries.add(
             queryOf(
                 // language=PostgreSQL
                 "INSERT INTO person_v1 (ident) VALUES (:ident) ON CONFLICT DO NOTHING",
-                mapOf("ident" to ident)
-            )
+                mapOf("ident" to ident),
+            ),
         )
         queries.add(
             queryOf(
@@ -223,9 +223,9 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                     "sistEndretAvBruker" to sistEndretAvBruker,
                     "prosessnavn" to prosessversjon?.prosessnavn?.id,
                     "prosessversjon" to prosessversjon?.versjon,
-                    "innsendt" to innsendt
-                )
-            )
+                    "innsendt" to innsendt,
+                ),
+            ),
         )
     }
 
@@ -249,13 +249,13 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                     "sannsynliggjoer" to PGobject().apply {
                         type = "jsonb"
                         value = objectMapper.writeValueAsString(
-                            krav.sannsynliggjøring.sannsynliggjør().map { it.originalJson() }
+                            krav.sannsynliggjøring.sannsynliggjør().map { it.originalJson() },
                         )
                     },
                     "tilstand" to krav.tilstand.name,
-                    "innsendt" to krav.svar.innsendt
-                )
-            )
+                    "innsendt" to krav.svar.innsendt,
+                ),
+            ),
         )
     }
 
@@ -269,9 +269,9 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                     "data" to PGobject().apply {
                         type = "jsonb"
                         value = objectMapper.writeValueAsString(aktivitetslogg.toMap())
-                    }
-                )
-            )
+                    },
+                ),
+            ),
         )
     }
 }

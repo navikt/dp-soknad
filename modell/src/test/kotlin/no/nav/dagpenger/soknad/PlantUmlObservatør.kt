@@ -11,7 +11,7 @@ class PlantUmlObservatør() : SøknadObserver {
 
     private companion object {
         val path = "${
-        Paths.get("").toAbsolutePath().toString().substringBeforeLast("/")
+            Paths.get("").toAbsolutePath().toString().substringBeforeLast("/")
         }/docs/arkitektur/"
         val options = Options()
             .forFile()
@@ -36,12 +36,13 @@ class PlantUmlObservatør() : SøknadObserver {
           |${tilstander.joinToString("\n")}
           |${tilstander.sisteTilstand()}--> [*]
           |@enduml
-      """.trimMargin()
+        """.trimMargin()
 
     fun verify(tittel: String) {
         Approvals.namerCreater = Loader { NamerWrapper({ "tilstander/$tittel" }, { path }) }
         Approvals.verify(
-            toPlantUml(tittel), options
+            toPlantUml(tittel),
+            options,
         )
     }
 }

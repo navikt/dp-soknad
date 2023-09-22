@@ -16,14 +16,15 @@ class PDLMatrikkelAdresseMapperTest {
                 adresseMetadata = AdresseMetadata(
                     adresseType = AdresseMetadata.AdresseType.BOSTEDSADRESSE,
                     master = AdresseMetadata.MasterType.PDL,
-                    coAdresseNavn = null
+
+                    coAdresseNavn = null,
                 ),
                 bruksenhetsnummer = null,
                 kommunenummer = null,
                 matrikkelId = null,
                 postnummer = "2013",
-                tilleggsnavn = null
-            )
+                tilleggsnavn = null,
+            ),
         ).let {
             assertEquals(Adresse(), it)
         }

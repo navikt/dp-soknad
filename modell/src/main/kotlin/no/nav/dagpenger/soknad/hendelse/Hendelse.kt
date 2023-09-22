@@ -8,7 +8,7 @@ import java.util.UUID
 
 abstract class Hendelse protected constructor(
     private val ident: String,
-    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : IAktivitetslogg by aktivitetslogg, Aktivitetskontekst {
 
     init {
@@ -29,7 +29,7 @@ abstract class Hendelse protected constructor(
 abstract class SøknadHendelse protected constructor(
     private val søknadID: UUID,
     ident: String,
-    aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+    aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : Hendelse(ident = ident, aktivitetslogg = aktivitetslogg) {
     fun søknadID() = søknadID
 

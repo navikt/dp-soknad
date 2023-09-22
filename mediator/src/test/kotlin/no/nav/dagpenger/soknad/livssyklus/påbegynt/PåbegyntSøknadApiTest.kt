@@ -28,20 +28,20 @@ class PåbegyntSøknadApiTest {
         val expectedSoknad = Søknad(
             søknadId,
             Språk("NO"),
-            expectedIdent
+            expectedIdent,
         ).also {
             it.håndter(
                 SøknadOpprettetHendelse(
                     Prosessversjon("test", 1),
                     søknadId,
-                    expectedIdent
-                )
+                    expectedIdent,
+                ),
             )
             it.håndter(
                 FaktumOppdatertHendelse(
                     søknadId,
-                    expectedIdent
-                )
+                    expectedIdent,
+                ),
             )
         }
 
@@ -50,13 +50,13 @@ class PåbegyntSøknadApiTest {
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentPåbegyntSøknad("ingensoknad") } returns null
                     every { it.hentPåbegyntSøknad("harsoknad") } returns expectedSoknad
-                }
-            )
+                },
+            ),
         ) {
             autentisert(
                 endepunkt = "${Configuration.basePath}/soknad/paabegynt",
                 token = TestApplication.getTokenXToken("harsoknad"),
-                httpMethod = HttpMethod.Get
+                httpMethod = HttpMethod.Get,
             ).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
                 val response = objectMapper.readTree(this.bodyAsText())
@@ -74,13 +74,13 @@ class PåbegyntSøknadApiTest {
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockk<SøknadMediator>().also {
                     every { it.hentPåbegyntSøknad("ingensoknad") } returns null
-                }
-            )
+                },
+            ),
         ) {
             autentisert(
                 endepunkt = "${Configuration.basePath}/soknad/paabegynt",
                 token = TestApplication.getTokenXToken("ingensoknad"),
-                httpMethod = HttpMethod.Get
+                httpMethod = HttpMethod.Get,
             ).apply {
                 assertEquals(HttpStatusCode.NotFound, this.status)
             }

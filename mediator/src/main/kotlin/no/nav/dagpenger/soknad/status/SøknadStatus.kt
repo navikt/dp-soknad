@@ -4,5 +4,5 @@ enum class SøknadStatus {
     Paabegynt,
     UnderBehandling,
     FerdigBehandlet,
-    Ukjent
+    Ukjent,
 }

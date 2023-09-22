@@ -19,7 +19,7 @@ import java.util.UUID
 
 internal class SøknadInnsendtTidspunktTjeneste(
     rapidsConnection: RapidsConnection,
-    private val mediator: SøknadMediator
+    private val mediator: SøknadMediator,
 ) : River.PacketListener {
 
     private companion object {
@@ -43,8 +43,8 @@ internal class SøknadInnsendtTidspunktTjeneste(
         withMDC(
             mapOf(
                 "søknad_uuid" to packet["søknad_uuid"].asText(),
-                "behovId" to packet["@behovId"].asText()
-            )
+                "behovId" to packet["@behovId"].asText(),
+            ),
         ) {
             try {
                 val innsendtSøknadsId = packet.getInnsendtSøknadsId()
@@ -65,7 +65,7 @@ internal class SøknadInnsendtTidspunktTjeneste(
                             språk: Språk,
                             dokumentkrav: Dokumentkrav,
                             sistEndretAvBruker: ZonedDateTime,
-                            prosessversjon: Prosessversjon?
+                            prosessversjon: Prosessversjon?,
                         ) {
                             this.innsendt = innsendt?.toLocalDate()
                         }

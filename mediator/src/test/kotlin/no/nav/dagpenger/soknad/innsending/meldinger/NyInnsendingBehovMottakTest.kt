@@ -31,12 +31,12 @@ internal class NyInnsendingBehovMottakTest {
             return listOf(
                 TestFixture(
                     behov = listOf(Behovtype.NyInnsending),
-                    innsendingType = NY_DIALOG
+                    innsendingType = NY_DIALOG,
                 ),
                 TestFixture(
                     behov = listOf(Behovtype.NyInnsending, Behovtype.NySøknad),
-                    innsendingType = NY_DIALOG
-                )
+                    innsendingType = NY_DIALOG,
+                ),
             )
         }
     }
@@ -55,11 +55,11 @@ internal class NyInnsendingBehovMottakTest {
     fun `Skal håndtere NyInnsending hendelse`(testFixture: TestFixture) {
         NyInnsendingBehovMottak(
             rapidsConnection = testRapid,
-            mediator = mediator
+            mediator = mediator,
         )
 
         testRapid.sendTestMessage(
-            lagTestJson(fixture = testFixture)
+            lagTestJson(fixture = testFixture),
         )
 
         verify(exactly = 1) { mediator.behandle(any<NyInnsendingHendelse>()) }
@@ -75,8 +75,8 @@ internal class NyInnsendingBehovMottakTest {
         assertNotNull(
             testRapid.inspektør.field(
                 index = 0,
-                field = "@løsning"
-            ).get(testFixture.behov[0].name)
+                field = "@løsning",
+            ).get(testFixture.behov[0].name),
         )
     }
 
@@ -85,7 +85,7 @@ internal class NyInnsendingBehovMottakTest {
     fun `Skal ikke håndtere NyInnsending hendelse med løsning`(testFixture: TestFixture) {
         NyInnsendingBehovMottak(
             rapidsConnection = testRapid,
-            mediator = mediator
+            mediator = mediator,
         )
 
         testRapid.sendTestMessage(
@@ -93,11 +93,11 @@ internal class NyInnsendingBehovMottakTest {
                 testFixture.copy(
                     løsning = mapOf(
                         "@løsning" to mapOf(
-                            "innsendingId" to UUID.randomUUID().toString()
-                        )
-                    )
-                )
-            )
+                            "innsendingId" to UUID.randomUUID().toString(),
+                        ),
+                    ),
+                ),
+            ),
         )
 
         verify(exactly = 0) { mediator.behandle(any<NyInnsendingHendelse>()) }
@@ -108,7 +108,7 @@ internal class NyInnsendingBehovMottakTest {
     fun `Skal håndtere NyInnsending uten dokumenter`(testFixture: TestFixture) {
         NyInnsendingBehovMottak(
             rapidsConnection = testRapid,
-            mediator = mediator
+            mediator = mediator,
         )
 
         testRapid.sendTestMessage(lagTestJson(testFixture.copy(dokumenter = emptyList())))
@@ -160,7 +160,7 @@ internal class TestInnsendingVisitor(innsending: Innsending) : InnsendingVisitor
         journalpost: String?,
         hovedDokument: Innsending.Dokument?,
         dokumenter: List<Innsending.Dokument>,
-        metadata: Innsending.Metadata?
+        metadata: Innsending.Metadata?,
     ) {
         this.søknadId = søknadId
         this.innsendtTidspunkt = innsendt
@@ -184,23 +184,23 @@ internal data class TestFixture(
                     filnavn = "f1",
                     urn = "urn:vedlegg:f1",
                     variant = "n1",
-                    type = "t1"
+                    type = "t1",
                 ),
                 Innsending.Dokument.Dokumentvariant(
                     uuid = UUID.randomUUID(),
                     filnavn = "f2",
                     urn = "urn:vedlegg:f2",
                     variant = "n2",
-                    type = "t2"
-                )
-            )
+                    type = "t2",
+                ),
+            ),
         ),
         Innsending.Dokument(
             uuid = UUID.randomUUID(),
             kravId = null,
             skjemakode = null,
-            varianter = listOf()
-        )
+            varianter = listOf(),
+        ),
     ),
     val ident: String = "1234",
     val løsning: Map<String, Any>? = null,

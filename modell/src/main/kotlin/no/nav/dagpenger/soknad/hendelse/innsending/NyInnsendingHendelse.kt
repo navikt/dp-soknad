@@ -7,6 +7,6 @@ import no.nav.dagpenger.soknad.hendelse.innsending.InnsendingHendelse
 class NyInnsendingHendelse(
     val innsending: Innsending,
     ident: String,
-    aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+    aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) :
     InnsendingHendelse(innsending.innsendingId, ident, aktivitetslogg)

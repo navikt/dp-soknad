@@ -32,7 +32,7 @@ internal class BehovMediatorTest {
         testSøknadKontekst = TestSøknadKontekst(søknadID, testIdent)
         behovMediator = BehovMediator(
             rapidsConnection = testRapid,
-            sikkerLogg = mockk(relaxed = true)
+            sikkerLogg = mockk(relaxed = true),
         )
         testRapid.reset()
     }
@@ -48,8 +48,8 @@ internal class BehovMediatorTest {
             "Behøver tom søknad for denne søknaden",
             mapOf(
                 "parameter1" to "verdi1",
-                "parameter2" to "verdi2"
-            )
+                "parameter2" to "verdi2",
+            ),
         )
 
         behovMediator.håndter(hendelse)
@@ -81,8 +81,8 @@ internal class BehovMediatorTest {
             "Trenger søknad på et arkiverbart format",
             mapOf(
                 "parameter1" to "verdi1",
-                "parameter2" to "verdi2"
-            )
+                "parameter2" to "verdi2",
+            ),
         )
 
         hendelse.behov(
@@ -90,8 +90,8 @@ internal class BehovMediatorTest {
             "Behøver tom søknad for denne søknaden",
             mapOf(
                 "parameter3" to "verdi3",
-                "parameter4" to "verdi4"
-            )
+                "parameter4" to "verdi4",
+            ),
         )
 
         behovMediator.håndter(hendelse)
@@ -123,15 +123,15 @@ internal class BehovMediatorTest {
             NySøknad,
             "Behøver tom søknad for denne søknaden",
             mapOf(
-                "ident" to testIdent
-            )
+                "ident" to testIdent,
+            ),
         )
         hendelse.behov(
             NySøknad,
             "Behøver tom søknad for denne søknaden",
             mapOf(
-                "ident" to testIdent
-            )
+                "ident" to testIdent,
+            ),
         )
 
         assertThrows<IllegalArgumentException> { behovMediator.håndter(hendelse) }
@@ -156,13 +156,13 @@ internal class BehovMediatorTest {
     }
 
     private class Testkontekst(
-        private val melding: String
+        private val melding: String,
     ) : Aktivitetskontekst {
         override fun toSpesifikkKontekst() = SpesifikkKontekst(melding, mapOf(melding to melding))
     }
 
     private class TestHendelse(
-        val logg: Aktivitetslogg
+        val logg: Aktivitetslogg,
     ) : SøknadHendelse(søknadID, testIdent, logg), Aktivitetskontekst {
         init {
             logg.kontekst(this)

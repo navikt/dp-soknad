@@ -24,7 +24,7 @@ interface InnsendingVisitor {
         journalpost: String?,
         hovedDokument: Dokument?,
         dokumenter: List<Dokument>,
-        metadata: Metadata? = null
+        metadata: Metadata? = null,
     ) {
     }
 }
@@ -43,7 +43,7 @@ interface SøknadVisitor : TilstandVisitor, AktivitetsloggVisitor, DokumentkravV
         språk: Språk,
         dokumentkrav: Dokumentkrav,
         sistEndretAvBruker: ZonedDateTime,
-        prosessversjon: Prosessversjon?
+        prosessversjon: Prosessversjon?,
     ) {
     }
 }

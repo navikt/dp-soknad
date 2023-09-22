@@ -24,7 +24,7 @@ private val logger = KotlinLogging.logger {}
 
 internal class VaktmesterPostgresRepository(
     private val dataSource: DataSource,
-    private val søknadMediator: SøknadMediator
+    private val søknadMediator: SøknadMediator,
 ) : VakmesterLivssyklusRepository {
     override fun markerUtdaterteTilSletting(antallDager: Int) =
         using(sessionOf(dataSource)) { session ->
@@ -62,8 +62,8 @@ internal class VaktmesterPostgresRepository(
                 FROM soknad_v1
                 WHERE tilstand = '${Påbegynt.name}'
                     AND sist_endret_av_bruker < (now() - INTERVAL '$antallDager DAY');
-                """.trimIndent()
-            ).map(søknadTilSletting).asList
+                """.trimIndent(),
+            ).map(søknadTilSletting).asList,
         )
 
     private fun hentSlettede(transactionalSession: TransactionalSession) =
@@ -73,8 +73,8 @@ internal class VaktmesterPostgresRepository(
                 SELECT uuid, person_ident
                 FROM soknad_v1
                 WHERE tilstand = '${Slettet.name}'
-                """.trimIndent()
-            ).map(søknadTilSletting).asList
+                """.trimIndent(),
+            ).map(søknadTilSletting).asList,
         )
 
     private data class SøknadTilSletting(val søknadUuid: UUID, val eier: String)
@@ -82,13 +82,13 @@ internal class VaktmesterPostgresRepository(
     private val søknadTilSletting: (Row) -> SøknadTilSletting = { row ->
         SøknadTilSletting(
             søknadUuid = UUID.fromString(row.string("uuid")),
-            eier = row.string("person_ident")
+            eier = row.string("person_ident"),
         )
     }
 
     private fun slettSøknader(
         søknadUuider: List<SøknadTilSletting>,
-        transactionalSession: TransactionalSession
+        transactionalSession: TransactionalSession,
     ): List<Int> {
         val iderTilSletting = søknadUuider.map { listOf(it.søknadUuid) }
         logger.info { "Forsøker å slette ${iderTilSletting.size} søknader. SøknadUUIDer: $iderTilSletting" }
@@ -96,7 +96,7 @@ internal class VaktmesterPostgresRepository(
         val raderSlettet = transactionalSession.batchPreparedStatement(
             //language=PostgreSQL
             "DELETE FROM soknad_v1 WHERE uuid =?",
-            iderTilSletting
+            iderTilSletting,
         )
         logger.info { "Antall søknader slettet: " + raderSlettet.filter { it == 1 }.sum() }
         return raderSlettet
@@ -110,19 +110,19 @@ internal class VaktmesterPostgresRepository(
 fun Session.lås(nøkkel: Int) = run(
     queryOf( //language=PostgreSQL
         "SELECT PG_TRY_ADVISORY_LOCK(:key)",
-        mapOf("key" to nøkkel)
+        mapOf("key" to nøkkel),
     ).map { res ->
         res.boolean("pg_try_advisory_lock")
-    }.asSingle
+    }.asSingle,
 ) ?: false
 
 fun Session.låsOpp(nøkkel: Int) = run(
     queryOf( //language=PostgreSQL
         "SELECT PG_ADVISORY_UNLOCK(:key)",
-        mapOf("key" to nøkkel)
+        mapOf("key" to nøkkel),
     ).map { res ->
         res.boolean("pg_advisory_unlock")
-    }.asSingle
+    }.asSingle,
 ) ?: false
 
 fun <T> Session.medLås(nøkkel: Int, block: () -> T): T? {

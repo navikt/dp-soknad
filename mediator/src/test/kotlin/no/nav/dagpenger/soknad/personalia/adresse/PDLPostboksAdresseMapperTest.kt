@@ -13,8 +13,8 @@ internal class PDLPostboksAdresseMapperTest {
             createPostboksAdresse(
                 postbokseier = "postbokseier",
                 postboks = "postboks",
-                postnummer = "2000"
-            )
+                postnummer = "2000",
+            ),
         ).let { adresse ->
             assertEquals("postbokseier", adresse.adresselinje1)
             assertEquals("postboks", adresse.adresselinje2)
@@ -32,8 +32,8 @@ internal class PDLPostboksAdresseMapperTest {
             createPostboksAdresse(
                 postbokseier = null,
                 postboks = "  ",
-                "2001"
-            )
+                "2001",
+            ),
         ).let { adresse ->
             assertEquals("", adresse.adresselinje1)
             assertEquals("", adresse.adresselinje2)
@@ -48,7 +48,7 @@ internal class PDLPostboksAdresseMapperTest {
     @Test
     fun `Ingen felter utfylt`() {
         PDLAdresseMapper.formatertAdresse(
-            createPostboksAdresse()
+            createPostboksAdresse(),
         ).let { adresse ->
             assertEquals("", adresse.adresselinje1)
             assertEquals("", adresse.adresselinje2)
@@ -69,7 +69,7 @@ internal class PDLPostboksAdresseMapperTest {
             adresseMetadata = createAdresseMetadata(),
             postbokseier = postbokseier,
             postboks = postboks,
-            postnummer = postnummer
+            postnummer = postnummer,
         )
     }
 }

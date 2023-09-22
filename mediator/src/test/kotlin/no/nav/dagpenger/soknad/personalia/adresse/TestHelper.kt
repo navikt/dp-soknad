@@ -6,7 +6,7 @@ internal fun createAdresseMetadata(coAdresseNavn: String? = null): AdresseMetada
     return AdresseMetadata(
         adresseType = AdresseMetadata.AdresseType.BOSTEDSADRESSE,
         master = AdresseMetadata.MasterType.PDL,
-        coAdresseNavn = coAdresseNavn
+        coAdresseNavn = coAdresseNavn,
     )
 }
 

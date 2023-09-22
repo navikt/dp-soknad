@@ -35,12 +35,12 @@ internal class SøknadTest {
     private fun sannsynliggjøring(
         sannsynliggjøringId: String,
         dokumentFaktum: String,
-        faktaSomSannsynliggjøres: String
+        faktaSomSannsynliggjøres: String,
     ): Sannsynliggjøring {
         return Sannsynliggjøring(
             id = sannsynliggjøringId,
             faktum = Faktum(faktumJson("1", dokumentFaktum)),
-            sannsynliggjør = mutableSetOf(Faktum(faktumJson("2", faktaSomSannsynliggjøres)))
+            sannsynliggjør = mutableSetOf(Faktum(faktumJson("2", faktaSomSannsynliggjøres))),
         )
     }
 
@@ -52,7 +52,7 @@ internal class SøknadTest {
             søknadId,
             Språk(språk),
             testIdent,
-            FerdigSøknadData
+            FerdigSøknadData,
         )
         testSøknadObserver = TestSøknadObserver().also { søknad.addObserver(it) }
         plantUmlObservatør = PlantUmlObservatør().also { søknad.addObserver(it) }
@@ -81,16 +81,16 @@ internal class SøknadTest {
             mapOf(
                 "prosessnavn" to "Dagpenger",
                 "søknad_uuid" to inspektør.søknadId.toString(),
-                "ident" to testIdent
-            )
+                "ident" to testIdent,
+            ),
         )
         håndterNySøknadOpprettet()
         håndterFaktumOppdatering()
         håndterSøkerOppgaveHendelse(
             setOf(
                 sannsynliggjøring("1", "f1-1", "f1-2"),
-                sannsynliggjøring("2", "f2-1", "f2-2")
-            )
+                sannsynliggjøring("2", "f2-1", "f2-2"),
+            ),
         )
 
         assertThrows<AktivitetException>("Alle dokumentkrav må være besvart") { håndterSendInnSøknad() }
@@ -108,8 +108,8 @@ internal class SøknadTest {
             mapOf(
                 "prosessnavn" to "Dagpenger",
                 "søknad_uuid" to inspektør.søknadId.toString(),
-                "ident" to testIdent
-            )
+                "ident" to testIdent,
+            ),
         )
         håndterNySøknadOpprettet()
         håndterFaktumOppdatering()
@@ -118,7 +118,7 @@ internal class SøknadTest {
         assertTilstander(
             UnderOpprettelse,
             Påbegynt,
-            Innsendt
+            Innsendt,
         )
     }
 
@@ -133,7 +133,7 @@ internal class SøknadTest {
         assertTilstander(
             UnderOpprettelse,
             Påbegynt,
-            Slettet
+            Slettet,
         )
     }
 
@@ -159,8 +159,8 @@ internal class SøknadTest {
             MigrertProsessHendelse(
                 inspektør.søknadId,
                 testIdent,
-                Prosessversjon("navn", 2)
-            )
+                Prosessversjon("navn", 2),
+            ),
         )
     }
 
@@ -173,8 +173,8 @@ internal class SøknadTest {
             SøkeroppgaveHendelse(
                 inspektør.søknadId,
                 testIdent,
-                sannsynliggjøringer
-            )
+                sannsynliggjøringer,
+            ),
         )
     }
 
@@ -190,8 +190,8 @@ internal class SøknadTest {
                 søknadID = UUID.randomUUID(),
                 ident = testIdent,
                 språk = språk,
-                prosessnavn = prosessnavn
-            )
+                prosessnavn = prosessnavn,
+            ),
         )
     }
 
@@ -210,7 +210,7 @@ internal class SøknadTest {
 
         assertEquals(
             forventetDetaljer,
-            behov.detaljer() + behov.kontekst()
+            behov.detaljer() + behov.kontekst(),
         )
     }
 }

@@ -54,17 +54,17 @@ class SøknadDataRepositoryTest {
                 SøkerOppgaveMelding(
                     søknad(
                         søknadUuid,
-                        seksjoner = "oppdatert første gang"
-                    )
-                )
+                        seksjoner = "oppdatert første gang",
+                    ),
+                ),
             )
             søknadCache.lagre(
                 SøkerOppgaveMelding(
                     søknad(
                         søknadUuid,
-                        seksjoner = "oppdatert andre gang"
-                    )
-                )
+                        seksjoner = "oppdatert andre gang",
+                    ),
+                ),
             )
             val rehydrertSøknad = søknadCache.hentSøkerOppgave(søknadUuid)
 
@@ -112,7 +112,7 @@ class SøknadDataRepositoryTest {
             session.run(
                 queryOf("select count(1) from soknad_data").map { row ->
                     row.int(1)
-                }.asSingle
+                }.asSingle,
             )
         }
         assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: soknad_data")
@@ -129,7 +129,7 @@ class SøknadDataRepositoryTest {
           "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
           "søknad_uuid": "$søknadUuid",
           "ferdig": false,
-          "seksjoner": "$seksjoner"}"""
+          "seksjoner": "$seksjoner"}""",
         )
 
     private fun lagrePersonMedSøknad(søknadUuid: UUID, ident: String = "01234567891") {

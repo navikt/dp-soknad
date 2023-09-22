@@ -10,12 +10,12 @@ class ØnskeOmNySøknadHendelse(
     ident: String,
     private val språk: String,
     val prosessnavn: Prosessnavn,
-    aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+    aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) :
     SøknadHendelse(
         søknadID,
         ident,
-        aktivitetslogg
+        aktivitetslogg,
     ) {
     fun språk(): Språk = Språk(språk)
 }
@@ -24,5 +24,5 @@ class HarPåbegyntSøknadHendelse(ident: String, søknadID: UUID, aktivitetslogg
     SøknadHendelse(
         søknadID,
         ident,
-        aktivitetslogg
+        aktivitetslogg,
     )

@@ -57,11 +57,11 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
             val søknadUUID = lagRandomPersonOgSøknad()
             ferdigstiltSøknadPostgresRepository.lagreSøknadsTekst(
                 søknadUUID,
-                dummyTekst
+                dummyTekst,
             )
             ferdigstiltSøknadPostgresRepository.lagreSøknadsTekst(
                 søknadUUID,
-                dummyTekst2
+                dummyTekst2,
             )
             assertJsonEquals(dummyTekst, ferdigstiltSøknadPostgresRepository.hentTekst(søknadUUID))
         }
@@ -114,7 +114,7 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
                 aktivitetslogg = Aktivitetslogg(),
                 prosessversjon = null,
                 data = FerdigSøknadData,
-            )
+            ),
         )
         return søknadId
     }

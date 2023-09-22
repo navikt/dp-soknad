@@ -8,12 +8,12 @@ class SøknadOpprettetHendelse(
     private val prosessversjon: Prosessversjon,
     søknadID: UUID,
     ident: String,
-    aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+    aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) :
     SøknadHendelse(
         søknadID,
         ident,
-        aktivitetslogg
+        aktivitetslogg,
     ) {
     fun prosessversjon() = prosessversjon
 }

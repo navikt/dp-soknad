@@ -11,7 +11,7 @@ import java.util.UUID
 class SøknadMigrering constructor(
     private val søknadRepository: SøknadRepository,
     søknadMalRepository: SøknadMalRepository,
-    private val rapid: RapidsConnection
+    private val rapid: RapidsConnection,
 ) {
     init {
         søknadMalRepository.addObserver(::migrer)
@@ -32,12 +32,12 @@ class SøknadMigrering constructor(
     private data class MigreringsBehov(private val søknadUUID: UUID, private val ident: String) {
         fun asMessage() = JsonMessage.newNeed(
             listOf(
-                "MigrerProsess"
+                "MigrerProsess",
             ),
             mapOf(
                 "søknad_uuid" to søknadUUID.toString(),
-                "ident" to ident
-            )
+                "ident" to ident,
+            ),
         )
     }
 

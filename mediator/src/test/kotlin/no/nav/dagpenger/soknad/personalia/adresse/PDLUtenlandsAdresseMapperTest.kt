@@ -16,8 +16,8 @@ internal class PDLUtenlandsAdresseMapperTest {
                 postboksNummerNavn = "postboksNummerNavn",
                 postkode = "postkode",
                 bySted = "bysted",
-                landKode = "NOR"
-            )
+                landKode = "NOR",
+            ),
         ).let { adresse ->
             assertEquals("adressenavnNummer", adresse.adresselinje1)
             assertEquals("bygningEtasjeLeilighet", adresse.adresselinje2)
@@ -37,8 +37,8 @@ internal class PDLUtenlandsAdresseMapperTest {
                 bygningEtasjeLeilighet = null,
                 postboksNummerNavn = "postboksNummerNavn",
                 postkode = null,
-                landKode = "SWE"
-            )
+                landKode = "SWE",
+            ),
         ).let { adresse ->
             assertEquals("postboksNummerNavn", adresse.adresselinje1)
             assertEquals("", adresse.adresselinje2)
@@ -53,7 +53,7 @@ internal class PDLUtenlandsAdresseMapperTest {
     @Test
     fun `Ingen felter utfylt`() {
         PDLAdresseMapper.formatertAdresse(
-            createUtenlandskAdresse()
+            createUtenlandskAdresse(),
         ).let { adresse ->
             assertEquals("", adresse.adresselinje1)
             assertEquals("", adresse.adresselinje2)

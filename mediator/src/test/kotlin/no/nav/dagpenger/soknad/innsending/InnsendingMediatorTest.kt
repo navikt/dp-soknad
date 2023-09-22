@@ -64,8 +64,8 @@ internal class InnsendingMediatorTest {
             InnsendingMetadataMottattHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
-                skjemaKode = skjemaKode
-            )
+                skjemaKode = skjemaKode,
+            ),
         )
 
         assertEquals(AvventerArkiverbarSøknad, innsendingObserver.gjeldendeTilstand)
@@ -94,9 +94,9 @@ internal class InnsendingMediatorTest {
                         filnavn = "k1",
                         urn = "urn:vedlegg:k1",
                         variant = "BRUTTO",
-                        type = "PDF"
-                    )
-                )
+                        type = "PDF",
+                    ),
+                ),
             ),
             Innsending.Dokument(
                 uuid = UUID.randomUUID(),
@@ -108,17 +108,17 @@ internal class InnsendingMediatorTest {
                         filnavn = "k2",
                         urn = "urn:vedlegg:k2",
                         variant = "BRUTTO",
-                        type = "PDF"
-                    )
-                )
-            )
+                        type = "PDF",
+                    ),
+                ),
+            ),
         )
 
         val innsending = Innsending.ny(
             innsendt = innsendt,
             ident = ident,
             søknadId = søknadId,
-            dokumentkrav = dokumentKrav
+            dokumentkrav = dokumentKrav,
         )
         innsending.addObserver(innsendingObserver)
 
@@ -127,8 +127,8 @@ internal class InnsendingMediatorTest {
             InnsendingMetadataMottattHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
-                skjemaKode = skjemaKode
-            )
+                skjemaKode = skjemaKode,
+            ),
         )
         with(rapid.inspektør.message(1)) {
             assertEquals(listOf<String>("k1", "k2"), this["dokumentasjonKravId"].map { it.asText() })
@@ -147,16 +147,16 @@ internal class InnsendingMediatorTest {
                 filnavn = "f2",
                 urn = "urn:vedlegg:f1",
                 variant = "FULLVERSJON",
-                type = "PDF"
-            )
+                type = "PDF",
+            ),
         )
 
         mediator.behandle(
             ArkiverbarSøknadMottattHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
-                dokumentvarianter = hovedDokument
-            )
+                dokumentvarianter = hovedDokument,
+            ),
         )
 
         assertEquals(AvventerMidlertidligJournalføring, innsendingObserver.gjeldendeTilstand)
@@ -207,22 +207,22 @@ internal class InnsendingMediatorTest {
             InnsendingMetadataMottattHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
-                skjemaKode = skjemaKode
-            )
+                skjemaKode = skjemaKode,
+            ),
         )
         mediator.behandle(
             ArkiverbarSøknadMottattHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
-                dokumentvarianter = listOf()
-            )
+                dokumentvarianter = listOf(),
+            ),
         )
         mediator.behandle(
             SøknadMidlertidigJournalførtHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
-                journalpostId = journalpostId
-            )
+                journalpostId = journalpostId,
+            ),
         )
 
         assertEquals(AvventerJournalføring, innsendingObserver.gjeldendeTilstand)
@@ -241,28 +241,28 @@ internal class InnsendingMediatorTest {
             InnsendingMetadataMottattHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
-                skjemaKode = skjemaKode
-            )
+                skjemaKode = skjemaKode,
+            ),
         )
         mediator.behandle(
             ArkiverbarSøknadMottattHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
-                dokumentvarianter = listOf()
-            )
+                dokumentvarianter = listOf(),
+            ),
         )
         mediator.behandle(
             SøknadMidlertidigJournalførtHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
-                journalpostId = journalpostId
-            )
+                journalpostId = journalpostId,
+            ),
         )
         mediator.behandle(
             JournalførtHendelse(
                 ident = ident,
-                journalpostId = journalpostId
-            )
+                journalpostId = journalpostId,
+            ),
         )
 
         assertEquals(Journalført, innsendingObserver.gjeldendeTilstand)

@@ -34,21 +34,21 @@ internal class AdresseMapperTest {
                 listOf(
                     createPdlAdresse(AdresseType.OPPHOLDSADRESSE, "2000"),
                     createPdlAdresse(AdresseType.KONTAKTADRESSE, "2001"),
-                )
-            ).folkeregistertAdresse
+                ),
+            ).folkeregistertAdresse,
         )
     }
 
     private fun createPdlAdresse(
         adresseType: AdresseType,
-        postnummer: String
+        postnummer: String,
     ): PDLAdresse {
         return PDLAdresse.PostboksAdresse(
             adresseMetadata = AdresseMetadata(
                 adresseType = adresseType,
                 master = MasterType.PDL,
             ),
-            postnummer = postnummer
+            postnummer = postnummer,
         )
     }
 }

@@ -46,10 +46,10 @@ internal class SøknadMigreringTest {
                         SøknadOpprettetHendelse(
                             prosessversjon(1),
                             søknadId,
-                            ident
-                        )
+                            ident,
+                        ),
                     )
-                }
+                },
             )
             søknadMaler.lagre(versjon(2))
 

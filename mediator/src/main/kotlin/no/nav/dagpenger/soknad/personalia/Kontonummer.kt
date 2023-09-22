@@ -9,7 +9,7 @@ interface KontonummerInformasjon {
 data class Kontonummer(
     override val kontonummer: String? = null,
     override val banknavn: String? = null,
-    override val bankLandkode: String? = null
+    override val bankLandkode: String? = null,
 ) : KontonummerInformasjon {
     companion object {
         val TOM = Kontonummer()

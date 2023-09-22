@@ -53,9 +53,9 @@ internal class PostgresDokumentkravRepository(private val datasource: DataSource
                             "storrelse" to fil.storrelse,
                             "urn" to fil.urn.toString(),
                             "tidspunkt" to fil.tidspunkt,
-                            "bundlet" to fil.bundlet
-                        )
-                    ).asExecute
+                            "bundlet" to fil.bundlet,
+                        ),
+                    ).asExecute,
                 )
                 tx.settDokumentkravTilSendNå(hendelse)
             }
@@ -68,12 +68,12 @@ internal class PostgresDokumentkravRepository(private val datasource: DataSource
                 // language=PostgreSQL
                 """ UPDATE dokumentkrav_v1 SET valg = '${Krav.Svar.SvarValg.SEND_NÅ.name}', begrunnelse = null
                             WHERE soknad_uuid = :soknadId AND faktum_id = :kravId
-                        """.trimMargin(),
+                """.trimMargin(),
                 mapOf(
                     "soknadId" to hendelse.søknadID,
                     "kravId" to hendelse.kravId,
-                )
-            ).asUpdate
+                ),
+            ).asUpdate,
         )
     }
 
@@ -86,9 +86,9 @@ internal class PostgresDokumentkravRepository(private val datasource: DataSource
                     mapOf(
                         "uuid" to hendelse.søknadID,
                         "faktum_id" to hendelse.kravId,
-                        "urn" to hendelse.urn.toString()
-                    )
-                ).asUpdate
+                        "urn" to hendelse.urn.toString(),
+                    ),
+                ).asUpdate,
             )
         }
     }
@@ -105,9 +105,9 @@ internal class PostgresDokumentkravRepository(private val datasource: DataSource
                         "soknadId" to hendelse.søknadID,
                         "kravId" to hendelse.kravId,
                         "valg" to hendelse.valg.name,
-                        "begrunnelse" to hendelse.begrunnelse
-                    )
-                ).asUpdate
+                        "begrunnelse" to hendelse.begrunnelse,
+                    ),
+                ).asUpdate,
             )
         }.also { rowsUpdated ->
             if (rowsUpdated != 1) {
@@ -133,13 +133,13 @@ internal class PostgresDokumentkravRepository(private val datasource: DataSource
                 // language=PostgreSQL
                 """ UPDATE dokumentkrav_v1 SET bundle_urn = :bundle_urn, valg = '${Krav.Svar.SvarValg.SEND_NÅ.name}', innsendt = false
                             WHERE soknad_uuid = :soknadId AND faktum_id = :kravId
-                        """.trimMargin(),
+                """.trimMargin(),
                 mapOf(
                     "soknadId" to hendelse.søknadID,
                     "kravId" to hendelse.kravId,
-                    "bundle_urn" to hendelse.urn().toString()
-                )
-            ).asUpdate
+                    "bundle_urn" to hendelse.urn().toString(),
+                ),
+            ).asUpdate,
         )
     }
 
@@ -149,12 +149,12 @@ internal class PostgresDokumentkravRepository(private val datasource: DataSource
                 // language=PostgreSQL
                 """ UPDATE dokumentkrav_filer_v1 SET bundlet = true
                         WHERE soknad_uuid = :soknadId AND faktum_id = :kravId
-                    """.trimMargin(),
+                """.trimMargin(),
                 mapOf(
                     "soknadId" to hendelse.søknadID,
-                    "kravId" to hendelse.kravId
-                )
-            ).asUpdate
+                    "kravId" to hendelse.kravId,
+                ),
+            ).asUpdate,
         )
     }
 
@@ -169,8 +169,8 @@ internal class PostgresDokumentkravRepository(private val datasource: DataSource
                                       WHERE soknad_uuid = :soknad_uuid
                     """.trimIndent(),
                     paramMap = mapOf(
-                        "soknad_uuid" to søknadId
-                    )
+                        "soknad_uuid" to søknadId,
+                    ),
                 ).map { row ->
                     val faktumId = row.string("faktum_id")
                     SøknadDTO.DokumentkravDTO.KravDTO(
@@ -179,19 +179,19 @@ internal class PostgresDokumentkravRepository(private val datasource: DataSource
                         sannsynliggjøring = SøknadDTO.DokumentkravDTO.SannsynliggjøringDTO(
                             id = faktumId,
                             faktum = objectMapper.readTree(row.binaryStream("faktum")),
-                            sannsynliggjør = objectMapper.readTree(row.binaryStream("sannsynliggjoer")).toSet()
+                            sannsynliggjør = objectMapper.readTree(row.binaryStream("sannsynliggjoer")).toSet(),
                         ),
                         svar = SøknadDTO.DokumentkravDTO.SvarDTO(
                             begrunnelse = row.stringOrNull("begrunnelse"),
                             filer = session.hentFiler(søknadId, faktumId),
                             valg = SøknadDTO.DokumentkravDTO.SvarDTO.SvarValgDTO.valueOf(row.string("valg")),
                             bundle = row.stringOrNull("bundle_urn")?.let { URN.rfc8141().parse(it) },
-                            innsendt = row.boolean("innsendt")
+                            innsendt = row.boolean("innsendt"),
                         ),
                         tilstand = row.string("tilstand")
-                            .let { SøknadDTO.DokumentkravDTO.KravDTO.KravTilstandDTO.valueOf(it) }
+                            .let { SøknadDTO.DokumentkravDTO.KravDTO.KravTilstandDTO.valueOf(it) },
                     )
-                }.asList
+                }.asList,
             )
                 .toSet()
                 .let { SøknadDTO.DokumentkravDTO(it) }
@@ -202,7 +202,7 @@ internal class PostgresDokumentkravRepository(private val datasource: DataSource
 
     private fun Session.hentFiler(
         søknadsId: UUID,
-        faktumId: String
+        faktumId: String,
     ): Set<SøknadDTO.DokumentkravDTO.KravDTO.FilDTO> {
         return this.run(
             queryOf(
@@ -215,17 +215,17 @@ internal class PostgresDokumentkravRepository(private val datasource: DataSource
                 """.trimIndent(),
                 paramMap = mapOf(
                     "soknad_uuid" to søknadsId,
-                    "faktum_id" to faktumId
-                )
+                    "faktum_id" to faktumId,
+                ),
             ).map { row ->
                 SøknadDTO.DokumentkravDTO.KravDTO.FilDTO(
                     filnavn = row.string("filnavn"),
                     urn = URN.rfc8141().parse(row.string("urn")),
                     storrelse = row.long("storrelse"),
                     tidspunkt = row.norskZonedDateTime("tidspunkt"),
-                    bundlet = row.boolean("bundlet")
+                    bundlet = row.boolean("bundlet"),
                 )
-            }.asList
+            }.asList,
         ).toSet()
     }
 }

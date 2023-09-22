@@ -32,9 +32,9 @@ ON CONFLICT (uuid) DO NOTHING """,
                             "tekst" to PGobject().also {
                                 it.type = "jsonb"
                                 it.value = søknadsTekst
-                            }
-                        )
-                    ).asUpdate
+                            },
+                        ),
+                    ).asUpdate,
                 )
             }
         } catch (error: PSQLException) {
@@ -50,9 +50,9 @@ ON CONFLICT (uuid) DO NOTHING """,
                     //language=PostgreSQL
                     statement = "SELECT tekst FROM soknad_tekst_v1 WHERE uuid = :uuid",
                     paramMap = mapOf(
-                        "uuid" to søknadId
-                    )
-                ).map { row -> row.string("tekst") }.asSingle
+                        "uuid" to søknadId,
+                    ),
+                ).map { row -> row.string("tekst") }.asSingle,
             ) ?: throw NotFoundException().also {
                 logger.error { "Fant ikke søknad tekst med id: $søknadId" }
             }
@@ -66,9 +66,9 @@ ON CONFLICT (uuid) DO NOTHING """,
                     //language=PostgreSQL
                     statement = "SELECT soknad_data FROM soknad_data WHERE uuid = :uuid",
                     paramMap = mapOf(
-                        "uuid" to søknadId
-                    )
-                ).map { row -> row.string("soknad_data") }.asSingle
+                        "uuid" to søknadId,
+                    ),
+                ).map { row -> row.string("soknad_data") }.asSingle,
             ) ?: throw NotFoundException().also {
                 logger.error { "Fant ikke søknad data med id: $søknadId" }
             }

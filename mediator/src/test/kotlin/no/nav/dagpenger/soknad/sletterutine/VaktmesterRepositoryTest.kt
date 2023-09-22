@@ -54,15 +54,15 @@ internal class VaktmesterRepositoryTest {
         Faktum(faktumJson("1", "f1"))
     private val faktaSomSannsynliggjøres =
         mutableSetOf(
-            Faktum(faktumJson("2", "f2"))
+            Faktum(faktumJson("2", "f2")),
         )
     private val sannsynliggjøring = Sannsynliggjøring(
         id = dokumentFaktum.id,
         faktum = dokumentFaktum,
-        sannsynliggjør = faktaSomSannsynliggjøres
+        sannsynliggjør = faktaSomSannsynliggjøres,
     )
     private val krav = Krav(
-        sannsynliggjøring
+        sannsynliggjøring,
     ).also {
         it.svar.filer.add(
             Krav.Fil(
@@ -70,8 +70,8 @@ internal class VaktmesterRepositoryTest {
                 urn = URN.rfc8141().parse("urn:test:1"),
                 storrelse = 0,
                 tidspunkt = ZonedDateTime.now(),
-                bundlet = false
-            )
+                bundlet = false,
+            ),
         )
     }
 
@@ -81,7 +81,7 @@ internal class VaktmesterRepositoryTest {
         val søknadCacheRepository = SøknadDataPostgresRepository(dataSource)
         val søknadMediator = søknadMediator(
             søknadCacheRepository = søknadCacheRepository,
-            søknadRepository = søknadRepository
+            søknadRepository = søknadRepository,
         )
         val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
 
@@ -99,7 +99,7 @@ internal class VaktmesterRepositoryTest {
         val søknadCacheRepository = SøknadDataPostgresRepository(dataSource)
         val søknadMediator = søknadMediator(
             søknadCacheRepository = søknadCacheRepository,
-            søknadRepository = søknadRepository
+            søknadRepository = søknadRepository,
         )
         val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
 
@@ -126,7 +126,7 @@ internal class VaktmesterRepositoryTest {
         val søknadCacheRepository = SøknadDataPostgresRepository(dataSource)
         val søknadMediator = søknadMediator(
             søknadCacheRepository = søknadCacheRepository,
-            søknadRepository = søknadRepository
+            søknadRepository = søknadRepository,
         )
         val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
 
@@ -142,9 +142,9 @@ internal class VaktmesterRepositoryTest {
                     urn = URN.rfc8141().parse("urn:test:1"),
                     storrelse = 0,
                     tidspunkt = ZonedDateTime.now(),
-                    bundlet = false
-                )
-            )
+                    bundlet = false,
+                ),
+            ),
         )
         søknadRepository.lagre(nyPåbegyntSøknad(nyPåbegyntSøknadUuid, testPersonIdent))
         søknadRepository.lagre(innsendtSøknad(innsendtSøknadUuid, testPersonIdent))
@@ -174,7 +174,7 @@ internal class VaktmesterRepositoryTest {
             session.run(
                 queryOf("select count(1) from $tabell").map { row ->
                     row.int(1)
-                }.asSingle
+                }.asSingle,
             )
         }
         assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: $tabell")
@@ -186,8 +186,8 @@ internal class VaktmesterRepositoryTest {
                 //language=PostgreSQL
                 queryOf(
                     "UPDATE soknad_v1 SET sist_endret_av_bruker = (NOW() - INTERVAL '$antallDagerSiden DAYS') WHERE uuid = ?",
-                    uuid
-                ).asUpdate
+                    uuid,
+                ).asUpdate,
             )
         }
     }
@@ -196,8 +196,8 @@ internal class VaktmesterRepositoryTest {
         session.run(
             queryOf( //language=PostgreSQL
                 "UPDATE soknad_v1 SET tilstand = '${Tilstand.Type.Slettet}' WHERE uuid = ?",
-                uuid
-            ).asUpdate
+                uuid,
+            ).asUpdate,
         )
     }
 
@@ -211,7 +211,7 @@ internal class VaktmesterRepositoryTest {
         ferdigstiltSøknadRepository = mockk(),
         søknadRepository = søknadRepository,
         søknadObservers = listOf(SøknadTilstandObserver(testRapid)),
-        dokumentkravRepository = mockk()
+        dokumentkravRepository = mockk(),
     )
 
     private fun assertSøknadSlettetEvent() =
@@ -237,10 +237,10 @@ internal class VaktmesterRepositoryTest {
                 //language=PostgreSQL
                 queryOf(
                     "SELECT COUNT(*) FROM aktivitetslogg_v1 WHERE soknad_uuid = ?",
-                    søknadUuid
+                    søknadUuid,
                 ).map { row ->
                     row.int(1)
-                }.asSingle
+                }.asSingle,
             )
         }
 
@@ -270,7 +270,7 @@ internal class VaktmesterRepositoryTest {
             null,
             språk = språk,
             dokumentkrav = Dokumentkrav.rehydrer(
-                setOf(krav)
+                setOf(krav),
             ),
             sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.of(2022, 11, 2, 2, 2, 2, 2), ZoneId.of("Europe/Oslo")),
             tilstandsType = Påbegynt,
