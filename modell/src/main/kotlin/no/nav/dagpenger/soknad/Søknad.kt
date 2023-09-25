@@ -361,8 +361,8 @@ class Søknad private constructor(
     }
 
     private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: Hendelse) {
-        if (nyTilstand == tilstand) {
-            return // Vi er allerede i tilstanden
+        if (harAlleredeTilstanden(nyTilstand)) {
+            return
         }
         val forrigeTilstand = tilstand
         tilstand = nyTilstand
@@ -371,6 +371,8 @@ class Søknad private constructor(
 
         varsleOmEndretTilstand(forrigeTilstand)
     }
+
+    private fun harAlleredeTilstanden(nyTilstand: Tilstand) = nyTilstand == tilstand
 
     private fun innsendt(innsendtidspunkt: ZonedDateTime) {
         this.innsendt = innsendtidspunkt
