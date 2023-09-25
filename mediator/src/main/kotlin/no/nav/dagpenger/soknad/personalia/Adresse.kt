@@ -3,9 +3,9 @@ package no.nav.dagpenger.soknad.personalia
 import no.nav.dagpenger.pdl.adresse.AdresseMetadata
 import no.nav.dagpenger.pdl.adresse.PDLAdresse
 import no.nav.dagpenger.pdl.adresse.PostAdresseOrder
+import no.nav.dagpenger.soknad.personalia.PDLAdresseMapper.LandDataOppslag.finnLand
+import no.nav.dagpenger.soknad.personalia.PDLAdresseMapper.PostDataOppslag.finnPoststed
 import no.nav.dagpenger.soknad.personalia.PDLAdresseMapper.formatertAdresse
-import no.nav.dagpenger.soknad.personalia.PDLAdresseMapper.landDataDAO.finnLand
-import no.nav.dagpenger.soknad.personalia.PDLAdresseMapper.postDataDAO.finnPoststed
 import no.nav.pam.geography.Country
 import no.nav.pam.geography.CountryDAO
 import no.nav.pam.geography.PostDataDAO

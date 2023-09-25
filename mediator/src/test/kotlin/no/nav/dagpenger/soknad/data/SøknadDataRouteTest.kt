@@ -56,7 +56,7 @@ internal class SøknadDataRouteTest {
                 token = TestApplication.azureAdToken,
             ).apply {
                 Assertions.assertEquals(HttpStatusCode.OK, this.status)
-                Assertions.assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])
+                Assertions.assertEquals("application/json", this.headers["Content-Type"])
                 Assertions.assertEquals(frontendformat, this.bodyAsText())
             }
         }
