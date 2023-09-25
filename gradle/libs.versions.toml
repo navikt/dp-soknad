@@ -32,7 +32,7 @@ ktor-server-auth-jwt = { group = "io.ktor", name = "ktor-server-auth-jwt", versi
 ktor-server-content-negotiation = { group = "io.ktor", name = "ktor-server-content-negotiation", version.ref = "ktor" }
 ktor-serialization-jackson = { group = "io.ktor", name = "ktor-serialization-jackson", version.ref = "ktor" }
 ktor-server-logging-jvm = { group = "io.ktor", name = "ktor-server-call-logging-jvm", version.ref = "ktor" }
-mock-oauth2-server = { group = "no.nav.security", name = "mock-oauth2-server", version = "1.0.0" }
+mock-oauth2-server = { group = "no.nav.security", name = "mock-oauth2-server", version = "2.0.0" }
 aktivitetslogg = { group = "no.nav.dagpenger", name = "aktivitetslogg", version = "20230831.52f628" }
 prometheus-client = { group = "io.micrometer", name = "micrometer-registry-prometheus", version = "1.10.1"}
 prometheus-simpleclient = {group = "io.prometheus", name = "simpleclient_caffeine", version = "0.16.0"}
