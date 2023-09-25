@@ -227,7 +227,7 @@ internal class SøknadApiTest {
                 "${Configuration.basePath}/soknad/$testSøknadUuid/neste",
             ).apply {
                 assertEquals(HttpStatusCode.OK, this.status)
-                assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])
+                assertEquals("application/json", this.headers["Content-Type"])
                 assertEquals(frontendformat, this.bodyAsText())
             }
         }

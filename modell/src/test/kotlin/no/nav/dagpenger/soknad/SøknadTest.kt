@@ -199,10 +199,6 @@ internal class SøknadTest {
         assertEquals(tilstander.asList(), testSøknadObserver.tilstander)
     }
 
-//    private fun assertPuml(tittel: String) {
-//        plantUmlObservatør.verify(tittel)
-//    }
-
     private fun assertBehov(behovtype: Behovtype, forventetDetaljer: Map<String, Any> = emptyMap()) {
         val behov = inspektør.aktivitetslogg.behov().findLast {
             it.type == behovtype

@@ -80,7 +80,7 @@ internal class FerdigstiltSøknadApiTest {
             client.get("${Configuration.basePath}/$søknadId/ferdigstilt/tekst").also { response ->
                 assertJsonEquals(dummySøknadsTekst, response.bodyAsText())
                 assertEquals(HttpStatusCode.OK, response.status)
-                assertEquals("application/json; charset=UTF-8", response.contentType().toString())
+                assertEquals("application/json", response.contentType().toString())
             }
         }
     }
@@ -122,7 +122,7 @@ internal class FerdigstiltSøknadApiTest {
             client.get("${Configuration.basePath}/$søknadId/ferdigstilt/fakta").also { response ->
                 assertJsonEquals(dummyFakta, response.bodyAsText())
                 assertEquals(HttpStatusCode.OK, response.status)
-                assertEquals("application/json; charset=UTF-8", response.contentType().toString())
+                assertEquals("application/json", response.contentType().toString())
             }
         }
     }
