@@ -3,9 +3,9 @@ package no.nav.dagpenger.soknad.personalia
 import no.nav.dagpenger.pdl.adresse.AdresseMetadata
 import no.nav.dagpenger.pdl.adresse.PDLAdresse
 import no.nav.dagpenger.pdl.adresse.PostAdresseOrder
-import no.nav.dagpenger.soknad.personalia.PDLAdresseMapper.LandDataDAO.finnLand
-import no.nav.dagpenger.soknad.personalia.PDLAdresseMapper.PoststedDAO.finnPoststed
 import no.nav.dagpenger.soknad.personalia.PDLAdresseMapper.formatertAdresse
+import no.nav.dagpenger.soknad.personalia.PDLAdresseMapper.landDataDAO.finnLand
+import no.nav.dagpenger.soknad.personalia.PDLAdresseMapper.postDataDAO.finnPoststed
 import no.nav.pam.geography.Country
 import no.nav.pam.geography.CountryDAO
 import no.nav.pam.geography.PostDataDAO
@@ -38,7 +38,7 @@ internal class AdresseMapper(pdlAdresser: List<PDLAdresse>) {
 internal object PDLAdresseMapper : no.nav.dagpenger.pdl.adresse.AdresseMapper<Adresse>() {
     private class GeografiOppslagInitException(e: Exception) : RuntimeException(e)
 
-    private object PoststedDAO {
+    private object PostDataOppslag {
         private val dao: PostDataDAO = try {
             PostDataDAO()
         } catch (e: IOException) {
@@ -52,7 +52,7 @@ internal object PDLAdresseMapper : no.nav.dagpenger.pdl.adresse.AdresseMapper<Ad
         }
     }
 
-    private object LandDataDAO {
+    private object LandDataOppslag {
         private val dao: CountryDAO = try {
             CountryDAO()
         } catch (e: IOException) {

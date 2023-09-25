@@ -16,7 +16,6 @@ class PDLMatrikkelAdresseMapperTest {
                 adresseMetadata = AdresseMetadata(
                     adresseType = AdresseMetadata.AdresseType.BOSTEDSADRESSE,
                     master = AdresseMetadata.MasterType.PDL,
-
                     coAdresseNavn = null,
                 ),
                 bruksenhetsnummer = null,

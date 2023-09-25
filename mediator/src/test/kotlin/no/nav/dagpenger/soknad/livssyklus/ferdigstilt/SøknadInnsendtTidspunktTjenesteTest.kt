@@ -60,8 +60,17 @@ class SøknadInnsendtTidspunktTjenesteTest {
     }
 
     @Test
-    fun `skal svare på behov`() {
-        testRapid.sendTestMessage(behovMelding(okSoknadId))
+    fun `skal svare på behov dp-quiz-mediator`() {
+        testRapid.sendTestMessage(quizBehovMelding(okSoknadId))
+        with(testRapid.inspektør) {
+            Assertions.assertEquals(1, size)
+            Assertions.assertEquals("2022-05-05", field(0, "@løsning")["Søknadstidspunkt"].asText())
+        }
+    }
+
+    @Test
+    fun `skal svare på behov fra dp-rapportering`() {
+        testRapid.sendTestMessage(rapporteringBehovMelding(okSoknadId))
         with(testRapid.inspektør) {
             Assertions.assertEquals(1, size)
             Assertions.assertEquals("2022-05-05", field(0, "@løsning")["Søknadstidspunkt"].asText())
@@ -70,14 +79,15 @@ class SøknadInnsendtTidspunktTjenesteTest {
 
     @Test
     fun `skal svelge feil `() {
-        testRapid.sendTestMessage(behovMelding(finnesIkkeSoknadId))
-        testRapid.sendTestMessage(behovMelding(kasterFeilSoknadId))
+        testRapid.sendTestMessage(quizBehovMelding(finnesIkkeSoknadId))
+        testRapid.sendTestMessage(quizBehovMelding(kasterFeilSoknadId))
         with(testRapid.inspektør) {
             Assertions.assertEquals(0, size)
         }
     }
 
-    private fun behovMelding(soknadId: UUID) =
+    //language=JSON
+    private fun quizBehovMelding(soknadId: UUID) =
         """
     {
       "@event_name": "faktum_svar",
@@ -89,5 +99,22 @@ class SøknadInnsendtTidspunktTjenesteTest {
       "@behov": [ "Søknadstidspunkt" ],
       "InnsendtSøknadsId":{"lastOppTidsstempel":"2020-11-26T10:33:38.684844","urn":"urn:soknadid:$soknadId"}
     }
+        """.trimIndent()
+
+    //language=JSON
+    private fun rapporteringBehovMelding(soknadId: UUID) =
+        """
+            {
+              "@event_name": "behov",
+              "@behovId": "05a2b4e3-def6-4973-9f67-52bc66e55b1a",
+              "@behov": [
+                "Søknadstidspunkt"
+              ],
+              "Søknadstidspunkt": {
+                "søknad_uuid": "$soknadId"
+              },
+              "@id": "507434ad-4a46-4494-ac3c-c1459a2a6a2e",
+              "@opprettet": "2023-06-29T15:10:13.351324642"
+            }
         """.trimIndent()
 }

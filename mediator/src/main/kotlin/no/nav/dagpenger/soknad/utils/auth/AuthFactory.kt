@@ -59,7 +59,6 @@ object TokenXFactory {
 }
 
 object AzureAdFactory {
-
     @Suppress("ktlint:standard:class-naming")
     private object azure_app : PropertyGroup() {
         val well_known_url by stringType
