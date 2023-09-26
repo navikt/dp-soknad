@@ -9,7 +9,6 @@ PDL_AUDIENCE: dev-fss:pdl:pdl-api
 DP_INNSYN_AUDIENCE: dev-gcp:teamdagpenger:dp-innsyn
 ingresses: |
   ingresses:
-    - https://arbeid.dev.nav.no/arbeid/dagpenger/soknadapi
     - https://dp-soknad.dev.intern.nav.no
 db_tier: db-custom-1-3840
 db_size: 20
