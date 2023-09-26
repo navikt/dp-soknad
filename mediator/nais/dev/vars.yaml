@@ -7,9 +7,6 @@ PERSON_KONTO_REGISTER_SCOPE: dev-gcp:okonomi:sokos-kontoregister-person
 PDL_API_HOST: pdl-api.dev-fss-pub.nais.io
 PDL_AUDIENCE: dev-fss:pdl:pdl-api
 DP_INNSYN_AUDIENCE: dev-gcp:teamdagpenger:dp-innsyn
-ingresses: |
-  ingresses:
-    - https://dp-soknad.dev.intern.nav.no
 db_tier: db-custom-1-3840
 db_size: 20
 point_in_time_recovery_days: 2
