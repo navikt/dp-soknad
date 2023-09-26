@@ -34,7 +34,7 @@ ktor-serialization-jackson = { group = "io.ktor", name = "ktor-serialization-jac
 ktor-server-logging-jvm = { group = "io.ktor", name = "ktor-server-call-logging-jvm", version.ref = "ktor" }
 mock-oauth2-server = { group = "no.nav.security", name = "mock-oauth2-server", version = "1.0.0" }
 aktivitetslogg = { group = "no.nav.dagpenger", name = "aktivitetslogg", version = "20230831.52f628" }
-prometheus-client = { group = "io.micrometer", name = "micrometer-registry-prometheus", version = "1.10.1"}
+prometheus-client = { group = "io.micrometer", name = "micrometer-registry-prometheus", version = "1.11.4"}
 prometheus-simpleclient = {group = "io.prometheus", name = "simpleclient_caffeine", version = "0.16.0"}
 
 # Database
