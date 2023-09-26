@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad
 
-import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
+import no.nav.dagpenger.aktivitetslogg.Aktivitetskontekst
+import no.nav.dagpenger.aktivitetslogg.SpesifikkKontekst
 import no.nav.dagpenger.soknad.SøknadObserver.SøknadSlettetEvent
 import no.nav.dagpenger.soknad.hendelse.FaktumOppdatertHendelse
 import no.nav.dagpenger.soknad.hendelse.HarPåbegyntSøknadHendelse
@@ -174,14 +175,14 @@ class Søknad private constructor(
             søknadInnsendtHendelse.`kan ikke håndteres i denne tilstanden`()
 
         fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse, søknad: Søknad): Unit =
-            faktumOppdatertHendelse.severe("Kan ikke oppdatere faktum for søknader i tilstand ${tilstandType.name}")
+            faktumOppdatertHendelse.varsel("Kan ikke oppdatere faktum for søknader i tilstand ${tilstandType.name}")
 
         fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse, søknad: Søknad) {
             søkeroppgaveHendelse.`kan ikke håndteres i denne tilstanden`()
         }
 
         fun håndter(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
-            slettSøknadHendelse.severe("Kan ikke slette søknad i tilstand $tilstandType")
+            slettSøknadHendelse.varsel("Kan ikke slette søknad i tilstand $tilstandType")
         }
 
         fun håndter(hendelse: MigrertProsessHendelse, søknad: Søknad) {
@@ -189,7 +190,7 @@ class Søknad private constructor(
         }
 
         private fun Hendelse.`kan ikke håndteres i denne tilstanden`() =
-            this.warn("Kan ikke håndtere ${this.javaClass.simpleName} i tilstand $tilstandType")
+            this.varsel("Kan ikke håndtere ${this.javaClass.simpleName} i tilstand $tilstandType")
 
         override fun toSpesifikkKontekst(): SpesifikkKontekst {
             return this.javaClass.canonicalName.split('.').last().let {
@@ -215,7 +216,7 @@ class Søknad private constructor(
 
         override fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) {
             ønskeOmNySøknadHendelse.behov(
-                Behovtype.NySøknad,
+                SoknadBehov.NySøknad,
                 "Behov for å starte søknadsprosess",
                 mapOf("prosessnavn" to ønskeOmNySøknadHendelse.prosessnavn.id),
             )
@@ -238,14 +239,14 @@ class Søknad private constructor(
         override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
             if (!søknad.data.value.erFerdig()) {
                 // @todo: Oversette validringsfeil til frontend. Mulig lage et eller annet som frontend kan tolke
-                søknadInnsendtHendelse.severe("Alle faktum må være besvart")
+                søknadInnsendtHendelse.varsel("Alle faktum må være besvart")
             }
             if (!søknad.dokumentkrav.ferdigBesvart()) {
                 // @todo: Oversette validringsfeil til frontend. Mulig lage et eller annet som frontend kan tolke
-                søknadInnsendtHendelse.severe("Alle dokumentkrav må være besvart")
+                søknadInnsendtHendelse.varsel("Alle dokumentkrav må være besvart")
             }
             søknadInnsendtHendelse.behov(
-                Behovtype.NyInnsending,
+                SoknadBehov.NyInnsending,
                 "Søknad innsendt, trenger ny innsending",
                 mapOf(
                     "innsendtTidspunkt" to søknadInnsendtHendelse.innsendtidspunkt(),
@@ -286,11 +287,11 @@ class Søknad private constructor(
 
         override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
             if (!søknad.erDagpenger()) {
-                søknadInnsendtHendelse.severe("Kan ikke lage ettersending av prosess ${søknad.prosessversjon?.prosessnavn?.id}")
+                søknadInnsendtHendelse.varsel("Kan ikke lage ettersending av prosess ${søknad.prosessversjon?.prosessnavn?.id}")
             }
 
             søknadInnsendtHendelse.behov(
-                Behovtype.NyEttersending,
+                SoknadBehov.NyEttersending,
                 "Søknad ettersend, trenger ny ettersending",
                 mapOf(
                     "innsendtTidspunkt" to søknadInnsendtHendelse.innsendtidspunkt(),

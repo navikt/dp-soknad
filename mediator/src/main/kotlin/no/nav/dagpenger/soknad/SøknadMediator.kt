@@ -128,7 +128,7 @@ internal class SøknadMediator(
         behandleDokumentasjonkravHendelse(hendelse) { repository ->
             repository.håndter(hendelse)
             hendelse.behov(
-                Aktivitetslogg.Aktivitet.Behov.Behovtype.DokumentkravSvar,
+                SoknadBehov.DokumentkravSvar,
                 "Må svare dokumentkravet i Quiz",
                 mapOf(
                     "id" to hendelse.kravId,
@@ -204,8 +204,8 @@ internal class SøknadMediator(
     }
 
     private fun finalize(hendelse: Hendelse) {
-        if (!hendelse.hasMessages()) return
-        if (hendelse.hasErrors()) return sikkerLogger.info("aktivitetslogg inneholder errors: ${hendelse.toLogString()}")
+        if (!hendelse.harAktiviteter()) return
+        if (hendelse.harFunksjonelleFeilEllerVerre()) return sikkerLogger.info("aktivitetslogg inneholder errors: ${hendelse.toLogString()}")
         sikkerLogger.info("aktivitetslogg inneholder meldinger: ${hendelse.toLogString()}")
         behovMediator.håndter(hendelse)
     }

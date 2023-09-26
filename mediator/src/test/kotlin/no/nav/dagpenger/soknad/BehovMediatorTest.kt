@@ -2,8 +2,9 @@ package no.nav.dagpenger.soknad
 
 import com.fasterxml.jackson.databind.JsonNode
 import io.mockk.mockk
-import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.ArkiverbarSøknad
-import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NySøknad
+import no.nav.dagpenger.aktivitetslogg.Aktivitetskontekst
+import no.nav.dagpenger.aktivitetslogg.Aktivitetslogg
+import no.nav.dagpenger.aktivitetslogg.SpesifikkKontekst
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -44,7 +45,7 @@ internal class BehovMediatorTest {
         hendelse.kontekst(Testkontekst("Testkontekst"))
 
         hendelse.behov(
-            NySøknad,
+            SoknadBehov.NySøknad,
             "Behøver tom søknad for denne søknaden",
             mapOf(
                 "parameter1" to "verdi1",
@@ -77,7 +78,7 @@ internal class BehovMediatorTest {
         hendelse.kontekst(Testkontekst("Testkontekst"))
 
         hendelse.behov(
-            ArkiverbarSøknad,
+            SoknadBehov.ArkiverbarSøknad,
             "Trenger søknad på et arkiverbart format",
             mapOf(
                 "parameter1" to "verdi1",
@@ -86,7 +87,7 @@ internal class BehovMediatorTest {
         )
 
         hendelse.behov(
-            NySøknad,
+            SoknadBehov.NySøknad,
             "Behøver tom søknad for denne søknaden",
             mapOf(
                 "parameter3" to "verdi3",
@@ -120,14 +121,14 @@ internal class BehovMediatorTest {
         val hendelse = TestHendelse(aktivitetslogg.barn())
         hendelse.kontekst(testSøknadKontekst)
         hendelse.behov(
-            NySøknad,
+            SoknadBehov.NySøknad,
             "Behøver tom søknad for denne søknaden",
             mapOf(
                 "ident" to testIdent,
             ),
         )
         hendelse.behov(
-            NySøknad,
+            SoknadBehov.NySøknad,
             "Behøver tom søknad for denne søknaden",
             mapOf(
                 "ident" to testIdent,
@@ -141,8 +142,8 @@ internal class BehovMediatorTest {
     internal fun `kan ikke produsere samme behov`() {
         val hendelse = TestHendelse(aktivitetslogg.barn())
         hendelse.kontekst(testSøknadKontekst)
-        hendelse.behov(NySøknad, "Behøver tom søknad for denne søknaden")
-        hendelse.behov(NySøknad, "Behøver tom søknad for denne søknaden")
+        hendelse.behov(SoknadBehov.NySøknad, "Behøver tom søknad for denne søknaden")
+        hendelse.behov(SoknadBehov.NySøknad, "Behøver tom søknad for denne søknaden")
 
         assertThrows<IllegalArgumentException> { behovMediator.håndter(hendelse) }
     }

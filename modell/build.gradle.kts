@@ -7,6 +7,8 @@ dependencies {
     implementation(libs.bundles.jackson)
     api("de.slub-dresden:urnlib:2.0.1")
 
+    implementation(libs.aktivitetslogg)
+
     testImplementation("io.kotest:kotest-assertions-core-jvm:${libs.versions.kotest.get()}")
 
     testImplementation("io.mockk:mockk:${libs.versions.mockk.get()}")

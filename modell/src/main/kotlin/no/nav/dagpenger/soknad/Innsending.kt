@@ -1,6 +1,8 @@
 package no.nav.dagpenger.soknad
 
 import de.slub.urn.URN
+import no.nav.dagpenger.aktivitetslogg.Aktivitetskontekst
+import no.nav.dagpenger.aktivitetslogg.SpesifikkKontekst
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.InnsendingMetadataMottattHendelse
@@ -100,7 +102,7 @@ class Innsending private constructor(
         kontekst(hendelse)
         hendelse.info("Arkiverbar søknad mottatt")
         if (!hendelse.valider()) {
-            hendelse.warn("Ikke gyldig dokumentlokasjon")
+            hendelse.varsel("Ikke gyldig dokumentlokasjon")
             return
         }
         innsendinger.forEach { it._håndter(hendelse) }
@@ -148,7 +150,7 @@ class Innsending private constructor(
         }
         val forrigeTilstand = tilstand
         tilstand = nyTilstand
-        søknadHendelse.kontekst(tilstand)
+        søknadHendelse.kontekst(tilstand as no.nav.dagpenger.aktivitetslogg.Aktivitetskontekst)
         tilstand.entering(søknadHendelse, this)
         varsleOmEndretTilstand(forrigeTilstand)
     }
@@ -190,11 +192,9 @@ class Innsending private constructor(
             hendelse.`kan ikke håndteres i denne tilstanden`()
 
         private fun Hendelse.`kan ikke håndteres i denne tilstanden`() =
-            this.warn("Kan ikke håndtere ${this.javaClass.simpleName} i tilstand $tilstandType")
+            this.varsel("Kan ikke håndtere ${this.javaClass.simpleName} i tilstand $tilstandType")
 
-        override fun toSpesifikkKontekst() = this.javaClass.canonicalName.split('.').last().let {
-            SpesifikkKontekst(it, emptyMap())
-        }
+        override fun toSpesifikkKontekst() = SpesifikkKontekst(this.javaClass.canonicalName.split('.').last(), emptyMap())
     }
 
     private object Opprettet : Tilstand {
@@ -212,7 +212,7 @@ class Innsending private constructor(
         override fun entering(hendelse: Hendelse, innsending: Innsending) {
             if (innsending.metadata != null) return innsending.endreTilstand(AvventerArkiverbarSøknad, hendelse)
             hendelse.behov(
-                Aktivitetslogg.Aktivitet.Behov.Behovtype.InnsendingMetadata,
+                SoknadBehov.InnsendingMetadata,
                 "Trenger metadata/klassifisering av innsending",
             )
         }
@@ -229,7 +229,7 @@ class Innsending private constructor(
         override fun entering(hendelse: Hendelse, innsending: Innsending) {
             val metadata = requireNotNull(innsending.metadata) { "Må ha metadata" }
             hendelse.behov(
-                Aktivitetslogg.Aktivitet.Behov.Behovtype.ArkiverbarSøknad,
+                SoknadBehov.ArkiverbarSøknad,
                 "Trenger søknad på et arkiverbart format",
                 mapOf(
                     "innsendtTidspunkt" to innsending.innsendt.toString(),
@@ -261,7 +261,7 @@ class Innsending private constructor(
             val dokumenter = innsending.dokumenter
             hendelse.info("Lager journalpost med dokumenter=${dokumenter.size}")
             hendelse.behov(
-                Aktivitetslogg.Aktivitet.Behov.Behovtype.NyJournalpost,
+                SoknadBehov.NyJournalpost,
                 "Trenger å journalføre søknad",
                 mapOf(
                     "hovedDokument" to hovedDokument.toMap(), // urn til netto/brutto

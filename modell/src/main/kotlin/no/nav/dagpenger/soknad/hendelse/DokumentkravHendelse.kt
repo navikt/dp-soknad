@@ -1,8 +1,8 @@
 package no.nav.dagpenger.soknad.hendelse
 
 import de.slub.urn.URN
+import no.nav.dagpenger.aktivitetslogg.SpesifikkKontekst
 import no.nav.dagpenger.soknad.Krav
-import no.nav.dagpenger.soknad.SpesifikkKontekst
 import java.util.UUID
 
 sealed class DokumentKravHendelse(val søknadID: UUID, ident: String, val kravId: String) : Hendelse(ident) {

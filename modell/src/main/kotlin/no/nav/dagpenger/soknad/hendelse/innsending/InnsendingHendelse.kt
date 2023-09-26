@@ -1,7 +1,7 @@
 package no.nav.dagpenger.soknad.hendelse.innsending
 
-import no.nav.dagpenger.soknad.Aktivitetslogg
-import no.nav.dagpenger.soknad.SpesifikkKontekst
+import no.nav.dagpenger.aktivitetslogg.Aktivitetslogg
+import no.nav.dagpenger.aktivitetslogg.SpesifikkKontekst
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import java.util.UUID
 

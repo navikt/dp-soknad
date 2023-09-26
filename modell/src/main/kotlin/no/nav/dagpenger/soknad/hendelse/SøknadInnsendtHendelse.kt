@@ -1,6 +1,6 @@
 package no.nav.dagpenger.soknad.hendelse
 
-import no.nav.dagpenger.soknad.Aktivitetslogg
+import no.nav.dagpenger.aktivitetslogg.Aktivitetslogg
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit

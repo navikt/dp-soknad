@@ -25,6 +25,8 @@ dependencies {
     implementation(libs.prometheus.simpleclient)
     implementation("com.fasterxml.jackson.module:jackson-module-blackbird:0.0.1")
 
+    implementation(libs.aktivitetslogg)
+
     testImplementation(libs.ktor.client.mock)
     testImplementation("io.kotest:kotest-assertions-core-jvm:${libs.versions.kotest.get()}")
 
