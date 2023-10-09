@@ -1,0 +1,1 @@
+CREATE INDEX idx_dokumentkrav_v1_soknad_uuid ON dokumentkrav_v1 (soknad_uuid);
