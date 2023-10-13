@@ -38,7 +38,7 @@ prometheus-client = { group = "io.micrometer", name = "micrometer-registry-prome
 prometheus-simpleclient = {group = "io.prometheus", name = "simpleclient_caffeine", version = "0.16.0"}
 
 # Database
-flywaydb = { group = "org.flywaydb", name = "flyway-core", version = "9.22.0" }
+flywaydb = { group = "org.flywaydb", name = "flyway-core", version = "9.22.3" }
 postgresql-driver = { group = "org.postgresql", name = "postgresql", version = "42.6.0" }
 hikariCP = { group = "com.zaxxer", name = "HikariCP", version = "5.0.1" }
 kotlinquery = { group = "com.github.seratch", name = "kotliquery", version = "1.9.0" }
