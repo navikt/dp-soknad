@@ -22,6 +22,7 @@ internal class PersonOppslag(
             fnr,
             mapOf(
                 HttpHeaders.Authorization to "Bearer ${tokenProvider.invoke(subjectToken, pdlAudience)}",
+                "behandlingsnummer" to "B286", // https://behandlingskatalog.intern.nav.no/process/purpose/DAGPENGER/486f1672-52ed-46fb-8d64-bda906ec1bc9
             ),
         )
 
