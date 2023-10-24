@@ -4,6 +4,10 @@
 2. Eier dokumentasjonkrav for søknader
 3. Status for søknader og liste gitt bruker 
 
+## Dokumentasjon
+
+Se [Arkitektur](docs/arkitektur) for mer informasjon om arkitektur og design.
+
 ## Komme i gang
 
 Gradle brukes som byggverktøy og er bundlet inn.
