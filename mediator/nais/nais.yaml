@@ -53,6 +53,10 @@ spec:
         - application: dp-soknad-veileder
         - application: dp-innsyn
         - application: dp-dagpenger
+        {{#if wonderwalled}}
+        - application: azure-token-generator
+          namespace: aura
+        {{/if}}
     outbound:
       rules:
         - application: dp-innsyn
