@@ -54,7 +54,7 @@ spec:
         - application: dp-innsyn
         - application: dp-dagpenger
         {{#if wonderwalled}}
-        - application: wonderwalled-idporten
+        - application: tokenx-token-generator
           namespace: aura
         {{/if}}
     outbound:
