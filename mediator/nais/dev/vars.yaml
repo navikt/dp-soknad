@@ -10,3 +10,4 @@ DP_INNSYN_AUDIENCE: dev-gcp:teamdagpenger:dp-innsyn
 db_tier: db-custom-1-3840
 db_size: 20
 point_in_time_recovery_days: 2
+wonderwalled: true
