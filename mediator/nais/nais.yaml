@@ -30,7 +30,7 @@ spec:
     max: 4
     cpuThresholdPercentage: 75
   kafka:
-    pool: { { kafka_pool } }
+    pool: {{ kafka_pool }}
   resources:
     limits:
       cpu: "2024m"
@@ -38,10 +38,12 @@ spec:
     requests:
       cpu: "1024m"
       memory: "512Mi"
+  {{#if ingresses}}
   ingresses:
-  {{#each ingresses as |url|}}
+    {{#each ingresses as |url|}}
      - {{url}}
-  {{/each}}
+    {{/each}}
+  {{/if}}
   tokenx:
     enabled: true
   azure:
@@ -57,8 +59,8 @@ spec:
         - application: dp-innsyn
         - application: dp-dagpenger
         {{#if wonderwalled}}
-            - application: tokenx-token-generator
-                namespace: aura
+        - application: tokenx-token-generator
+          namespace: aura
         {{/if}}
     outbound:
       rules:
@@ -66,7 +68,7 @@ spec:
         - application: sokos-kontoregister-person
           namespace: okonomi
       external:
-        - host: { { PDL_API_HOST } }
+        - host: {{ PDL_API_HOST }}
   env:
     - name: PERSON_KONTO_REGISTER_SCOPE
       value: {{PERSON_KONTO_REGISTER_SCOPE}}
@@ -89,7 +91,7 @@ spec:
         diskType: SSD
         highAvailability: true
         pointInTimeRecovery: true
-        retainedBackups: { { point_in_time_recovery_days } }
+        retainedBackups: {{ point_in_time_recovery_days }}
         diskSize: {{db_size}}
         diskAutoresize: true
         autoBackupHour: 3
