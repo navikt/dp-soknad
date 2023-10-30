@@ -39,10 +39,10 @@ spec:
       cpu: "1024m"
       memory: "512Mi"
   {{#if ingresses}}
-  ingresses:
-    {{#each ingresses as |url|}}
-      - {{url}}
-    {{/each}}
+     ingresses:
+       {{#each ingresses}}
+          - {{this}}
+        {{/each}
   {{/if}}
   tokenx:
     enabled: true
@@ -58,10 +58,10 @@ spec:
         - application: dp-soknad-veileder
         - application: dp-innsyn
         - application: dp-dagpenger
-        { { #if wonderwalled}}
-            - application: tokenx-token-generator
+        {{#if wonderwalled}}
+            - application: tokens-token-generator
                 namespace: aura
-                {{/if } }
+        {{/if}}
     outbound:
       rules:
         - application: dp-innsyn
