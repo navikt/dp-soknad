@@ -38,12 +38,10 @@ spec:
     requests:
       cpu: "1024m"
       memory: "512Mi"
-  {{#if ingresses}}
-     ingresses:
-       {{#each ingresses}}
-          - {{this}}
-        {{/each}
-  {{/if}}
+  ingresses:
+  {{#each ingresses as |url|}}
+     - {{url}}
+  {{/each}}
   tokenx:
     enabled: true
   azure:
