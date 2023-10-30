@@ -38,11 +38,11 @@ spec:
     requests:
       cpu: "1024m"
       memory: "512Mi"
-  { { #if ingresses}}
-    ingresses:
-      { { #each ingresses as |url|}}
-          - {{url } }
-        {{/each } }
+  {{#if ingresses}}
+  ingresses:
+    {{#each ingresses as |url|}}
+      - {{url}}
+    {{/each}}
   {{/if}}
   tokenx:
     enabled: true
