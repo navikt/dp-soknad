@@ -10,7 +10,7 @@ mockk = "1.13.4"
 junit-platform-suite = "1.9.3" #relatert til cucumber
 kotlinx-coroutines-slf4j = "1.7.1"
 dagpenger-biblioteker = "2023.01.16-10.20.e8450fdff15a"
-testContainer = "1.19.0"
+testContainer = "1.19.1"
 
 [libraries]
 dp-biblioteker-oauth2-klient = { group = "com.github.navikt.dp-biblioteker", name = "oauth2-klient", version = "2023.04.27-09.33.fcf0798bf943" }
