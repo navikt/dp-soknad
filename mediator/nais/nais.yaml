@@ -28,16 +28,14 @@ spec:
   replicas:
     min: 4
     max: 4
-    cpuThresholdPercentage: 75
   kafka:
     pool: {{ kafka_pool }}
   resources:
     limits:
-      cpu: "2024m"
-      memory: "512Mi"
+      memory: 1024Mi
     requests:
-      cpu: "1024m"
-      memory: "512Mi"
+      cpu: 50m
+      memory: 512Mi
   {{#if ingresses}}
   ingresses:
     {{#each ingresses as |url|}}
@@ -82,7 +80,6 @@ spec:
       value: http://dp-innsyn
     - name: JAVA_OPTS
       value: -XX:ActiveProcessorCount=2
-    #  value: -XX:+UseG1GC -XX:MaxRAMPercentage=75.0 -XX:ActiveProcessorCount=2
   gcp:
     sqlInstances:
       - name: dp-soknad-v1
