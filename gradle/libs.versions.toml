@@ -1,8 +1,8 @@
 [versions]
 gcp-bom = "26.0.0"
-jackson = "2.15.2"
-kotlin = "1.9.10"
-ktor = "2.3.4"
+jackson = "2.16.0"
+kotlin = "1.9.21"
+ktor = "2.3.6"
 ktlint = "0.50.0"
 kotest = "5.6.2"
 cucumber = "7.12.0"
@@ -10,7 +10,7 @@ mockk = "1.13.4"
 junit-platform-suite = "1.9.3" #relatert til cucumber
 kotlinx-coroutines-slf4j = "1.7.1"
 dagpenger-biblioteker = "2023.01.16-10.20.e8450fdff15a"
-testContainer = "1.19.0"
+testContainer = "1.19.3"
 
 [libraries]
 dp-biblioteker-oauth2-klient = { group = "com.github.navikt.dp-biblioteker", name = "oauth2-klient", version = "2023.04.27-09.33.fcf0798bf943" }
@@ -32,15 +32,15 @@ ktor-server-auth-jwt = { group = "io.ktor", name = "ktor-server-auth-jwt", versi
 ktor-server-content-negotiation = { group = "io.ktor", name = "ktor-server-content-negotiation", version.ref = "ktor" }
 ktor-serialization-jackson = { group = "io.ktor", name = "ktor-serialization-jackson", version.ref = "ktor" }
 ktor-server-logging-jvm = { group = "io.ktor", name = "ktor-server-call-logging-jvm", version.ref = "ktor" }
-mock-oauth2-server = { group = "no.nav.security", name = "mock-oauth2-server", version = "2.0.0" }
+mock-oauth2-server = { group = "no.nav.security", name = "mock-oauth2-server", version = "2.0.1" }
 aktivitetslogg = { group = "no.nav.dagpenger", name = "aktivitetslogg", version = "20230831.52f628" }
-prometheus-client = { group = "io.micrometer", name = "micrometer-registry-prometheus", version = "1.11.5"}
+prometheus-client = { group = "io.micrometer", name = "micrometer-registry-prometheus", version = "1.12.0"}
 prometheus-simpleclient = {group = "io.prometheus", name = "simpleclient_caffeine", version = "0.16.0"}
 
 # Database
-flywaydb = { group = "org.flywaydb", name = "flyway-core", version = "9.22.0" }
-postgresql-driver = { group = "org.postgresql", name = "postgresql", version = "42.6.0" }
-hikariCP = { group = "com.zaxxer", name = "HikariCP", version = "5.0.1" }
+flywaydb = { group = "org.flywaydb", name = "flyway-core", version = "10.1.0" }
+postgresql-driver = { group = "org.postgresql", name = "postgresql", version = "42.7.0" }
+hikariCP = { group = "com.zaxxer", name = "HikariCP", version = "5.1.0" }
 kotlinquery = { group = "com.github.seratch", name = "kotliquery", version = "1.9.0" }
 testContainer = { group = "org.testcontainers", name = "testcontainers", version.ref = "testContainer" }
 testContainer-postgresql = { group = "org.testcontainers", name = "postgresql", version.ref = "testContainer" }
@@ -58,7 +58,7 @@ kotlin-logging = { group = "io.github.microutils", name = "kotlin-logging", vers
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-spotless = { id = "com.diffplug.spotless", version = "6.21.0" }
+spotless = { id = "com.diffplug.spotless", version = "6.23.3" }
 shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
 
 [bundles]

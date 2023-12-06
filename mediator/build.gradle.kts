@@ -23,7 +23,7 @@ dependencies {
     implementation(libs.dp.biblioteker.pdl.klient)
     implementation(libs.prometheus.client)
     implementation(libs.prometheus.simpleclient)
-    implementation("com.fasterxml.jackson.module:jackson-module-blackbird:2.15.2")
+    implementation("com.fasterxml.jackson.module:jackson-module-blackbird:2.16.0")
 
     testImplementation(libs.ktor.client.mock)
     testImplementation("io.kotest:kotest-assertions-core-jvm:${libs.versions.kotest.get()}")
@@ -32,7 +32,7 @@ dependencies {
     testImplementation(libs.mock.oauth2.server)
     testImplementation(libs.bundles.postgres.test)
     testImplementation(libs.ktor.server.test.host.jvm)
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.1")
     testImplementation(libs.ktor.client.mock)
 }
 
