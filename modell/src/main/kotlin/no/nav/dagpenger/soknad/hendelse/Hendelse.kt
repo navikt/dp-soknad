@@ -1,9 +1,9 @@
 package no.nav.dagpenger.soknad.hendelse
 
-import no.nav.dagpenger.soknad.Aktivitetskontekst
-import no.nav.dagpenger.soknad.Aktivitetslogg
-import no.nav.dagpenger.soknad.IAktivitetslogg
-import no.nav.dagpenger.soknad.SpesifikkKontekst
+import no.nav.dagpenger.aktivitetslogg.Aktivitetskontekst
+import no.nav.dagpenger.aktivitetslogg.Aktivitetslogg
+import no.nav.dagpenger.aktivitetslogg.IAktivitetslogg
+import no.nav.dagpenger.aktivitetslogg.SpesifikkKontekst
 import java.util.UUID
 
 abstract class Hendelse protected constructor(
@@ -11,9 +11,9 @@ abstract class Hendelse protected constructor(
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : IAktivitetslogg by aktivitetslogg, Aktivitetskontekst {
 
-    init {
-        aktivitetslogg.kontekst(this)
-    }
+//    init {
+//        aktivitetslogg.kontekst(this)
+//    }
 
     fun ident() = ident
 
@@ -32,6 +32,10 @@ abstract class SøknadHendelse protected constructor(
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : Hendelse(ident = ident, aktivitetslogg = aktivitetslogg) {
     fun søknadID() = søknadID
+
+//    init {
+//        aktivitetslogg.kontekst(this)
+//    }
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst {
         return SpesifikkKontekst(this.klasseNavn, mapOf("søknad_uuid" to søknadID().toString()))

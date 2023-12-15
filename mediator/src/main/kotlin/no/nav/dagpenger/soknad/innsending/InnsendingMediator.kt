@@ -1,7 +1,7 @@
 package no.nav.dagpenger.soknad.innsending
 
 import mu.KotlinLogging
-import no.nav.dagpenger.soknad.Aktivitetslogg
+import no.nav.dagpenger.aktivitetslogg.Aktivitetslogg
 import no.nav.dagpenger.soknad.BehovMediator
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.InnsendingObserver
@@ -113,8 +113,8 @@ internal class InnsendingMediator(
     }
 
     private fun finalize(hendelse: Hendelse) {
-        if (!hendelse.hasMessages()) return
-        if (hendelse.hasErrors()) return sikkerLogger.info("aktivitetslogg inneholder errors: ${hendelse.toLogString()}")
+        if (!hendelse.harAktiviteter()) return
+        if (hendelse.harFunksjonelleFeilEllerVerre()) return sikkerLogger.info("aktivitetslogg inneholder errors: ${hendelse.toLogString()}")
         sikkerLogger.info("aktivitetslogg inneholder meldinger: ${hendelse.toLogString()}")
         behovMediator.håndter(hendelse)
     }

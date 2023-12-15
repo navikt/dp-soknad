@@ -1,6 +1,6 @@
 package no.nav.dagpenger.soknad.hendelse
 
-import no.nav.dagpenger.soknad.Aktivitetslogg
+import no.nav.dagpenger.aktivitetslogg.Aktivitetslogg
 import no.nav.dagpenger.soknad.Prosessnavn
 import no.nav.dagpenger.soknad.Språk
 import java.util.UUID

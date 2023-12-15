@@ -1,6 +1,6 @@
 package no.nav.dagpenger.soknad.innsending.meldinger
 
-import no.nav.dagpenger.soknad.Aktivitetslogg
+import no.nav.dagpenger.aktivitetslogg.Aktivitetslogg
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.hendelse.innsending.InnsendingHendelse
 

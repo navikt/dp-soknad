@@ -1,6 +1,6 @@
 package no.nav.dagpenger.soknad.hendelse.innsending
 
-import no.nav.dagpenger.soknad.Aktivitetslogg
+import no.nav.dagpenger.aktivitetslogg.Aktivitetslogg
 import no.nav.dagpenger.soknad.Innsending.Metadata
 import java.util.UUID
 

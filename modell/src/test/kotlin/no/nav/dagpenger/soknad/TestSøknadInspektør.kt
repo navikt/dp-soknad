@@ -2,12 +2,12 @@ package no.nav.dagpenger.soknad
 
 import java.time.ZonedDateTime
 import java.util.UUID
-
+import no.nav.dagpenger.soknad.Aktivitetslogg
 internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
     lateinit var søknadId: UUID
     lateinit var gjeldendetilstand: Søknad.Tilstand.Type
     lateinit var dokumentkrav: Dokumentkrav
-    lateinit var aktivitetslogg: Aktivitetslogg
+    lateinit var aktivitetslogg: no.nav.dagpenger.soknad.Aktivitetslogg
     lateinit var innsending: InnsendingData
     lateinit var opprettet: ZonedDateTime
 
@@ -45,7 +45,7 @@ internal class TestSøknadInspektør(søknad: Søknad) : SøknadVisitor {
         gjeldendetilstand = tilstand
     }
 
-    override fun postVisitAktivitetslogg(aktivitetslogg: Aktivitetslogg) {
+    override fun postVisitAktivitetslogg(aktivitetslogg: no.nav.dagpenger.soknad.Aktivitetslogg) {
         this.aktivitetslogg = aktivitetslogg
     }
 }

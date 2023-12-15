@@ -1,6 +1,6 @@
 package no.nav.dagpenger.soknad.hendelse
 
-import no.nav.dagpenger.soknad.Aktivitetslogg
+import no.nav.dagpenger.aktivitetslogg.Aktivitetslogg
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Søknad
 import java.util.UUID
@@ -23,7 +23,7 @@ class SøkeroppgaveHendelse(
 
     fun håndter(søknad: Søknad) {
         søknad.håndter(sannsynliggjøringer)
-        if (hasErrors()) return
+        if (harFunksjonelleFeilEllerVerre()) return
         observers.forEach { it.håndtert(this) }
     }
 }

@@ -1,7 +1,6 @@
 package no.nav.dagpenger.soknad
 
-import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
-import no.nav.dagpenger.soknad.Aktivitetslogg.AktivitetException
+import no.nav.dagpenger.aktivitetslogg.Aktivitetslogg.AktivitetException
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
@@ -64,7 +63,7 @@ internal class SøknadTest {
         håndterNySøknadOpprettet()
         håndterSendInnSøknad()
 
-        assertThrows<AktivitetException> {
+        assertThrows<Aktivitetslogg.AktivitetException> {
             håndterFaktumOppdatering()
         }
     }
@@ -77,7 +76,7 @@ internal class SøknadTest {
             assertEquals(LocalDate.now(), this.toLocalDate())
         }
         assertBehov(
-            Behovtype.NySøknad,
+            SoknadBehov.NySøknad,
             mapOf(
                 "prosessnavn" to "Dagpenger",
                 "søknad_uuid" to inspektør.søknadId.toString(),
@@ -104,7 +103,7 @@ internal class SøknadTest {
             assertEquals(LocalDate.now(), this.toLocalDate())
         }
         assertBehov(
-            Behovtype.NySøknad,
+            SoknadBehov.NySøknad,
             mapOf(
                 "prosessnavn" to "Dagpenger",
                 "søknad_uuid" to inspektør.søknadId.toString(),
@@ -185,21 +184,20 @@ internal class SøknadTest {
     }
 
     private fun håndterØnskeOmNySøknadHendelse(prosessnavn: Prosessnavn = Prosessnavn("Dagpenger")) {
-        søknad.håndter(
-            ØnskeOmNySøknadHendelse(
-                søknadID = UUID.randomUUID(),
-                ident = testIdent,
-                språk = språk,
-                prosessnavn = prosessnavn,
-            ),
+        val ønskeOmNySøknadHendelse = ØnskeOmNySøknadHendelse(
+            søknadID = UUID.randomUUID(),
+            ident = testIdent,
+            språk = språk,
+            prosessnavn = prosessnavn,
         )
+        søknad.håndter(ønskeOmNySøknadHendelse)
     }
 
     private fun assertTilstander(vararg tilstander: Søknad.Tilstand.Type) {
         assertEquals(tilstander.asList(), testSøknadObserver.tilstander)
     }
 
-    private fun assertBehov(behovtype: Behovtype, forventetDetaljer: Map<String, Any> = emptyMap()) {
+    private fun assertBehov(behovtype: SoknadBehov, forventetDetaljer: Map<String, Any> = emptyMap()) {
         val behov = inspektør.aktivitetslogg.behov().findLast {
             it.type == behovtype
         } ?: throw AssertionError("Fant ikke behov $behovtype")
