@@ -18,7 +18,7 @@ dependencies {
     implementation(libs.konfig)
     implementation(libs.kotlin.logging)
 
-    implementation("com.github.navikt:pam-geography:2.15")
+    implementation("com.github.navikt:pam-geography:2.21")
     implementation(libs.dp.biblioteker.oauth2.klient)
     implementation(libs.dp.biblioteker.pdl.klient)
     implementation(libs.micrometer.registry.prometheus)
