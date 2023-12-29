@@ -58,7 +58,7 @@ kotlin-logging = { group = "io.github.microutils", name = "kotlin-logging", vers
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-spotless = { id = "com.diffplug.spotless", version = "6.21.0" }
+spotless = { id = "com.diffplug.spotless", version = "6.23.3" }
 shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
 
 [bundles]
