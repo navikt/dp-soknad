@@ -23,7 +23,7 @@ dependencies {
     implementation(libs.dp.biblioteker.pdl.klient)
     implementation(libs.prometheus.client)
     implementation(libs.prometheus.simpleclient)
-    implementation("com.fasterxml.jackson.module:jackson-module-blackbird:2.15.2")
+    implementation("com.fasterxml.jackson.module:jackson-module-blackbird:2.16.1")
 
     testImplementation(libs.ktor.client.mock)
     testImplementation("io.kotest:kotest-assertions-core-jvm:${libs.versions.kotest.get()}")
