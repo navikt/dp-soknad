@@ -28,6 +28,7 @@ jobs:
 
       - name: docker-build-push
         uses: nais/docker-build-push@v0
+        if: ${{ github.actor != 'dependabot[bot]' }}
         id: docker-build-push
         with:
           team: teamdagpenger
