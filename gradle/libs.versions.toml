@@ -1,6 +1,6 @@
 [versions]
 gcp-bom = "26.0.0"
-jackson = "2.15.2"
+jackson = "2.16.1"
 kotlin = "1.9.10"
 ktor = "2.3.7"
 ktlint = "0.50.0"
