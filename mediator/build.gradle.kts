@@ -21,8 +21,8 @@ dependencies {
     implementation("com.github.navikt:pam-geography:2.15")
     implementation(libs.dp.biblioteker.oauth2.klient)
     implementation(libs.dp.biblioteker.pdl.klient)
-    implementation(libs.prometheus.client)
-    implementation(libs.prometheus.simpleclient)
+    implementation(libs.micrometer.registry.prometheus)
+    implementation("io.prometheus:simpleclient_caffeine:0.16.0")
     implementation("com.fasterxml.jackson.module:jackson-module-blackbird:2.16.1")
 
     testImplementation(libs.ktor.client.mock)
@@ -31,7 +31,7 @@ dependencies {
     testImplementation("io.mockk:mockk:${libs.versions.mockk.get()}")
     testImplementation(libs.mock.oauth2.server)
     testImplementation(libs.bundles.postgres.test)
-    testImplementation(libs.ktor.server.test.host.jvm)
+    testImplementation(libs.ktor.server.test.host)
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.0")
     testImplementation(libs.ktor.client.mock)
 }
