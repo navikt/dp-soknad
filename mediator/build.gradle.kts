@@ -3,6 +3,8 @@ plugins {
     application
 }
 
+val openTelemetryVersion = "1.32.0"
+
 dependencies {
     implementation(project(path = ":modell"))
 
@@ -17,6 +19,13 @@ dependencies {
 
     implementation(libs.konfig)
     implementation(libs.kotlin.logging)
+
+    // OpenTelemetry tracing
+    implementation("io.opentelemetry:opentelemetry-api:$openTelemetryVersion")
+    implementation("io.opentelemetry:opentelemetry-api:$openTelemetryVersion")
+    implementation("io.opentelemetry:opentelemetry-exporter-otlp:$openTelemetryVersion")
+    implementation("io.opentelemetry.instrumentation:opentelemetry-ktor-2.0:$openTelemetryVersion-alpha")
+    implementation("io.opentelemetry.instrumentation:opentelemetry-kafka-clients-2.6:$openTelemetryVersion-alpha")
 
     implementation("com.github.navikt:pam-geography:2.21")
     implementation(libs.dp.biblioteker.oauth2.klient)

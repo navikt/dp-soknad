@@ -2,7 +2,7 @@ name: Build and deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [ feature/opentelemetry ]
     paths-ignore:
       - 'docs/**'
       - 'alerts/**'
@@ -41,7 +41,7 @@ jobs:
 
   deploy-dev:
     needs: [ build ]
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/feature/opentelemetry'
     runs-on: ubuntu-latest
     environment: dev-gcp
     steps:

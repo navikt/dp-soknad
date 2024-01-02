@@ -28,6 +28,7 @@ import io.ktor.server.request.uri
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
+import io.opentelemetry.api.GlobalOpenTelemetry
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.db.SøkerOppgaveNotFoundException
 import no.nav.dagpenger.soknad.utils.auth.AzureAdFactory.azure
@@ -59,6 +60,12 @@ internal fun Application.api(
     install(CallId) {
         retrieveFromHeader(HttpHeaders.XRequestId)
     }
+
+    GlobalOpenTelemetry.get()
+//    install(KtorServerTracing) {
+//        setOpenTelemetry(GlobalOpenTelemetry.get())
+//    }
+
     install(DefaultHeaders)
     install(StatusPages) {
         exception<Throwable> { call, cause ->

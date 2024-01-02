@@ -23,6 +23,9 @@ spec:
     timeout: 1
   prometheus:
     enabled: true
+  observability:
+    tracing:
+      enabled: true
   secureLogs:
     enabled: true
   replicas:
@@ -77,8 +80,16 @@ spec:
       value: {{DP_INNSYN_AUDIENCE}}
     - name: DP_INNSYN_URL
       value: http://dp-innsyn
+    - name: OTEL_METRICS_EXPORTER
+      value: prometheus
+    - name: OTEL_LOGS_EXPORTER
+      value: none
+    - name: OTEL_TRACES_EXPORTER
+      value: otlp
+    - name: OTEL_EXPORTER_METRICS_ENABLED
+      value: "false"
     - name: JAVA_OPTS
-      value: -XX:ActiveProcessorCount=2
+      value: -XX:ActiveProcessorCount=2 -javaagent:/opt/tracing/opentelemetry-javaagent.jar
   gcp:
     sqlInstances:
       - name: dp-soknad-v1
