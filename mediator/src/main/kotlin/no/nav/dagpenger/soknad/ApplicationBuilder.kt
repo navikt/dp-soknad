@@ -54,7 +54,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
             arbeidsforholdRouteBuilder = arbeidsforholdRouteBuilder(
                 aaregClient = AaregClient(
                     aaregUrl = Configuration.aaregUrl,
-                    tokenProvider = Configuration.tokenXClient(Configuration.aaregScope),
+                    tokenProvider = Configuration.tokenXClient(Configuration.aaregAudience),
                 ),
             ),
             søknadRouteBuilder = søknadApiRouteBuilder(
