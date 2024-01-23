@@ -41,6 +41,7 @@ private val logger = KotlinLogging.logger {}
 internal fun Application.api(
     søknadRouteBuilder: Route.() -> Unit,
     personaliaRouteBuilder: Route.() -> Unit,
+    arbeidsforholdRouteBuilder: Route.() -> Unit,
     ferdigstiltRouteBuilder: Route.() -> Unit,
     søknadDataRouteBuilder: Route.() -> Unit,
 ) {
@@ -158,6 +159,7 @@ internal fun Application.api(
         authenticate("tokenX") {
             søknadRouteBuilder()
             personaliaRouteBuilder()
+            arbeidsforholdRouteBuilder()
         }
         authenticate("azureAd") {
             ferdigstiltRouteBuilder()

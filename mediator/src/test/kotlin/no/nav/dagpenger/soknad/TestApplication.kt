@@ -14,6 +14,8 @@ import io.ktor.server.routing.get
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.mockk
+import no.nav.dagpenger.soknad.arbeidsforhold.AaregClient
+import no.nav.dagpenger.soknad.arbeidsforhold.arbeidsforholdRouteBuilder
 import no.nav.dagpenger.soknad.data.søknadData
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.ferdigStiltSøknadRouteBuilder
 import no.nav.dagpenger.soknad.personalia.KontonummerOppslag
@@ -60,6 +62,7 @@ object TestApplication {
     internal fun mockedSøknadApi(
         personOppslag: PersonOppslag = mockk(relaxed = true),
         kontonummerOppslag: KontonummerOppslag = mockk(relaxed = true),
+        aaregClient: AaregClient = mockk(relaxed = true),
         søknadMediator: SøknadMediator = mockk(relaxed = true),
         behandlingsstatusClient: BehandlingsstatusClient = mockk(relaxed = true),
     ): Application.() -> Unit {
@@ -72,6 +75,9 @@ object TestApplication {
                 personaliaRouteBuilder(
                     personOppslag,
                     kontonummerOppslag,
+                ),
+                arbeidsforholdRouteBuilder(
+                    aaregClient = aaregClient,
                 ),
                 ferdigStiltSøknadRouteBuilder(mockk(relaxed = true)),
                 søknadDataRouteBuilder = søknadData(søknadMediator),
