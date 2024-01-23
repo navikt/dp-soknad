@@ -13,3 +13,6 @@ point_in_time_recovery_days: 2
 wonderwalled: true
 ingresses:
   - https://dp-soknad.intern.dev.nav.no
+aareg:
+  url: "https://aareg-services.dev-fss-pub.nais.io"
+  scope: "api://dev-fss.arbeidsforhold.aareg-services-nais/.default"

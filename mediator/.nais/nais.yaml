@@ -66,6 +66,7 @@ spec:
           namespace: okonomi
       external:
         - host: {{ PDL_API_HOST }}
+        - host: aareg-services-q2.dev-fss-pub.nais.io
   env:
     - name: PERSON_KONTO_REGISTER_SCOPE
       value: {{PERSON_KONTO_REGISTER_SCOPE}}
@@ -77,6 +78,10 @@ spec:
       value: {{DP_INNSYN_AUDIENCE}}
     - name: DP_INNSYN_URL
       value: http://dp-innsyn
+    - name: AAREG_URL
+      value: {{aareg.url}}
+    - name: AAREG_SCOPE
+      value: {{aareg.scope}}
     - name: JAVA_OPTS
       value: -XX:ActiveProcessorCount=2
   gcp:
