@@ -55,10 +55,10 @@ internal class AaregClient(
                 }
             if (response.status.value == 200) {
                 logger.info("Kall til AAREG gikk OK")
-                emptyList<Arbeidsforhold>()
+                arbeidsforhold
             } else {
                 logger.warn("Kall til AAREG feilet med status ${response.status}")
-                arbeidsforhold
+                emptyList()
             }
         } catch (e: ClientRequestException) {
             logger.warn("Kall til AAREG feilet", e)
