@@ -22,7 +22,7 @@ internal class ArbeidsforholdRouteTest {
     @Test
     fun `Skal avvise uautentiserte kall`() {
         TestApplication.withMockAuthServerAndTestApplication() {
-            assertEquals(HttpStatusCode.Unauthorized, client.get("${Configuration.basePath}/personalia").status)
+            assertEquals(HttpStatusCode.Unauthorized, client.get("${Configuration.basePath}/arbeidsforhold").status)
         }
     }
 

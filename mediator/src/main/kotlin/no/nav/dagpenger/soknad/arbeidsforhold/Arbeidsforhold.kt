@@ -8,4 +8,3 @@ data class Arbeidsforhold(
     val startdato: LocalDate,
     val sluttdato: LocalDate,
 )
-
