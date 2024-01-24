@@ -76,30 +76,14 @@ internal class AaregClient(
 private val arbeidsforhold: List<Arbeidsforhold> = listOf(
     Arbeidsforhold(
         id = "1",
-        arbeidsgiver = Arbeidsgiver(
-            navn = "ABC",
-            land = "NORGE",
-        ),
-        stillingsprosent = 60.00,
-        antallTimerPerUke = 22.5,
-        ansettelsesform = "fast",
+        organisasjonsnummer = "910825518",
         startdato = LocalDate.of(2020, 1, 1),
         sluttdato = LocalDate.of(2021, 1, 1),
-        endringsAarsak = "AVSKJEDIGET",
-        sluttAarsak = "AVSKJEDIGET",
     ),
     Arbeidsforhold(
         id = "2",
-        arbeidsgiver = Arbeidsgiver(
-            navn = "DEF",
-            land = "NORGE",
-        ),
-        stillingsprosent = 100.00,
-        antallTimerPerUke = 37.5,
-        ansettelsesform = "fast",
-        startdato = LocalDate.of(2020, 1, 1),
-        sluttdato = LocalDate.of(2021, 1, 1),
-        endringsAarsak = "Permitert",
-        sluttAarsak = "Permitert",
+        organisasjonsnummer = "910825599",
+        startdato = LocalDate.of(2021, 1, 1),
+        sluttdato = LocalDate.of(2023, 1, 1),
     ),
 )

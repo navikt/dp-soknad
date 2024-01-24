@@ -93,30 +93,14 @@ private val forventetArbeidsforhold: String
 private val arbeidsforhold: List<Arbeidsforhold> = listOf(
     Arbeidsforhold(
         id = "1",
-        arbeidsgiver = Arbeidsgiver(
-            navn = "ABC",
-            land = "NORGE",
-        ),
-        stillingsprosent = 60.00,
-        antallTimerPerUke = 22.5,
-        ansettelsesform = "fast",
+        organisasjonsnummer = "111111111",
         startdato = LocalDate.of(2020, 1, 1),
         sluttdato = LocalDate.of(2021, 1, 1),
-        endringsAarsak = "AVSKJEDIGET",
-        sluttAarsak = "AVSKJEDIGET",
     ),
     Arbeidsforhold(
-        id = "2",
-        arbeidsgiver = Arbeidsgiver(
-            navn = "DEF",
-            land = "NORGE",
-        ),
-        stillingsprosent = 100.00,
-        antallTimerPerUke = 37.5,
-        ansettelsesform = "fast",
+        id = "1",
+        organisasjonsnummer = "222222222",
         startdato = LocalDate.of(2020, 1, 1),
         sluttdato = LocalDate.of(2021, 1, 1),
-        endringsAarsak = "Permitert",
-        sluttAarsak = "Permitert",
     ),
 )
