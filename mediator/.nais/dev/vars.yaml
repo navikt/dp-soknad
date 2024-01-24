@@ -6,6 +6,8 @@ kafka_pool: nav-dev
 PERSON_KONTO_REGISTER_SCOPE: dev-gcp:okonomi:sokos-kontoregister-person
 PDL_API_HOST: pdl-api.dev-fss-pub.nais.io
 PDL_AUDIENCE: dev-fss:pdl:pdl-api
+AAREG_API_HOST: https://aareg-services.dev-fss-pub.nais.io
+AAREG_AUDIENCE: dev-fss:arbeidsforhold:aareg-services-nais
 DP_INNSYN_AUDIENCE: dev-gcp:teamdagpenger:dp-innsyn
 db_tier: db-custom-1-3840
 db_size: 20
@@ -13,6 +15,3 @@ point_in_time_recovery_days: 2
 wonderwalled: true
 ingresses:
   - https://dp-soknad.intern.dev.nav.no
-aareg:
-  url: "https://aareg-services.dev-fss-pub.nais.io"
-  scope: "api://dev-fss.arbeidsforhold.aareg-services-nais/.default"

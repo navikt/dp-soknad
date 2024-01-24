@@ -22,7 +22,7 @@ internal class ArbeidsforholdRouteTest {
     @Test
     fun `Skal avvise uautentiserte kall`() {
         TestApplication.withMockAuthServerAndTestApplication() {
-            assertEquals(HttpStatusCode.Unauthorized, client.get("${Configuration.basePath}/personalia").status)
+            assertEquals(HttpStatusCode.Unauthorized, client.get("${Configuration.basePath}/arbeidsforhold").status)
         }
     }
 
@@ -45,7 +45,12 @@ internal class ArbeidsforholdRouteTest {
                 assertEquals("application/json; charset=UTF-8", response.headers["Content-Type"])
 
                 response.bodyAsText() shouldBe "[]"
-                coVerify(exactly = 1) { mockAaregClient.hentArbeidsforhold(TestApplication.defaultDummyFodselsnummer, any()) }
+                coVerify(exactly = 1) {
+                    mockAaregClient.hentArbeidsforhold(
+                        TestApplication.defaultDummyFodselsnummer,
+                        any(),
+                    )
+                }
             }
         }
     }
@@ -69,7 +74,12 @@ internal class ArbeidsforholdRouteTest {
                 assertEquals("application/json; charset=UTF-8", response.headers["Content-Type"])
 
                 response.bodyAsText() shouldBeEqual forventetArbeidsforhold
-                coVerify(exactly = 1) { mockAaregClient.hentArbeidsforhold(TestApplication.defaultDummyFodselsnummer, any()) }
+                coVerify(exactly = 1) {
+                    mockAaregClient.hentArbeidsforhold(
+                        TestApplication.defaultDummyFodselsnummer,
+                        any(),
+                    )
+                }
             }
         }
     }
@@ -83,39 +93,14 @@ private val forventetArbeidsforhold: String
 private val arbeidsforhold: List<Arbeidsforhold> = listOf(
     Arbeidsforhold(
         id = "1",
-        arbeidsgiver = Arbeidsgiver(
-            navn = "ABC",
-            land = "NORGE",
-        ),
-        ansettelsesdetaljer = Ansettelsesdetaljer(
-            stillingsprosent = 60.00,
-            antallTimerPerUke = 22.5,
-            ansettelsesform = "fast",
-        ),
-        periode = Periode(
-            startdato = LocalDate.of(2020, 1, 1),
-            sluttdato = LocalDate.of(2021, 1, 1),
-        ),
-        endringsAarsak = "AVSKJEDIGET",
-        sluttAarsak = "AVSKJEDIGET",
+        organisasjonsnummer = "111111111",
+        startdato = LocalDate.of(2020, 1, 1),
+        sluttdato = LocalDate.of(2021, 1, 1),
     ),
     Arbeidsforhold(
-        id = "2",
-        arbeidsgiver = Arbeidsgiver(
-            navn = "DEF",
-            land = "NORGE",
-        ),
-        ansettelsesdetaljer = Ansettelsesdetaljer(
-            stillingsprosent = 100.00,
-            antallTimerPerUke = 37.5,
-            ansettelsesform = "fast",
-        ),
-        periode = Periode(
-            startdato = LocalDate.of(2020, 1, 1),
-            sluttdato = LocalDate.of(2021, 1, 1),
-        ),
-        endringsAarsak = "Permitert",
-        sluttAarsak = "Permitert",
+        id = "1",
+        organisasjonsnummer = "222222222",
+        startdato = LocalDate.of(2020, 1, 1),
+        sluttdato = LocalDate.of(2021, 1, 1),
     ),
-
 )
