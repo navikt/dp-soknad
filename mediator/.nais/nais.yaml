@@ -66,7 +66,7 @@ spec:
           namespace: okonomi
       external:
         - host: {{ PDL_API_HOST }}
-        - host: {{ AAREG_API_HOST }}
+        - host: aareg-services-q2.dev-fss-pub.nais.io
   env:
     - name: PERSON_KONTO_REGISTER_SCOPE
       value: {{PERSON_KONTO_REGISTER_SCOPE}}
