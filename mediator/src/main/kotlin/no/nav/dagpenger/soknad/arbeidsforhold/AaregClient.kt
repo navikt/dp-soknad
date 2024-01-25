@@ -13,8 +13,8 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendEncodedPathSegments
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.utils.client.createHttpClient
@@ -29,10 +29,10 @@ internal class AaregClient(
 
     private val client = createHttpClient(engine)
 
-    fun hentArbeidsforhold(
+    suspend fun hentArbeidsforhold(
         fnr: String,
         subjectToken: String,
-    ) = runBlocking {
+    ) = withContext(Dispatchers.IO) {
         val url = URLBuilder(aaregUrl).appendEncodedPathSegments(API_PATH, ARBEIDSFORHOLD_PATH).build()
         try {
             val response: HttpResponse =
@@ -48,7 +48,7 @@ internal class AaregClient(
 
                 arbeidsforholdJson.map {
                     val organisasjonsnummer = toOrganisasjonsnummer(it["arbeidssted"])
-                    val organisasjonsnavn = async { eregClient.hentOganisasjonsnavn(organisasjonsnummer) }.await()
+                    val organisasjonsnavn = eregClient.hentOganisasjonsnavn(organisasjonsnummer)
 
                     toArbeidsforhold(it, organisasjonsnavn)
                 }.filter { it.organisasjonsnavn !== null }
