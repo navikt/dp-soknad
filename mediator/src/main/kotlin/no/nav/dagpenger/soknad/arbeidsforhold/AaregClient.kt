@@ -13,7 +13,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendEncodedPathSegments
-import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration
@@ -47,11 +46,8 @@ internal class AaregClient(
                 val arbeidsforholdJson = jacksonObjectMapper().readTree(response.bodyAsText())
 
                 arbeidsforholdJson.map {
-                    val organisasjonsnummer = toOrganisasjonsnummer(it["arbeidssted"])
-                    val organisasjonsnavn = async { eregClient.hentOganisasjonsnavn(organisasjonsnummer) }.await()
-
-                    toArbeidsforhold(it, organisasjonsnavn)
-                }.filter { it.organisasjonsnavn !== null }
+                    toArbeidsforhold(it, null)
+                }
             } else {
                 logger.warn("Kall til AAREG feilet med status ${response.status}")
                 emptyList()
@@ -72,6 +68,7 @@ internal class AaregClient(
 private fun toArbeidsforhold(aaregArbeidsforhold: JsonNode, organisasjonsnavn: String?): Arbeidsforhold {
     return Arbeidsforhold(
         id = aaregArbeidsforhold["id"].asText(),
+        organisasjonsnummer = toOrganisasjonsnummer(aaregArbeidsforhold["arbeidssted"]) ?: "",
         organisasjonsnavn = organisasjonsnavn,
         startdato = aaregArbeidsforhold["ansettelsesperiode"]["startdato"].asLocalDate(),
         sluttdato = aaregArbeidsforhold["ansettelsesperiode"].get("sluttdato")?.asLocalDate(),
@@ -79,7 +76,7 @@ private fun toArbeidsforhold(aaregArbeidsforhold: JsonNode, organisasjonsnavn: S
 }
 
 private fun toOrganisasjonsnummer(arbeidssted: JsonNode): String? {
-    return arbeidssted["identer"]
+    return arbeidssted.get("identer")
         .firstOrNull { it["type"].asText() == "ORGANISASJONSNUMMER" }
         ?.get("ident")?.asText()
 }
