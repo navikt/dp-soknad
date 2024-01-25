@@ -5,8 +5,10 @@ import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.get
-import io.ktor.client.request.parameter
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.URLBuilder
+import io.ktor.http.URLProtocol
+import io.ktor.http.appendEncodedPathSegments
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration
@@ -20,13 +22,15 @@ internal class EregClient(
     private val client = createHttpClient(engine)
 
     fun hentOganisasjonsnavn(orgnummer: String): String? = runBlocking {
-        val url = "$eregUrl$EREG_NOEKKELINFO_PATH$"
+        val url = URLBuilder(
+            protocol = URLProtocol.HTTPS,
+            host = eregUrl,
+        ).appendEncodedPathSegments(
+            EREG_NOEKKELINFO_PATH.replace("{orgnummer}", orgnummer),
+        ).buildString()
 
         try {
-            val response =
-                client.get(url) {
-                    parameter("orgnummer", orgnummer)
-                }
+            val response = client.get(url)
 
             if (response.status.value == 200) {
                 logger.info("Kall til EREG gikk OK")
