@@ -41,6 +41,8 @@ internal object Configuration {
     val aaregUrl by lazy { properties[Key("AAREG_API_HOST", stringType)] }
     val aaregAudience by lazy { properties[Key("AAREG_AUDIENCE", stringType)] }
 
+    val eregUrl by lazy { properties[Key("EREG_API_HOST", stringType)] }
+
     val tokenXClient by lazy {
         val tokenX = OAuth2Config.TokenX(properties)
         CachedOauth2Client(
