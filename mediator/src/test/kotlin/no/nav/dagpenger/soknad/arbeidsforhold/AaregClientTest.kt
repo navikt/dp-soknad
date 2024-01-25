@@ -1,13 +1,6 @@
 package no.nav.dagpenger.soknad.arbeidsforhold
 
 import io.kotest.matchers.shouldBe
-import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.respond
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.headersOf
-import io.ktor.utils.io.ByteReadChannel
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -18,20 +11,11 @@ class AaregClientTest {
 
     @Test
     fun `aareg svarer med 200 og en tom liste av arbeidsforhold`() {
-        val mockEngine =
-            MockEngine {
-                respond(
-                    content = ByteReadChannel("[]"),
-                    status = HttpStatusCode.OK,
-                    headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-                )
-            }
-
         val aaregClient =
             AaregClient(
                 aaregUrl = baseUrl,
                 tokenProvider = testTokenProvider,
-                engine = mockEngine,
+                engine = createMockedClient(200, "[]"),
             )
 
         val arbeidsforhold = aaregClient.hentArbeidsforhold(fnr = "12345678903", subjectToken = subjectToken)
@@ -41,20 +25,11 @@ class AaregClientTest {
 
     @Test
     fun `aareg svarer med 200 og liste med to arbeidsforhold`() {
-        val mockEngine =
-            MockEngine {
-                respond(
-                    content = ByteReadChannel(mockArbeidsforhold()),
-                    status = HttpStatusCode.OK,
-                    headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-                )
-            }
-
         val aaregClient =
             AaregClient(
                 aaregUrl = baseUrl,
                 tokenProvider = testTokenProvider,
-                engine = mockEngine,
+                engine = createMockedClient(200, mockArbeidsforhold()),
             )
 
         val arbeidsforhold = aaregClient.hentArbeidsforhold(fnr = "12345678903", subjectToken = subjectToken)

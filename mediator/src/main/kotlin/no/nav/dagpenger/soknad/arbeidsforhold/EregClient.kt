@@ -17,7 +17,7 @@ internal class EregClient(
     engine: HttpClientEngine = CIO.create {},
 ) {
 
-  private val client = createHttpClient(engine)
+    private val client = createHttpClient(engine)
 
     fun hentOganisasjonsnavn(orgnummer: String): String? = runBlocking {
         val url = "$eregUrl$EREG_NOEKKELINFO_PATH$"
