@@ -47,11 +47,11 @@ internal class AaregClient(
                 val arbeidsforholdJson = jacksonObjectMapper().readTree(response.bodyAsText())
 
                 arbeidsforholdJson.map {
-                    val organisasjonsnummer = it["arbeidssted"]["identer"][0]["ident"].asText()
+                    val organisasjonsnummer = toOrganisasjonsnummer(it["arbeidssted"])
                     val organisasjonsnavn = async { eregClient.hentOganisasjonsnavn(organisasjonsnummer) }.await()
 
                     toArbeidsforhold(it, organisasjonsnavn)
-                }
+                }.filter { it.organisasjonsnavn !== null }
             } else {
                 logger.warn("Kall til AAREG feilet med status ${response.status}")
                 emptyList()
@@ -76,4 +76,10 @@ private fun toArbeidsforhold(aaregArbeidsforhold: JsonNode, organisasjonsnavn: S
         startdato = aaregArbeidsforhold["ansettelsesperiode"]["startdato"].asLocalDate(),
         sluttdato = aaregArbeidsforhold["ansettelsesperiode"].get("sluttdato")?.asLocalDate(),
     )
+}
+
+private fun toOrganisasjonsnummer(arbeidssted: JsonNode): String? {
+    return arbeidssted["identer"]
+        .firstOrNull { it["type"].asText() == "ORGANISASJONSNUMMER" }
+        ?.get("ident")?.asText()
 }

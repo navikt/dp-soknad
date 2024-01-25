@@ -21,12 +21,17 @@ internal class EregClient(
 
     private val client = createHttpClient(engine)
 
-    fun hentOganisasjonsnavn(orgnummer: String): String? = runBlocking {
+    fun hentOganisasjonsnavn(organisasjonsnummer: String?): String? = runBlocking {
+        if (organisasjonsnummer === null || organisasjonsnummer.length != 9) {
+            logger.warn("Organisasjonsnummer må være 9 siffer")
+            return@runBlocking null
+        }
+
         val url = URLBuilder(
             protocol = URLProtocol.HTTPS,
             host = eregUrl,
         ).appendEncodedPathSegments(
-            EREG_NOEKKELINFO_PATH.replace("{orgnummer}", orgnummer),
+            EREG_NOEKKELINFO_PATH.replace("{orgnummer}", organisasjonsnummer),
         ).buildString()
 
         try {
