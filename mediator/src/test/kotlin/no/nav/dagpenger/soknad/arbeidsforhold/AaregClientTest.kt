@@ -1,11 +1,14 @@
 package no.nav.dagpenger.soknad.arbeidsforhold
 
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
+import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class AaregClientTest {
     private val testTokenProvider: (token: String) -> String = { _ -> "testToken" }
+    private val eregClientMock = mockk<EregClient>()
     private val baseUrl = "http://baseUrl"
     val subjectToken = "gylidg_token"
 
@@ -14,6 +17,7 @@ class AaregClientTest {
         val aaregClient =
             AaregClient(
                 aaregUrl = baseUrl,
+                eregClient = eregClientMock,
                 tokenProvider = testTokenProvider,
                 engine = createMockedClient(200, "[]"),
             )
@@ -25,9 +29,12 @@ class AaregClientTest {
 
     @Test
     fun `aareg svarer med 200 og liste med to arbeidsforhold`() {
+        coEvery { eregClientMock.hentOganisasjonsnavn(any()) } returnsMany listOf("ABC AS", "DEF AS")
+
         val aaregClient =
             AaregClient(
                 aaregUrl = baseUrl,
+                eregClient = eregClientMock,
                 tokenProvider = testTokenProvider,
                 engine = createMockedClient(200, mockArbeidsforhold()),
             )
@@ -37,20 +44,20 @@ class AaregClientTest {
 
         with(arbeidsforhold[0]) {
             id shouldBe "H911050676R16054L0001"
-            organisasjonsnummer shouldBe "910825518"
+            organisasjonsnavn shouldBe "ABC AS"
             startdato shouldBe LocalDate.of(2014, 1, 1)
             sluttdato shouldBe LocalDate.of(2015, 1, 1)
         }
 
         with(arbeidsforhold[1]) {
             id shouldBe "V911050676R16054L0001"
-            organisasjonsnummer shouldBe "910825577"
+            organisasjonsnavn shouldBe "DEF AS"
             startdato shouldBe LocalDate.of(2016, 1, 1)
             sluttdato shouldBe null
         }
     }
 
-    fun mockArbeidsforhold(): String {
+    private fun mockArbeidsforhold(): String {
         //language=JSON
         return """
             [

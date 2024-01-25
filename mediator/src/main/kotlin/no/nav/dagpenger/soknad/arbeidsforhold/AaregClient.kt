@@ -13,6 +13,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendEncodedPathSegments
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration
@@ -21,6 +22,7 @@ import no.nav.helse.rapids_rivers.asLocalDate
 
 internal class AaregClient(
     private val aaregUrl: String = Configuration.aaregUrl,
+    private val eregClient: EregClient,
     private val tokenProvider: (String) -> String,
     engine: HttpClientEngine = CIO.create {},
 ) {
@@ -43,7 +45,13 @@ internal class AaregClient(
             if (response.status.value == 200) {
                 logger.info("Kall til AAREG gikk OK")
                 val arbeidsforholdJson = jacksonObjectMapper().readTree(response.bodyAsText())
-                arbeidsforholdJson.map { toArbeidsforhold(it) }
+
+                arbeidsforholdJson.map {
+                    val organisasjonsnummer = it["arbeidssted"]["identer"][0]["ident"].asText()
+                    val organisasjonsnavn = async { eregClient.hentOganisasjonsnavn(organisasjonsnummer) }.await()
+
+                    toArbeidsforhold(it, organisasjonsnavn)
+                }
             } else {
                 logger.warn("Kall til AAREG feilet med status ${response.status}")
                 emptyList()
@@ -61,10 +69,10 @@ internal class AaregClient(
     }
 }
 
-private fun toArbeidsforhold(aaregArbeidsforhold: JsonNode): Arbeidsforhold {
+private fun toArbeidsforhold(aaregArbeidsforhold: JsonNode, organisasjonsnavn: String?): Arbeidsforhold {
     return Arbeidsforhold(
         id = aaregArbeidsforhold["id"].asText(),
-        organisasjonsnummer = aaregArbeidsforhold["arbeidssted"]["identer"][0]["ident"].asText(),
+        organisasjonsnavn = organisasjonsnavn,
         startdato = aaregArbeidsforhold["ansettelsesperiode"]["startdato"].asLocalDate(),
         sluttdato = aaregArbeidsforhold["ansettelsesperiode"].get("sluttdato")?.asLocalDate(),
     )
