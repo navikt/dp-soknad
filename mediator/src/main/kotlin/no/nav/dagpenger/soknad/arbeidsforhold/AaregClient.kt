@@ -1,15 +1,10 @@
 package no.nav.dagpenger.soknad.arbeidsforhold
 
-import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -18,10 +13,10 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendEncodedPathSegments
-import io.ktor.serialization.jackson.jackson
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration
+import no.nav.dagpenger.soknad.utils.client.createHttpClient
 import no.nav.helse.rapids_rivers.asLocalDate
 
 internal class AaregClient(
@@ -30,18 +25,7 @@ internal class AaregClient(
     engine: HttpClientEngine = CIO.create {},
 ) {
 
-    private val httpClient =
-        HttpClient(engine) {
-            expectSuccess = true
-
-            install(ContentNegotiation) {
-                jackson {
-                    registerModule(JavaTimeModule())
-                    disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                }
-            }
-        }
+    private val client = createHttpClient(engine)
 
     fun hentArbeidsforhold(
         fnr: String,
@@ -50,7 +34,7 @@ internal class AaregClient(
         val url = URLBuilder(aaregUrl).appendEncodedPathSegments(API_PATH, ARBEIDSFORHOLD_PATH).build()
         try {
             val response: HttpResponse =
-                httpClient.get(url) {
+                client.get(url) {
                     header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke(subjectToken)}")
                     header("Nav-Personident", fnr)
                     parameter("arbeidsforholdstatus", "AKTIV, AVSLUTTET")
