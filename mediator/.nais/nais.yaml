@@ -83,6 +83,8 @@ spec:
       value: {{AAREG_API_HOST}}
     - name: AAREG_AUDIENCE
       value: {{AAREG_AUDIENCE}}
+    - name: EREG_API_HOST
+      value: {{EREG_API_HOST}}
     - name: JAVA_OPTS
       value: -XX:ActiveProcessorCount=2
   gcp:
