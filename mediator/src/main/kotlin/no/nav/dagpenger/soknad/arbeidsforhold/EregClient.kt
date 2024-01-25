@@ -10,9 +10,8 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.URLBuilder
-import io.ktor.http.appendEncodedPathSegments
 import io.ktor.serialization.jackson.jackson
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
@@ -20,7 +19,6 @@ import no.nav.dagpenger.soknad.Configuration
 
 internal class EregClient(
     private val eregUrl: String = Configuration.eregUrl,
-    private val tokenProvider: (String) -> String,
     engine: HttpClientEngine = CIO.create {},
 ) {
 
@@ -36,22 +34,19 @@ internal class EregClient(
         }
     }
 
-    fun hentInfoOmOrg(orgnummer: String): String? = runBlocking {
-        val pathMedOrgnummer = EREG_NOEKKELINFO_PATH.replace("{orgnummer}", orgnummer)
-        val finalUrl = URLBuilder(eregUrl).appendEncodedPathSegments(pathMedOrgnummer).build()
+    fun hentOganisasjonsnavn(orgnummer: String): String? = runBlocking {
+        val url = "$eregUrl$EREG_NOEKKELINFO_PATH$"
 
         try {
             val response =
-                httpClient.get(finalUrl) {
-                    //få inn x_correlation_id:
-                    //header("Nav-Call-Id", ??)
+                httpClient.get(url) {
+                    parameter("orgnummer", orgnummer)
                 }
 
             if (response.status.value == 200) {
                 logger.info("Kall til EREG gikk OK")
-                val orgInfoJson = jacksonObjectMapper().readTree(response.bodyAsText())
-                orgInfoJson["navn"]["navnelinje1"].asText()
-
+                val jsonResponse = jacksonObjectMapper().readTree(response.bodyAsText())
+                jsonResponse["navn"]["navnelinje1"].asText()
             } else {
                 logger.warn("Kall til EREG feilet med status ${response.status}")
                 null
