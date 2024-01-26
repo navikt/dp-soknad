@@ -7,7 +7,6 @@ import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.URLBuilder
-import io.ktor.http.URLProtocol
 import io.ktor.http.appendEncodedPathSegments
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
@@ -27,12 +26,11 @@ internal class EregClient(
             return@runBlocking null
         }
 
-        val url = URLBuilder(
-            protocol = URLProtocol.HTTPS,
-            host = eregUrl,
-        ).appendEncodedPathSegments(
-            EREG_NOEKKELINFO_PATH.replace("{orgnummer}", organisasjonsnummer),
-        ).buildString()
+        val url = URLBuilder(eregUrl)
+            .appendEncodedPathSegments(
+                EREG_NOEKKELINFO_PATH.replace("{orgnummer}", organisasjonsnummer),
+            )
+            .build()
 
         try {
             val response = client.get(url)
