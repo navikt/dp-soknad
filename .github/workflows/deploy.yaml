@@ -2,7 +2,7 @@ name: Build and deploy
 
 on:
   push:
-    branches: [ main ]
+#    branches: [ main ]
     paths-ignore:
       - 'docs/**'
       - 'alerts/**'
@@ -41,7 +41,7 @@ jobs:
 
   deploy-dev:
     needs: [ build ]
-    if: github.ref == 'refs/heads/main'
+#    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: dev-gcp
     steps:
@@ -55,19 +55,19 @@ jobs:
           VARS: mediator/.nais/dev/vars.yaml
           PRINT_PAYLOAD: true
 
-  deploy-prod:
-    needs: [ build ]
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment: prod-gcp
-    steps:
-      - uses: actions/checkout@v4
-      - uses: nais/deploy/actions/deploy@v2
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: prod-gcp
-          RESOURCE: mediator/.nais/nais.yaml
-          VAR: image=${{ needs.build.outputs.image }}
-          VARS: mediator/.nais/prod/vars.yaml
-          PRINT_PAYLOAD: true
-
+#  deploy-prod:
+#    needs: [ build ]
+#    if: github.ref == 'refs/heads/main'
+#    runs-on: ubuntu-latest
+#    environment: prod-gcp
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: nais/deploy/actions/deploy@v2
+#        env:
+#          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+#          CLUSTER: prod-gcp
+#          RESOURCE: mediator/.nais/nais.yaml
+#          VAR: image=${{ needs.build.outputs.image }}
+#          VARS: mediator/.nais/prod/vars.yaml
+#          PRINT_PAYLOAD: true
+#

@@ -1,15 +1,10 @@
 package no.nav.dagpenger.soknad.arbeidsforhold
 
-import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -18,39 +13,30 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendEncodedPathSegments
-import io.ktor.serialization.jackson.jackson
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration
+import no.nav.dagpenger.soknad.utils.client.createHttpClient
 import no.nav.helse.rapids_rivers.asLocalDate
 
 internal class AaregClient(
     private val aaregUrl: String = Configuration.aaregUrl,
+    private val eregClient: EregClient,
     private val tokenProvider: (String) -> String,
     engine: HttpClientEngine = CIO.create {},
 ) {
 
-    private val httpClient =
-        HttpClient(engine) {
-            expectSuccess = true
+    private val client = createHttpClient(engine)
 
-            install(ContentNegotiation) {
-                jackson {
-                    registerModule(JavaTimeModule())
-                    disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                }
-            }
-        }
-
-    fun hentArbeidsforhold(
+    suspend fun hentArbeidsforhold(
         fnr: String,
         subjectToken: String,
-    ) = runBlocking {
+    ) = withContext(Dispatchers.IO) {
         val url = URLBuilder(aaregUrl).appendEncodedPathSegments(API_PATH, ARBEIDSFORHOLD_PATH).build()
         try {
             val response: HttpResponse =
-                httpClient.get(url) {
+                client.get(url) {
                     header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke(subjectToken)}")
                     header("Nav-Personident", fnr)
                     parameter("arbeidsforholdstatus", "AKTIV, AVSLUTTET")
@@ -59,7 +45,13 @@ internal class AaregClient(
             if (response.status.value == 200) {
                 logger.info("Kall til AAREG gikk OK")
                 val arbeidsforholdJson = jacksonObjectMapper().readTree(response.bodyAsText())
-                arbeidsforholdJson.map { toArbeidsforhold(it) }
+
+                arbeidsforholdJson.map {
+                    val organisasjonsnummer = toOrganisasjonsnummer(it["arbeidssted"])
+                    val organisasjonsnavn = eregClient.hentOganisasjonsnavn(organisasjonsnummer)
+
+                    toArbeidsforhold(it, organisasjonsnavn)
+                }.filter { it.organisasjonsnavn !== null }
             } else {
                 logger.warn("Kall til AAREG feilet med status ${response.status}")
                 emptyList()
@@ -77,11 +69,17 @@ internal class AaregClient(
     }
 }
 
-private fun toArbeidsforhold(aaregArbeidsforhold: JsonNode): Arbeidsforhold {
+private fun toArbeidsforhold(aaregArbeidsforhold: JsonNode, organisasjonsnavn: String?): Arbeidsforhold {
     return Arbeidsforhold(
         id = aaregArbeidsforhold["id"].asText(),
-        organisasjonsnummer = aaregArbeidsforhold["arbeidssted"]["identer"][0]["ident"].asText(),
+        organisasjonsnavn = organisasjonsnavn,
         startdato = aaregArbeidsforhold["ansettelsesperiode"]["startdato"].asLocalDate(),
         sluttdato = aaregArbeidsforhold["ansettelsesperiode"].get("sluttdato")?.asLocalDate(),
     )
+}
+
+private fun toOrganisasjonsnummer(arbeidssted: JsonNode): String? {
+    return arbeidssted["identer"]
+        .firstOrNull { it["type"].asText() == "ORGANISASJONSNUMMER" }
+        ?.get("ident")?.asText()
 }

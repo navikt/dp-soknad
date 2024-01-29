@@ -38,8 +38,19 @@ internal object Configuration {
     val dpInnsynAudience by lazy { properties[Key("DP_INNSYN_AUDIENCE", stringType)] }
     val dpInnsynUrl by lazy { properties[Key("DP_INNSYN_URL", stringType)] }
 
-    val aaregUrl by lazy { properties[Key("AAREG_API_HOST", stringType)] }
+    val aaregUrl by lazy {
+        properties[Key("AAREG_API_HOST", stringType)].let {
+            "https://$it"
+        }
+    }
+
     val aaregAudience by lazy { properties[Key("AAREG_AUDIENCE", stringType)] }
+
+    val eregUrl by lazy {
+        properties[Key("EREG_API_HOST", stringType)].let {
+            "https://$it"
+        }
+    }
 
     val tokenXClient by lazy {
         val tokenX = OAuth2Config.TokenX(properties)

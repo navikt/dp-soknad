@@ -93,13 +93,13 @@ private val forventetArbeidsforhold: String
 private val arbeidsforhold: List<Arbeidsforhold> = listOf(
     Arbeidsforhold(
         id = "1",
-        organisasjonsnummer = "111111111",
+        organisasjonsnavn = "ABC AS",
         startdato = LocalDate.of(2020, 1, 1),
         sluttdato = LocalDate.of(2021, 1, 1),
     ),
     Arbeidsforhold(
         id = "1",
-        organisasjonsnummer = "222222222",
+        organisasjonsnavn = "DEF AS",
         startdato = LocalDate.of(2020, 1, 1),
         sluttdato = LocalDate.of(2021, 1, 1),
     ),

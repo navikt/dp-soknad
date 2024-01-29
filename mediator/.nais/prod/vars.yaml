@@ -6,8 +6,9 @@ PERSON_KONTO_REGISTER_SCOPE: prod-gcp:okonomi:sokos-kontoregister-person
 DP_INNSYN_AUDIENCE: prod-gcp:teamdagpenger:dp-innsyn
 PDL_API_HOST: pdl-api.prod-fss-pub.nais.io
 PDL_AUDIENCE: prod-fss:pdl:pdl-api
-AAREG_API_HOST: https://aareg-services.dev-fss-pub.nais.io
-AAREG_AUDIENCE: dev-fss:arbeidsforhold:aareg-services-nais
+AAREG_API_HOST: aareg-services.prod-fss-pub.nais.io
+AAREG_AUDIENCE: prod-fss:arbeidsforhold:aareg-services-nais
+EREG_API_HOST: ereg-services.prod-fss-pub.nais.io
 kafka_pool: nav-prod
 db_tier: db-custom-4-15360
 db_size: 10
