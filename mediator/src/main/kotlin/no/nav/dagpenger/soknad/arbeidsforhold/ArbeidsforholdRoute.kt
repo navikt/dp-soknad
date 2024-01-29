@@ -6,7 +6,6 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import no.nav.dagpenger.soknad.Configuration
-import no.nav.dagpenger.soknad.api.models.ArbeidsforholdResponse
 import no.nav.dagpenger.soknad.utils.auth.ident
 import no.nav.dagpenger.soknad.utils.auth.jwt
 
@@ -23,9 +22,8 @@ internal fun Route.arbeidsforhold(
             val jwtToken = call.request.jwt()
 
             val arbeidsforhold = aaregClient.hentArbeidsforhold(fnr, jwtToken)
-            val arbeidsforholdResponse: List<ArbeidsforholdResponse> = arbeidsforhold.map { Arbeidsforhold.response(it) }
 
-            call.respond(arbeidsforholdResponse)
+            call.respond(arbeidsforhold)
         }
     }
 }
