@@ -67,7 +67,7 @@ spec:
       external:
         - host: {{ PDL_API_HOST }}
         - host: aareg-services-q2.dev-fss-pub.nais.io
-        - host: ereg-services-q2.dev-fss-pub.nais.io
+        - host: {{ EREG_API_HOST }}
 
   env:
     - name: PERSON_KONTO_REGISTER_SCOPE
