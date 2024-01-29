@@ -35,7 +35,6 @@ components:
       type: object
       required:
             - id
-            - organisasjonsnavn
             - startdato
       properties:
         id:
@@ -44,10 +43,10 @@ components:
           type: string
         startdato:
           type: string
-          format: date-time
+          format: date
         sluttdato:
           type: string
-          format: date-time
+          format: date
 
   securitySchemes:
     tokenX:

@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
     implementation(project(path = ":modell"))
+    implementation(project(path = ":openapi"))
 
     implementation(libs.bundles.jackson)
 
