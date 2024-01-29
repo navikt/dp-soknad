@@ -1,0 +1,66 @@
+openapi: 3.0.0
+info:
+  title: Søknad API
+  version: 1.0.0
+  description: API for å forenkle prosessen med å hente informasjon relatert til søknader og arbeidsforhold.
+  contact:
+    name: '#team-dagpenger'
+servers:
+  - url: https://dp-soknad.intern.dev.nav.no/arbeid/dagpenger/soknadapi
+    description: dev
+  - url: https://dp-soknad.intern.nav.no//arbeid/dagpenger/soknadapi
+    description: prod
+paths:
+  /arbeidsforhold:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Arbeidsforhold'
+          description: OK
+      summary: Hent alle arbeidsforhold
+      description: Viser en liste over alle arbeidsforhold som er tilknyttet til en spesifikk bruker.
+      operationId: get-arbeidsforhold
+      security:
+        - tokenX: [ ]
+
+
+components:
+  schemas:
+    Arbeidsforhold:
+      type: object
+      required:
+            - id
+            - organisasjonsnavn
+            - startdato
+      properties:
+        id:
+          type: string
+        organisasjonsnavn:
+          type: string
+        startdato:
+          type: string
+          format: date-time
+        sluttdato:
+          type: string
+          format: date-time
+
+  securitySchemes:
+    tokenX:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Bruker [TokenX](https://docs.nais.io/security/auth/tokenx/) til autentisering. Du må utveksle IDporten-token
+        til et TokenX-token hvor `audience` er satt til `[cluster]:teamdagpenger:dp-soknad`.
+        
+        For å teste APIet kan du lage et gyldig OBO-token ved å bruke wonderwalled:
+        - [dev-gcp](https://wonderwalled-idporten.intern.dev.nav.no/api/obo?aud=dev-gcp:teamdagpenger:dp-soknad)
+  headers: { }
+  responses: { }
+
+
