@@ -10,10 +10,21 @@ internal class ArbeidsforholdOppslag(
 ) {
     private val aaregClient =
         AaregClient(tokenProvider = tokenProvider, engine = httpClient.engine)
+    private val eregClient = EregClient(engine = httpClient.engine)
 
     suspend fun hentArbeidsforhold(fnr: String, subjectToken: String): List<ArbeidsforholdResponse> {
         val arbeidsforholdFraAareg = aaregClient.hentArbeidsforhold(fnr, subjectToken)
 
-        return arbeidsforholdFraAareg.map { Arbeidsforhold.response(it) }
+        val arbeidsforholdMedOrganisasjonsnavn = arbeidsforholdFraAareg.map {
+            val organisasjonsnavn = eregClient.hentOganisasjonsnavn(it.organisasjonsnnummer)
+            ArbeidsforholdResponse(
+                id = it.id,
+                organisasjonsnavn = organisasjonsnavn,
+                startdato = it.startdato,
+                sluttdato = it.sluttdato,
+            )
+        }.filter { it.organisasjonsnavn != null }
+
+        return arbeidsforholdMedOrganisasjonsnavn
     }
 }

@@ -30,7 +30,7 @@ class AaregClientTest {
     @Test
     fun `aareg svarer med 200 og liste med to arbeidsforhold`() {
         runBlocking {
-            val client = aaregClient(mockArbeidsforholdJson)
+            val client = aaregClient(mockAaregResponse)
 
             val arbeidsforhold = client.hentArbeidsforhold(fnr = "12345678903", subjectToken = subjectToken)
 
@@ -53,56 +53,4 @@ class AaregClientTest {
             }
         }
     }
-
-    private val mockArbeidsforholdJson = """
-            [
-              {
-                "id": "H911050676R16054L0001",
-                "arbeidssted": {
-                  "type": "Underenhet",
-                  "identer": [
-                    {
-                      "type": "ORGANISASJONSNUMMER",
-                      "ident": "910825518"
-                    }
-                  ]
-                },
-                "ansettelsesperiode": {
-                  "startdato": "2014-01-01",
-                  "sluttdato": "2015-01-01"
-                }
-              },
-              {
-                "id": "V911050676R16054L0001",
-                "arbeidssted": {
-                  "type": "Underenhet",
-                  "identer": [
-                    {
-                      "type": "ORGANISASJONSNUMMER",
-                      "ident": "910825577"
-                    }
-                  ]
-                },
-                "ansettelsesperiode": {
-                  "startdato": "2016-01-01"
-                }
-              }, 
-              {
-                "id": "V911050676R16054L0003",
-                "arbeidssted": {
-                  "type": "Person",
-                  "identer": [
-                    {
-                      "type": "AKTØR_ID",
-                      "ident": "12345678903"
-                    }
-                  ]
-                },
-                "ansettelsesperiode": {
-                  "startdato": "2016-01-01"
-                }
-              }
-              
-            ]
-    """.trimIndent()
 }
