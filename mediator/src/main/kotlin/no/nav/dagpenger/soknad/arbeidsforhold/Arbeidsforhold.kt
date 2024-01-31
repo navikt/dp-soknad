@@ -6,16 +6,15 @@ import java.time.LocalDate
 internal data class Arbeidsforhold(
     val id: String,
     val organisasjonsnnummer: String?,
-    val organisasjonsnavn: String?,
     val startdato: LocalDate,
     val sluttdato: LocalDate?,
 ) {
 
     companion object {
-        fun response(arbeidsforhold: Arbeidsforhold): ArbeidsforholdResponse {
+        fun response(arbeidsforhold: Arbeidsforhold, organisasjonsnavn: String?): ArbeidsforholdResponse {
             return ArbeidsforholdResponse(
                 id = arbeidsforhold.id,
-                organisasjonsnavn = arbeidsforhold.organisasjonsnavn ?: "",
+                organisasjonsnavn = organisasjonsnavn,
                 startdato = arbeidsforhold.startdato,
                 sluttdato = arbeidsforhold.sluttdato,
             )
