@@ -10,11 +10,12 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.content.TextContent
 import io.ktor.server.application.Application
-import io.ktor.server.routing.get
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.arbeidsforhold.AaregClient
+import no.nav.dagpenger.soknad.arbeidsforhold.ArbeidsforholdOppslag
+import no.nav.dagpenger.soknad.arbeidsforhold.EregClient
 import no.nav.dagpenger.soknad.arbeidsforhold.arbeidsforholdRouteBuilder
 import no.nav.dagpenger.soknad.data.søknadData
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.ferdigStiltSøknadRouteBuilder
@@ -63,6 +64,7 @@ object TestApplication {
         personOppslag: PersonOppslag = mockk(relaxed = true),
         kontonummerOppslag: KontonummerOppslag = mockk(relaxed = true),
         aaregClient: AaregClient = mockk(relaxed = true),
+        eregClient: EregClient = mockk(relaxed = true),
         søknadMediator: SøknadMediator = mockk(relaxed = true),
         behandlingsstatusClient: BehandlingsstatusClient = mockk(relaxed = true),
     ): Application.() -> Unit {
@@ -77,7 +79,10 @@ object TestApplication {
                     kontonummerOppslag,
                 ),
                 arbeidsforholdRouteBuilder(
-                    aaregClient = aaregClient,
+                    ArbeidsforholdOppslag(
+                        aaregClient = aaregClient,
+                        eregClient = eregClient,
+                    ),
                 ),
                 ferdigStiltSøknadRouteBuilder(mockk(relaxed = true)),
                 søknadDataRouteBuilder = søknadData(søknadMediator),

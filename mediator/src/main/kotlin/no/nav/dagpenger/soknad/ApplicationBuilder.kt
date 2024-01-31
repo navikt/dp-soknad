@@ -2,6 +2,8 @@ package no.nav.dagpenger.soknad
 
 import no.nav.dagpenger.pdl.createPersonOppslag
 import no.nav.dagpenger.soknad.arbeidsforhold.AaregClient
+import no.nav.dagpenger.soknad.arbeidsforhold.ArbeidsforholdOppslag
+import no.nav.dagpenger.soknad.arbeidsforhold.EregClient
 import no.nav.dagpenger.soknad.arbeidsforhold.arbeidsforholdRouteBuilder
 import no.nav.dagpenger.soknad.data.søknadData
 import no.nav.dagpenger.soknad.db.PostgresDokumentkravRepository
@@ -52,9 +54,14 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
                 ),
             ),
             arbeidsforholdRouteBuilder = arbeidsforholdRouteBuilder(
-                aaregClient = AaregClient(
-                    aaregUrl = Configuration.aaregUrl,
-                    tokenProvider = Configuration.tokenXClient(Configuration.aaregAudience),
+                arbeidsforholdOppslag = ArbeidsforholdOppslag(
+                    aaregClient = AaregClient(
+                        aaregUrl = Configuration.aaregUrl,
+                        tokenProvider = Configuration.tokenXClient(Configuration.aaregAudience),
+                    ),
+                    eregClient = EregClient(
+                        eregUrl = Configuration.eregUrl,
+                    ),
                 ),
             ),
             søknadRouteBuilder = søknadApiRouteBuilder(
