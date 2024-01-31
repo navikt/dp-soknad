@@ -28,7 +28,7 @@ class ArbeidsforholdOppslagTest {
             val arbeidsforhold = arbeidsforholdOppslag.hentArbeidsforhold("fnr", subjectToken)
 
             with(arbeidsforhold) {
-                size shouldBe 2
+                size shouldBe 3
             }
         }
     }

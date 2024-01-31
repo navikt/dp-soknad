@@ -8,9 +8,8 @@ internal class ArbeidsforholdOppslag(
     tokenProvider: (String) -> String,
     httpClient: HttpClient = HttpClient(CIO.create {}),
 ) {
-    private val eregClient = EregClient(engine = httpClient.engine)
     private val aaregClient =
-        AaregClient(tokenProvider = tokenProvider, eregClient = eregClient, engine = httpClient.engine)
+        AaregClient(tokenProvider = tokenProvider, engine = httpClient.engine)
 
     suspend fun hentArbeidsforhold(fnr: String, subjectToken: String): List<ArbeidsforholdResponse> {
         val arbeidsforholdFraAareg = aaregClient.hentArbeidsforhold(fnr, subjectToken)

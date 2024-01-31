@@ -22,7 +22,6 @@ import no.nav.helse.rapids_rivers.asLocalDate
 
 internal class AaregClient(
     private val aaregUrl: String = Configuration.aaregUrl,
-    private val eregClient: EregClient,
     private val tokenProvider: (String) -> String,
     engine: HttpClientEngine = CIO.create {},
 ) {
@@ -48,10 +47,9 @@ internal class AaregClient(
 
                 arbeidsforholdJson.map {
                     val organisasjonsnummer = toOrganisasjonsnummer(it["arbeidssted"])
-                    val organisasjonsnavn = eregClient.hentOganisasjonsnavn(organisasjonsnummer)
 
-                    toArbeidsforhold(it, organisasjonsnavn)
-                }.filter { it.organisasjonsnavn !== null }
+                    toArbeidsforhold(it, null)
+                }
             } else {
                 logger.warn("Kall til AAREG feilet med status ${response.status}")
                 emptyList()
