@@ -11,12 +11,12 @@ internal data class Arbeidsforhold(
 ) {
 
     companion object {
-        fun response(arbeidsforhold: Arbeidsforhold, organisasjonsnavn: String?): ArbeidsforholdResponse {
+        fun toResponse(arbeidsforhold: Arbeidsforhold, organisasjonsnavn: String?): ArbeidsforholdResponse {
             return ArbeidsforholdResponse(
                 id = arbeidsforhold.id,
-                organisasjonsnavn = organisasjonsnavn,
                 startdato = arbeidsforhold.startdato,
                 sluttdato = arbeidsforhold.sluttdato,
+                organisasjonsnavn = organisasjonsnavn,
             )
         }
     }

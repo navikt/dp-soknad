@@ -39,14 +39,14 @@ components:
       properties:
         id:
           type: string
-        organisasjonsnavn:
-          type: string
         startdato:
           type: string
           format: date
         sluttdato:
           type: string
           format: date
+        organisasjonsnavn:
+          type: string
 
   securitySchemes:
     tokenX:

@@ -12,12 +12,7 @@ internal class ArbeidsforholdOppslag(
 
         val arbeidsforholdMedOrganisasjonsnavn = arbeidsforholdFraAareg.map {
             val organisasjonsnavn = eregClient.hentOganisasjonsnavn(it.organisasjonsnnummer)
-            ArbeidsforholdResponse(
-                id = it.id,
-                organisasjonsnavn = organisasjonsnavn,
-                startdato = it.startdato,
-                sluttdato = it.sluttdato,
-            )
+            Arbeidsforhold.toResponse(it, organisasjonsnavn)
         }.filter { it.organisasjonsnavn != null }
 
         return arbeidsforholdMedOrganisasjonsnavn
