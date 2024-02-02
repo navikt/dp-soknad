@@ -9,18 +9,19 @@ class AaregClientTest {
     private val testTokenProvider: (token: String) -> String = { _ -> "testToken" }
     private val baseUrl = "http://baseUrl"
     private val subjectToken = "gylidg_token"
+    private val fnr = "12345678903"
 
-    private fun aaregClient(responseBody: String) = AaregClient(
+    private fun aaregClient(responseBody: String, statusCode: Int) = AaregClient(
         aaregUrl = baseUrl,
         tokenProvider = testTokenProvider,
-        engine = createMockedClient(200, responseBody),
+        engine = createMockedClient(statusCode, responseBody),
     )
 
     @Test
-    fun `aareg svarer med 200 og en tom liste av arbeidsforhold`() {
+    fun `hentArbeidsforhold svarer med tom liste dersom aareg responderer med 200 OK men ingen data `() {
         runBlocking {
-            val client = aaregClient("[]")
-            val arbeidsforhold = client.hentArbeidsforhold(fnr = "12345678903", subjectToken = subjectToken)
+            val client = aaregClient("[]", 200)
+            val arbeidsforhold = client.hentArbeidsforhold(fnr, subjectToken)
 
             arbeidsforhold shouldBe emptyList()
             arbeidsforhold.toString() shouldBe "[]"
@@ -28,11 +29,11 @@ class AaregClientTest {
     }
 
     @Test
-    fun `aareg svarer med 200 og liste med to arbeidsforhold`() {
+    fun `hentArbeidsforhold svarer med liste over arbeidsforhold når aareg svarer med 200 og data`() {
         runBlocking {
-            val client = aaregClient(mockAaregResponse)
+            val client = aaregClient(mockAaregResponse, 200)
 
-            val arbeidsforhold = client.hentArbeidsforhold(fnr = "12345678903", subjectToken = subjectToken)
+            val arbeidsforhold = client.hentArbeidsforhold(fnr, subjectToken)
 
             with(arbeidsforhold) {
                 size shouldBe 3
@@ -50,6 +51,19 @@ class AaregClientTest {
                     startdato shouldBe LocalDate.of(2016, 1, 1)
                     sluttdato shouldBe null
                 }
+            }
+        }
+    }
+
+    @Test
+    fun `hentArbeidsforhold håndterer mulige feilkoder fra aareg ved å returnere en tom liste`() {
+        runBlocking {
+            val feilkoderFraAareg = listOf(400, 401, 403, 404)
+
+            feilkoderFraAareg.forEach { feilkode ->
+                val client = aaregClient("[]", feilkode)
+                val arbeidsforhold = client.hentArbeidsforhold(fnr, subjectToken)
+                arbeidsforhold shouldBe emptyList()
             }
         }
     }
