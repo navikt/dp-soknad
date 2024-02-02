@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -50,11 +48,8 @@ internal class AaregClient(
                 logger.warn("Kall til AAREG feilet med status ${response.status}")
                 emptyList()
             }
-        } catch (e: ClientRequestException) {
+        } catch (e: Exception) {
             logger.warn("Kall til AAREG feilet", e)
-            emptyList()
-        } catch (e: ServerResponseException) {
-            logger.error("Kall til AAREG feilet", e)
             emptyList()
         }
     }
