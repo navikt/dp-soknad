@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.URLBuilder
@@ -45,6 +46,9 @@ internal class EregClient(
             }
         } catch (e: ClientRequestException) {
             logger.warn("Kall til EREG feilet", e)
+            null
+        } catch (e: ServerResponseException) {
+            logger.error("Kall til AAREG feilet", e)
             null
         }
     }

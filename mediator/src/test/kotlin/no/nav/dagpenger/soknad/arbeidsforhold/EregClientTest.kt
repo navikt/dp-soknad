@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 class EregClientTest {
 
     @Test
-    fun `henter organisasjonsnavn`() {
+    fun `kan hente organisasjonsnavn ved gyldig orgnummer`() {
         val eregClient = EregClient(
             eregUrl = "http://example.com",
             engine = createMockedClient(200, """{"navn": {"navnelinje1": "ABC AS"}}"""),
@@ -16,12 +16,26 @@ class EregClientTest {
     }
 
     @Test
-    fun `kan ikke hente organisasjonsnavn`() {
+    fun `returnerer null dersom gitt organisasjonsnummer er ugyldig`() {
         val eregClient = EregClient(
             eregUrl = "http://example.com",
-            engine = createMockedClient(404, ""),
+            engine = createMockedClient(200, ""),
         )
 
-        eregClient.hentOganisasjonsnavn("123456789") shouldBe null
+        eregClient.hentOganisasjonsnavn("ugyldig_orgnummer") shouldBe null
+    }
+
+    @Test
+    fun `håndterer mulige feilkoder fra EREG ved å returnere null`() {
+        val feilkoderFraEREG = listOf(400, 401, 500)
+
+        feilkoderFraEREG.forEach { feilkode ->
+            val eregClient = EregClient(
+                eregUrl = "http://example.com",
+                engine = createMockedClient(feilkode, ""),
+            )
+
+            eregClient.hentOganisasjonsnavn("123456789") shouldBe null
+        }
     }
 }
