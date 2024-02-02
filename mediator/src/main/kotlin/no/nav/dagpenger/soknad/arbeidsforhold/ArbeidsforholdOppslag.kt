@@ -12,7 +12,7 @@ internal class ArbeidsforholdOppslag(
 
         val arbeidsforholdResponses = arbeidsforholdFraAareg.map {
             val organisasjonsnavn = eregClient.hentOganisasjonsnavn(it.organisasjonsnnummer)
-            Arbeidsforhold.toResponse(it, organisasjonsnavn)
+            it.toResponse(organisasjonsnavn)
         }
 
         val fantOrgnavnForAlleArbeidsforhold = arbeidsforholdResponses.none { it.organisasjonsnavn == null }

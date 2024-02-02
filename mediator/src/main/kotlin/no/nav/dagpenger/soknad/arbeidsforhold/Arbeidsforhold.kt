@@ -10,14 +10,10 @@ internal data class Arbeidsforhold(
     val sluttdato: LocalDate?,
 ) {
 
-    companion object {
-        fun toResponse(arbeidsforhold: Arbeidsforhold, organisasjonsnavn: String?): ArbeidsforholdResponse {
-            return ArbeidsforholdResponse(
-                id = arbeidsforhold.id,
-                startdato = arbeidsforhold.startdato,
-                sluttdato = arbeidsforhold.sluttdato,
-                organisasjonsnavn = organisasjonsnavn,
-            )
-        }
-    }
+    internal fun toResponse(organisasjonsnavn: String?) = ArbeidsforholdResponse(
+        id = id,
+        startdato = startdato,
+        sluttdato = sluttdato,
+        organisasjonsnavn = organisasjonsnavn,
+    )
 }
