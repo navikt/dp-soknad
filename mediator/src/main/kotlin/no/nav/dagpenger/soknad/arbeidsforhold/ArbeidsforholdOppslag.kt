@@ -10,11 +10,13 @@ internal class ArbeidsforholdOppslag(
     suspend fun hentArbeidsforhold(fnr: String, subjectToken: String): List<ArbeidsforholdResponse> {
         val arbeidsforholdFraAareg = aaregClient.hentArbeidsforhold(fnr, subjectToken)
 
-        val arbeidsforholdMedOrganisasjonsnavn = arbeidsforholdFraAareg.map {
+        val arbeidsforholdResponses = arbeidsforholdFraAareg.map {
             val organisasjonsnavn = eregClient.hentOganisasjonsnavn(it.organisasjonsnnummer)
             Arbeidsforhold.toResponse(it, organisasjonsnavn)
-        }.filter { it.organisasjonsnavn != null }
+        }
 
-        return arbeidsforholdMedOrganisasjonsnavn
+        val fantOrgnavnForAlleArbeidsforhold = arbeidsforholdResponses.none { it.organisasjonsnavn == null }
+
+        return if (fantOrgnavnForAlleArbeidsforhold) arbeidsforholdResponses else emptyList()
     }
 }
