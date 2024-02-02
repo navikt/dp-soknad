@@ -58,7 +58,7 @@ class AaregClientTest {
     @Test
     fun `hentArbeidsforhold håndterer mulige feilkoder fra aareg ved å returnere en tom liste`() {
         runBlocking {
-            val feilkoderFraAareg = listOf(400, 401, 403, 404)
+            val feilkoderFraAareg = listOf(400, 401, 403, 404, 500)
 
             feilkoderFraAareg.forEach { feilkode ->
                 val client = aaregClient("[]", feilkode)
