@@ -66,7 +66,8 @@ private fun toArbeidsforhold(aaregArbeidsforhold: JsonNode): Arbeidsforhold {
         id = aaregArbeidsforhold["id"].asText(),
         organisasjonsnnummer = toOrganisasjonsnummer(aaregArbeidsforhold["arbeidssted"]),
         startdato = aaregArbeidsforhold["ansettelsesperiode"]["startdato"].asLocalDate(),
-        sluttdato = aaregArbeidsforhold["ansettelsesperiode"].get("sluttdato")?.asLocalDate(),
+        sluttdato = aaregArbeidsforhold["ansettelsesperiode"]["sluttdato"]?.asLocalDate(),
+        stillingsprosent = aaregArbeidsforhold["ansettelsesdetaljer"]["avtaltStillingsprosent"]?.asDouble(),
     )
 }
 

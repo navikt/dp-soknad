@@ -8,6 +8,7 @@ internal data class Arbeidsforhold(
     val organisasjonsnnummer: String?,
     val startdato: LocalDate,
     val sluttdato: LocalDate?,
+    val stillingsprosent: Double?,
 ) {
 
     internal fun toResponse(organisasjonsnavn: String?) = ArbeidsforholdResponse(
@@ -15,5 +16,6 @@ internal data class Arbeidsforhold(
         startdato = startdato,
         sluttdato = sluttdato,
         organisasjonsnavn = organisasjonsnavn,
+        stillingsprosent = stillingsprosent,
     )
 }

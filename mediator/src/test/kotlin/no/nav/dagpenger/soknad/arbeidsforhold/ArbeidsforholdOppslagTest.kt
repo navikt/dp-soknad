@@ -53,12 +53,14 @@ class ArbeidsforholdOppslagTest {
                     organisasjonsnnummer = null,
                     startdato = LocalDate.of(2014, 1, 1),
                     sluttdato = LocalDate.of(2015, 1, 1),
+                    stillingsprosent = 100.0,
                 ),
                 Arbeidsforhold(
                     id = "V911050676R16054L0001",
                     organisasjonsnnummer = orgnummer,
                     startdato = LocalDate.of(2016, 1, 1),
                     sluttdato = null,
+                    stillingsprosent = 100.0,
                 ),
             )
             coEvery { aaregClient.hentArbeidsforhold(fnr, subjectToken) } returns arbeidsforholdHvorEttManglerOrgnummer
@@ -81,12 +83,14 @@ class ArbeidsforholdOppslagTest {
                     organisasjonsnnummer = "ugyldig_orgnummer",
                     startdato = LocalDate.of(2014, 1, 1),
                     sluttdato = LocalDate.of(2015, 1, 1),
+                    stillingsprosent = 100.0,
                 ),
                 Arbeidsforhold(
                     id = "V911050676R16054L0001",
                     organisasjonsnnummer = orgnummer,
                     startdato = LocalDate.of(2016, 1, 1),
                     sluttdato = null,
+                    stillingsprosent = 100.0,
                 ),
             )
             coEvery { aaregClient.hentArbeidsforhold(fnr, subjectToken) } returns arbeidsforholdMedUgyldigeOrgnr
@@ -102,7 +106,7 @@ class ArbeidsforholdOppslagTest {
     }
 
     @Test
-    fun `oppslaget returnerer liste med arbeidsforhold hvor organisasjonsnavn er satt`() {
+    fun `oppslaget returnerer liste med arbeidsforhold uten orgnummer og med organisasjonsnavn`() {
         runBlocking {
             val arbeidsforholdMedGyldigeOrgnr = listOf(
                 Arbeidsforhold(
@@ -110,12 +114,14 @@ class ArbeidsforholdOppslagTest {
                     organisasjonsnnummer = orgnummer,
                     startdato = LocalDate.of(2014, 1, 1),
                     sluttdato = LocalDate.of(2015, 1, 1),
+                    stillingsprosent = 100.0,
                 ),
                 Arbeidsforhold(
                     id = "V911050676R16054L0001",
                     organisasjonsnnummer = orgnummer,
                     startdato = LocalDate.of(2016, 1, 1),
                     sluttdato = null,
+                    stillingsprosent = 100.0,
                 ),
             )
             coEvery { aaregClient.hentArbeidsforhold(fnr, subjectToken) } returns arbeidsforholdMedGyldigeOrgnr

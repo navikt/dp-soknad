@@ -36,13 +36,14 @@ class AaregClientTest {
             val arbeidsforhold = client.hentArbeidsforhold(fnr, subjectToken)
 
             with(arbeidsforhold) {
-                size shouldBe 3
+                size shouldBe 2
 
                 with(get(0)) {
                     id shouldBe "H911050676R16054L0001"
                     organisasjonsnnummer shouldBe "910825518"
                     startdato shouldBe LocalDate.of(2014, 1, 1)
                     sluttdato shouldBe LocalDate.of(2015, 1, 1)
+                    stillingsprosent shouldBe 100.0
                 }
 
                 with(get(1)) {
@@ -50,6 +51,7 @@ class AaregClientTest {
                     organisasjonsnnummer shouldBe "910825577"
                     startdato shouldBe LocalDate.of(2016, 1, 1)
                     sluttdato shouldBe null
+                    stillingsprosent shouldBe 70.5
                 }
             }
         }
@@ -86,6 +88,9 @@ class AaregClientTest {
                 "ansettelsesperiode": {
                   "startdato": "2014-01-01",
                   "sluttdato": "2015-01-01"
+                },
+                "ansettelsesdetaljer": {
+                  "avtaltStillingsprosent": 100.0
                 }
               },
               {
@@ -101,24 +106,11 @@ class AaregClientTest {
                 },
                 "ansettelsesperiode": {
                   "startdato": "2016-01-01"
-                }
-              }, 
-              {
-                "id": "V911050676R16054L0003",
-                "arbeidssted": {
-                  "type": "Person",
-                  "identer": [
-                    {
-                      "type": "AKTØR_ID",
-                      "ident": "12345678903"
-                    }
-                  ]
                 },
-                "ansettelsesperiode": {
-                  "startdato": "2016-01-01"
+                "ansettelsesdetaljer": {
+                  "avtaltStillingsprosent": 70.5
                 }
               }
-              
             ]
         """.trimIndent()
 }
