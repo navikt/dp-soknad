@@ -50,14 +50,14 @@ class ArbeidsforholdOppslagTest {
             val arbeidsforholdHvorEttManglerOrgnummer = listOf(
                 Arbeidsforhold(
                     id = "H911050676R16054L0001",
-                    organisasjonsnnummer = null,
+                    organisasjonsnummer = null,
                     startdato = LocalDate.of(2014, 1, 1),
                     sluttdato = LocalDate.of(2015, 1, 1),
                     stillingsprosent = 100.0,
                 ),
                 Arbeidsforhold(
                     id = "V911050676R16054L0001",
-                    organisasjonsnnummer = orgnummer,
+                    organisasjonsnummer = orgnummer,
                     startdato = LocalDate.of(2016, 1, 1),
                     sluttdato = null,
                     stillingsprosent = 100.0,
@@ -80,14 +80,14 @@ class ArbeidsforholdOppslagTest {
             val arbeidsforholdMedUgyldigeOrgnr = listOf(
                 Arbeidsforhold(
                     id = "H911050676R16054L0001",
-                    organisasjonsnnummer = "ugyldig_orgnummer",
+                    organisasjonsnummer = "ugyldig_orgnummer",
                     startdato = LocalDate.of(2014, 1, 1),
                     sluttdato = LocalDate.of(2015, 1, 1),
                     stillingsprosent = 100.0,
                 ),
                 Arbeidsforhold(
                     id = "V911050676R16054L0001",
-                    organisasjonsnnummer = orgnummer,
+                    organisasjonsnummer = orgnummer,
                     startdato = LocalDate.of(2016, 1, 1),
                     sluttdato = null,
                     stillingsprosent = 100.0,
@@ -111,14 +111,14 @@ class ArbeidsforholdOppslagTest {
             val arbeidsforholdMedGyldigeOrgnr = listOf(
                 Arbeidsforhold(
                     id = "H911050676R16054L0001",
-                    organisasjonsnnummer = orgnummer,
+                    organisasjonsnummer = orgnummer,
                     startdato = LocalDate.of(2014, 1, 1),
                     sluttdato = LocalDate.of(2015, 1, 1),
                     stillingsprosent = 100.0,
                 ),
                 Arbeidsforhold(
                     id = "V911050676R16054L0001",
-                    organisasjonsnnummer = orgnummer,
+                    organisasjonsnummer = orgnummer,
                     startdato = LocalDate.of(2016, 1, 1),
                     sluttdato = null,
                     stillingsprosent = 100.0,

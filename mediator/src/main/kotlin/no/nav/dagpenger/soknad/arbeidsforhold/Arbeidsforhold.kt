@@ -5,7 +5,7 @@ import java.time.LocalDate
 
 internal data class Arbeidsforhold(
     val id: String,
-    val organisasjonsnnummer: String?,
+    val organisasjonsnummer: String?,
     val startdato: LocalDate,
     val sluttdato: LocalDate?,
     val stillingsprosent: Double?,

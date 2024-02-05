@@ -11,7 +11,7 @@ internal class ArbeidsforholdOppslag(
         val arbeidsforholdFraAareg = aaregClient.hentArbeidsforhold(fnr, subjectToken)
 
         val arbeidsforholdResponses = arbeidsforholdFraAareg.map {
-            val organisasjonsnavn = eregClient.hentOganisasjonsnavn(it.organisasjonsnnummer)
+            val organisasjonsnavn = eregClient.hentOganisasjonsnavn(it.organisasjonsnummer)
             it.toResponse(organisasjonsnavn)
         }
 

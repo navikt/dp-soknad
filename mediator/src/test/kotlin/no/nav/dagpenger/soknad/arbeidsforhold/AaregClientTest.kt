@@ -40,7 +40,7 @@ class AaregClientTest {
 
                 with(get(0)) {
                     id shouldBe "H911050676R16054L0001"
-                    organisasjonsnnummer shouldBe "910825518"
+                    organisasjonsnummer shouldBe "910825518"
                     startdato shouldBe LocalDate.of(2014, 1, 1)
                     sluttdato shouldBe LocalDate.of(2015, 1, 1)
                     stillingsprosent shouldBe 100.0
@@ -48,7 +48,7 @@ class AaregClientTest {
 
                 with(get(1)) {
                     id shouldBe "V911050676R16054L0001"
-                    organisasjonsnnummer shouldBe "910825577"
+                    organisasjonsnummer shouldBe "910825577"
                     startdato shouldBe LocalDate.of(2016, 1, 1)
                     sluttdato shouldBe null
                     stillingsprosent shouldBe 70.5
