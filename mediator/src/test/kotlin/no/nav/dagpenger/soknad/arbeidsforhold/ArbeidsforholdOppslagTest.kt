@@ -48,20 +48,8 @@ class ArbeidsforholdOppslagTest {
     fun `oppslaget returnerer en tom liste dersom vi får minst ett arbeidsforhold fra aareg uten orgnummer`() {
         runBlocking {
             val arbeidsforholdHvorEttManglerOrgnummer = listOf(
-                Arbeidsforhold(
-                    id = "H911050676R16054L0001",
-                    organisasjonsnummer = null,
-                    startdato = LocalDate.of(2014, 1, 1),
-                    sluttdato = LocalDate.of(2015, 1, 1),
-                    stillingsprosent = 100.0,
-                ),
-                Arbeidsforhold(
-                    id = "V911050676R16054L0001",
-                    organisasjonsnummer = orgnummer,
-                    startdato = LocalDate.of(2016, 1, 1),
-                    sluttdato = null,
-                    stillingsprosent = 100.0,
-                ),
+                arbeidsforhold(orgnummer = null),
+                arbeidsforhold(),
             )
             coEvery { aaregClient.hentArbeidsforhold(fnr, subjectToken) } returns arbeidsforholdHvorEttManglerOrgnummer
             coEvery { eregClient.hentOganisasjonsnavn(any()) } returns null andThen "TEST AS"
@@ -78,20 +66,8 @@ class ArbeidsforholdOppslagTest {
     fun `oppslaget returnerer en tom liste dersom minst et arbeidsforhold har ugyldig organisasjonsnummer`() {
         runBlocking {
             val arbeidsforholdMedUgyldigeOrgnr = listOf(
-                Arbeidsforhold(
-                    id = "H911050676R16054L0001",
-                    organisasjonsnummer = "ugyldig_orgnummer",
-                    startdato = LocalDate.of(2014, 1, 1),
-                    sluttdato = LocalDate.of(2015, 1, 1),
-                    stillingsprosent = 100.0,
-                ),
-                Arbeidsforhold(
-                    id = "V911050676R16054L0001",
-                    organisasjonsnummer = orgnummer,
-                    startdato = LocalDate.of(2016, 1, 1),
-                    sluttdato = null,
-                    stillingsprosent = 100.0,
-                ),
+                arbeidsforhold(orgnummer = "ugyldig_orgnummer"),
+                arbeidsforhold(),
             )
             coEvery { aaregClient.hentArbeidsforhold(fnr, subjectToken) } returns arbeidsforholdMedUgyldigeOrgnr
             coEvery { eregClient.hentOganisasjonsnavn(any()) } returns null andThen "TEST AS"
@@ -106,42 +82,28 @@ class ArbeidsforholdOppslagTest {
     }
 
     @Test
-    fun `oppslaget returnerer liste med arbeidsforhold uten orgnummer og med organisasjonsnavn`() {
+    fun `oppslaget returnerer liste med arbeidsforhold mappet til respons uten orgnummer og med organisasjonsnavn`() {
         runBlocking {
-            val arbeidsforholdMedGyldigeOrgnr = listOf(
-                Arbeidsforhold(
-                    id = "H911050676R16054L0001",
-                    organisasjonsnummer = orgnummer,
-                    startdato = LocalDate.of(2014, 1, 1),
-                    sluttdato = LocalDate.of(2015, 1, 1),
-                    stillingsprosent = 100.0,
-                ),
-                Arbeidsforhold(
-                    id = "V911050676R16054L0001",
-                    organisasjonsnummer = orgnummer,
-                    startdato = LocalDate.of(2016, 1, 1),
-                    sluttdato = null,
-                    stillingsprosent = 100.0,
-                ),
-            )
-            coEvery { aaregClient.hentArbeidsforhold(fnr, subjectToken) } returns arbeidsforholdMedGyldigeOrgnr
+            val kompletteArbeidsforhold = listOf(arbeidsforhold(), arbeidsforhold())
+            coEvery { aaregClient.hentArbeidsforhold(fnr, subjectToken) } returns kompletteArbeidsforhold
             coEvery { eregClient.hentOganisasjonsnavn(any()) } returns "ABC AS" andThen "DEF AS"
 
             val arbeidsforhold = arbeidsforholdOppslag.hentArbeidsforhold(fnr, subjectToken)
 
-            with(arbeidsforhold) {
-                size shouldBe 2
-                with(get(0)) {
-                    id shouldBe "H911050676R16054L0001"
-                    organisasjonsnavn shouldBe "ABC AS"
-                }
-                with(get(1)) {
-                    id shouldBe "V911050676R16054L0001"
-                    organisasjonsnavn shouldBe "DEF AS"
-                }
-            }
+            arbeidsforhold.size shouldBe 2
+            arbeidsforhold[0].organisasjonsnavn shouldBe "ABC AS"
+            arbeidsforhold[1].organisasjonsnavn shouldBe "DEF AS"
+
             coVerify(exactly = 1) { aaregClient.hentArbeidsforhold(fnr, subjectToken) }
             coVerify(exactly = 2) { eregClient.hentOganisasjonsnavn(orgnummer) }
         }
     }
+
+    private fun arbeidsforhold(orgnummer: String? = this.orgnummer) = Arbeidsforhold(
+        id = "H911050676R16054L0001",
+        organisasjonsnummer = orgnummer,
+        startdato = LocalDate.of(2014, 1, 1),
+        sluttdato = LocalDate.of(2015, 1, 1),
+        stillingsprosent = 100.0,
+    )
 }
