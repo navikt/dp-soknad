@@ -51,7 +51,7 @@ class AaregClientTest {
                     organisasjonsnummer shouldBe "910825577"
                     startdato shouldBe LocalDate.of(2016, 1, 1)
                     sluttdato shouldBe null
-                    stillingsprosent shouldBe 70.5
+                    stillingsprosent shouldBe 80.5
                 }
             }
         }
@@ -89,9 +89,11 @@ class AaregClientTest {
                   "startdato": "2014-01-01",
                   "sluttdato": "2015-01-01"
                 },
-                "ansettelsesdetaljer": {
-                  "avtaltStillingsprosent": 100.0
-                }
+                "ansettelsesdetaljer": [
+                  {
+                    "avtaltStillingsprosent": 100.0
+                  }
+                ]
               },
               {
                 "id": "V911050676R16054L0001",
@@ -107,9 +109,20 @@ class AaregClientTest {
                 "ansettelsesperiode": {
                   "startdato": "2016-01-01"
                 },
-                "ansettelsesdetaljer": {
-                  "avtaltStillingsprosent": 70.5
-                }
+                "ansettelsesdetaljer": [
+                  {
+                    "avtaltStillingsprosent": 70.0,
+                    "sisteStillingsprosentendring": "2022-01-01"
+                  },
+                  {
+                    "avtaltStillingsprosent": 80.5,
+                    "sisteStillingsprosentendring": "2024-01-01"
+                  },
+                  {
+                    "avtaltStillingsprosent": 90.0,
+                    "sisteStillingsprosentendring": "2023-01-01"
+                  }
+                ]
               }
             ]
         """.trimIndent()

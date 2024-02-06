@@ -67,7 +67,7 @@ private fun toArbeidsforhold(aaregArbeidsforhold: JsonNode): Arbeidsforhold {
         organisasjonsnummer = toOrganisasjonsnummer(aaregArbeidsforhold["arbeidssted"]),
         startdato = aaregArbeidsforhold["ansettelsesperiode"]["startdato"].asLocalDate(),
         sluttdato = aaregArbeidsforhold["ansettelsesperiode"]["sluttdato"]?.asLocalDate(),
-        stillingsprosent = aaregArbeidsforhold["ansettelsesdetaljer"]["avtaltStillingsprosent"]?.asDouble(),
+        stillingsprosent = nyligsteStillingsprosent(aaregArbeidsforhold["ansettelsesdetaljer"]),
     )
 }
 
@@ -75,4 +75,10 @@ private fun toOrganisasjonsnummer(arbeidssted: JsonNode): String? {
     return arbeidssted["identer"]
         .firstOrNull { it["type"].asText() == "ORGANISASJONSNUMMER" }
         ?.get("ident")?.asText()
+}
+
+private fun nyligsteStillingsprosent(ansettelsesdetaljer: JsonNode): Double? {
+    return ansettelsesdetaljer.maxByOrNull {
+        it["sisteStillingsprosentendring"].asLocalDate()
+    }?.get("avtaltStillingsprosent")?.asDouble()
 }
