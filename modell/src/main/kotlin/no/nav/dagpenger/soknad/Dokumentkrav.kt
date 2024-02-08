@@ -2,6 +2,8 @@ package no.nav.dagpenger.soknad
 
 import de.slub.urn.RFC
 import de.slub.urn.URN
+import no.nav.dagpenger.soknad.DokumentkravObserver.DokumentkravInnsendtEvent
+import no.nav.dagpenger.soknad.DokumentkravObserver.DokumentkravInnsendtEvent.DokumentkravInnsendt
 import no.nav.dagpenger.soknad.Innsending.Dokument
 import no.nav.dagpenger.soknad.Krav.Companion.aktive
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.IKKE_BESVART
@@ -36,13 +38,13 @@ class Dokumentkrav private constructor(
         aktiveDokumentKrav.forEach {
             it.svar.håndter(hendelse)
         }
-        val event = DokumentkravObserver.DokumentkravInnsendtEvent(
+        val event = DokumentkravInnsendtEvent(
             søknadId = hendelse.søknadID(),
             ident = hendelse.ident(),
             innsendttidspunkt = hendelse.innsendtidspunkt().toLocalDateTime(),
             ferdigBesvart = ferdigBesvart(),
             dokumentkrav = aktiveDokumentKrav.map {
-                DokumentkravObserver.DokumentkravInnsendtEvent.DokumentkravInnsendingSomethingSomething(
+                DokumentkravInnsendt(
                     dokumentnavn = it.beskrivendeId,
                     skjemakode = it.tilSkjemakode(),
                     valg = it.svar.valg.name,

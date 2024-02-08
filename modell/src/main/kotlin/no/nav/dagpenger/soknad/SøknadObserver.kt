@@ -13,11 +13,11 @@ interface DokumentkravObserver {
         var innsendingstype: String? = null,
         var innsendttidspunkt: LocalDateTime,
         val ferdigBesvart: Boolean,
-        val dokumentkrav: List<DokumentkravInnsendingSomethingSomething>,
+        val dokumentkrav: List<DokumentkravInnsendt>,
     ) {
         val hendelseId: UUID = UUID.randomUUID()
 
-        data class DokumentkravInnsendingSomethingSomething(
+        data class DokumentkravInnsendt(
             val dokumentnavn: String,
             val skjemakode: String,
             val valg: String,
