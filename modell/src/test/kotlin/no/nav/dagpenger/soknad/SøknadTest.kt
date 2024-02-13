@@ -147,15 +147,15 @@ internal class SøknadTest {
     }
 
     private fun håndterNySøknadOpprettet(prosessnavn: Prosessnavn = Prosessnavn("Dagpenger")) {
-        søknad.håndter(SøknadOpprettetHendelse(Prosessversjon(prosessnavn.id, 1), inspektør.søknadId, testIdent))
+        søknad.håndterSøknadOpprettetHendelse(SøknadOpprettetHendelse(Prosessversjon(prosessnavn.id, 1), inspektør.søknadId, testIdent))
     }
 
     private fun håndterSlettet() {
-        søknad.håndter(SlettSøknadHendelse(inspektør.søknadId, testIdent))
+        søknad.håndterSlettSøknadHendelse(SlettSøknadHendelse(inspektør.søknadId, testIdent))
     }
 
     private fun håndterMigrertProsessHendelse() {
-        søknad.håndter(
+        søknad.håndterMigrertProsessHendelse(
             MigrertProsessHendelse(
                 inspektør.søknadId,
                 testIdent,
@@ -165,11 +165,11 @@ internal class SøknadTest {
     }
 
     private fun håndterFaktumOppdatering() {
-        søknad.håndter(FaktumOppdatertHendelse(inspektør.søknadId, testIdent))
+        søknad.håndterFaktumOppdatertHendelse(FaktumOppdatertHendelse(inspektør.søknadId, testIdent))
     }
 
     private fun håndterSøkerOppgaveHendelse(sannsynliggjøringer: Set<Sannsynliggjøring> = emptySet()) {
-        søknad.håndter(
+        søknad.håndterSøkeroppgaveHendelse(
             SøkeroppgaveHendelse(
                 inspektør.søknadId,
                 testIdent,
@@ -180,12 +180,12 @@ internal class SøknadTest {
 
     private fun håndterSendInnSøknad(): SøknadInnsendtHendelse {
         return SøknadInnsendtHendelse(inspektør.søknadId, testIdent).also {
-            søknad.håndter(it)
+            søknad.håndterSøknadInnsendtHendelse(it)
         }
     }
 
     private fun håndterØnskeOmNySøknadHendelse(prosessnavn: Prosessnavn = Prosessnavn("Dagpenger")) {
-        søknad.håndter(
+        søknad.håndterØnskeOmNySøknadHendelse(
             ØnskeOmNySøknadHendelse(
                 søknadID = UUID.randomUUID(),
                 ident = testIdent,

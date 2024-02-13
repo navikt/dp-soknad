@@ -137,7 +137,7 @@ internal class SøknadPostgresRepositoryTest {
 
         withMigratedDb {
             SøknadPostgresRepository(dataSource).let { repository ->
-                søknad.håndter(
+                søknad.håndterSlettSøknadHendelse(
                     SlettSøknadHendelse(
                         søknadId,
                         ident,

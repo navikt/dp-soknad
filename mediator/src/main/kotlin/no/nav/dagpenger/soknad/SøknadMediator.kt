@@ -48,32 +48,32 @@ internal class SøknadMediator(
 
     fun behandleØnskeOmNySøknadHendelse(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         behandleSøknadHendelse(ønskeOmNySøknadHendelse) { søknad ->
-            søknad.håndter(ønskeOmNySøknadHendelse)
+            søknad.håndterØnskeOmNySøknadHendelse(ønskeOmNySøknadHendelse)
         }
     }
 
     fun behandleSøknadOpprettetHendelse(søknadOpprettetHendelse: SøknadOpprettetHendelse) {
         behandleSøknadHendelse(søknadOpprettetHendelse) { søknad ->
-            søknad.håndter(søknadOpprettetHendelse)
+            søknad.håndterSøknadOpprettetHendelse(søknadOpprettetHendelse)
         }
     }
 
     fun behandleSøknadInnsendtHendelse(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
         behandleSøknadHendelse(søknadInnsendtHendelse) { søknad ->
-            søknad.håndter(søknadInnsendtHendelse)
+            søknad.håndterSøknadInnsendtHendelse(søknadInnsendtHendelse)
         }
     }
 
     fun behandleSlettSøknadHendelse(slettSøknadHendelse: SlettSøknadHendelse) {
         behandleSøknadHendelse(slettSøknadHendelse) { søknad ->
-            søknad.håndter(slettSøknadHendelse)
+            søknad.håndterSlettSøknadHendelse(slettSøknadHendelse)
         }
     }
 
     fun behandleFaktumSvar(faktumSvar: FaktumSvar) {
         val faktumOppdatertHendelse = FaktumOppdatertHendelse(faktumSvar.søknadUuid(), faktumSvar.ident())
         behandleSøknadHendelse(faktumOppdatertHendelse) { person ->
-            person.håndter(faktumOppdatertHendelse)
+            person.håndterFaktumOppdatertHendelse(faktumOppdatertHendelse)
             rapidsConnection.publish(faktumSvar.ident(), faktumSvar.toJson())
         }
         logger.info { "Sendte faktum svar for ${faktumSvar.søknadUuid()}" }
@@ -87,7 +87,7 @@ internal class SøknadMediator(
             }
         }
         behandleSøknadHendelse(hendelse) { søknad ->
-            søknad.håndter(hendelse)
+            søknad.håndterSøkeroppgaveHendelse(hendelse)
         }
     }
 
@@ -135,7 +135,7 @@ internal class SøknadMediator(
 
     fun behandleMigrertProsessAvSøkerOppgaveHendelse(hendelse: MigrertProsessHendelse, søkerOppgave: SøkerOppgave) {
         behandleSøknadHendelse(hendelse) { søknad ->
-            søknad.håndter(hendelse)
+            søknad.håndterMigrertProsessHendelse(hendelse)
             søknadDataRepository.lagre(søkerOppgave)
         }
     }

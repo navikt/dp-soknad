@@ -28,7 +28,7 @@ import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
 import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SlettFil
-import no.nav.dagpenger.soknad.søknadUuid
+import no.nav.dagpenger.soknad.hentSøknadUuidFraUrl
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
 import no.nav.dagpenger.soknad.utils.auth.optionalIdent
@@ -44,7 +44,7 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
     route("/{søknad_uuid}/dokumentasjonskrav") {
         authenticate("azureAd", "tokenX") {
             get {
-                val søknadUuid = søknadUuid()
+                val søknadUuid = hentSøknadUuidFraUrl()
                 withLoggingContext("søknadid" to søknadUuid.toString()) {
                     call.optionalIdent()?.let { ident ->
                         validator.valider(søknadUuid, ident)
@@ -58,7 +58,7 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
         put("/{kravId}/fil") {
             val kravId = call.kravId()
             val ident = call.ident()
-            val søknadUuid = søknadUuid()
+            val søknadUuid = hentSøknadUuidFraUrl()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
                 validator.valider(søknadUuid, ident)
                 val fil = call.receive<ApiFil>().also { logger.info { "Received: $it" } }
@@ -69,7 +69,7 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
         put("/{kravId}/svar") {
             val kravId = call.kravId()
             val ident = call.ident()
-            val søknadUuid = søknadUuid()
+            val søknadUuid = hentSøknadUuidFraUrl()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
                 validator.valider(søknadUuid, ident)
                 val svar = call.receive<Svar>()
@@ -88,7 +88,7 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
         delete("/{kravId}/fil/{nss...}") {
             val kravId = call.kravId()
             val ident = call.ident()
-            val søknadUuid = søknadUuid()
+            val søknadUuid = hentSøknadUuidFraUrl()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
                 validator.valider(søknadUuid, ident)
                 val urn = URN.rfc8141().parse("urn:vedlegg:${call.nss()}").also {
@@ -102,7 +102,7 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
         put("/{kravId}/bundle") {
             val kravId = call.kravId()
             val ident = call.ident()
-            val søknadUuid = søknadUuid()
+            val søknadUuid = hentSøknadUuidFraUrl()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
                 validator.valider(søknadUuid, ident)
                 val bundleSvar = call.receive<BundleSvar>()

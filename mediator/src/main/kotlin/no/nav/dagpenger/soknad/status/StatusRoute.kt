@@ -11,8 +11,8 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.SøknadMediator
+import no.nav.dagpenger.soknad.hentSøknadUuidFraUrl
 import no.nav.dagpenger.soknad.status.SøknadStatus.Paabegynt
-import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
 import no.nav.dagpenger.soknad.utils.auth.jwt
@@ -23,7 +23,7 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator, behandlingsstat
     val validator = SøknadEierValidator(søknadMediator)
 
     get("/{søknad_uuid}/status") {
-        val søknadUuid = søknadUuid()
+        val søknadUuid = hentSøknadUuidFraUrl()
         val ident = call.ident()
         val token = call.request.jwt()
 

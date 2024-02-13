@@ -30,14 +30,14 @@ class PåbegyntSøknadApiTest {
             Språk("NO"),
             expectedIdent,
         ).also {
-            it.håndter(
+            it.håndterSøknadOpprettetHendelse(
                 SøknadOpprettetHendelse(
                     Prosessversjon("test", 1),
                     søknadId,
                     expectedIdent,
                 ),
             )
-            it.håndter(
+            it.håndterFaktumOppdatertHendelse(
                 FaktumOppdatertHendelse(
                     søknadId,
                     expectedIdent,

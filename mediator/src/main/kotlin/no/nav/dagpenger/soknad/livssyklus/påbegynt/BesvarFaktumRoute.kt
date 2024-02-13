@@ -10,7 +10,7 @@ import io.ktor.util.pipeline.PipelineContext
 import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.søknadUuid
+import no.nav.dagpenger.soknad.hentSøknadUuidFraUrl
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
 import kotlin.system.measureTimeMillis
@@ -21,7 +21,7 @@ internal fun Route.besvarFaktumRoute(søknadMediator: SøknadMediator) {
     val validator = SøknadEierValidator(søknadMediator)
     put("/{søknad_uuid}/faktum/{faktumid}") {
         val tidBrukt = measureTimeMillis {
-            val søknadUuid = søknadUuid()
+            val søknadUuid = hentSøknadUuidFraUrl()
             val ident = call.ident()
             val faktumId = faktumId()
 

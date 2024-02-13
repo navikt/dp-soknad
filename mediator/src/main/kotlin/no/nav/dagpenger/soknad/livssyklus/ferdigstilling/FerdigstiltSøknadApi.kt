@@ -9,7 +9,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.Configuration
-import no.nav.dagpenger.soknad.søknadUuid
+import no.nav.dagpenger.soknad.hentSøknadUuidFraUrl
 
 internal fun ferdigStiltSøknadRouteBuilder(ferdigstiltSøknadDb: FerdigstiltSøknadPostgresRepository): Route.() -> Unit {
     return {
@@ -20,20 +20,20 @@ internal fun ferdigStiltSøknadRouteBuilder(ferdigstiltSøknadDb: FerdigstiltSø
 internal fun Route.ferdigstiltSøknadsApi(ferdigstiltSøknadDb: FerdigstiltSøknadPostgresRepository) {
     route("${Configuration.basePath}/{søknad_uuid}/ferdigstilt") {
         get("/tekst") {
-            withLoggingContext("søknadId" to søknadUuid().toString()) {
+            withLoggingContext("søknadId" to hentSøknadUuidFraUrl().toString()) {
                 call.respondText(
                     contentType = ContentType.Application.Json,
                     status = HttpStatusCode.OK,
-                    text = ferdigstiltSøknadDb.hentTekst(søknadUuid()),
+                    text = ferdigstiltSøknadDb.hentTekst(hentSøknadUuidFraUrl()),
                 )
             }
         }
         get("/fakta") {
-            withLoggingContext("søknadId" to søknadUuid().toString()) {
+            withLoggingContext("søknadId" to hentSøknadUuidFraUrl().toString()) {
                 call.respondText(
                     contentType = ContentType.Application.Json,
                     status = HttpStatusCode.OK,
-                    text = ferdigstiltSøknadDb.hentFakta(søknadUuid()),
+                    text = ferdigstiltSøknadDb.hentFakta(hentSøknadUuidFraUrl()),
                 )
             }
         }

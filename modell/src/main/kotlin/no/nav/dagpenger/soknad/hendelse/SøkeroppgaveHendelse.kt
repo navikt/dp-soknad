@@ -22,7 +22,7 @@ class SøkeroppgaveHendelse(
     }
 
     fun håndter(søknad: Søknad) {
-        søknad.håndter(sannsynliggjøringer)
+        søknad.håndterSannsynliggjøring(sannsynliggjøringer)
         if (hasErrors()) return
         observers.forEach { it.håndtert(this) }
     }

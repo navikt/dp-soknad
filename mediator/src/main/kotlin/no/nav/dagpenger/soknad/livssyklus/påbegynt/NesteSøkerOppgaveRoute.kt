@@ -8,7 +8,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import mu.withLoggingContext
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.dagpenger.soknad.søknadUuid
+import no.nav.dagpenger.soknad.hentSøknadUuidFraUrl
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
 import java.util.UUID
@@ -16,7 +16,7 @@ import java.util.UUID
 internal fun Route.nesteSøkeroppgaveRoute(søknadMediator: SøknadMediator) {
     val validator = SøknadEierValidator(søknadMediator)
     get("/{søknad_uuid}/neste") {
-        val id = søknadUuid()
+        val id = hentSøknadUuidFraUrl()
         val ident = call.ident()
         val sistLagret: Int = call.parameters["sistLagret"]?.toInt() ?: 0
         withLoggingContext(

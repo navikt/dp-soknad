@@ -8,7 +8,7 @@ import io.ktor.server.routing.delete
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
-import no.nav.dagpenger.soknad.søknadUuid
+import no.nav.dagpenger.soknad.hentSøknadUuidFraUrl
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
 
@@ -16,7 +16,7 @@ private val logger = KotlinLogging.logger { }
 internal fun Route.slettSøknadRoute(søknadMediator: SøknadMediator) {
     val validator = SøknadEierValidator(søknadMediator)
     delete("/{søknad_uuid}") {
-        val søknadUuid = søknadUuid()
+        val søknadUuid = hentSøknadUuidFraUrl()
         val ident = call.ident()
         validator.valider(søknadUuid, ident)
         val slettSøknadHendelse = SlettSøknadHendelse(søknadUuid, ident)

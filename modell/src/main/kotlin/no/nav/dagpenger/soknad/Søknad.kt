@@ -106,50 +106,50 @@ class Søknad private constructor(
         fun Søknad.erDagpenger(): Boolean = prosessversjon?.prosessnavn?.id == "Dagpenger"
     }
 
-    fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
+    fun håndterØnskeOmNySøknadHendelse(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         kontekst(ønskeOmNySøknadHendelse)
         ønskeOmNySøknadHendelse.info("Ønske om søknad registrert")
-        tilstand.håndter(ønskeOmNySøknadHendelse, this)
+        tilstand.håndterØnskeOmNySøknadHendelse(ønskeOmNySøknadHendelse, this)
     }
 
-    fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse) {
-        kontekst(harPåbegyntSøknadHendelse)
-        tilstand.håndter(harPåbegyntSøknadHendelse, this)
-    }
+//    fun håndterHarPåbegyntSøknadHendelse(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse) {
+//        kontekst(harPåbegyntSøknadHendelse)
+//        tilstand.håndter(harPåbegyntSøknadHendelse, this)
+//    }
 
-    fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse) {
+    fun håndterSøknadOpprettetHendelse(søknadOpprettetHendelse: SøknadOpprettetHendelse) {
         kontekst(søknadOpprettetHendelse)
         søknadOpprettetHendelse.info("Oppretter søknad")
-        tilstand.håndter(søknadOpprettetHendelse, this)
+        tilstand.håndterSøknadOpprettetHendelse(søknadOpprettetHendelse, this)
     }
 
-    fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
+    fun håndterSøknadInnsendtHendelse(søknadInnsendtHendelse: SøknadInnsendtHendelse) {
         kontekst(søknadInnsendtHendelse)
         søknadInnsendtHendelse.info("Sender inn søknaden")
         sistEndretAvBruker = ZonedDateTime.now()
-        tilstand.håndter(søknadInnsendtHendelse, this)
+        tilstand.håndterSøknadInnsendtHendelse(søknadInnsendtHendelse, this)
     }
 
-    fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse) {
+    fun håndterFaktumOppdatertHendelse(faktumOppdatertHendelse: FaktumOppdatertHendelse) {
         kontekst(faktumOppdatertHendelse)
-        tilstand.håndter(faktumOppdatertHendelse, this)
+        tilstand.håndterFaktumOppdatertHendelse(faktumOppdatertHendelse, this)
     }
 
-    fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse) {
+    fun håndterSøkeroppgaveHendelse(søkeroppgaveHendelse: SøkeroppgaveHendelse) {
         kontekst(søkeroppgaveHendelse)
         søkeroppgaveHendelse.info("Søkeroppgave mottatt")
-        tilstand.håndter(søkeroppgaveHendelse, this)
+        tilstand.håndterSøkeroppgaveHendelse(søkeroppgaveHendelse, this)
     }
 
-    fun håndter(slettSøknadHendelse: SlettSøknadHendelse) {
+    fun håndterSlettSøknadHendelse(slettSøknadHendelse: SlettSøknadHendelse) {
         kontekst(slettSøknadHendelse)
         slettSøknadHendelse.info("Forsøker å slette søknad")
-        tilstand.håndter(slettSøknadHendelse, this)
+        tilstand.håndterSlettSøknadHendelse(slettSøknadHendelse, this)
     }
 
-    fun håndter(hendelse: MigrertProsessHendelse) {
+    fun håndterMigrertProsessHendelse(hendelse: MigrertProsessHendelse) {
         kontekst(hendelse)
-        tilstand.håndter(hendelse, this)
+        tilstand.håndterMigrertProsessHendelse(hendelse, this)
     }
 
     fun addObserver(søknadObserver: SøknadObserver) {
@@ -161,30 +161,30 @@ class Søknad private constructor(
 
         fun entering(søknadHendelse: Hendelse, søknad: Søknad) {}
 
-        fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) =
+        fun håndterØnskeOmNySøknadHendelse(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) =
             ønskeOmNySøknadHendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse, søknad: Søknad) =
+        fun håndterHarPåbegyntSøknadHendelse(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse, søknad: Søknad) =
             harPåbegyntSøknadHendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse, søknad: Søknad) =
+        fun håndterSøknadOpprettetHendelse(søknadOpprettetHendelse: SøknadOpprettetHendelse, søknad: Søknad) =
             søknadOpprettetHendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) =
+        fun håndterSøknadInnsendtHendelse(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) =
             søknadInnsendtHendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse, søknad: Søknad): Unit =
+        fun håndterFaktumOppdatertHendelse(faktumOppdatertHendelse: FaktumOppdatertHendelse, søknad: Søknad): Unit =
             faktumOppdatertHendelse.severe("Kan ikke oppdatere faktum for søknader i tilstand ${tilstandType.name}")
 
-        fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse, søknad: Søknad) {
+        fun håndterSøkeroppgaveHendelse(søkeroppgaveHendelse: SøkeroppgaveHendelse, søknad: Søknad) {
             søkeroppgaveHendelse.`kan ikke håndteres i denne tilstanden`()
         }
 
-        fun håndter(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
+        fun håndterSlettSøknadHendelse(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
             slettSøknadHendelse.severe("Kan ikke slette søknad i tilstand $tilstandType")
         }
 
-        fun håndter(hendelse: MigrertProsessHendelse, søknad: Søknad) {
+        fun håndterMigrertProsessHendelse(hendelse: MigrertProsessHendelse, søknad: Søknad) {
             hendelse.`kan ikke håndteres i denne tilstanden`()
         }
 
@@ -213,7 +213,7 @@ class Søknad private constructor(
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.UnderOpprettelse
 
-        override fun håndter(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) {
+        override fun håndterØnskeOmNySøknadHendelse(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse, søknad: Søknad) {
             ønskeOmNySøknadHendelse.behov(
                 Behovtype.NySøknad,
                 "Behov for å starte søknadsprosess",
@@ -221,11 +221,11 @@ class Søknad private constructor(
             )
         }
 
-        override fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse, søknad: Søknad) {
+        override fun håndterSøkeroppgaveHendelse(søkeroppgaveHendelse: SøkeroppgaveHendelse, søknad: Søknad) {
             søkeroppgaveHendelse.håndter(søknad)
         }
 
-        override fun håndter(søknadOpprettetHendelse: SøknadOpprettetHendelse, søknad: Søknad) {
+        override fun håndterSøknadOpprettetHendelse(søknadOpprettetHendelse: SøknadOpprettetHendelse, søknad: Søknad) {
             søknad.prosessversjon = søknadOpprettetHendelse.prosessversjon()
             søknad.endreTilstand(Påbegynt, søknadOpprettetHendelse)
         }
@@ -235,7 +235,7 @@ class Søknad private constructor(
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.Påbegynt
 
-        override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
+        override fun håndterSøknadInnsendtHendelse(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
             if (!søknad.data.value.erFerdig()) {
                 // @todo: Oversette validringsfeil til frontend. Mulig lage et eller annet som frontend kan tolke
                 søknadInnsendtHendelse.severe("Alle faktum må være besvart")
@@ -258,22 +258,22 @@ class Søknad private constructor(
             søknad.endreTilstand(Innsendt, søknadInnsendtHendelse)
         }
 
-        override fun håndter(faktumOppdatertHendelse: FaktumOppdatertHendelse, søknad: Søknad) {
+        override fun håndterFaktumOppdatertHendelse(faktumOppdatertHendelse: FaktumOppdatertHendelse, søknad: Søknad) {
             søknad.sistEndretAvBruker = ZonedDateTime.now()
         }
 
-        override fun håndter(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse, søknad: Søknad) {
+        override fun håndterHarPåbegyntSøknadHendelse(harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse, søknad: Søknad) {
         }
 
-        override fun håndter(søkeroppgaveHendelse: SøkeroppgaveHendelse, søknad: Søknad) {
+        override fun håndterSøkeroppgaveHendelse(søkeroppgaveHendelse: SøkeroppgaveHendelse, søknad: Søknad) {
             søkeroppgaveHendelse.håndter(søknad)
         }
 
-        override fun håndter(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
+        override fun håndterSlettSøknadHendelse(slettSøknadHendelse: SlettSøknadHendelse, søknad: Søknad) {
             søknad.endreTilstand(Slettet, slettSøknadHendelse)
         }
 
-        override fun håndter(hendelse: MigrertProsessHendelse, søknad: Søknad) {
+        override fun håndterMigrertProsessHendelse(hendelse: MigrertProsessHendelse, søknad: Søknad) {
             val forrigeVersjon = søknad.prosessversjon ?: Prosessversjon("pre-migrering", 0)
             søknad.prosessversjon = hendelse.prosessversjon
             søknad.migrert(søknad.ident, forrigeVersjon)
@@ -284,7 +284,7 @@ class Søknad private constructor(
         override val tilstandType: Tilstand.Type
             get() = Tilstand.Type.Innsendt
 
-        override fun håndter(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
+        override fun håndterSøknadInnsendtHendelse(søknadInnsendtHendelse: SøknadInnsendtHendelse, søknad: Søknad) {
             if (!søknad.erDagpenger()) {
                 søknadInnsendtHendelse.severe("Kan ikke lage ettersending av prosess ${søknad.prosessversjon?.prosessnavn?.id}")
             }
@@ -311,7 +311,7 @@ class Søknad private constructor(
         }
     }
 
-    internal fun håndter(nyeSannsynliggjøringer: Set<Sannsynliggjøring>) {
+    internal fun håndterSannsynliggjøring(nyeSannsynliggjøringer: Set<Sannsynliggjøring>) {
         this.dokumentkrav.håndter(nyeSannsynliggjøringer)
     }
 

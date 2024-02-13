@@ -42,7 +42,7 @@ internal class SøknadMigreringTest {
             søknadMaler.lagre(versjon(1))
             søknader.lagre(
                 Søknad(søknadId, Språk("no"), ident).apply {
-                    håndter(
+                    håndterSøknadOpprettetHendelse(
                         SøknadOpprettetHendelse(
                             prosessversjon(1),
                             søknadId,

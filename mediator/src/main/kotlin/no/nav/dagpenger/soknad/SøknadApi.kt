@@ -38,6 +38,6 @@ internal fun Route.søknadApi(søknadMediator: SøknadMediator, behandlingsstatu
     }
 }
 
-internal fun PipelineContext<Unit, ApplicationCall>.søknadUuid() =
+internal fun PipelineContext<Unit, ApplicationCall>.hentSøknadUuidFraUrl() =
     call.parameters["søknad_uuid"].let { UUID.fromString(it) }
         ?: throw IllegalArgumentException("Må ha med id i parameter")

@@ -27,13 +27,13 @@ internal fun Route.mineSoknaderRoute(søknadMediator: SøknadMediator) {
         val includeDokumentkrav = call.request.queryParameters["include"] == "dokumentkrav"
 
         val dagpengeSøknader = søknadMediator.hentSøknader(ident = call.ident()).filter { it.erDagpenger() }
-        val mineSøknaderDto = lagMineSøknaderDto(dagpengeSøknader, fom, includeDokumentkrav)
+        val mineSøknaderDto = lagMineSøknaderResponse(dagpengeSøknader, fom, includeDokumentkrav)
 
         call.respond(HttpStatusCode.OK, mineSøknaderDto)
     }
 }
 
-private fun lagMineSøknaderDto(søknader: List<Søknad>, fom: LocalDate, includeDokumentkrav: Boolean): MineSoknaderDto {
+private fun lagMineSøknaderResponse(søknader: List<Søknad>, fom: LocalDate, includeDokumentkrav: Boolean): MineSoknaderDto {
     var påbegyntSøknad: PåbegyntSøknadDto? = null
     val innsendteSøknader = mutableListOf<InnsendtSøknadDto>()
 
