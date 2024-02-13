@@ -146,7 +146,7 @@ internal class SøknadMediatorIntegrasjonTest {
 
         testRapid.sendTestMessage(søkerOppgave(søknadUuid.toString().toUUID(), testIdent, ferdig = false))
 
-        søknadMediator.behandle(FaktumSvar(søknadUuid, "1234", "boolean", testIdent, BooleanNode.TRUE))
+        søknadMediator.behandleFaktumSvar(FaktumSvar(søknadUuid, "1234", "boolean", testIdent, BooleanNode.TRUE))
         val partisjonsnøkkel = testRapid.inspektør.key(1)
         assertEquals(
             testIdent,
@@ -256,7 +256,7 @@ internal class SøknadMediatorIntegrasjonTest {
     }
 
     private fun behandleDokumentkravSammenstilling(kravId: String, urn: String) {
-        søknadMediator.behandle(
+        søknadMediator.behandleDokumentKravSammenstilling(
             DokumentKravSammenstilling(
                 søknadID = søknadUuid,
                 ident = testIdent,
@@ -267,7 +267,7 @@ internal class SøknadMediatorIntegrasjonTest {
     }
 
     private fun behandleDokumentasjonIkkeTilgjengelig(kravId: String, begrunnelse: String) {
-        søknadMediator.behandle(
+        søknadMediator.behandleDokumentasjonIkkeTilgjengelig(
             DokumentasjonIkkeTilgjengelig(
                 søknadID = søknadUuid,
                 ident = testIdent,
@@ -281,7 +281,7 @@ internal class SøknadMediatorIntegrasjonTest {
     private fun gjeldendeTilstand() = oppdatertInspektør().gjeldendetilstand
 
     private fun behandleØnskeOmNySøknadHendelse(prosessnavn: Prosessnavn) {
-        søknadMediator.behandle(
+        søknadMediator.behandleØnskeOmNySøknadHendelse(
             ØnskeOmNySøknadHendelse(
                 søknadUuid,
                 testIdent,
@@ -292,7 +292,7 @@ internal class SøknadMediatorIntegrasjonTest {
     }
 
     private fun behandleSøknadInnsendtHendelse() {
-        søknadMediator.behandle(
+        søknadMediator.behandleSøknadInnsendtHendelse(
             SøknadInnsendtHendelse(
                 søknadID = søknadUuid,
                 ident = testIdent,
@@ -301,7 +301,7 @@ internal class SøknadMediatorIntegrasjonTest {
     }
 
     private fun behandleLeggTilFil(kravId: String, urn: String) {
-        søknadMediator.behandle(
+        søknadMediator.behandleLeggTilFil(
             LeggTilFil(
                 søknadID = søknadUuid,
                 ident = testIdent,

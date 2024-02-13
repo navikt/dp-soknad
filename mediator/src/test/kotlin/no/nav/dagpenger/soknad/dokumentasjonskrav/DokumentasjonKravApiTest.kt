@@ -24,7 +24,6 @@ import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SENDER_IKKE
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SEND_NÅ
-import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SEND_SENERE
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
@@ -234,7 +233,7 @@ internal class DokumentasjonKravApiTest {
     fun `Skal kunne sende inn svar uten fil`() {
         val slot = slot<DokumentasjonIkkeTilgjengelig>()
         val mediatorMock = mockk<SøknadMediator>().also {
-            every { it.behandle(capture(slot)) } just Runs
+            every { it.behandleDokumentasjonIkkeTilgjengelig(capture(slot)) } just Runs
             every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
         }
 
@@ -271,7 +270,7 @@ internal class DokumentasjonKravApiTest {
     fun `Skal kunne slette en fil`() {
         val slot = slot<SlettFil>()
         val mediatorMock = mockk<SøknadMediator>().also {
-            every { it.behandle(capture(slot)) } just Runs
+            every { it.behandleSlettFil(capture(slot)) } just Runs
         }
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(
@@ -297,7 +296,7 @@ internal class DokumentasjonKravApiTest {
         val slot = slot<LeggTilFil>()
         val tidspunkt = ZonedDateTime.now()
         val mediatorMock = mockk<SøknadMediator>().also {
-            every { it.behandle(capture(slot)) } just Runs
+            every { it.behandleLeggTilFil(capture(slot)) } just Runs
             every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
         }
 
@@ -344,7 +343,7 @@ internal class DokumentasjonKravApiTest {
     fun `skal kunne besvare dokumentkrav med bundle URN`() {
         val slot = slot<DokumentKravSammenstilling>()
         val mediatorMock = mockk<SøknadMediator>().also {
-            every { it.behandle(capture(slot)) } just Runs
+            every { it.behandleDokumentKravSammenstilling(capture(slot)) } just Runs
         }
 
         TestApplication.withMockAuthServerAndTestApplication(

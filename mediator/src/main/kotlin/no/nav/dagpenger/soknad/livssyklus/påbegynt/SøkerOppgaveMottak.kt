@@ -42,7 +42,7 @@ internal class SøkerOppgaveMottak(
         ) {
             logger.info { "Mottatt pakke ${packet["@event_name"].asText()}" }
             try {
-                søknadMediator.behandle(søkerOppgave)
+                søknadMediator.behandleSøkerOppgave(søkerOppgave)
             } catch (e: SøknadMediator.SøknadIkkeFunnet) {
                 logger.warn(e) { "Fant ikke søknad" }
             }

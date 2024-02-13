@@ -36,7 +36,7 @@ internal fun Route.besvarFaktumRoute(søknadMediator: SøknadMediator) {
                     svar = input.svarAsJson,
                 )
                 val sistBesvart = søknadMediator.besvart(faktumSvar.søknadUuid())
-                søknadMediator.behandle(faktumSvar)
+                søknadMediator.behandleFaktumSvar(faktumSvar)
                 call.respond(BesvartFaktum("ok", sistBesvart))
             }
         }

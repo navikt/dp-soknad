@@ -23,12 +23,12 @@ class MigrertSøknadMottakTest {
     @Test
     fun `skal lese migrert melding`() {
         every {
-            mediatorMock.behandle(any(), any())
+            mediatorMock.behandleMigrertProsessAvSøkerOppgaveHendelse(any(), any())
         } just Runs
 
         testRapid.sendTestMessage(melding)
         val søkerOppgave = slot<SøkerOppgave>()
-        verify { mediatorMock.behandle(any(), capture(søkerOppgave)) }
+        verify { mediatorMock.behandleMigrertProsessAvSøkerOppgaveHendelse(any(), capture(søkerOppgave)) }
 
         with(søkerOppgave.captured) {
             assertEquals(ident, this.eier())

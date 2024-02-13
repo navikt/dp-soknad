@@ -104,7 +104,7 @@ internal class SøknadApiTest {
         val slot = slot<SøknadInnsendtHendelse>()
         val søknadMediatorMock = mockk<SøknadMediator>().also {
             justRun {
-                it.behandle(capture(slot))
+                it.behandleSøknadInnsendtHendelse(capture(slot))
             }
             every { it.hentEier(any()) } returns defaultDummyFodselsnummer
         }
@@ -121,7 +121,7 @@ internal class SøknadApiTest {
                 assertEquals(HttpStatusCode.NoContent, this.status)
             }
         }
-        verify(exactly = 1) { søknadMediatorMock.behandle(any<SøknadInnsendtHendelse>()) }
+        verify(exactly = 1) { søknadMediatorMock.behandleSøknadInnsendtHendelse(any<SøknadInnsendtHendelse>()) }
         assertTrue(slot.isCaptured)
         assertEquals(testSøknadUuid, slot.captured.søknadID())
         assertEquals(defaultDummyFodselsnummer, slot.captured.ident())
@@ -133,7 +133,7 @@ internal class SøknadApiTest {
         val slot = slot<SøknadInnsendtHendelse>()
         val søknadMediatorMock = mockk<SøknadMediator>().also {
             justRun {
-                it.behandle(capture(slot))
+                it.behandleSøknadInnsendtHendelse(capture(slot))
                 it.lagreSøknadsTekst(testSøknadUuid, any())
             }
             every { it.hentEier(any()) } returns defaultDummyFodselsnummer
@@ -152,7 +152,7 @@ internal class SøknadApiTest {
                 assertEquals(HttpStatusCode.NoContent, this.status)
             }
         }
-        verify(exactly = 1) { søknadMediatorMock.behandle(any<SøknadInnsendtHendelse>()) }
+        verify(exactly = 1) { søknadMediatorMock.behandleSøknadInnsendtHendelse(any<SøknadInnsendtHendelse>()) }
         assertTrue(slot.isCaptured)
         assertEquals(testSøknadUuid, slot.captured.søknadID())
         assertEquals(defaultDummyFodselsnummer, slot.captured.ident())
@@ -304,7 +304,7 @@ internal class SøknadApiTest {
         val søknadId = UUID.randomUUID()
         val mockSøknadMediator = mockk<SøknadMediator>().also {
             justRun {
-                it.behandle(any<FaktumSvar>())
+                it.behandleFaktumSvar(any<FaktumSvar>())
             }
             every { it.hentEier(søknadId) } returns defaultDummyFodselsnummer
             every { it.besvart(søknadId) } returns 2
@@ -322,7 +322,7 @@ internal class SøknadApiTest {
                 assertEquals(expectedStatusCode, this.status)
                 assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])
                 if (expectedStatusCode.isSuccess()) {
-                    verify(exactly = 1) { mockSøknadMediator.behandle(any<FaktumSvar>()) }
+                    verify(exactly = 1) { mockSøknadMediator.behandleFaktumSvar(any<FaktumSvar>()) }
                 }
             }
         }
@@ -333,7 +333,7 @@ internal class SøknadApiTest {
         val søknadUuid = UUID.randomUUID()
         val mockSøknadMediator = mockk<SøknadMediator>().also {
             justRun {
-                it.behandle(any<SlettSøknadHendelse>())
+                it.behandleSlettSøknadHendelse(any<SlettSøknadHendelse>())
             }
             every { it.hentEier(søknadUuid) } returns defaultDummyFodselsnummer
         }
@@ -350,7 +350,7 @@ internal class SøknadApiTest {
         }
 
         verify(exactly = 1) {
-            mockSøknadMediator.behandle(
+            mockSøknadMediator.behandleSlettSøknadHendelse(
                 SlettSøknadHendelse(
                     søknadUuid,
                     ident = defaultDummyFodselsnummer,
@@ -377,7 +377,7 @@ internal class SøknadApiTest {
         val søknadId = UUID.randomUUID()
         val faktumSvar = slot<FaktumSvar>()
         val mockSøknadMediator = mockk<SøknadMediator>().also {
-            justRun { it.behandle(capture(faktumSvar)) }
+            justRun { it.behandleFaktumSvar(capture(faktumSvar)) }
             every { it.hentEier(søknadId) } returns defaultDummyFodselsnummer
             every { it.besvart(søknadId) } returns 2
         }

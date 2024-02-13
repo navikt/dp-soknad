@@ -21,7 +21,7 @@ internal fun Route.slettSøknadRoute(søknadMediator: SøknadMediator) {
         validator.valider(søknadUuid, ident)
         val slettSøknadHendelse = SlettSøknadHendelse(søknadUuid, ident)
         try {
-            søknadMediator.behandle(slettSøknadHendelse)
+            søknadMediator.behandleSlettSøknadHendelse(slettSøknadHendelse)
         } catch (e: SøknadMediator.SøknadIkkeFunnet) {
             logger.info(e) { "Kan ikke slette søknad som allerede er slettet" }
         }

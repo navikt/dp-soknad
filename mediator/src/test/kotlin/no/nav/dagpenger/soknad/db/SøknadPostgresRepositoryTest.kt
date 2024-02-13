@@ -281,7 +281,7 @@ internal class SøknadPostgresRepositoryTest {
                 }
             }
 
-            søknadMediator.behandle(
+            søknadMediator.behandleLeggTilFil(
                 LeggTilFil(
                     søknadId,
                     ident,
@@ -290,7 +290,7 @@ internal class SøknadPostgresRepositoryTest {
                 ),
             )
 
-            søknadMediator.behandle(
+            søknadMediator.behandleLeggTilFil(
                 LeggTilFil(
                     søknadId,
                     ident,
@@ -298,7 +298,7 @@ internal class SøknadPostgresRepositoryTest {
                     fil2,
                 ),
             )
-            søknadMediator.behandle(
+            søknadMediator.behandleLeggTilFil(
                 LeggTilFil(
                     søknadId,
                     ident,
@@ -317,7 +317,7 @@ internal class SøknadPostgresRepositoryTest {
                 }
             }
 
-            søknadMediator.behandle(
+            søknadMediator.behandleDokumentKravSammenstilling(
                 DokumentKravSammenstilling(
                     søknadID = søknadId,
                     ident = ident,
@@ -334,7 +334,7 @@ internal class SøknadPostgresRepositoryTest {
                 }
             }
 
-            søknadMediator.behandle(
+            søknadMediator.behandleDokumentasjonIkkeTilgjengelig(
                 DokumentasjonIkkeTilgjengelig(
                     søknadId,
                     ident,
@@ -352,7 +352,7 @@ internal class SøknadPostgresRepositoryTest {
                 }
             }
 
-            søknadMediator.behandle(
+            søknadMediator.behandleSlettFil(
                 SlettFil(
                     søknadID = søknadId,
                     ident = ident,
@@ -365,7 +365,7 @@ internal class SøknadPostgresRepositoryTest {
                 hentDokumentKrav(søknadMediator.hent(søknadId)!!).aktiveDokumentKrav().first().svar.filer.size,
             )
 
-            søknadMediator.behandle(
+            søknadMediator.behandleSlettFil(
                 SlettFil(
                     søknadID = søknadId,
                     ident = ident,
@@ -380,7 +380,7 @@ internal class SøknadPostgresRepositoryTest {
             )
 
             assertDoesNotThrow {
-                søknadMediator.behandle(
+                søknadMediator.behandleSlettFil(
                     SlettFil(
                         søknadID = søknadId,
                         ident = ident,

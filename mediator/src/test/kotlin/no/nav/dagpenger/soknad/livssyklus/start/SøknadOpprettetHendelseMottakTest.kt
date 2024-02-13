@@ -18,7 +18,7 @@ import kotlin.random.Random
 internal class SøknadOpprettetHendelseMottakTest {
     private val mediatorMock = mockk<SøknadMediator>().also {
         every { it.prosessversjon(any(), any()) } returns Prosessversjon(prosessnavn, prosessversjon)
-        every { it.behandle(any() as SøknadOpprettetHendelse) } just Runs
+        every { it.behandleSøknadOpprettetHendelse(any() as SøknadOpprettetHendelse) } just Runs
     }
     private val testRapid = TestRapid().also { rapidsConnection ->
         SøknadOpprettetHendelseMottak(rapidsConnection, mediatorMock)
@@ -28,7 +28,7 @@ internal class SøknadOpprettetHendelseMottakTest {
     fun `skal lytte på søknad opprettet melding og oversette til SøknadOpprettetHendelse`() {
         testRapid.sendTestMessage(nySøknadBehovsløsning(UUID.randomUUID().toString()))
         val hendelse = slot<SøknadOpprettetHendelse>()
-        verify(exactly = 1) { mediatorMock.behandle(capture(hendelse)) }
+        verify(exactly = 1) { mediatorMock.behandleSøknadOpprettetHendelse(capture(hendelse)) }
 
         with(hendelse.captured) {
             assertEquals(prosessnavn, prosessversjon().prosessnavn.id)
@@ -39,7 +39,7 @@ internal class SøknadOpprettetHendelseMottakTest {
     @Test
     fun `Ignorer behov uten løsning`() {
         testRapid.sendTestMessage(nySøknadBehovUtenLøsning(UUID.randomUUID().toString()))
-        verify(exactly = 0) { mediatorMock.behandle(any() as SøknadOpprettetHendelse) }
+        verify(exactly = 0) { mediatorMock.behandleSøknadOpprettetHendelse(any() as SøknadOpprettetHendelse) }
     }
 
     private companion object {

@@ -45,7 +45,7 @@ internal class MigrertSøknadMottak(
             logger.info { "Mottok migrert søknad, prosessnavn=$prosessnavn, versjon=$versjon" }
 
             try {
-                mediator.behandle(
+                mediator.behandleMigrertProsessAvSøkerOppgaveHendelse(
                     MigrertProsessHendelse(
                         søknadId,
                         ident,

@@ -52,7 +52,7 @@ internal class VaktmesterPostgresRepository(
     }
 
     private fun emitSlettSøknadEvent(søknad: SøknadTilSletting) =
-        søknadMediator.behandle(SlettSøknadHendelse(søknad.søknadUuid, søknad.eier))
+        søknadMediator.behandleSlettSøknadHendelse(SlettSøknadHendelse(søknad.søknadUuid, søknad.eier))
 
     private fun hentPåbegynteSøknaderUendretSiden(antallDager: Int, transactionalSession: TransactionalSession) =
         transactionalSession.run( // TODO: Spørringen fører til en full sequential scan, få på noe indeks

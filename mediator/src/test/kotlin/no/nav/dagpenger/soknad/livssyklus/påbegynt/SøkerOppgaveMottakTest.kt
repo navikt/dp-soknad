@@ -47,7 +47,7 @@ class SøkerOppgaveMottakTest {
             testRapid.reset()
             val søknadUuid = UUID.randomUUID()
             val ident = "01234567891"
-            søknadMediator.behandle(
+            søknadMediator.behandleØnskeOmNySøknadHendelse(
                 ØnskeOmNySøknadHendelse(
                     søknadUuid,
                     ident,

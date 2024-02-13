@@ -60,7 +60,7 @@ internal class SøknadOpprettetHendelseMottak(
                 SøknadOpprettetHendelse(prosessversjon, søknadID, packet["ident"].asText())
             logger.info { "Fått løsning for '$behov' for $søknadID" }
             try {
-                mediator.behandle(søknadOpprettetHendelse)
+                mediator.behandleSøknadOpprettetHendelse(søknadOpprettetHendelse)
             } catch (e: SøknadIkkeFunnet) {
                 logger.error(e) { "Fikk svar på behov om ny søknad fra quiz, men bruker har allerede slettet søknaden" }
             }
