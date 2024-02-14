@@ -37,7 +37,7 @@ internal class NyEttersendingBehovMottak(rapidsConnection: RapidsConnection, pri
             logger.info { "Mottatt behov for ny innsending av type: $behov" }
 
             val hendelse = NyEttersendingMelding(packet).hendelse()
-            mediator.behandle(hendelse)
+            mediator.behandleNyInnsendingHendelse(hendelse)
 
             packet["@løsning"] = mapOf(
                 behov to mapOf(

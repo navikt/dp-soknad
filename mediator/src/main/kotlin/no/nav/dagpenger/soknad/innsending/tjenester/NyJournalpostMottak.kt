@@ -50,7 +50,7 @@ internal class NyJournalpostMottak(
                     journalpostId,
                 )
             logger.info { "Fått løsning for $behov for $innsendingId med journalpostId $journalpostId" }
-            mediator.behandle(søknadMidlertidigJournalførtHendelse)
+            mediator.behandleSøknadMidlertidigJournalførtHendelse(søknadMidlertidigJournalførtHendelse)
         }
     }
 }

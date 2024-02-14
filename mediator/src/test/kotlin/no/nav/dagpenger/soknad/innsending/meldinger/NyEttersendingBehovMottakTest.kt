@@ -39,7 +39,7 @@ internal class NyEttersendingBehovMottakTest {
     private val testRapid = TestRapid()
     private val slot = slot<NyInnsendingHendelse>()
     private val mediator = mockk<InnsendingMediator>().also {
-        every { it.behandle(capture(slot)) } just Runs
+        every { it.behandleNyInnsendingHendelse(capture(slot)) } just Runs
     }
 
     @BeforeEach
@@ -57,7 +57,7 @@ internal class NyEttersendingBehovMottakTest {
             lagTestJson(fixture = testFixture),
         )
 
-        verify(exactly = 1) { mediator.behandle(any<NyInnsendingHendelse>()) }
+        verify(exactly = 1) { mediator.behandleNyInnsendingHendelse(any<NyInnsendingHendelse>()) }
         TestInnsendingVisitor(slot.captured.innsending).let { innsending ->
             assertEquals(testFixture.ident, innsending.ident)
             assertEquals(testFixture.søknadId, innsending.søknadId)
@@ -95,7 +95,7 @@ internal class NyEttersendingBehovMottakTest {
             ),
         )
 
-        verify(exactly = 0) { mediator.behandle(any<NyInnsendingHendelse>()) }
+        verify(exactly = 0) { mediator.behandleNyInnsendingHendelse(any<NyInnsendingHendelse>()) }
     }
 
     @ParameterizedTest
@@ -107,7 +107,7 @@ internal class NyEttersendingBehovMottakTest {
         )
 
         testRapid.sendTestMessage(lagTestJson(testFixture.copy(dokumenter = emptyList())))
-        verify(exactly = 1) { mediator.behandle(any<NyInnsendingHendelse>()) }
+        verify(exactly = 1) { mediator.behandleNyInnsendingHendelse(any<NyInnsendingHendelse>()) }
         TestInnsendingVisitor(slot.captured.innsending).let { innsending ->
             assertEquals(testFixture.ident, innsending.ident)
             assertEquals(testFixture.søknadId, innsending.søknadId)

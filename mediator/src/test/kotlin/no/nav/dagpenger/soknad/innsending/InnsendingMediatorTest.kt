@@ -40,7 +40,7 @@ internal class InnsendingMediatorTest {
         val innsending = Innsending.ny(ZonedDateTime.now(), ident, søknadId, listOf())
         innsending.addObserver(innsendingObserver)
 
-        mediator.behandle(NyInnsendingHendelse(innsending, ident))
+        mediator.behandleNyInnsendingHendelse(NyInnsendingHendelse(innsending, ident))
 
         assertEquals(AvventerMetadata, innsendingObserver.gjeldendeTilstand)
 
@@ -59,8 +59,8 @@ internal class InnsendingMediatorTest {
         val innsending = Innsending.ny(innsendt, ident, søknadId, listOf())
         innsending.addObserver(innsendingObserver)
 
-        mediator.behandle(NyInnsendingHendelse(innsending, ident))
-        mediator.behandle(
+        mediator.behandleNyInnsendingHendelse(NyInnsendingHendelse(innsending, ident))
+        mediator.behandleInnsendingMetadataMottattHendelse(
             InnsendingMetadataMottattHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
@@ -122,8 +122,8 @@ internal class InnsendingMediatorTest {
         )
         innsending.addObserver(innsendingObserver)
 
-        mediator.behandle(NyInnsendingHendelse(innsending, ident))
-        mediator.behandle(
+        mediator.behandleNyInnsendingHendelse(NyInnsendingHendelse(innsending, ident))
+        mediator.behandleInnsendingMetadataMottattHendelse(
             InnsendingMetadataMottattHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
@@ -151,7 +151,7 @@ internal class InnsendingMediatorTest {
             ),
         )
 
-        mediator.behandle(
+        mediator.behandleArkiverbarSøknadMottattHendelse(
             ArkiverbarSøknadMottattHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
@@ -202,22 +202,22 @@ internal class InnsendingMediatorTest {
         val innsending = Innsending.ny(innsendt, ident, søknadId, listOf())
         innsending.addObserver(innsendingObserver)
 
-        mediator.behandle(NyInnsendingHendelse(innsending, ident))
-        mediator.behandle(
+        mediator.behandleNyInnsendingHendelse(NyInnsendingHendelse(innsending, ident))
+        mediator.behandleInnsendingMetadataMottattHendelse(
             InnsendingMetadataMottattHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
                 skjemaKode = skjemaKode,
             ),
         )
-        mediator.behandle(
+        mediator.behandleArkiverbarSøknadMottattHendelse(
             ArkiverbarSøknadMottattHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
                 dokumentvarianter = listOf(),
             ),
         )
-        mediator.behandle(
+        mediator.behandleSøknadMidlertidigJournalførtHendelse(
             SøknadMidlertidigJournalførtHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
@@ -236,29 +236,29 @@ internal class InnsendingMediatorTest {
         val innsending = Innsending.ny(innsendt, ident, søknadId, listOf())
         innsending.addObserver(innsendingObserver)
 
-        mediator.behandle(NyInnsendingHendelse(innsending, ident))
-        mediator.behandle(
+        mediator.behandleNyInnsendingHendelse(NyInnsendingHendelse(innsending, ident))
+        mediator.behandleInnsendingMetadataMottattHendelse(
             InnsendingMetadataMottattHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
                 skjemaKode = skjemaKode,
             ),
         )
-        mediator.behandle(
+        mediator.behandleArkiverbarSøknadMottattHendelse(
             ArkiverbarSøknadMottattHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
                 dokumentvarianter = listOf(),
             ),
         )
-        mediator.behandle(
+        mediator.behandleSøknadMidlertidigJournalførtHendelse(
             SøknadMidlertidigJournalførtHendelse(
                 innsendingId = innsending.innsendingId,
                 ident = ident,
                 journalpostId = journalpostId,
             ),
         )
-        mediator.behandle(
+        mediator.behandleJournalførtHendelse(
             JournalførtHendelse(
                 ident = ident,
                 journalpostId = journalpostId,

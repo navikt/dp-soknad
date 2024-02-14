@@ -42,7 +42,7 @@ internal class SkjemakodeMottak(rapidsConnection: RapidsConnection, private val 
             "innsendingId" to innsendingId.toString(),
         ) {
             logger.info { "Mottatt løsning for $behov for $innsendingId med skjemakode=${packet.skjemakode()}" }
-            mediator.behandle(
+            mediator.behandleInnsendingMetadataMottattHendelse(
                 InnsendingMetadataMottattHendelse(
                     innsendingId = innsendingId,
                     ident = ident,

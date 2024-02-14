@@ -18,7 +18,7 @@ internal class ArkiverbarSøknadMottattHendelseMottakTest {
     private val slot = slot<ArkiverbarSøknadMottattHendelse>()
 
     private val mediatorMock = mockk<InnsendingMediator>().also {
-        every { it.behandle(capture(slot)) } just Runs
+        every { it.behandleArkiverbarSøknadMottattHendelse(capture(slot)) } just Runs
     }
 
     private val testRapid = TestRapid().also { rapidsConnection ->
@@ -28,7 +28,7 @@ internal class ArkiverbarSøknadMottattHendelseMottakTest {
     @Test
     fun `skal lytte på arkiverbar søknad opprettet melding og oversette til ArkiverbarSøknadMottattHendelse`() {
         testRapid.sendTestMessage(losning)
-        verify(exactly = 1) { mediatorMock.behandle(any() as ArkiverbarSøknadMottattHendelse) }
+        verify(exactly = 1) { mediatorMock.behandleArkiverbarSøknadMottattHendelse(any() as ArkiverbarSøknadMottattHendelse) }
         val dokumentvarianter: List<Innsending.Dokument.Dokumentvariant> = slot.captured.dokumentvarianter().sortedBy { it.urn }
 
         assertEquals(2, dokumentvarianter.size)

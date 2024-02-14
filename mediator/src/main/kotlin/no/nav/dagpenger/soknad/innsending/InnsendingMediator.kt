@@ -28,32 +28,32 @@ internal class InnsendingMediator(
 
     private val behovMediator = BehovMediator(rapidsConnection, sikkerLogger)
 
-    fun behandle(nyInnsendingHendelse: NyInnsendingHendelse) {
-        behandle(nyInnsendingHendelse) { innsending ->
+    fun behandleNyInnsendingHendelse(nyInnsendingHendelse: NyInnsendingHendelse) {
+        behandleInnsendingHendelse(nyInnsendingHendelse) { innsending ->
             innsending.håndter(nyInnsendingHendelse)
         }
     }
 
-    fun behandle(innsendingMetadataMottattHendelse: InnsendingMetadataMottattHendelse) {
-        behandle(innsendingMetadataMottattHendelse) { innsending ->
+    fun behandleInnsendingMetadataMottattHendelse(innsendingMetadataMottattHendelse: InnsendingMetadataMottattHendelse) {
+        behandleInnsendingHendelse(innsendingMetadataMottattHendelse) { innsending ->
             innsending.håndter(innsendingMetadataMottattHendelse)
         }
     }
 
-    fun behandle(arkiverbarSøknadMottattHendelse: ArkiverbarSøknadMottattHendelse) {
-        behandle(arkiverbarSøknadMottattHendelse) { innsending ->
+    fun behandleArkiverbarSøknadMottattHendelse(arkiverbarSøknadMottattHendelse: ArkiverbarSøknadMottattHendelse) {
+        behandleInnsendingHendelse(arkiverbarSøknadMottattHendelse) { innsending ->
             innsending.håndter(arkiverbarSøknadMottattHendelse)
         }
     }
 
-    fun behandle(søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse) {
-        behandle(søknadMidlertidigJournalførtHendelse) { innsending ->
+    fun behandleSøknadMidlertidigJournalførtHendelse(søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse) {
+        behandleInnsendingHendelse(søknadMidlertidigJournalførtHendelse) { innsending ->
             innsending.håndter(søknadMidlertidigJournalførtHendelse)
         }
     }
 
-    fun behandle(journalførtHendelse: JournalførtHendelse) {
-        behandle(journalførtHendelse) { innsending ->
+    fun behandleJournalførtHendelse(journalførtHendelse: JournalførtHendelse) {
+        behandleJournalførtHendelse(journalførtHendelse) { innsending ->
             innsending.håndter(journalførtHendelse)
         }
     }
@@ -75,14 +75,14 @@ internal class InnsendingMediator(
         throw e
     }
 
-    private fun behandle(hendelse: JournalførtHendelse, håndter: (Innsending) -> Unit) {
+    private fun behandleJournalførtHendelse(hendelse: JournalførtHendelse, håndter: (Innsending) -> Unit) {
         val innsending = innsendingRepository.hentInnsending(hendelse.journalpostId()).also { innsending ->
             innsendingObservers.forEach { innsending.addObserver(it) }
         }
         behandle(hendelse, innsending, håndter)
     }
 
-    private fun behandle(hendelse: InnsendingHendelse, håndter: (Innsending) -> Unit) {
+    private fun behandleInnsendingHendelse(hendelse: InnsendingHendelse, håndter: (Innsending) -> Unit) {
         val innsending = hentEllerOpprettInnsending(hendelse).also { innsending ->
             innsendingObservers.forEach { innsending.addObserver(it) }
         }

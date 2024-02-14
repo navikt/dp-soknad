@@ -29,7 +29,7 @@ internal class JournalførtMottakTest {
             JournalførtMottak(
                 testRapid,
                 mockk<InnsendingMediator>().also {
-                    every { it.behandle(capture(slot)) } just Runs
+                    every { it.behandleJournalførtHendelse(capture(slot)) } just Runs
                 },
             )
 

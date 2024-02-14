@@ -53,7 +53,7 @@ internal class JournalførtMottak(
         ) {
             val journalførtHendelse = JournalførtHendelse(ident, journalpostId)
             logger.info { "Fått løsning for innsending_ferdigstilt for $journalpostId" }
-            mediator.behandle(journalførtHendelse)
+            mediator.behandleJournalførtHendelse(journalførtHendelse)
         }
     }
 }
