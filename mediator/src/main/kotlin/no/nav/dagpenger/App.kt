@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad
+package no.nav.dagpenger
 
 fun main() {
     ApplicationBuilder(Configuration.config).start()

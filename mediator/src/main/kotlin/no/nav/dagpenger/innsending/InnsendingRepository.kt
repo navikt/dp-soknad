@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad.innsending
+package no.nav.dagpenger.innsending
 
 import no.nav.dagpenger.soknad.Innsending
 import java.util.UUID

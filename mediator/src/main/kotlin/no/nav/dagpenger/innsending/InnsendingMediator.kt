@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad.innsending
+package no.nav.dagpenger.innsending
 
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Aktivitetslogg
@@ -30,31 +30,31 @@ internal class InnsendingMediator(
 
     fun behandleNyInnsendingHendelse(nyInnsendingHendelse: NyInnsendingHendelse) {
         behandleInnsendingHendelse(nyInnsendingHendelse) { innsending ->
-            innsending.håndter(nyInnsendingHendelse)
+            innsending.håndterNyInnsendingHendelse(nyInnsendingHendelse)
         }
     }
 
     fun behandleInnsendingMetadataMottattHendelse(innsendingMetadataMottattHendelse: InnsendingMetadataMottattHendelse) {
         behandleInnsendingHendelse(innsendingMetadataMottattHendelse) { innsending ->
-            innsending.håndter(innsendingMetadataMottattHendelse)
+            innsending.håndterInnsendingMetadataMottattHendelse(innsendingMetadataMottattHendelse)
         }
     }
 
     fun behandleArkiverbarSøknadMottattHendelse(arkiverbarSøknadMottattHendelse: ArkiverbarSøknadMottattHendelse) {
         behandleInnsendingHendelse(arkiverbarSøknadMottattHendelse) { innsending ->
-            innsending.håndter(arkiverbarSøknadMottattHendelse)
+            innsending.håndterArkiverbarSøknadMottattHendelse(arkiverbarSøknadMottattHendelse)
         }
     }
 
     fun behandleSøknadMidlertidigJournalførtHendelse(søknadMidlertidigJournalførtHendelse: SøknadMidlertidigJournalførtHendelse) {
         behandleInnsendingHendelse(søknadMidlertidigJournalførtHendelse) { innsending ->
-            innsending.håndter(søknadMidlertidigJournalførtHendelse)
+            innsending.håndterSøknadMidlertidigJournalførtHendelse(søknadMidlertidigJournalførtHendelse)
         }
     }
 
     fun behandleJournalførtHendelse(journalførtHendelse: JournalførtHendelse) {
         behandleJournalførtHendelse(journalførtHendelse) { innsending ->
-            innsending.håndter(journalførtHendelse)
+            innsending.håndterJournalførtHendelse(journalførtHendelse)
         }
     }
 

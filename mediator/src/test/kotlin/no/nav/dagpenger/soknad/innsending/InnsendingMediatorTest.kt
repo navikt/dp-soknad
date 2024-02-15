@@ -1,6 +1,8 @@
 package no.nav.dagpenger.soknad.innsending
 
 import com.fasterxml.jackson.databind.JsonNode
+import no.nav.dagpenger.innsending.InnsendingMediator
+import no.nav.dagpenger.innsending.InnsendingRepository
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Innsending.Dokument.Dokumentvariant

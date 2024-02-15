@@ -87,16 +87,16 @@ class Innsending private constructor(
         }
     }
 
-    fun håndter(hendelse: NyInnsendingHendelse) {
+    fun håndterNyInnsendingHendelse(hendelse: NyInnsendingHendelse) {
         kontekst(hendelse)
-        tilstand.håndter(hendelse, this)
+        tilstand.håndterNyInnsendingHendelse(hendelse, this)
     }
 
-    fun håndter(hendelse: InnsendingMetadataMottattHendelse) {
+    fun håndterInnsendingMetadataMottattHendelse(hendelse: InnsendingMetadataMottattHendelse) {
         innsendinger.forEach { it._håndter(hendelse) }
     }
 
-    fun håndter(hendelse: ArkiverbarSøknadMottattHendelse) {
+    fun håndterArkiverbarSøknadMottattHendelse(hendelse: ArkiverbarSøknadMottattHendelse) {
         kontekst(hendelse)
         hendelse.info("Arkiverbar søknad mottatt")
         if (!hendelse.valider()) {
@@ -106,13 +106,13 @@ class Innsending private constructor(
         innsendinger.forEach { it._håndter(hendelse) }
     }
 
-    fun håndter(hendelse: SøknadMidlertidigJournalførtHendelse) {
+    fun håndterSøknadMidlertidigJournalførtHendelse(hendelse: SøknadMidlertidigJournalførtHendelse) {
         kontekst(hendelse)
         hendelse.info("Søknad midlertidig journalført")
         innsendinger.forEach { it._håndter(hendelse) }
     }
 
-    fun håndter(hendelse: JournalførtHendelse) {
+    fun håndterJournalførtHendelse(hendelse: JournalførtHendelse) {
         kontekst(hendelse)
         hendelse.info("Søknad journalført")
         innsendinger.forEach { it._håndter(hendelse) }
@@ -121,25 +121,25 @@ class Innsending private constructor(
     private fun _håndter(hendelse: InnsendingMetadataMottattHendelse) {
         if (hendelse.innsendingId != this.innsendingId) return
         kontekst(hendelse)
-        tilstand.håndter(hendelse, this)
+        tilstand.håndterInnsendingMetadataMottattHendelse(hendelse, this)
     }
 
     private fun _håndter(hendelse: ArkiverbarSøknadMottattHendelse) {
         if (hendelse.innsendingId != this.innsendingId) return
         kontekst(hendelse)
-        tilstand.håndter(hendelse, this)
+        tilstand.håndterArkiverbarSøknadMottattHendelse(hendelse, this)
     }
 
     private fun _håndter(hendelse: SøknadMidlertidigJournalførtHendelse) {
         if (hendelse.innsendingId != this.innsendingId) return
         kontekst(hendelse)
-        tilstand.håndter(hendelse, this)
+        tilstand.håndterSøknadMidlertidigJournalførtHendelse(hendelse, this)
     }
 
     private fun _håndter(hendelse: JournalførtHendelse) {
         if (hendelse.journalpostId() != this.journalpostId) return
         kontekst(hendelse)
-        tilstand.håndter(hendelse, this)
+        tilstand.håndterJournalførtHendelse(hendelse, this)
     }
 
     private fun endreTilstand(nyTilstand: Tilstand, søknadHendelse: Hendelse) {
@@ -171,22 +171,22 @@ class Innsending private constructor(
 
         fun entering(hendelse: Hendelse, innsending: Innsending) {}
 
-        fun håndter(hendelse: NyInnsendingHendelse, innsending: Innsending) =
+        fun håndterNyInnsendingHendelse(hendelse: NyInnsendingHendelse, innsending: Innsending) =
             hendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(hendelse: InnsendingMetadataMottattHendelse, innsending: Innsending) =
+        fun håndterInnsendingMetadataMottattHendelse(hendelse: InnsendingMetadataMottattHendelse, innsending: Innsending) =
             hendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(hendelse: ArkiverbarSøknadMottattHendelse, innsending: Innsending) =
+        fun håndterArkiverbarSøknadMottattHendelse(hendelse: ArkiverbarSøknadMottattHendelse, innsending: Innsending) =
             hendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(
+        fun håndterSøknadMidlertidigJournalførtHendelse(
             hendelse: SøknadMidlertidigJournalførtHendelse,
             innsending: Innsending,
         ) =
             hendelse.`kan ikke håndteres i denne tilstanden`()
 
-        fun håndter(hendelse: JournalførtHendelse, innsending: Innsending) =
+        fun håndterJournalførtHendelse(hendelse: JournalførtHendelse, innsending: Innsending) =
             hendelse.`kan ikke håndteres i denne tilstanden`()
 
         private fun Hendelse.`kan ikke håndteres i denne tilstanden`() =
@@ -200,7 +200,7 @@ class Innsending private constructor(
     private object Opprettet : Tilstand {
         override val tilstandType = TilstandType.Opprettet
 
-        override fun håndter(hendelse: NyInnsendingHendelse, innsending: Innsending) {
+        override fun håndterNyInnsendingHendelse(hendelse: NyInnsendingHendelse, innsending: Innsending) {
             hendelse.info("Innsending ${innsending.toSpesifikkKontekst()} med id ${innsending.innsendingId} opprettet.")
             innsending.endreTilstand(AvventerMetadata, hendelse)
         }
@@ -217,7 +217,7 @@ class Innsending private constructor(
             )
         }
 
-        override fun håndter(hendelse: InnsendingMetadataMottattHendelse, innsending: Innsending) {
+        override fun håndterInnsendingMetadataMottattHendelse(hendelse: InnsendingMetadataMottattHendelse, innsending: Innsending) {
             innsending.metadata = hendelse.metadata
             innsending.endreTilstand(AvventerArkiverbarSøknad, hendelse)
         }
@@ -239,7 +239,7 @@ class Innsending private constructor(
             )
         }
 
-        override fun håndter(hendelse: ArkiverbarSøknadMottattHendelse, innsending: Innsending) {
+        override fun håndterArkiverbarSøknadMottattHendelse(hendelse: ArkiverbarSøknadMottattHendelse, innsending: Innsending) {
             val metadata = requireNotNull(innsending.metadata) { "Må ha metadata" }
             innsending.hovedDokument = Dokument(
                 kravId = null,
@@ -270,7 +270,7 @@ class Innsending private constructor(
             )
         }
 
-        override fun håndter(hendelse: SøknadMidlertidigJournalførtHendelse, innsending: Innsending) {
+        override fun håndterSøknadMidlertidigJournalførtHendelse(hendelse: SøknadMidlertidigJournalførtHendelse, innsending: Innsending) {
             innsending.journalpostId = hendelse.journalpostId()
             innsending.endreTilstand(AvventerJournalføring, hendelse)
         }
@@ -279,7 +279,7 @@ class Innsending private constructor(
     private object AvventerJournalføring : Tilstand {
         override val tilstandType = TilstandType.AvventerJournalføring
 
-        override fun håndter(hendelse: JournalførtHendelse, innsending: Innsending) {
+        override fun håndterJournalførtHendelse(hendelse: JournalførtHendelse, innsending: Innsending) {
             if (hendelse.journalpostId() == innsending.journalpostId) {
                 innsending.endreTilstand(Journalført, hendelse)
             }

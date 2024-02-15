@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad.innsending.meldinger
+package no.nav.dagpenger.innsending.meldinger
 
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.helse.rapids_rivers.JsonMessage

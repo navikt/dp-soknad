@@ -6,6 +6,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import mu.withLoggingContext
+import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Slettet
@@ -28,33 +29,32 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator, behandlingsstat
         val token = call.request.jwt()
 
         validator.valider(søknadUuid, ident)
-        val søknadStatusDto = withLoggingContext(
+        val søknadStatusResponse = withLoggingContext(
             "søknadId" to søknadUuid.toString(),
         ) {
             val søknad = søknadMediator.hent(søknadUuid)!!
-            val søknadStatusVisitor = SøknadStatusVisitor(søknad)
-            createSøknadStatusDto(søknadStatusVisitor, behandlingsstatusClient, token)
+            søknadStatusResponse(søknad, behandlingsstatusClient, token)
         }
 
-        call.respond(OK, søknadStatusDto)
+        call.respond(OK, søknadStatusResponse)
     }
 }
 
-private suspend fun createSøknadStatusDto(
-    statusVisitor: SøknadStatusVisitor,
+private suspend fun søknadStatusResponse(
+    søknad: Søknad,
     behandlingsstatusClient: BehandlingsstatusClient,
     token: String,
-) = when (statusVisitor.søknadTilstand()) {
-    Påbegynt -> SøknadStatusDto(Paabegynt, statusVisitor.søknadOpprettet())
+) = when (søknad.tilstand().tilstandType) {
+    Påbegynt -> SøknadStatusDto(Paabegynt, søknad.opprettetTidspunkt().toLocalDateTime())
     Innsendt -> {
         SøknadStatusDto(
             status = hentSøknadStatus(
                 behandlingsstatusClient,
-                førsteInnsendingTidspunkt = statusVisitor.søknadInnsendt().toLocalDate(),
+                førsteInnsendingTidspunkt = requireNotNull(søknad.innstendTidspunkt()).toLocalDate(),
                 token,
             ),
-            opprettet = statusVisitor.søknadOpprettet(),
-            innsendt = statusVisitor.søknadInnsendt().toLocalDateTime(),
+            opprettet = søknad.opprettetTidspunkt().toLocalDateTime(),
+            innsendt = requireNotNull(søknad.innstendTidspunkt()).toLocalDateTime(),
         )
     }
 

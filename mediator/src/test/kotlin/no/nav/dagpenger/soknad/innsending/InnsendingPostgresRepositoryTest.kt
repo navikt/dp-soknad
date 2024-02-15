@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.innsending
 
+import no.nav.dagpenger.innsending.InnsendingPostgresRepository
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.InnsendingVisitor
 import no.nav.dagpenger.soknad.Språk

@@ -2,10 +2,10 @@ package no.nav.dagpenger.soknad.personalia
 
 import io.ktor.http.HttpHeaders
 import mu.KotlinLogging
+import no.nav.dagpenger.Configuration
+import no.nav.dagpenger.Configuration.tokenXClient
 import no.nav.dagpenger.pdl.PersonOppslag
 import no.nav.dagpenger.pdl.adresse.AdresseVisitor
-import no.nav.dagpenger.soknad.Configuration
-import no.nav.dagpenger.soknad.Configuration.tokenXClient
 
 private val logger = KotlinLogging.logger {}
 

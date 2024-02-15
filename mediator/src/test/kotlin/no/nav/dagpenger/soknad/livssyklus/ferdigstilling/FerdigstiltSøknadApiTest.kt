@@ -10,7 +10,7 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.dagpenger.soknad.Configuration
+import no.nav.dagpenger.Configuration
 import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
 import org.junit.jupiter.api.Assertions.assertEquals

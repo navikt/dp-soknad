@@ -8,7 +8,7 @@ import io.ktor.server.routing.route
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
-import no.nav.dagpenger.soknad.Configuration
+import no.nav.dagpenger.Configuration
 import no.nav.dagpenger.soknad.utils.auth.ident
 import no.nav.dagpenger.soknad.utils.auth.jwt
 import kotlin.coroutines.CoroutineContext

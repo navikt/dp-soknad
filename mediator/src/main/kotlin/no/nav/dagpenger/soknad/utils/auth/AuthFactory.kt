@@ -17,7 +17,7 @@ import io.ktor.server.auth.jwt.JWTAuthenticationProvider
 import io.ktor.server.auth.jwt.JWTPrincipal
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
-import no.nav.dagpenger.soknad.Configuration
+import no.nav.dagpenger.Configuration
 import java.net.URL
 import java.util.concurrent.TimeUnit
 

@@ -1,4 +1,4 @@
-package no.nav.dagpenger.soknad.innsending
+package no.nav.dagpenger.innsending
 
 import kotliquery.Query
 import kotliquery.Row

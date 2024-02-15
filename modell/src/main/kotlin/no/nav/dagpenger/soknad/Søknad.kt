@@ -43,6 +43,10 @@ class Søknad private constructor(
     fun søknadUUID() = søknadId
     fun ident() = ident
 
+    fun tilstand() = tilstand
+    fun innstendTidspunkt() = innsendt
+    fun opprettetTidspunkt() = opprettet
+
     constructor(
         søknadId: UUID,
         språk: Språk,

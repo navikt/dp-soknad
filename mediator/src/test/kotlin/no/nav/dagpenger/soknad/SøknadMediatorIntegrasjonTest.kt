@@ -6,6 +6,11 @@ import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import de.slub.urn.URN
 import io.mockk.mockk
+import no.nav.dagpenger.innsending.InnsendingMediator
+import no.nav.dagpenger.innsending.tjenester.ArkiverbarSøknadMottattHendelseMottak
+import no.nav.dagpenger.innsending.tjenester.JournalførtMottak
+import no.nav.dagpenger.innsending.tjenester.NyJournalpostMottak
+import no.nav.dagpenger.innsending.tjenester.SkjemakodeMottak
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.DokumentkravSvar
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NyEttersending
 import no.nav.dagpenger.soknad.Aktivitetslogg.AktivitetException
@@ -21,11 +26,6 @@ import no.nav.dagpenger.soknad.hendelse.DokumentasjonIkkeTilgjengelig
 import no.nav.dagpenger.soknad.hendelse.LeggTilFil
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
-import no.nav.dagpenger.soknad.innsending.InnsendingMediator
-import no.nav.dagpenger.soknad.innsending.tjenester.ArkiverbarSøknadMottattHendelseMottak
-import no.nav.dagpenger.soknad.innsending.tjenester.JournalførtMottak
-import no.nav.dagpenger.soknad.innsending.tjenester.NyJournalpostMottak
-import no.nav.dagpenger.soknad.innsending.tjenester.SkjemakodeMottak
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgaveMottak
 import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak

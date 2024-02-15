@@ -8,7 +8,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import mu.withLoggingContext
-import no.nav.dagpenger.soknad.Configuration
+import no.nav.dagpenger.Configuration
 import no.nav.dagpenger.soknad.hentSøknadUuidFraUrl
 
 internal fun ferdigStiltSøknadRouteBuilder(ferdigstiltSøknadDb: FerdigstiltSøknadPostgresRepository): Route.() -> Unit {

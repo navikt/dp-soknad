@@ -11,8 +11,8 @@ import io.ktor.server.plugins.NotFoundException
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.dagpenger.Configuration
 import no.nav.dagpenger.soknad.Aktivitetslogg
-import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad

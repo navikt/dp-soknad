@@ -17,8 +17,8 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.serialization.jackson.jackson
 import mu.KotlinLogging
-import no.nav.dagpenger.soknad.Configuration
-import no.nav.dagpenger.soknad.Configuration.tokenXClient
+import no.nav.dagpenger.Configuration
+import no.nav.dagpenger.Configuration.tokenXClient
 import org.slf4j.MDC
 import java.time.LocalDate
 

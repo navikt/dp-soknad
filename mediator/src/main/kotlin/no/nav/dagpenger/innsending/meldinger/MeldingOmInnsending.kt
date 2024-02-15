@@ -1,7 +1,8 @@
-package no.nav.dagpenger.soknad.innsending.meldinger
+package no.nav.dagpenger.innsending.meldinger
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.dagpenger.soknad.Innsending
+import no.nav.dagpenger.soknad.innsending.meldinger.NyInnsendingHendelse
 import no.nav.dagpenger.soknad.utils.asUUID
 import no.nav.dagpenger.soknad.utils.asZonedDateTime
 import no.nav.helse.rapids_rivers.JsonMessage
