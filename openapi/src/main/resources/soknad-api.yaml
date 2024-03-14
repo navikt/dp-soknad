@@ -47,10 +47,6 @@ components:
           format: date
         organisasjonsnavn:
           type: string
-        stillingsprosent:
-          type: number
-          format: double
-          example: 49.5
 
   securitySchemes:
     tokenX:

@@ -104,6 +104,5 @@ class ArbeidsforholdOppslagTest {
         organisasjonsnummer = orgnummer,
         startdato = LocalDate.of(2014, 1, 1),
         sluttdato = LocalDate.of(2015, 1, 1),
-        stillingsprosent = 100.0,
     )
 }

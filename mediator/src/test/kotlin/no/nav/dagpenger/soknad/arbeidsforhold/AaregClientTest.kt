@@ -43,7 +43,6 @@ class AaregClientTest {
                     organisasjonsnummer shouldBe "910825518"
                     startdato shouldBe LocalDate.of(2014, 1, 1)
                     sluttdato shouldBe LocalDate.of(2015, 1, 1)
-                    stillingsprosent shouldBe 100.0
                 }
 
                 with(get(1)) {
@@ -51,7 +50,6 @@ class AaregClientTest {
                     organisasjonsnummer shouldBe "910825577"
                     startdato shouldBe LocalDate.of(2016, 1, 1)
                     sluttdato shouldBe null
-                    stillingsprosent shouldBe 80.5
                 }
             }
         }
