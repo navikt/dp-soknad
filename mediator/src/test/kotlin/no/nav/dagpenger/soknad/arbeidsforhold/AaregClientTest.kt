@@ -39,14 +39,14 @@ class AaregClientTest {
                 size shouldBe 2
 
                 with(get(0)) {
-                    id shouldBe "H911050676R16054L0001"
+                    id shouldBe "123456"
                     organisasjonsnummer shouldBe "910825518"
                     startdato shouldBe LocalDate.of(2014, 1, 1)
                     sluttdato shouldBe LocalDate.of(2015, 1, 1)
                 }
 
                 with(get(1)) {
-                    id shouldBe "V911050676R16054L0001"
+                    id shouldBe "123457"
                     organisasjonsnummer shouldBe "910825577"
                     startdato shouldBe LocalDate.of(2016, 1, 1)
                     sluttdato shouldBe null
@@ -73,7 +73,7 @@ class AaregClientTest {
         """
             [
               {
-                "id": "H911050676R16054L0001",
+                "navArbeidsforholdId": "123456",
                 "arbeidssted": {
                   "type": "Underenhet",
                   "identer": [
@@ -94,7 +94,7 @@ class AaregClientTest {
                 ]
               },
               {
-                "id": "V911050676R16054L0001",
+                "navArbeidsforholdId": "123457",
                 "arbeidssted": {
                   "type": "Underenhet",
                   "identer": [

@@ -68,7 +68,7 @@ internal class AaregClient(
 
 private fun toArbeidsforhold(aaregArbeidsforhold: JsonNode): Arbeidsforhold {
     return Arbeidsforhold(
-        id = aaregArbeidsforhold["id"].asText(),
+        id = aaregArbeidsforhold["navArbeidsforholdId"].asText(),
         organisasjonsnummer = toOrganisasjonsnummer(aaregArbeidsforhold["arbeidssted"]),
         startdato = aaregArbeidsforhold["ansettelsesperiode"]["startdato"].asLocalDate(),
         sluttdato = aaregArbeidsforhold["ansettelsesperiode"]["sluttdato"]?.asLocalDate(),
