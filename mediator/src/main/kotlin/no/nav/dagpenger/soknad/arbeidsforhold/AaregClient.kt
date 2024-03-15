@@ -32,7 +32,6 @@ internal class AaregClient(
         subjectToken: String,
     ) = withContext(Dispatchers.IO) {
         val url = URLBuilder(aaregUrl).appendEncodedPathSegments(API_PATH, ARBEIDSFORHOLD_PATH).build()
-        var arbeidsforholdJson: JsonNode? = null
         try {
             val response: HttpResponse =
                 client.get(url) {
@@ -43,17 +42,14 @@ internal class AaregClient(
                 }
             if (response.status.value == 200) {
                 logger.info("Kall til AAREG gikk OK")
-                arbeidsforholdJson = jacksonObjectMapper().readTree(response.bodyAsText())
+                val arbeidsforholdJson = jacksonObjectMapper().readTree(response.bodyAsText())
                 arbeidsforholdJson.map { toArbeidsforhold(it) }
             } else {
                 logger.warn("Kall til AAREG feilet med status ${response.status}")
                 emptyList()
             }
         } catch (e: Exception) {
-            logger.warn("Kall til AAREG feilet", e)
-            if (arbeidsforholdJson != null) {
-                sikkerLogg.warn("Respons fra AAREG som feiler ved mapping: $arbeidsforholdJson")
-            }
+            logger.warn("Henting eller mapping av arbeidsforhold fra AAREG feilet", e)
             emptyList()
         }
     }
@@ -62,7 +58,6 @@ internal class AaregClient(
         private const val API_PATH = "api"
         private const val ARBEIDSFORHOLD_PATH = "v2/arbeidstaker/arbeidsforhold"
         private val logger = KotlinLogging.logger {}
-        private val sikkerLogg = KotlinLogging.logger("tjenestekall")
     }
 }
 
