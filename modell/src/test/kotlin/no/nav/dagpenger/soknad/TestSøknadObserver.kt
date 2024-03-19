@@ -32,7 +32,7 @@ class TestSøknadObserver : SøknadObserver {
     }
 
     override fun søknadInnsendt(event: SøknadObserver.SøknadInnsendtEvent) {
-        this.innsendt = event.innsendt
+        this.innsendt = event.søknadTidspunkt
     }
 
     override fun dokumentkravInnsendt(event: DokumentkravObserver.DokumentkravInnsendtEvent) {

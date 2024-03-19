@@ -36,7 +36,9 @@ interface SøknadObserver : DokumentkravObserver {
 
     data class SøknadInnsendtEvent(
         val søknadId: UUID,
-        val innsendt: ZonedDateTime?,
+        val søknadTidspunkt: ZonedDateTime,
+        val søknadData: String,
+        val ident: String,
     )
 
     data class SøknadEndretTilstandEvent(
@@ -64,3 +66,22 @@ interface SøknadObserver : DokumentkravObserver {
         val gjeldendeProsessversjon: Prosessversjon,
     )
 }
+
+// internal class SøknadInnsendtObserver(private val rapidsConnection: RapidsConnection) : SøknadObserver {
+//    override fun søknadInnsendt(event: SøknadObserver.SøknadInnsendtEvent) {
+//        rapidsConnection.publish(event.toMeldingOmNySøknad().asMessage().toJson())
+//    }
+//
+//    private fun SøknadObserver.SøknadInnsendtEvent.toMeldingOmNySøknad() {
+//        return JsonMessage.newMessage(
+//            eventName = "søknad_innsendt",
+//            map =
+//            mapOf(
+//                "søknad_uuid" to søknadId,
+//                "søknadstidspunkt" to innsendt,
+//                "søknadData" to søknadData,
+//                "ident" to ident,
+//            ),
+//        )
+//    }
+// }
