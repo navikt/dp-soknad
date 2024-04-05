@@ -48,7 +48,7 @@ internal class SøknadInnsendtTidspunktTjeneste(
             ),
         ) {
             try {
-                val innsendtSøknadsId = packet.getSøknadIdForRapporteringBehov() ?: packet.getSøknadIdForQuizBehov()
+                val innsendtSøknadsId = packet.getSøknadIdForQuizBehov() ?: packet.getSøknadIdForRapporteringBehov()
                 val innsendtTidspunkt: LocalDate? = mediator.hent(UUID.fromString(innsendtSøknadsId))?.let {
                     object : SøknadVisitor {
                         var innsendt: LocalDate? = null
@@ -88,12 +88,14 @@ internal class SøknadInnsendtTidspunktTjeneste(
     }
 }
 
-private fun JsonMessage.getSøknadIdForQuizBehov(): String {
-    return this["InnsendtSøknadsId"]["urn"]
-        .asText()
-        .let { URN.rfc8141().parse(it) }
-        .namespaceSpecificString()
-        .toString()
+private fun JsonMessage.getSøknadIdForQuizBehov(): String? {
+    return kotlin.runCatching {
+        this["InnsendtSøknadsId"]["urn"]
+            .asText()
+            .let { URN.rfc8141().parse(it) }
+            .namespaceSpecificString()
+            .toString()
+    }.getOrNull()
 }
 
 private fun JsonMessage.getSøknadIdForRapporteringBehov(): String? {
