@@ -10,7 +10,7 @@ internal class SøknadInnsendtObserver(private val rapidsConnection: RapidsConne
     }
 
     private fun søknadInnsendtEvent(event: SøknadObserver.SøknadInnsendtEvent) = JsonMessage.newMessage(
-        eventName = "søknad_innsendt",
+        eventName = "søknad_innsendt_varsel",
         map =
         mapOf(
             "søknadId" to event.søknadId,

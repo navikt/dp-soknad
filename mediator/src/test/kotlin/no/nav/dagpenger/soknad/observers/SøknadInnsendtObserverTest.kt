@@ -26,7 +26,7 @@ class SøknadInnsendtObserverTest {
         assertEquals(1, testRapid.inspektør.size)
 
         with(testRapid.inspektør) {
-            assertEquals("søknad_innsendt", field(0, "@event_name").asText())
+            assertEquals("søknad_innsendt_varsel", field(0, "@event_name").asText())
             assertEquals(søknadId, field(0, "søknadId").asUUID())
             assertNotNull(field(0, "søknadstidspunkt"))
             assertNotNull(field(0, "søknadData"))
