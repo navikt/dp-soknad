@@ -24,4 +24,10 @@ object SøknadLoggerObserver : SøknadObserver {
             "Søknad ${event.søknadId} slettet"
         }
     }
+
+    override fun søknadInnsendt(event: SøknadObserver.SøknadInnsendtEvent) {
+        log.info {
+            "Søknad ${event.søknadId} innsendt på tidspunkt ${event.søknadTidspunkt} med søknaddata ${event.søknadData}"
+        }
+    }
 }
