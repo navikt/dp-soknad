@@ -5,6 +5,7 @@ import no.nav.dagpenger.soknad.SøknadObserver
 
 object SøknadLoggerObserver : SøknadObserver {
     private val log = KotlinLogging.logger { }
+    private val sikkerlogg = KotlinLogging.logger { "tjenestekall.SøknadLoggerObserver" }
 
     override fun søknadTilstandEndret(event: SøknadObserver.SøknadEndretTilstandEvent) {
         log.info {
