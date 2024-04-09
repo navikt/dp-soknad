@@ -27,7 +27,7 @@ object SøknadLoggerObserver : SøknadObserver {
     }
 
     override fun søknadInnsendt(event: SøknadObserver.SøknadInnsendtEvent) {
-        log.info {
+        sikkerlogg.info {
             "Søknad ${event.søknadId} innsendt på tidspunkt ${event.søknadTidspunkt} med søknaddata ${event.søknadData}"
         }
     }
