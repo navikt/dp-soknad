@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.observers
 
 import no.nav.dagpenger.soknad.SøknadObserver
+import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 
@@ -15,7 +16,7 @@ internal class SøknadInnsendtObserver(private val rapidsConnection: RapidsConne
         mapOf(
             "søknadId" to event.søknadId,
             "søknadstidspunkt" to event.søknadTidspunkt,
-            "søknadData" to event.søknadData,
+            "søknadData" to if (event.søknadData.isNotEmpty()) objectMapper.readTree(event.søknadData) else "",
             "ident" to event.ident,
         ),
     ).toJson()
