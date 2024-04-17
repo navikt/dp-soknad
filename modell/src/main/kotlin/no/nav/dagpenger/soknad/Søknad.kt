@@ -217,7 +217,10 @@ class Søknad private constructor(
             ønskeOmNySøknadHendelse.behov(
                 Behovtype.NySøknad,
                 "Behov for å starte søknadsprosess",
-                mapOf("prosessnavn" to ønskeOmNySøknadHendelse.prosessnavn.id),
+                mapOf(
+                    "prosessnavn" to ønskeOmNySøknadHendelse.prosessnavn.id,
+                    "@final" to true, // TODO: behovsakkumulator
+                ),
             )
         }
 

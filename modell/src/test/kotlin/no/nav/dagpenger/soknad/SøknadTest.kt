@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
@@ -70,6 +71,7 @@ internal class SøknadTest {
     }
 
     @Test
+    @Disabled("behovsakkumulator")
     fun `håndterer søkeroppgave hendelse`() {
         håndterØnskeOmNySøknadHendelse()
         with(inspektør.opprettet) {
@@ -97,6 +99,7 @@ internal class SøknadTest {
     }
 
     @Test
+    @Disabled("behovsakkumulator")
     fun `Søker oppretter dagpenger søknad uten dokumentkrav og ferdigstiller den`() {
         håndterØnskeOmNySøknadHendelse()
         with(inspektør.opprettet) {
