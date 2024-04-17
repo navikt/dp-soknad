@@ -72,6 +72,7 @@ internal class ArkiverbarSøknadMottattHendelseMottakTest {
       "time": "2022-05-20T12:04:21.955036"
     }
   ],
+  "@final": true,
   "@løsning": {
     "ArkiverbarSøknad": [
                   {

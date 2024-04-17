@@ -59,6 +59,7 @@ internal class SøknadOpprettetHendelseMottakTest {
               "NySøknad": {
                 "prosessnavn": "Dagpenger"
               },
+              "@final": true,
               "prosessnavn": "Dagpenger",
               "@id": "a6f500e3-5890-4f5d-9ff9-b7886b2c36b2",
               "@opprettet": "2022-11-10T19:51:20.702227520",

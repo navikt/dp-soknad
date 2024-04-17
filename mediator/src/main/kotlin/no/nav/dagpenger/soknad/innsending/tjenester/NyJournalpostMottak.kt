@@ -31,6 +31,7 @@ internal class NyJournalpostMottak(
                     løsning.required(behov)
                 }
             }
+            validate { it.requireValue("@final", true) }
         }.register(this)
     }
 

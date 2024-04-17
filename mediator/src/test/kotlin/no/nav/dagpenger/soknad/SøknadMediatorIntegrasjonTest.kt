@@ -408,6 +408,7 @@ internal class SøknadMediatorIntegrasjonTest {
           "time": "2022-03-30T12:19:08.418821"
         }
       ],
+      "@final": true,
       "@løsning": {
         "NySøknad": {
           "prosessversjon": {
