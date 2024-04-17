@@ -56,7 +56,7 @@ jobs:
           PRINT_PAYLOAD: true
 
   deploy-prod:
-    needs: [ deploy-dev, build ]
+    needs: [ build ]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: prod-gcp
