@@ -32,9 +32,12 @@ class BehovMediator(
                 ) { "Kan ikke produsere samme behov på samme kontekst" }
             }
             .forEach { (kontekst, behov) ->
-                val behovMap: Map<String, Map<String, Any>> = behov.associate { enkeltBehov -> enkeltBehov.type.name to enkeltBehov.detaljer() }
-                val behovParametere = behovMap.values.fold<Map<String, Any>, Map<String, Any>>(emptyMap()) { acc, map -> acc + map }
-                (kontekst + behovMap + behovParametere).let { JsonMessage.newNeed(behovMap.keys, it) }
+                val behovMap: Map<String, Map<String, Any>> =
+                    behov.associate { enkeltBehov -> enkeltBehov.type.name to enkeltBehov.detaljer() }
+                val behovParametere =
+                    behovMap.values.fold<Map<String, Any>, Map<String, Any>>(emptyMap()) { acc, map -> acc + map }
+                val final = erFinal(behovMap.size)
+                (kontekst + behovMap + behovParametere).let { JsonMessage.newNeed(behovMap.keys, it + final) }
                     .also { message ->
                         sikkerLogg.info("sender behov for {}:\n{}", behovMap.keys, message.toJson())
                         rapidsConnection.publish(hendelse.ident(), message.toJson())
@@ -42,4 +45,11 @@ class BehovMediator(
                     }
             }
     }
+
+    private fun erFinal(antallBehov: Int) =
+        if (antallBehov == 1) {
+            mapOf("@final" to true)
+        } else {
+            emptyMap()
+        }
 }

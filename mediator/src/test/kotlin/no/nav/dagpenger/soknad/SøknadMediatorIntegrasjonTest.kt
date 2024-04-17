@@ -141,6 +141,8 @@ internal class SøknadMediatorIntegrasjonTest {
         assertEquals(listOf("NySøknad"), behov(0))
         assertEquals(UnderOpprettelse, gjeldendeTilstand())
 
+        assertEquals(true, testRapid.inspektør.message(0)["@final"].asBoolean())
+
         testRapid.sendTestMessage(nySøknadBehovsløsning(søknadUuid.toString()))
         assertEquals(Påbegynt, gjeldendeTilstand())
 
