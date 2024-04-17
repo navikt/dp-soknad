@@ -214,9 +214,6 @@ class Innsending private constructor(
             hendelse.behov(
                 Aktivitetslogg.Aktivitet.Behov.Behovtype.InnsendingMetadata,
                 "Trenger metadata/klassifisering av innsending",
-                mapOf(
-                    "@final" to true, // TODO: behovsakkumulator
-                ),
             )
         }
 
@@ -238,7 +235,6 @@ class Innsending private constructor(
                     "innsendtTidspunkt" to innsending.innsendt.toString(),
                     "dokumentasjonKravId" to innsending.dokumenter.map { it.kravId },
                     "skjemakode" to metadata.skjemakode,
-                    "@final" to true, // TODO: behovsakkumulator
                 ),
             )
         }
@@ -270,7 +266,6 @@ class Innsending private constructor(
                 mapOf(
                     "hovedDokument" to hovedDokument.toMap(), // urn til netto/brutto
                     "dokumenter" to dokumenter.map { it.toMap() },
-                    "@final" to true, // TODO: behovsakkumulator
                 ),
             )
         }
