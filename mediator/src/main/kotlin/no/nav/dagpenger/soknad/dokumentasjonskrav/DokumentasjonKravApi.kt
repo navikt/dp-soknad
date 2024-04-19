@@ -147,8 +147,6 @@ internal data class ApiFil(
     override fun toString(): String {
         return "ApiFil(filnavn='*', urn='$urn', storrelse=$storrelse, tidspunkt=$tidspunkt, _urn=$_urn)"
     }
-
-
 }
 
 private data class Svar(
