@@ -45,6 +45,7 @@ class SøknadInnsendtTidspunktTjenesteTest {
                     data = lazy<SøknadData> {
                         object : SøknadData {
                             override fun erFerdig() = true
+                            override fun toJson() = ""
                         }
                     },
                 )

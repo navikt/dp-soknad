@@ -33,6 +33,7 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
                     løsning.required(behov)
                 }
             }
+            validate { it.requireValue("@final", true) }
         }.register(this)
     }
 

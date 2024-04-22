@@ -29,6 +29,7 @@ internal class SkjemakodeMottak(rapidsConnection: RapidsConnection, private val 
                     løsning.required(behov)
                 }
             }
+            validate { it.requireValue("@final", true) }
         }.register(this)
     }
 

@@ -49,7 +49,7 @@ internal class AaregClient(
                 emptyList()
             }
         } catch (e: Exception) {
-            logger.warn("Kall til AAREG feilet", e)
+            logger.warn("Henting eller mapping av arbeidsforhold fra AAREG feilet", e)
             emptyList()
         }
     }
@@ -63,11 +63,10 @@ internal class AaregClient(
 
 private fun toArbeidsforhold(aaregArbeidsforhold: JsonNode): Arbeidsforhold {
     return Arbeidsforhold(
-        id = aaregArbeidsforhold["id"].asText(),
+        id = aaregArbeidsforhold["navArbeidsforholdId"].asText(),
         organisasjonsnummer = toOrganisasjonsnummer(aaregArbeidsforhold["arbeidssted"]),
         startdato = aaregArbeidsforhold["ansettelsesperiode"]["startdato"].asLocalDate(),
         sluttdato = aaregArbeidsforhold["ansettelsesperiode"]["sluttdato"]?.asLocalDate(),
-        stillingsprosent = nyligsteStillingsprosent(aaregArbeidsforhold["ansettelsesdetaljer"]),
     )
 }
 
@@ -75,10 +74,4 @@ private fun toOrganisasjonsnummer(arbeidssted: JsonNode): String? {
     return arbeidssted["identer"]
         .firstOrNull { it["type"].asText() == "ORGANISASJONSNUMMER" }
         ?.get("ident")?.asText()
-}
-
-private fun nyligsteStillingsprosent(ansettelsesdetaljer: JsonNode): Double? {
-    return ansettelsesdetaljer.maxByOrNull {
-        it["sisteStillingsprosentendring"].asLocalDate()
-    }?.get("avtaltStillingsprosent")?.asDouble()
 }

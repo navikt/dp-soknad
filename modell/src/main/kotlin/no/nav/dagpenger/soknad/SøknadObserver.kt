@@ -36,7 +36,9 @@ interface SøknadObserver : DokumentkravObserver {
 
     data class SøknadInnsendtEvent(
         val søknadId: UUID,
-        val innsendt: ZonedDateTime?,
+        val søknadTidspunkt: ZonedDateTime,
+        val søknadData: String,
+        val ident: String,
     )
 
     data class SøknadEndretTilstandEvent(

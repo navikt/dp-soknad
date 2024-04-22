@@ -6,5 +6,5 @@ import java.util.UUID
 interface InnsendingRepository {
     fun hent(innsendingId: UUID): Innsending?
     fun lagre(innsending: Innsending)
-    fun hentInnsending(journalPostId: String): Innsending
+    fun hentInnsending(journalpostId: String): Innsending
 }

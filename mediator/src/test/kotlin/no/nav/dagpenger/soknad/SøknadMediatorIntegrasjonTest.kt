@@ -141,6 +141,8 @@ internal class SøknadMediatorIntegrasjonTest {
         assertEquals(listOf("NySøknad"), behov(0))
         assertEquals(UnderOpprettelse, gjeldendeTilstand())
 
+        assertEquals(true, testRapid.inspektør.message(0)["@final"].asBoolean())
+
         testRapid.sendTestMessage(nySøknadBehovsløsning(søknadUuid.toString()))
         assertEquals(Påbegynt, gjeldendeTilstand())
 
@@ -408,6 +410,7 @@ internal class SøknadMediatorIntegrasjonTest {
           "time": "2022-03-30T12:19:08.418821"
         }
       ],
+      "@final": true,
       "@løsning": {
         "NySøknad": {
           "prosessversjon": {

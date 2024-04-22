@@ -376,9 +376,17 @@ class Søknad private constructor(
 
     private fun innsendt(innsendtidspunkt: ZonedDateTime) {
         this.innsendt = innsendtidspunkt
-        val event = SøknadObserver.SøknadInnsendtEvent(søknadId = søknadId, innsendt = innsendtidspunkt)
-        observers.forEach {
-            it.søknadInnsendt(event)
+
+        if (this.erDagpenger()) {
+            val event = SøknadObserver.SøknadInnsendtEvent(
+                søknadId = søknadId,
+                søknadTidspunkt = innsendtidspunkt,
+                søknadData = data.value.toJson(),
+                ident = ident,
+            )
+            observers.forEach {
+                it.søknadInnsendt(event)
+            }
         }
     }
 

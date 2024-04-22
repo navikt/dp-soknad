@@ -33,6 +33,7 @@ internal class SøknadOpprettetHendelseMottak(
             validate { it.demandAllOrAny("@behov", listOf(behov)) }
             validate { it.requireKey("@behovId", "søknad_uuid", "ident", "@løsning") }
             validate { it.requireKey("@løsning") }
+            validate { it.requireValue("@final", true) }
         }.register(this)
     }
 

@@ -12,7 +12,6 @@ import java.util.UUID
 interface SøkerOppgave : SøknadData {
     fun søknadUUID(): UUID
     fun eier(): String
-    fun toJson(): String
     fun sannsynliggjøringer(): Set<Sannsynliggjøring>
 
     object Keys {

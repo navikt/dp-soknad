@@ -309,9 +309,9 @@ private class InMemoryInnsendingRepository : InnsendingRepository {
         innsendinger[innsending.innsendingId] = innsending
     }
 
-    override fun hentInnsending(journalPostId: String): Innsending {
+    override fun hentInnsending(journalpostId: String): Innsending {
         return innsendinger.values.single { innsending ->
-            TestInnsendingVisitor(innsending).journalpostId == journalPostId
+            TestInnsendingVisitor(innsending).journalpostId == journalpostId
         }
     }
 }
