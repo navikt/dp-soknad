@@ -55,6 +55,7 @@ spec:
         - application: dp-behov-journalforing
         - application: dp-innsyn
         - application: dp-dagpenger
+        - application: dp-soknad-frontend
         {{#if wonderwalled}}
         - application: tokenx-token-generator
           namespace: aura
