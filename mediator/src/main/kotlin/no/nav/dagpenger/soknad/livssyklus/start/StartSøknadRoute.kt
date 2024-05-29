@@ -12,6 +12,7 @@ import io.ktor.server.routing.post
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.utils.auth.ident
+import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
 
@@ -22,7 +23,9 @@ internal fun Route.startSøknadRoute(søknadMediator: SøknadMediator) {
         val prosesstype =
             call.request.queryParameters["prosesstype"] ?: "Dagpenger"
         val prosessnavn = søknadMediator.prosessnavn(prosesstype)
-        val søknadsprosess = søknadMediator.opprettSøknadsprosess(ident, språk, prosessnavn)
+        val søknadId = call.request.queryParameters["søknadId"]?.let { UUID.fromString(it) } ?: UUID.randomUUID()
+
+        val søknadsprosess = søknadMediator.opprettSøknadsprosess(ident, språk, prosessnavn, søknadId)
         val søknadUuid = søknadsprosess.getSøknadsId()
 
         logger.info { "Opprettet søknadsprosess med id: $søknadUuid" }
