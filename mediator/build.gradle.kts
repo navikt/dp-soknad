@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id("common")
     application
@@ -40,4 +42,8 @@ dependencies {
 
 application {
     mainClass.set("no.nav.dagpenger.soknad.AppKt")
+}
+
+tasks.withType<ShadowJar> {
+    mergeServiceFiles()
 }
