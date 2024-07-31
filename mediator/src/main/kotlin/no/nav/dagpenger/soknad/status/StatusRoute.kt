@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad.status
 
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.application.call
+import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -19,7 +20,10 @@ import no.nav.dagpenger.soknad.utils.auth.jwt
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-internal fun Route.statusRoute(søknadMediator: SøknadMediator, behandlingsstatusClient: BehandlingsstatusClient) {
+internal fun Route.statusRoute(
+    søknadMediator: SøknadMediator,
+    behandlingsstatusClient: BehandlingsstatusClient,
+) {
     val validator = SøknadEierValidator(søknadMediator)
 
     get("/{søknad_uuid}/status") {
@@ -28,13 +32,14 @@ internal fun Route.statusRoute(søknadMediator: SøknadMediator, behandlingsstat
         val token = call.request.jwt()
 
         validator.valider(søknadUuid, ident)
-        val søknadStatusDto = withLoggingContext(
-            "søknadId" to søknadUuid.toString(),
-        ) {
-            val søknad = søknadMediator.hent(søknadUuid)!!
-            val søknadStatusVisitor = SøknadStatusVisitor(søknad)
-            createSøknadStatusDto(søknadStatusVisitor, behandlingsstatusClient, token)
-        }
+        val søknadStatusDto =
+            withLoggingContext(
+                "søknadId" to søknadUuid.toString(),
+            ) {
+                val søknad = søknadMediator.hent(søknadUuid) ?: throw NotFoundException("Søknad med id $søknadUuid ikke funnet")
+                val søknadStatusVisitor = SøknadStatusVisitor(søknad)
+                createSøknadStatusDto(søknadStatusVisitor, behandlingsstatusClient, token)
+            }
 
         call.respond(OK, søknadStatusDto)
     }
@@ -48,7 +53,8 @@ private suspend fun createSøknadStatusDto(
     Påbegynt -> SøknadStatusDto(Paabegynt, statusVisitor.søknadOpprettet())
     Innsendt -> {
         SøknadStatusDto(
-            status = hentSøknadStatus(
+            status =
+            hentSøknadStatus(
                 behandlingsstatusClient,
                 førsteInnsendingTidspunkt = statusVisitor.søknadInnsendt().toLocalDate(),
                 token,

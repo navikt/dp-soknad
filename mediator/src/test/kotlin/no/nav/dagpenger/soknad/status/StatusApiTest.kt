@@ -1,19 +1,21 @@
 package no.nav.dagpenger.soknad.status
 
 import FerdigSøknadData
+import com.fasterxml.jackson.module.kotlin.readValue
+import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.contentType
-import io.ktor.server.plugins.NotFoundException
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.Dokumentkrav
+import no.nav.dagpenger.soknad.HttpProblem
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
@@ -22,9 +24,11 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestApplication
 import no.nav.dagpenger.soknad.TestApplication.autentisert
+import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.soknad.status.SøknadStatus.Paabegynt
 import no.nav.dagpenger.soknad.status.SøknadStatus.Ukjent
 import no.nav.dagpenger.soknad.status.SøknadStatus.UnderBehandling
+import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -41,7 +45,8 @@ class StatusApiTest {
         val opprettet = LocalDateTime.MAX
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                søknadMediator = mockk<SøknadMediator>().also {
+                søknadMediator =
+                mockk<SøknadMediator>().also {
                     every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
                     every { it.hent(søknadUuid) } returns søknadMed(tilstand = Påbegynt, opprettet)
                 },
@@ -60,7 +65,8 @@ class StatusApiTest {
     fun `Status på søknad med tilstand UnderOpprettelse`() {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                søknadMediator = mockk<SøknadMediator>().also {
+                søknadMediator =
+                mockk<SøknadMediator>().also {
                     every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
                     every { it.hent(søknadUuid) } returns søknadMed(tilstand = UnderOpprettelse)
                 },
@@ -79,11 +85,13 @@ class StatusApiTest {
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                søknadMediator = mockk<SøknadMediator>().also {
+                søknadMediator =
+                mockk<SøknadMediator>().also {
                     every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
                     every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet, innsendt)
                 },
-                behandlingsstatusClient = mockk<BehandlingsstatusClient>().also {
+                behandlingsstatusClient =
+                mockk<BehandlingsstatusClient>().also {
                     coEvery {
                         it.hentBehandlingsstatus(
                             any(),
@@ -109,11 +117,13 @@ class StatusApiTest {
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                søknadMediator = mockk<SøknadMediator>().also {
+                søknadMediator =
+                mockk<SøknadMediator>().also {
                     every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
                     every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet, innsendt)
                 },
-                behandlingsstatusClient = mockk<BehandlingsstatusClient>().also {
+                behandlingsstatusClient =
+                mockk<BehandlingsstatusClient>().also {
                     coEvery {
                         it.hentBehandlingsstatus(
                             any(),
@@ -134,9 +144,10 @@ class StatusApiTest {
 
     @Test
     fun `Skal avvise autentiserte kall der pid på token ikke er eier av søknaden`() {
-        val mediatorMock = mockk<SøknadMediator>().also {
-            every { it.hentEier(søknadUuid) } returns "annen eier"
-        }
+        val mediatorMock =
+            mockk<SøknadMediator>().also {
+                every { it.hentEier(søknadUuid) } returns "annen eier"
+            }
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(søknadMediator = mediatorMock),
@@ -149,13 +160,17 @@ class StatusApiTest {
     fun `returnerer 404 når søknad ikke eksisterer`() {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } throws NotFoundException()
+                søknadMediator =
+                mockk<SøknadMediator>().also {
+                    every { it.hentEier(søknadUuid) } returns defaultDummyFodselsnummer
+                    every { it.hent(søknadUuid) } returns null
                 },
             ),
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
                 assertEquals(NotFound, this.status)
+                val problem = this.bodyAsText().let { objectMapper.readValue<HttpProblem>(it) }
+                problem.detail shouldBe "Søknad med id $søknadUuid ikke funnet"
             }
         }
     }
