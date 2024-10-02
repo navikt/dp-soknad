@@ -29,29 +29,32 @@ class SøknadInnsendtTidspunktTjenesteTest {
     init {
         SøknadInnsendtTidspunktTjeneste(
             rapidsConnection = testRapid,
+            mediator =
+                mockk<SøknadMediator>().also {
+                    every { it.hent(okSoknadId) } returns
+                        Søknad.rehydrer(
+                            søknadId = okSoknadId,
+                            ident = "",
+                            opprettet = now,
+                            innsendt = innsendtTidspunkt,
+                            språk = Språk(verdi = "NN"),
+                            dokumentkrav = Dokumentkrav(),
+                            sistEndretAvBruker = now,
+                            tilstandsType = Søknad.Tilstand.Type.Innsendt,
+                            aktivitetslogg = Aktivitetslogg(forelder = null),
+                            prosessversjon = null,
+                            data =
+                                lazy<SøknadData> {
+                                    object : SøknadData {
+                                        override fun erFerdig() = true
 
-            mediator = mockk<SøknadMediator>().also {
-                every { it.hent(okSoknadId) } returns Søknad.rehydrer(
-                    søknadId = okSoknadId,
-                    ident = "",
-                    opprettet = now,
-                    innsendt = innsendtTidspunkt,
-                    språk = Språk(verdi = "NN"),
-                    dokumentkrav = Dokumentkrav(),
-                    sistEndretAvBruker = now,
-                    tilstandsType = Søknad.Tilstand.Type.Innsendt,
-                    aktivitetslogg = Aktivitetslogg(forelder = null),
-                    prosessversjon = null,
-                    data = lazy<SøknadData> {
-                        object : SøknadData {
-                            override fun erFerdig() = true
-                            override fun toJson() = ""
-                        }
-                    },
-                )
-                every { it.hent(finnesIkkeSoknadId) } returns null
-                every { it.hent(kasterFeilSoknadId) } throws RuntimeException("test")
-            },
+                                        override fun toJson() = ""
+                                    }
+                                },
+                        )
+                    every { it.hent(finnesIkkeSoknadId) } returns null
+                    every { it.hent(kasterFeilSoknadId) } throws RuntimeException("test")
+                },
         )
     }
 
@@ -79,6 +82,15 @@ class SøknadInnsendtTidspunktTjenesteTest {
     }
 
     @Test
+    fun `skal svare på behov fra dp-behandling`() {
+        testRapid.sendTestMessage(behandlingBehov(okSoknadId))
+        with(testRapid.inspektør) {
+            Assertions.assertEquals(1, size)
+            Assertions.assertEquals("2022-05-05", field(0, "@løsning")["Søknadstidspunkt"].asText())
+        }
+    }
+
+    @Test
     fun `skal svelge feil `() {
         testRapid.sendTestMessage(quizBehovMelding(finnesIkkeSoknadId))
         testRapid.sendTestMessage(quizBehovMelding(kasterFeilSoknadId))
@@ -88,34 +100,57 @@ class SøknadInnsendtTidspunktTjenesteTest {
     }
 
     //language=JSON
+    private fun behandlingBehov(søknadId: UUID) =
+        """{
+          "@event_name": "behov",
+          "@behovId": "3fe8d770-761d-42fe-85a3-5c21b7729672",
+          "@behov": [
+            "Søknadstidspunkt"
+          ],
+          "@opplysningsbehov": true,
+          "ident": "12345678910",
+          "behandlingId": "01924c3d-7697-7bd8-b7b2-d315452dd1c4",
+          "gjelderDato": "2024-10-02",
+          "søknadId": "$søknadId",
+          "søknad_uuid": "$søknadId",
+          "opprettet": "2024-10-02T09:59:09.463765",
+          "Søknadstidspunkt": {},
+        
+          "@id": "434849e7-0d39-4756-837e-bab7d03b32e7",
+          "@opprettet": "2024-10-02T12:09:25.014290519",
+          "system_read_count": 1
+          }
+        }"""
+
+    //language=JSON
     private fun quizBehovMelding(soknadId: UUID) =
         """
-    {
-      "@event_name": "faktum_svar",
-      "@opprettet": "2020-11-18T11:04:32.867824",
-      "@id": "930e2beb-d394-4024-b713-dbeb6ad3d4bf",
-      "@behovId": "930e2beb-d394-4024-b713-dbeb6ad3d4bf",
-      "identer":[{"id":"12345678910","type":"folkeregisterident","historisk":false}],
-      "søknad_uuid": "41621ac0-f5ee-4cce-b1f5-88a79f25f1a5",
-      "@behov": [ "Søknadstidspunkt" ],
-      "InnsendtSøknadsId":{"lastOppTidsstempel":"2020-11-26T10:33:38.684844","urn":"urn:soknadid:$soknadId"}
-    }
+        {
+          "@event_name": "faktum_svar",
+          "@opprettet": "2020-11-18T11:04:32.867824",
+          "@id": "930e2beb-d394-4024-b713-dbeb6ad3d4bf",
+          "@behovId": "930e2beb-d394-4024-b713-dbeb6ad3d4bf",
+          "identer":[{"id":"12345678910","type":"folkeregisterident","historisk":false}],
+          "søknad_uuid": "41621ac0-f5ee-4cce-b1f5-88a79f25f1a5",
+          "@behov": [ "Søknadstidspunkt" ],
+          "InnsendtSøknadsId":{"lastOppTidsstempel":"2020-11-26T10:33:38.684844","urn":"urn:soknadid:$soknadId"}
+        }
         """.trimIndent()
 
     //language=JSON
     private fun rapporteringBehovMelding(soknadId: UUID) =
         """
-            {
-              "@event_name": "behov",
-              "@behovId": "05a2b4e3-def6-4973-9f67-52bc66e55b1a",
-              "@behov": [
-                "Søknadstidspunkt"
-              ],
-              "Søknadstidspunkt": {
-                "søknad_uuid": "$soknadId"
-              },
-              "@id": "507434ad-4a46-4494-ac3c-c1459a2a6a2e",
-              "@opprettet": "2023-06-29T15:10:13.351324642"
-            }
+        {
+          "@event_name": "behov",
+          "@behovId": "05a2b4e3-def6-4973-9f67-52bc66e55b1a",
+          "@behov": [
+            "Søknadstidspunkt"
+          ],
+          "Søknadstidspunkt": {
+            "søknad_uuid": "$soknadId"
+          },
+          "@id": "507434ad-4a46-4494-ac3c-c1459a2a6a2e",
+          "@opprettet": "2023-06-29T15:10:13.351324642"
+        }
         """.trimIndent()
 }
