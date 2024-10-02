@@ -10,7 +10,6 @@ import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.SøknadVisitor
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
@@ -91,11 +90,6 @@ internal class SøknadInnsendtTidspunktTjeneste(
             }
         }
     }
-
-    override fun onSevere(
-        error: MessageProblems.MessageException,
-        context: MessageContext,
-    ): Unit = throw error
 }
 
 private val JsonMessage.søknadId get() = kotlin.runCatching { this["søknadId"].textValue() }.getOrNull()
