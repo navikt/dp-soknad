@@ -26,7 +26,7 @@ dependencies {
     implementation(libs.dp.biblioteker.oauth2.klient)
     implementation(libs.dp.biblioteker.pdl.klient)
     implementation("io.prometheus:simpleclient_caffeine:0.16.0")
-    implementation("com.fasterxml.jackson.module:jackson-module-blackbird:2.18.0")
+    implementation("com.fasterxml.jackson.module:jackson-module-blackbird:2.18.1")
 
     testImplementation(libs.ktor.client.mock)
     testImplementation("io.kotest:kotest-assertions-core-jvm:${libs.versions.kotest.get()}")
