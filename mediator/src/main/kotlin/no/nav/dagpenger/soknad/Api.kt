@@ -15,6 +15,7 @@ import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.jwt
+import io.ktor.server.logging.toLogString
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.plugins.callid.CallId
@@ -79,7 +80,7 @@ internal fun Application.api(
                 }
 
                 is IllegalArgumentException -> {
-                    logger.info(cause) { "Kunne ikke håndtere API kall - Bad request" }
+                    logger.info(cause) { "Kunne ikke håndtere API kall - Bad request - ${call.request.toLogString()}" }
                     call.respond(
                         BadRequest,
                         HttpProblem(title = "Feilet", detail = cause.message, status = 400),
@@ -87,7 +88,7 @@ internal fun Application.api(
                 }
 
                 is NotFoundException -> {
-                    logger.info(cause) { "Kunne ikke håndtere API kall - Ikke funnet" }
+                    logger.info(cause) { "Kunne ikke håndtere API kall - Ikke funnet - ${call.request.toLogString()}" }
                     call.respond(
                         NotFound,
                         HttpProblem(title = "Feilet", detail = cause.message, status = 404),
@@ -131,7 +132,7 @@ internal fun Application.api(
                 }
 
                 else -> {
-                    logger.error(cause) { "Kunne ikke håndtere API kall" }
+                    logger.error(cause) { "Kunne ikke håndtere API kall - ${call.request.toLogString()}" }
                     call.respond(
                         InternalServerError,
                         HttpProblem(title = "Feilet", detail = cause.message),
@@ -168,7 +169,9 @@ internal fun Application.api(
     }
 }
 
-class IkkeTilgangExeption(melding: String) : RuntimeException(melding)
+class IkkeTilgangExeption(
+    melding: String,
+) : RuntimeException(melding)
 
 // As of https://tools.ietf.org/html/rfc7807
 data class HttpProblem(

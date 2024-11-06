@@ -127,6 +127,7 @@ internal class SøknadMediator(
     fun behandle(hendelse: DokumentKravSammenstilling) {
         behandleDokumentasjonkravHendelse(hendelse) { repository ->
             repository.håndter(hendelse)
+            // TODO: Sletter vi denne så løser vi utfordringer med versjonering av prosess i quiz
             hendelse.behov(
                 Aktivitetslogg.Aktivitet.Behov.Behovtype.DokumentkravSvar,
                 "Må svare dokumentkravet i Quiz",

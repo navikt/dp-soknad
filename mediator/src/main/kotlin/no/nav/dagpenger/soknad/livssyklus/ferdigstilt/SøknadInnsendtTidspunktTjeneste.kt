@@ -22,7 +22,6 @@ internal class SøknadInnsendtTidspunktTjeneste(
     rapidsConnection: RapidsConnection,
     private val mediator: SøknadMediator,
 ) : River.PacketListener {
-
     private companion object {
         val logger = KotlinLogging.logger { }
         val sikkerlogg = KotlinLogging.logger("tjenestekall.SøknadInnsendtTidspunkt")
@@ -31,16 +30,20 @@ internal class SøknadInnsendtTidspunktTjeneste(
     private val behov = "Søknadstidspunkt"
 
     init {
-        River(rapidsConnection).apply {
-            validate { it.demandAny("@event_name", listOf("faktum_svar", "behov")) }
-            validate { it.requireContains("@behov", behov) }
-            validate { it.rejectKey("@løsning") }
-            validate { it.interestedIn("InnsendtSøknadsId", "Søknadstidspunkt.søknad_uuid") }
-            validate { it.interestedIn("søknad_uuid", "@behovId") }
-        }.register(this)
+        River(rapidsConnection)
+            .apply {
+                validate { it.demandAny("@event_name", listOf("faktum_svar", "behov")) }
+                validate { it.requireContains("@behov", behov) }
+                validate { it.rejectKey("@løsning") }
+                validate { it.interestedIn("InnsendtSøknadsId", "Søknadstidspunkt.søknad_uuid", "søknadId") }
+                validate { it.interestedIn("søknad_uuid", "@behovId") }
+            }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         withMDC(
             mapOf(
                 "søknad_uuid" to packet["søknad_uuid"].asText(),
@@ -48,30 +51,31 @@ internal class SøknadInnsendtTidspunktTjeneste(
             ),
         ) {
             try {
-                val innsendtSøknadsId = packet.getSøknadIdForQuizBehov() ?: packet.getSøknadIdForRapporteringBehov()
-                val innsendtTidspunkt: LocalDate? = mediator.hent(UUID.fromString(innsendtSøknadsId))?.let {
-                    object : SøknadVisitor {
-                        var innsendt: LocalDate? = null
+                val innsendtSøknadsId = packet.søknadId ?: packet.getSøknadIdForQuizBehov() ?: packet.getSøknadIdForRapporteringBehov()
+                val innsendtTidspunkt: LocalDate? =
+                    mediator.hent(UUID.fromString(innsendtSøknadsId))?.let {
+                        object : SøknadVisitor {
+                            var innsendt: LocalDate? = null
 
-                        init {
-                            it.accept(this)
-                        }
+                            init {
+                                it.accept(this)
+                            }
 
-                        override fun visitSøknad(
-                            søknadId: UUID,
-                            ident: String,
-                            opprettet: ZonedDateTime,
-                            innsendt: ZonedDateTime?,
-                            tilstand: Søknad.Tilstand,
-                            språk: Språk,
-                            dokumentkrav: Dokumentkrav,
-                            sistEndretAvBruker: ZonedDateTime,
-                            prosessversjon: Prosessversjon?,
-                        ) {
-                            this.innsendt = innsendt?.toLocalDate()
-                        }
-                    }.innsendt
-                }
+                            override fun visitSøknad(
+                                søknadId: UUID,
+                                ident: String,
+                                opprettet: ZonedDateTime,
+                                innsendt: ZonedDateTime?,
+                                tilstand: Søknad.Tilstand,
+                                språk: Språk,
+                                dokumentkrav: Dokumentkrav,
+                                sistEndretAvBruker: ZonedDateTime,
+                                prosessversjon: Prosessversjon?,
+                            ) {
+                                this.innsendt = innsendt?.toLocalDate()
+                            }
+                        }.innsendt
+                    }
 
                 if (innsendtTidspunkt != null) {
                     packet["@løsning"] = mapOf(behov to innsendtTidspunkt)
@@ -88,16 +92,20 @@ internal class SøknadInnsendtTidspunktTjeneste(
     }
 }
 
-private fun JsonMessage.getSøknadIdForQuizBehov(): String? {
-    return kotlin.runCatching {
-        this["InnsendtSøknadsId"]["urn"]
-            .asText()
-            .let { URN.rfc8141().parse(it) }
-            .namespaceSpecificString()
-            .toString()
-    }.getOrNull()
-}
+private val JsonMessage.søknadId get() = kotlin.runCatching { this["søknadId"].textValue() }.getOrNull()
 
+// @todo: Bruker quiz dette behovet?
+private fun JsonMessage.getSøknadIdForQuizBehov(): String? =
+    kotlin
+        .runCatching {
+            this["InnsendtSøknadsId"]["urn"]
+                .asText()
+                .let { URN.rfc8141().parse(it) }
+                .namespaceSpecificString()
+                .toString()
+        }.getOrNull()
+
+// @todo: Bruker meldekort dette behovet?
 private fun JsonMessage.getSøknadIdForRapporteringBehov(): String? {
     val søknadId = this["Søknadstidspunkt.søknad_uuid"]
 

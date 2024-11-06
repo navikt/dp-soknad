@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("common")
     application
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    alias(libs.plugins.shadow.jar)
 }
 
 dependencies {
@@ -26,7 +26,7 @@ dependencies {
     implementation(libs.dp.biblioteker.oauth2.klient)
     implementation(libs.dp.biblioteker.pdl.klient)
     implementation("io.prometheus:simpleclient_caffeine:0.16.0")
-    implementation("com.fasterxml.jackson.module:jackson-module-blackbird:2.17.2")
+    implementation("com.fasterxml.jackson.module:jackson-module-blackbird:2.18.1")
 
     testImplementation(libs.ktor.client.mock)
     testImplementation("io.kotest:kotest-assertions-core-jvm:${libs.versions.kotest.get()}")
@@ -35,7 +35,7 @@ dependencies {
     testImplementation(libs.mock.oauth2.server)
     testImplementation(libs.bundles.postgres.test)
     testImplementation(libs.ktor.server.test.host)
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.3")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.11.3")
     testImplementation(libs.ktor.client.mock)
 }
 
