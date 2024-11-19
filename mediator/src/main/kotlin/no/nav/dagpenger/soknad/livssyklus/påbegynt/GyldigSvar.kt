@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import de.slub.urn.URN
+import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import java.time.LocalDateTime
@@ -57,7 +58,8 @@ class GyldigSvar(json: JsonNode) {
             svarAsJson["urn"].asText().let { URN.rfc8141().parse(it) }
             svarAsJson["lastOppTidsstempel"].asText().let { LocalDateTime.parse(it) }
         }.onFailure {
-            throw IllegalArgumentException("Ikke gyldig '$type', feil i underliggende faktum ${it.message}, svar: $svarAsJson")
+            sikkerlogg.error(it) { "Ikke gyldig '$type', feil i underliggende faktum ${it.message}, svar: $svarAsJson" }
+            throw IllegalArgumentException("Ikke gyldig '$type', feil i underliggende faktum. Se sikkerlogg for detaljer")
         }
     }
 
@@ -84,7 +86,8 @@ class GyldigSvar(json: JsonNode) {
         }.fold(
             {},
             {
-                throw IllegalArgumentException("Ikke gyldig '$type', feil i underliggende faktum ${it.message}, svar: $svarAsJson")
+                sikkerlogg.error(it) { "Ikke gyldig '$type', feil i underliggende faktum ${it.message}, svar: $svarAsJson" }
+                throw IllegalArgumentException("Ikke gyldig '$type', feil i underliggende faktum. Se sikkerlogg for detaljer")
             },
         )
     }
@@ -103,5 +106,9 @@ class GyldigSvar(json: JsonNode) {
             }.isSuccess,
             feilmelding(),
         )
+    }
+
+    private companion object {
+        private val sikkerlogg = KotlinLogging.logger("tjenestekall")
     }
 }
