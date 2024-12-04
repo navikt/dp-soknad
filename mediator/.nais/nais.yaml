@@ -71,6 +71,8 @@ spec:
         - host: {{ EREG_API_HOST }}
 
   env:
+    - name: JDK_JAVA_OPTIONS # Bytter GC og lar JVMen se at det er flere CPU kjerner
+      value: -XX:+UseParallelGC -XX:ActiveProcessorCount=4
     - name: PERSON_KONTO_REGISTER_SCOPE
       value: {{PERSON_KONTO_REGISTER_SCOPE}}
     - name: PDL_API_HOST
