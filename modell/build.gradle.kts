@@ -12,5 +12,5 @@ dependencies {
     testImplementation("io.mockk:mockk:${libs.versions.mockk.get()}")
     testImplementation(libs.mock.oauth2.server)
     testImplementation(libs.ktor.server.test.host)
-    testImplementation("com.approvaltests:approvaltests:24.9.0")
+    testImplementation("com.approvaltests:approvaltests:24.11.0")
 }
