@@ -141,7 +141,6 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         SøknadsMalMottak(rapidsConnection, søknadMalRepository)
         UtdaterteSøknaderJob.sletterutine(søknadMediator)
         SlettSøknaderJob.sletterutine(søknadMediator)
-        påminnelseJobb.påminn()
     }
 
     private fun søknadMediator(): SøknadMediator = søknadMediator
