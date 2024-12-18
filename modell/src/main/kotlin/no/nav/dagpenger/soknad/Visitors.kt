@@ -5,6 +5,7 @@ import no.nav.dagpenger.soknad.Innsending.InnsendingType
 import no.nav.dagpenger.soknad.Innsending.Metadata
 import no.nav.dagpenger.soknad.Innsending.TilstandType
 import no.nav.dagpenger.soknad.Søknad.Tilstand
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -13,13 +14,13 @@ interface TilstandVisitor {
 }
 
 interface InnsendingVisitor {
-
     fun visit(
         innsendingId: UUID,
         søknadId: UUID,
         ident: String,
         innsendingType: InnsendingType,
         tilstand: TilstandType,
+        sistEndretTilstand: LocalDateTime,
         innsendt: ZonedDateTime,
         journalpost: String?,
         hovedDokument: Dokument?,
@@ -33,7 +34,10 @@ interface DokumentkravVisitor {
     fun visitKrav(krav: Krav) {}
 }
 
-interface SøknadVisitor : TilstandVisitor, AktivitetsloggVisitor, DokumentkravVisitor {
+interface SøknadVisitor :
+    TilstandVisitor,
+    AktivitetsloggVisitor,
+    DokumentkravVisitor {
     fun visitSøknad(
         søknadId: UUID,
         ident: String,
