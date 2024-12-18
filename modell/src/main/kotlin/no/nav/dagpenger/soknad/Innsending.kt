@@ -4,6 +4,7 @@ import de.slub.urn.URN
 import no.nav.dagpenger.soknad.hendelse.Hendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.InnsendingMetadataMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.innsending.InnsendingPåminnelseHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.innsending.meldinger.NyInnsendingHendelse
@@ -118,6 +119,12 @@ class Innsending private constructor(
         innsendinger.forEach { it._håndter(hendelse) }
     }
 
+    fun håndter(hendelse: InnsendingPåminnelseHendelse) {
+        kontekst(hendelse)
+        hendelse.info("Påminnelse om innsending")
+        innsendinger.forEach { it._håndter(hendelse) }
+    }
+
     private fun _håndter(hendelse: InnsendingMetadataMottattHendelse) {
         if (hendelse.innsendingId != this.innsendingId) return
         kontekst(hendelse)
@@ -138,6 +145,12 @@ class Innsending private constructor(
 
     private fun _håndter(hendelse: JournalførtHendelse) {
         if (hendelse.journalpostId() != this.journalpostId) return
+        kontekst(hendelse)
+        tilstand.håndter(hendelse, this)
+    }
+
+    private fun _håndter(hendelse: InnsendingPåminnelseHendelse) {
+        if (hendelse.innsendingId != this.innsendingId) return
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
     }
@@ -189,9 +202,12 @@ class Innsending private constructor(
         fun håndter(hendelse: JournalførtHendelse, innsending: Innsending) =
             hendelse.`kan ikke håndteres i denne tilstanden`()
 
+        fun håndter(hendelse: InnsendingPåminnelseHendelse, innsending: Innsending) {
+            hendelse.`kan ikke håndteres i denne tilstanden`()
+        }
+
         private fun Hendelse.`kan ikke håndteres i denne tilstanden`() =
             this.warn("Kan ikke håndtere ${this.javaClass.simpleName} i tilstand $tilstandType")
-
         override fun toSpesifikkKontekst() = this.javaClass.canonicalName.split('.').last().let {
             SpesifikkKontekst(it, emptyMap())
         }
@@ -251,6 +267,10 @@ class Innsending private constructor(
                 hendelse,
             )
         }
+
+        override fun håndter(hendelse: InnsendingPåminnelseHendelse, innsending: Innsending) {
+            this.entering(hendelse, innsending)
+        }
     }
 
     private object AvventerMidlertidligJournalføring : Tilstand {
@@ -273,6 +293,10 @@ class Innsending private constructor(
         override fun håndter(hendelse: SøknadMidlertidigJournalførtHendelse, innsending: Innsending) {
             innsending.journalpostId = hendelse.journalpostId()
             innsending.endreTilstand(AvventerJournalføring, hendelse)
+        }
+
+        override fun håndter(hendelse: InnsendingPåminnelseHendelse, innsending: Innsending) {
+            this.entering(hendelse, innsending)
         }
     }
 

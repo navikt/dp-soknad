@@ -10,6 +10,7 @@ import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.InnsendingHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.InnsendingMetadataMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.innsending.InnsendingPåminnelseHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.innsending.meldinger.NyInnsendingHendelse
@@ -55,6 +56,12 @@ internal class InnsendingMediator(
     fun behandle(journalførtHendelse: JournalførtHendelse) {
         behandle(journalførtHendelse) { innsending ->
             innsending.håndter(journalførtHendelse)
+        }
+    }
+
+    fun behandle(innsendingPåminnelseHendelse: InnsendingPåminnelseHendelse) {
+        behandle(innsendingPåminnelseHendelse) { innsending ->
+            innsending.håndter(innsendingPåminnelseHendelse)
         }
     }
 
