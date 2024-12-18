@@ -16,6 +16,7 @@ import no.nav.dagpenger.soknad.innsending.tjenester.JournalførtMottak
 import no.nav.dagpenger.soknad.innsending.tjenester.NyEttersendingBehovMottak
 import no.nav.dagpenger.soknad.innsending.tjenester.NyInnsendingBehovMottak
 import no.nav.dagpenger.soknad.innsending.tjenester.NyJournalpostMottak
+import no.nav.dagpenger.soknad.innsending.tjenester.PåminnelseJobb
 import no.nav.dagpenger.soknad.innsending.tjenester.SkjemakodeMottak
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.FerdigstiltSøknadPostgresRepository
 import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.ferdigStiltSøknadRouteBuilder
@@ -122,6 +123,8 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         NyEttersendingBehovMottak(rapidsConnection, it)
     }
 
+    val påminnelseJobb = PåminnelseJobb(innsendingMediator, PostgresDataSourceBuilder.dataSource)
+
     init {
         rapidsConnection.register(this)
     }
@@ -138,6 +141,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         SøknadsMalMottak(rapidsConnection, søknadMalRepository)
         UtdaterteSøknaderJob.sletterutine(søknadMediator)
         SlettSøknaderJob.sletterutine(søknadMediator)
+        påminnelseJobb.påminn()
     }
 
     private fun søknadMediator(): SøknadMediator = søknadMediator

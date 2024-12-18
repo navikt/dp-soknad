@@ -88,6 +88,8 @@ class Innsending private constructor(
         }
     }
 
+    fun hentEier() = ident
+
     fun håndter(hendelse: NyInnsendingHendelse) {
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
