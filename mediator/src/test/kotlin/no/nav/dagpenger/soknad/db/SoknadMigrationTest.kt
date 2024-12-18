@@ -13,6 +13,7 @@ import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
@@ -23,78 +24,83 @@ internal class SoknadMigrationTest {
     private val søknadId2 = UUID.randomUUID()
 
     val now = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.MINUTES)
-    private val søknader = listOf<Søknad>(
-        Søknad.rehydrer(
-            søknadId = søknadId1,
-            ident = "123",
-            opprettet = now,
-            innsendt = null,
-            språk = Språk(verdi = "NN"),
-            dokumentkrav = Dokumentkrav(),
-            sistEndretAvBruker = ZonedDateTime.now(),
-            tilstandsType = Søknad.Tilstand.Type.Innsendt,
-            aktivitetslogg = Aktivitetslogg(forelder = null),
-            prosessversjon = Prosessversjon("Dagpenger", 1),
-            data = FerdigSøknadData,
-        ),
-        Søknad.rehydrer(
-            søknadId = søknadId2,
-            ident = "123",
-            opprettet = ZonedDateTime.now(),
-            innsendt = null,
-            språk = Språk(verdi = "NN"),
-            dokumentkrav = Dokumentkrav(),
-            sistEndretAvBruker = ZonedDateTime.now(),
-            tilstandsType = Søknad.Tilstand.Type.Innsendt,
-            aktivitetslogg = Aktivitetslogg(forelder = null),
-            prosessversjon = Prosessversjon("Dagpenger", 1),
-            data = FerdigSøknadData,
-        ),
-    )
+    private val søknader =
+        listOf<Søknad>(
+            Søknad.rehydrer(
+                søknadId = søknadId1,
+                ident = "123",
+                opprettet = now,
+                innsendt = null,
+                språk = Språk(verdi = "NN"),
+                dokumentkrav = Dokumentkrav(),
+                sistEndretAvBruker = ZonedDateTime.now(),
+                tilstandsType = Søknad.Tilstand.Type.Innsendt,
+                aktivitetslogg = Aktivitetslogg(forelder = null),
+                prosessversjon = Prosessversjon("Dagpenger", 1),
+                data = FerdigSøknadData,
+            ),
+            Søknad.rehydrer(
+                søknadId = søknadId2,
+                ident = "123",
+                opprettet = ZonedDateTime.now(),
+                innsendt = null,
+                språk = Språk(verdi = "NN"),
+                dokumentkrav = Dokumentkrav(),
+                sistEndretAvBruker = ZonedDateTime.now(),
+                tilstandsType = Søknad.Tilstand.Type.Innsendt,
+                aktivitetslogg = Aktivitetslogg(forelder = null),
+                prosessversjon = Prosessversjon("Dagpenger", 1),
+                data = FerdigSøknadData,
+            ),
+        )
 
-    private val innsendinger = listOf<Innsending>(
-        Innsending.rehydrer(
-            innsendingId = UUID.randomUUID(),
-            type = Innsending.InnsendingType.NY_DIALOG,
-            ident = "123",
-            søknadId = søknadId1,
-            innsendt = now,
-            journalpostId = null,
-            tilstandsType = Innsending.TilstandType.Journalført,
-            hovedDokument = null,
-            dokumenter = listOf(),
-            metadata = null,
-        ),
-        Innsending.rehydrer(
-            innsendingId = UUID.randomUUID(),
-            type = Innsending.InnsendingType.NY_DIALOG,
-            ident = "123",
-            søknadId = søknadId1,
-            innsendt = now,
-            journalpostId = null,
-            tilstandsType = Innsending.TilstandType.Journalført,
-            hovedDokument = null,
-            dokumenter = listOf(),
-            metadata = null,
-        ),
-        Innsending.rehydrer(
-            innsendingId = UUID.randomUUID(),
-            type = Innsending.InnsendingType.NY_DIALOG,
-            ident = "123",
-            søknadId = søknadId2,
-            innsendt = now,
-            journalpostId = null,
-            tilstandsType = Innsending.TilstandType.Journalført,
-            hovedDokument = null,
-            dokumenter = listOf(),
-            metadata = null,
-        ),
-    )
+    private val innsendinger =
+        listOf<Innsending>(
+            Innsending.rehydrer(
+                innsendingId = UUID.randomUUID(),
+                type = Innsending.InnsendingType.NY_DIALOG,
+                ident = "123",
+                søknadId = søknadId1,
+                innsendt = now,
+                journalpostId = null,
+                tilstandsType = Innsending.TilstandType.Journalført,
+                hovedDokument = null,
+                dokumenter = listOf(),
+                metadata = null,
+                sistEndretTilstand = LocalDateTime.now(),
+            ),
+            Innsending.rehydrer(
+                innsendingId = UUID.randomUUID(),
+                type = Innsending.InnsendingType.NY_DIALOG,
+                ident = "123",
+                søknadId = søknadId1,
+                innsendt = now,
+                journalpostId = null,
+                tilstandsType = Innsending.TilstandType.Journalført,
+                hovedDokument = null,
+                dokumenter = listOf(),
+                metadata = null,
+                sistEndretTilstand = LocalDateTime.now(),
+            ),
+            Innsending.rehydrer(
+                innsendingId = UUID.randomUUID(),
+                type = Innsending.InnsendingType.NY_DIALOG,
+                ident = "123",
+                søknadId = søknadId2,
+                innsendt = now,
+                journalpostId = null,
+                tilstandsType = Innsending.TilstandType.Journalført,
+                hovedDokument = null,
+                dokumenter = listOf(),
+                metadata = null,
+                sistEndretTilstand = LocalDateTime.now(),
+            ),
+        )
 
     @Test
     fun `innsendt migrasjon`() {
         withCleanDb(
-            target = "9",
+            target = "14",
             setup = {
                 val søknadPostgresRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
                 søknader.forEach { søknadPostgresRepository.lagre(it) }

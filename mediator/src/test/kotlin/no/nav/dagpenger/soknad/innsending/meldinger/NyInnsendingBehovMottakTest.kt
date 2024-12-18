@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -27,8 +28,8 @@ import java.util.UUID
 internal class NyInnsendingBehovMottakTest {
     companion object {
         @JvmStatic
-        fun testFixtures(): List<TestFixture> {
-            return listOf(
+        fun testFixtures(): List<TestFixture> =
+            listOf(
                 TestFixture(
                     behov = listOf(Behovtype.NyInnsending),
                     innsendingType = NY_DIALOG,
@@ -38,14 +39,14 @@ internal class NyInnsendingBehovMottakTest {
                     innsendingType = NY_DIALOG,
                 ),
             )
-        }
     }
 
     private val testRapid = TestRapid()
     private val slot = slot<NyInnsendingHendelse>()
-    private val mediator = mockk<InnsendingMediator>().also {
-        every { it.behandle(capture(slot)) } just Runs
-    }
+    private val mediator =
+        mockk<InnsendingMediator>().also {
+            every { it.behandle(capture(slot)) } just Runs
+        }
 
     @BeforeEach
     fun setup() = testRapid.reset()
@@ -73,10 +74,11 @@ internal class NyInnsendingBehovMottakTest {
         testRapid.inspektør.size
         assertEquals(1, testRapid.inspektør.size)
         assertNotNull(
-            testRapid.inspektør.field(
-                index = 0,
-                field = "@løsning",
-            ).get(testFixture.behov[0].name),
+            testRapid.inspektør
+                .field(
+                    index = 0,
+                    field = "@løsning",
+                ).get(testFixture.behov[0].name),
         )
     }
 
@@ -91,10 +93,12 @@ internal class NyInnsendingBehovMottakTest {
         testRapid.sendTestMessage(
             lagTestJson(
                 testFixture.copy(
-                    løsning = mapOf(
-                        "@løsning" to mapOf(
-                            "innsendingId" to UUID.randomUUID().toString(),
-                        ),
+                    løsning =
+                    mapOf(
+                        "@løsning" to
+                            mapOf(
+                                "innsendingId" to UUID.randomUUID().toString(),
+                            ),
                     ),
                 ),
             ),
@@ -124,22 +128,25 @@ internal class NyInnsendingBehovMottakTest {
 }
 
 internal fun lagTestJson(fixture: TestFixture): String {
-    val map = mutableMapOf(
-        "@event_name" to "behov",
-        "@behov" to fixture.behov,
-        "søknad_uuid" to fixture.søknadId,
-        "innsendtTidspunkt" to fixture.innsendtTidspunkt,
-        "dokumentkrav" to fixture.dokumenter,
-        "ident" to fixture.ident,
-    ).also { mutableMap ->
-        fixture.løsning?.let {
-            mutableMap["@løsning"] = it
+    val map =
+        mutableMapOf(
+            "@event_name" to "behov",
+            "@behov" to fixture.behov,
+            "søknad_uuid" to fixture.søknadId,
+            "innsendtTidspunkt" to fixture.innsendtTidspunkt,
+            "dokumentkrav" to fixture.dokumenter,
+            "ident" to fixture.ident,
+        ).also { mutableMap ->
+            fixture.løsning?.let {
+                mutableMap["@løsning"] = it
+            }
         }
-    }
     return JsonMessage.newMessage(map).toJson()
 }
 
-internal class TestInnsendingVisitor(innsending: Innsending) : InnsendingVisitor {
+internal class TestInnsendingVisitor(
+    innsending: Innsending,
+) : InnsendingVisitor {
     lateinit var søknadId: UUID
     lateinit var innsendtTidspunkt: ZonedDateTime
     lateinit var ident: String
@@ -156,6 +163,7 @@ internal class TestInnsendingVisitor(innsending: Innsending) : InnsendingVisitor
         ident: String,
         innsendingType: InnsendingType,
         tilstand: Innsending.TilstandType,
+        sistEndretTilstand: LocalDateTime,
         innsendt: ZonedDateTime,
         journalpost: String?,
         hovedDokument: Innsending.Dokument?,
@@ -173,35 +181,37 @@ internal class TestInnsendingVisitor(innsending: Innsending) : InnsendingVisitor
 internal data class TestFixture(
     val søknadId: UUID = UUID.randomUUID(),
     val innsendtTidspunkt: String = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).toString(),
-    val dokumenter: List<Innsending.Dokument> = listOf(
-        Innsending.Dokument(
-            uuid = UUID.randomUUID(),
-            kravId = "k1",
-            skjemakode = "s1",
-            varianter = listOf(
-                Innsending.Dokument.Dokumentvariant(
-                    uuid = UUID.randomUUID(),
-                    filnavn = "f1",
-                    urn = "urn:vedlegg:f1",
-                    variant = "n1",
-                    type = "t1",
-                ),
-                Innsending.Dokument.Dokumentvariant(
-                    uuid = UUID.randomUUID(),
-                    filnavn = "f2",
-                    urn = "urn:vedlegg:f2",
-                    variant = "n2",
-                    type = "t2",
+    val dokumenter: List<Innsending.Dokument> =
+        listOf(
+            Innsending.Dokument(
+                uuid = UUID.randomUUID(),
+                kravId = "k1",
+                skjemakode = "s1",
+                varianter =
+                listOf(
+                    Innsending.Dokument.Dokumentvariant(
+                        uuid = UUID.randomUUID(),
+                        filnavn = "f1",
+                        urn = "urn:vedlegg:f1",
+                        variant = "n1",
+                        type = "t1",
+                    ),
+                    Innsending.Dokument.Dokumentvariant(
+                        uuid = UUID.randomUUID(),
+                        filnavn = "f2",
+                        urn = "urn:vedlegg:f2",
+                        variant = "n2",
+                        type = "t2",
+                    ),
                 ),
             ),
+            Innsending.Dokument(
+                uuid = UUID.randomUUID(),
+                kravId = null,
+                skjemakode = null,
+                varianter = listOf(),
+            ),
         ),
-        Innsending.Dokument(
-            uuid = UUID.randomUUID(),
-            kravId = null,
-            skjemakode = null,
-            varianter = listOf(),
-        ),
-    ),
     val ident: String = "1234",
     val løsning: Map<String, Any>? = null,
     val behov: List<Behovtype>,
