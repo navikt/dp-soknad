@@ -19,7 +19,7 @@ internal class PåminnelseJobb(private val innsendingMediator: InnsendingMediato
             name = "Innsending påminnelse jobb",
             daemon = true,
             initialDelay = 1.minutes.inWholeMilliseconds,
-            period = 2.minutes.inWholeMilliseconds,
+            period = 15.minutes.inWholeMilliseconds,
             action = {
                 try {
                     logger.info { "Henter innsendinger som trenger påminnelse" }
@@ -50,10 +50,9 @@ internal class PåminnelseJobb(private val innsendingMediator: InnsendingMediato
                     """
                     SELECT innsending_uuid
                     FROM innsending_v1
-                      WHERE tilstand != 'Journalført'
-                      AND innsendt > '2023.01.01'
-                      AND innsending_uuid = 'ab54d26c-fbc6-4039-8dcc-c7c783e98f8a'
-                        AND journalpost_id IS NULL;
+                    WHERE innsendt > '2023.01.01'
+                      AND innsendt < '2024-12-18'
+                      AND tilstand == 'AvventerMidlertidligJournalføring';
                     """.trimIndent(),
                 ).map {
                     it.uuid("innsending_uuid")
