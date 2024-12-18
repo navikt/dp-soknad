@@ -52,7 +52,7 @@ internal class PåminnelseJobb(private val innsendingMediator: InnsendingMediato
                     FROM innsending_v1
                     WHERE innsendt > '2023.01.01'
                       AND innsendt < '2024-12-18'
-                      AND tilstand == 'AvventerMidlertidligJournalføring';
+                      AND tilstand = 'AvventerMidlertidligJournalføring';
                     """.trimIndent(),
                 ).map {
                     it.uuid("innsending_uuid")
