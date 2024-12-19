@@ -181,10 +181,12 @@ class Innsending private constructor(
         observers.forEach {
             it.innsendingTilstandEndret(
                 InnsendingObserver.InnsendingEndretTilstandEvent(
+                    ident = ident,
                     innsendingId = innsendingId,
                     innsendingType = type,
                     gjeldendeTilstand = tilstand.tilstandType,
                     forrigeTilstand = forrigeTilstand.tilstandType,
+                    forventetFerdig = tilstand.forventetFerdig,
                 ),
             )
         }
