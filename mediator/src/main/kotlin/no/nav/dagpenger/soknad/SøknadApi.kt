@@ -1,6 +1,5 @@
 package no.nav.dagpenger.soknad
 
-import io.ktor.server.application.call
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.route
