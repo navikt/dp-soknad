@@ -1,9 +1,9 @@
 package no.nav.dagpenger.soknad.observers
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.dagpenger.soknad.SøknadObserver
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.RapidsConnection
 
 internal class SøknadInnsendtObserver(
     private val rapidsConnection: RapidsConnection,

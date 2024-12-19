@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.livssyklus
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -8,7 +9,6 @@ import io.mockk.slot
 import no.nav.dagpenger.soknad.hendelse.innsending.JournalførtHendelse
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
 import no.nav.dagpenger.soknad.innsending.tjenester.JournalførtMottak
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -17,7 +17,6 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.util.UUID
 
 internal class JournalførtMottakTest {
-
     @ParameterizedTest
     @ValueSource(strings = ["NySøknad", "Ettersending", "Gjenopptak", "Generell"])
     fun `Skal behandle innsending_ferdigstilt event for type NySøknad, Gjenopptak, Ettersending og Generell`(type: String) {
@@ -54,8 +53,8 @@ internal class JournalførtMottakTest {
         journalpostId: String,
         type: String,
         ident: String,
-    ): String {
-        return """
+    ): String =
+        """
 {
   "journalpostId": "$journalpostId",
   "type": "$type",
@@ -66,11 +65,11 @@ internal class JournalførtMottakTest {
   "@event_name": "innsending_ferdigstilt"
 } 
         """.trimIndent()
-    }
 }
 
 @Language("JSON")
-val lol = """
+val lol =
+    """
 {
   "@id": "88edc131-ca7a-4698-b460-4bc52eeebf4b",
   "@opprettet": "2023-01-05T19:30:49.892895037",
@@ -94,4 +93,4 @@ val lol = """
     }
   ]
 }
-""".trimIndent()
+    """.trimIndent()

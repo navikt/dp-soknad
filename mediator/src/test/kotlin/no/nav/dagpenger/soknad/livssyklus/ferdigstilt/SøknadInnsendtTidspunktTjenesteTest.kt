@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.livssyklus.ferdigstilt
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.Aktivitetslogg
@@ -8,11 +9,9 @@ import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadData
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.Before
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import java.lang.RuntimeException
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime

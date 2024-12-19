@@ -23,7 +23,10 @@ import org.slf4j.MDC
 import java.time.LocalDate
 
 internal interface BehandlingsstatusClient {
-    suspend fun hentBehandlingsstatus(fom: LocalDate, subjectToken: String): BehandlingsstatusDto
+    suspend fun hentBehandlingsstatus(
+        fom: LocalDate,
+        subjectToken: String,
+    ): BehandlingsstatusDto
 }
 
 internal class BehandlingsstatusHttpClient(
@@ -37,33 +40,39 @@ internal class BehandlingsstatusHttpClient(
         val sikkerlogg = KotlinLogging.logger("tjenestekall.BehandlingsstatusClient")
     }
 
-    private val httpClient = HttpClient(engine) {
-        expectSuccess = true
-        install(ContentNegotiation) {
-            jackson {
-                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                registerModule(
-                    KotlinModule.Builder()
-                        .configure(KotlinFeature.NullIsSameAsDefault, enabled = true)
-                        .build(),
-                )
+    private val httpClient =
+        HttpClient(engine) {
+            expectSuccess = true
+            install(ContentNegotiation) {
+                jackson {
+                    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                    registerModule(
+                        KotlinModule
+                            .Builder()
+                            .configure(KotlinFeature.NullIsSameAsDefault, enabled = true)
+                            .build(),
+                    )
+                }
             }
         }
-    }
 
-    override suspend fun hentBehandlingsstatus(fom: LocalDate, subjectToken: String): BehandlingsstatusDto {
+    override suspend fun hentBehandlingsstatus(
+        fom: LocalDate,
+        subjectToken: String,
+    ): BehandlingsstatusDto {
         var rawBody: String? = null
         val url = "$baseUrl/behandlingsstatus?fom=$fom"
         logger.info { "Henter behandlingsstatus med fom=$fom" }
         return try {
-            httpClient.get(url) {
-                header(HttpHeaders.XRequestId, MDC.get("call-id"))
-                addBearerToken(subjectToken)
-                contentType(ContentType.Application.Json)
-            }.run {
-                rawBody = this.bodyAsText()
-                this.body()
-            }
+            httpClient
+                .get(url) {
+                    header(HttpHeaders.XRequestId, MDC.get("call-id"))
+                    addBearerToken(subjectToken)
+                    contentType(ContentType.Application.Json)
+                }.run {
+                    rawBody = this.bodyAsText()
+                    this.body()
+                }
         } catch (e: Exception) {
             logger.error(e) { "Feil under henting av behandlingsstatus. Behandlingsstatus settes til ukjent" }
             sikkerlogg.error(e) { "Feil under henting av behandlingsstatus. Behandlingsstatus settes til ukjent. Raw=$rawBody" }
@@ -81,5 +90,5 @@ internal data class BehandlingsstatusDto(
 )
 
 private val exchangeToOboToken = { token: String, audience: String ->
-    tokenXClient.tokenExchange(token, audience).accessToken ?: throw RuntimeException("Fant ikke token")
+    tokenXClient.tokenExchange(token, audience).access_token ?: throw RuntimeException("Fant ikke token")
 }

@@ -30,7 +30,11 @@ internal fun Route.nesteSøkeroppgaveRoute(søknadMediator: SøknadMediator) {
     }
 }
 
-private suspend fun hentNesteSøkerOppgave(søknadMediator: SøknadMediator, id: UUID, sistLagret: Int): SøkerOppgave =
+private suspend fun hentNesteSøkerOppgave(
+    søknadMediator: SøknadMediator,
+    id: UUID,
+    sistLagret: Int,
+): SøkerOppgave =
     retryIO(times = 45, initialDelay = 20, factor = 1.2) {
         søknadMediator.hentSøkerOppgave(id, sistLagret)
     }

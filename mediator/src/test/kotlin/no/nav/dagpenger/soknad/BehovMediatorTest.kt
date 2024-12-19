@@ -1,11 +1,11 @@
 package no.nav.dagpenger.soknad
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.ArkiverbarSøknad
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.NySøknad
 import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -30,10 +30,11 @@ internal class BehovMediatorTest {
     fun setup() {
         aktivitetslogg = Aktivitetslogg()
         testSøknadKontekst = TestSøknadKontekst(søknadID, testIdent)
-        behovMediator = BehovMediator(
-            rapidsConnection = testRapid,
-            sikkerLogg = mockk(relaxed = true),
-        )
+        behovMediator =
+            BehovMediator(
+                rapidsConnection = testRapid,
+                sikkerLogg = mockk(relaxed = true),
+            )
         testRapid.reset()
     }
 
@@ -163,18 +164,23 @@ internal class BehovMediatorTest {
 
     private class TestHendelse(
         val logg: Aktivitetslogg,
-    ) : SøknadHendelse(søknadID, testIdent, logg), Aktivitetskontekst {
+    ) : SøknadHendelse(søknadID, testIdent, logg),
+        Aktivitetskontekst {
         init {
             logg.kontekst(this)
         }
 
         override fun toSpesifikkKontekst() = SpesifikkKontekst("TestHendelse")
+
         override fun kontekst(kontekst: Aktivitetskontekst) {
             logg.kontekst(kontekst)
         }
     }
 
-    private class TestSøknadKontekst(private val søknadUuid: UUID, private val ident: String) : Aktivitetskontekst {
+    private class TestSøknadKontekst(
+        private val søknadUuid: UUID,
+        private val ident: String,
+    ) : Aktivitetskontekst {
         override fun toSpesifikkKontekst() =
             SpesifikkKontekst(kontekstType = "søknad", mapOf("søknad_uuid" to søknadUuid.toString(), "ident" to ident))
     }
