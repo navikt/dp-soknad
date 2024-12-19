@@ -11,7 +11,6 @@ import kotlin.test.Test
 import kotlin.test.assertNotNull
 
 class SøknadInnsendtObserverTest {
-
     val testRapid = TestRapid()
     val søknadId = UUID.randomUUID()
     val ident = "12345678901"
@@ -24,6 +23,7 @@ class SøknadInnsendtObserverTest {
         søknadInnsendtObserver.søknadInnsendt(SøknadObserver.SøknadInnsendtEvent(søknadId, innsendt, "", ident))
 
         assertEquals(1, testRapid.inspektør.size)
+        assertEquals(ident, testRapid.inspektør.key(0).toString())
 
         with(testRapid.inspektør) {
             assertEquals("søknad_innsendt_varsel", field(0, "@event_name").asText())
