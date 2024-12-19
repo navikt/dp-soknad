@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.innsending.meldinger
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -11,7 +12,6 @@ import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
 import no.nav.dagpenger.soknad.innsending.tjenester.NyEttersendingBehovMottak
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
@@ -22,8 +22,8 @@ import java.util.UUID
 internal class NyEttersendingBehovMottakTest {
     companion object {
         @JvmStatic
-        fun testFixtures(): List<TestFixture> {
-            return listOf(
+        fun testFixtures(): List<TestFixture> =
+            listOf(
                 TestFixture(
                     behov = listOf(Behovtype.NyEttersending),
                     innsendingType = ETTERSENDING_TIL_DIALOG,
@@ -33,14 +33,14 @@ internal class NyEttersendingBehovMottakTest {
                     innsendingType = ETTERSENDING_TIL_DIALOG,
                 ),
             )
-        }
     }
 
     private val testRapid = TestRapid()
     private val slot = slot<NyInnsendingHendelse>()
-    private val mediator = mockk<InnsendingMediator>().also {
-        every { it.behandle(capture(slot)) } just Runs
-    }
+    private val mediator =
+        mockk<InnsendingMediator>().also {
+            every { it.behandle(capture(slot)) } just Runs
+        }
 
     @BeforeEach
     fun setup() = testRapid.reset()
@@ -68,10 +68,11 @@ internal class NyEttersendingBehovMottakTest {
         testRapid.inspektør.size
         assertEquals(1, testRapid.inspektør.size)
         assertNotNull(
-            testRapid.inspektør.field(
-                index = 0,
-                field = "@løsning",
-            ).get(testFixture.behov[0].name),
+            testRapid.inspektør
+                .field(
+                    index = 0,
+                    field = "@løsning",
+                ).get(testFixture.behov[0].name),
         )
     }
 
@@ -86,10 +87,12 @@ internal class NyEttersendingBehovMottakTest {
         testRapid.sendTestMessage(
             lagTestJson(
                 testFixture.copy(
-                    løsning = mapOf(
-                        "@løsning" to mapOf(
-                            "innsendingId" to UUID.randomUUID().toString(),
-                        ),
+                    løsning =
+                    mapOf(
+                        "@løsning" to
+                            mapOf(
+                                "innsendingId" to UUID.randomUUID().toString(),
+                            ),
                     ),
                 ),
             ),

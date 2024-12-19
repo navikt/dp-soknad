@@ -18,7 +18,7 @@ import io.ktor.server.auth.jwt.JWTPrincipal
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration
-import java.net.URL
+import java.net.URI
 import java.util.concurrent.TimeUnit
 
 private val logger = KotlinLogging.logger {}
@@ -48,14 +48,15 @@ object TokenXFactory {
     val tokenXclientId: String = Configuration.properties[token_x.client_id]
     val issuer = tokenXConfiguration.issuer
     val jwkProvider: JwkProvider
-        get() = JwkProviderBuilder(URL(tokenXConfiguration.jwksUri))
-            .cached(10, 24, TimeUnit.HOURS) // cache up to 10 JWKs for 24 hours
-            .rateLimited(
-                10,
-                1,
-                TimeUnit.MINUTES,
-            ) // if not cached, only allow max 10 different keys per minute to be fetched from external provider
-            .build()
+        get() =
+            JwkProviderBuilder(URI(tokenXConfiguration.jwksUri).toURL())
+                .cached(10, 24, TimeUnit.HOURS) // cache up to 10 JWKs for 24 hours
+                .rateLimited(
+                    10,
+                    1,
+                    TimeUnit.MINUTES,
+                ) // if not cached, only allow max 10 different keys per minute to be fetched from external provider
+                .build()
 }
 
 object AzureAdFactory {
@@ -83,14 +84,15 @@ object AzureAdFactory {
     val azureClientId: String = Configuration.properties[azure_app.client_id]
     val issuer = azureConfiguration.issuer
     val jwkProvider: JwkProvider
-        get() = JwkProviderBuilder(URL(azureConfiguration.jwksUri))
-            .cached(10, 24, TimeUnit.HOURS) // cache up to 10 JWKs for 24 hours
-            .rateLimited(
-                10,
-                1,
-                TimeUnit.MINUTES,
-            ) // if not cached, only allow max 10 different keys per minute to be fetched from external provider
-            .build()
+        get() =
+            JwkProviderBuilder(URI(azureConfiguration.jwksUri).toURL())
+                .cached(10, 24, TimeUnit.HOURS) // cache up to 10 JWKs for 24 hours
+                .rateLimited(
+                    10,
+                    1,
+                    TimeUnit.MINUTES,
+                ) // if not cached, only allow max 10 different keys per minute to be fetched from external provider
+                .build()
 }
 
 private data class AzureAdOpenIdConfiguration(
@@ -104,10 +106,11 @@ private data class AzureAdOpenIdConfiguration(
     val authorizationEndpoint: String,
 )
 
-private val httpClient = HttpClient(CIO) {
-    install(ContentNegotiation) {
-        jackson {
-            configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+private val httpClient =
+    HttpClient(CIO) {
+        install(ContentNegotiation) {
+            jackson {
+                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            }
         }
     }
-}

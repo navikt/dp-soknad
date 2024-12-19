@@ -12,15 +12,15 @@ import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.søknadUuid
 
-internal fun søknadData(mediator: SøknadMediator): Route.() -> Unit {
-    return {
+internal fun søknadData(mediator: SøknadMediator): Route.() -> Unit =
+    {
         søknadData(mediator)
     }
-}
 
 internal fun Route.søknadData(søknadMediator: SøknadMediator) {
     get("${Configuration.basePath}/soknad/{søknad_uuid}/data") {
-        val id = søknadUuid()
+        val id =
+            søknadUuid()
         withLoggingContext(
             "søknadId" to id.toString(),
         ) {

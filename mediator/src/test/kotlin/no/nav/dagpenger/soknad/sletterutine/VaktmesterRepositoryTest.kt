@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.sletterutine
 
 import FerdigSøknadData
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import de.slub.urn.URN
 import io.mockk.mockk
 import kotliquery.queryOf
@@ -29,7 +30,6 @@ import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.observers.SøknadTilstandObserver
 import no.nav.dagpenger.soknad.sletterutine.VaktmesterPostgresRepository.Companion.låseNøkkel
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -56,131 +56,148 @@ internal class VaktmesterRepositoryTest {
         mutableSetOf(
             Faktum(faktumJson("2", "f2")),
         )
-    private val sannsynliggjøring = Sannsynliggjøring(
-        id = dokumentFaktum.id,
-        faktum = dokumentFaktum,
-        sannsynliggjør = faktaSomSannsynliggjøres,
-    )
-    private val krav = Krav(
-        sannsynliggjøring,
-    ).also {
-        it.svar.filer.add(
-            Krav.Fil(
-                filnavn = "test.jpg",
-                urn = URN.rfc8141().parse("urn:test:1"),
-                storrelse = 0,
-                tidspunkt = ZonedDateTime.now(),
-                bundlet = false,
-            ),
+    private val sannsynliggjøring =
+        Sannsynliggjøring(
+            id = dokumentFaktum.id,
+            faktum = dokumentFaktum,
+            sannsynliggjør = faktaSomSannsynliggjøres,
         )
-    }
-
-    @Test
-    fun `Låsen hindrer parallel slettinger`() = withMigratedDb {
-        val søknadRepository = SøknadPostgresRepository(dataSource)
-        val søknadCacheRepository = SøknadDataPostgresRepository(dataSource)
-        val søknadMediator = søknadMediator(
-            søknadCacheRepository = søknadCacheRepository,
-            søknadRepository = søknadRepository,
-        )
-        val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
-
-        using(sessionOf(dataSource)) { session ->
-            session.lås(låseNøkkel)
-            assertNull(vaktmesterRepository.slett())
-            session.låsOpp(låseNøkkel)
-            assertNotNull(vaktmesterRepository.slett())
-        }
-    }
-
-    @Test
-    fun `Markerer påbegynte søknader uendret de siste 7 dagene som sletta`() = withMigratedDb {
-        val søknadRepository = SøknadPostgresRepository(dataSource)
-        val søknadCacheRepository = SøknadDataPostgresRepository(dataSource)
-        val søknadMediator = søknadMediator(
-            søknadCacheRepository = søknadCacheRepository,
-            søknadRepository = søknadRepository,
-        )
-        val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
-
-        søknadRepository.lagre(gammelPåbegyntSøknad(gammelPåbegyntSøknadUuid, testPersonIdent))
-        søknadRepository.lagre(nyPåbegyntSøknad(nyPåbegyntSøknadUuid, testPersonIdent))
-        søknadRepository.lagre(innsendtSøknad(innsendtSøknadUuid, testPersonIdent))
-        assertTrue(aktivitetsloggFinnes(gammelPåbegyntSøknadUuid))
-
-        settSistEndretAvBruker(antallDagerSiden = 8, gammelPåbegyntSøknadUuid)
-        settSistEndretAvBruker(antallDagerSiden = 2, nyPåbegyntSøknadUuid)
-        settSistEndretAvBruker(antallDagerSiden = 30, innsendtSøknadUuid)
-
-        søknadCacheRepository.lagre(TestSøkerOppgave(gammelPåbegyntSøknadUuid, testPersonIdent, "{}"))
-        søknadCacheRepository.lagre(TestSøkerOppgave(nyPåbegyntSøknadUuid, testPersonIdent, "{}"))
-
-        vaktmesterRepository.markerUtdaterteTilSletting(syvDager)
-        assertSøknadSlettetEvent()
-        assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, søknadRepository, testPersonIdent)
-    }
-
-    @Test
-    fun `Sletter all søknadsdata for slettede søknader`() = withMigratedDb {
-        val søknadRepository = SøknadPostgresRepository(dataSource)
-        val søknadCacheRepository = SøknadDataPostgresRepository(dataSource)
-        val søknadMediator = søknadMediator(
-            søknadCacheRepository = søknadCacheRepository,
-            søknadRepository = søknadRepository,
-        )
-        val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
-
-        søknadRepository.lagre(gammelPåbegyntSøknad(gammelPåbegyntSøknadUuid, testPersonIdent))
-
-        PostgresDokumentkravRepository(dataSource).håndter(
-            LeggTilFil(
-                søknadID = gammelPåbegyntSøknadUuid,
-                ident = testPersonIdent,
-                kravId = krav.id,
-                fil = Krav.Fil(
+    private val krav =
+        Krav(
+            sannsynliggjøring,
+        ).also {
+            it.svar.filer.add(
+                Krav.Fil(
                     filnavn = "test.jpg",
                     urn = URN.rfc8141().parse("urn:test:1"),
                     storrelse = 0,
                     tidspunkt = ZonedDateTime.now(),
                     bundlet = false,
                 ),
-            ),
-        )
-        søknadRepository.lagre(nyPåbegyntSøknad(nyPåbegyntSøknadUuid, testPersonIdent))
-        søknadRepository.lagre(innsendtSøknad(innsendtSøknadUuid, testPersonIdent))
-        søknadCacheRepository.lagre(TestSøkerOppgave(gammelPåbegyntSøknadUuid, testPersonIdent, "{}"))
-        søknadCacheRepository.lagre(TestSøkerOppgave(nyPåbegyntSøknadUuid, testPersonIdent, "{}"))
-
-        settSlettet(gammelPåbegyntSøknadUuid)
-
-        assertAntallRader("soknad_v1", 3)
-        assertAntallRader("dokumentkrav_filer_v1", 1)
-        assertAntallRader("dokumentkrav_v1", 1)
-        assertAntallRader("aktivitetslogg_v1", 3)
-
-        vaktmesterRepository.slett()
-        assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, søknadRepository, testPersonIdent)
-        assertCacheSlettet(gammelPåbegyntSøknadUuid, søknadCacheRepository)
-        assertFalse(aktivitetsloggFinnes(gammelPåbegyntSøknadUuid))
-
-        assertAntallRader("soknad_v1", 2)
-        assertAntallRader("dokumentkrav_filer_v1", 0)
-        assertAntallRader("dokumentkrav_v1", 0)
-        assertAntallRader("aktivitetslogg_v1", 2)
-    }
-
-    private fun assertAntallRader(tabell: String, antallRader: Int) {
-        val faktiskeRader = using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf("select count(1) from $tabell").map { row ->
-                    row.int(1)
-                }.asSingle,
             )
         }
+
+    @Test
+    fun `Låsen hindrer parallel slettinger`() =
+        withMigratedDb {
+            val søknadRepository = SøknadPostgresRepository(dataSource)
+            val søknadCacheRepository = SøknadDataPostgresRepository(dataSource)
+            val søknadMediator =
+                søknadMediator(
+                    søknadCacheRepository = søknadCacheRepository,
+                    søknadRepository = søknadRepository,
+                )
+            val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
+
+            using(sessionOf(dataSource)) { session ->
+                session.lås(låseNøkkel)
+                assertNull(vaktmesterRepository.slett())
+                session.låsOpp(låseNøkkel)
+                assertNotNull(vaktmesterRepository.slett())
+            }
+        }
+
+    @Test
+    fun `Markerer påbegynte søknader uendret de siste 7 dagene som sletta`() =
+        withMigratedDb {
+            val søknadRepository = SøknadPostgresRepository(dataSource)
+            val søknadCacheRepository = SøknadDataPostgresRepository(dataSource)
+            val søknadMediator =
+                søknadMediator(
+                    søknadCacheRepository = søknadCacheRepository,
+                    søknadRepository = søknadRepository,
+                )
+            val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
+
+            søknadRepository.lagre(gammelPåbegyntSøknad(gammelPåbegyntSøknadUuid, testPersonIdent))
+            søknadRepository.lagre(nyPåbegyntSøknad(nyPåbegyntSøknadUuid, testPersonIdent))
+            søknadRepository.lagre(innsendtSøknad(innsendtSøknadUuid, testPersonIdent))
+            assertTrue(aktivitetsloggFinnes(gammelPåbegyntSøknadUuid))
+
+            settSistEndretAvBruker(antallDagerSiden = 8, gammelPåbegyntSøknadUuid)
+            settSistEndretAvBruker(antallDagerSiden = 2, nyPåbegyntSøknadUuid)
+            settSistEndretAvBruker(antallDagerSiden = 30, innsendtSøknadUuid)
+
+            søknadCacheRepository.lagre(TestSøkerOppgave(gammelPåbegyntSøknadUuid, testPersonIdent, "{}"))
+            søknadCacheRepository.lagre(TestSøkerOppgave(nyPåbegyntSøknadUuid, testPersonIdent, "{}"))
+
+            vaktmesterRepository.markerUtdaterteTilSletting(syvDager)
+            assertSøknadSlettetEvent()
+            assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, søknadRepository, testPersonIdent)
+        }
+
+    @Test
+    fun `Sletter all søknadsdata for slettede søknader`() =
+        withMigratedDb {
+            val søknadRepository = SøknadPostgresRepository(dataSource)
+            val søknadCacheRepository = SøknadDataPostgresRepository(dataSource)
+            val søknadMediator =
+                søknadMediator(
+                    søknadCacheRepository = søknadCacheRepository,
+                    søknadRepository = søknadRepository,
+                )
+            val vaktmesterRepository = VaktmesterPostgresRepository(dataSource, søknadMediator)
+
+            søknadRepository.lagre(gammelPåbegyntSøknad(gammelPåbegyntSøknadUuid, testPersonIdent))
+
+            PostgresDokumentkravRepository(dataSource).håndter(
+                LeggTilFil(
+                    søknadID = gammelPåbegyntSøknadUuid,
+                    ident = testPersonIdent,
+                    kravId = krav.id,
+                    fil =
+                    Krav.Fil(
+                        filnavn = "test.jpg",
+                        urn = URN.rfc8141().parse("urn:test:1"),
+                        storrelse = 0,
+                        tidspunkt = ZonedDateTime.now(),
+                        bundlet = false,
+                    ),
+                ),
+            )
+            søknadRepository.lagre(nyPåbegyntSøknad(nyPåbegyntSøknadUuid, testPersonIdent))
+            søknadRepository.lagre(innsendtSøknad(innsendtSøknadUuid, testPersonIdent))
+            søknadCacheRepository.lagre(TestSøkerOppgave(gammelPåbegyntSøknadUuid, testPersonIdent, "{}"))
+            søknadCacheRepository.lagre(TestSøkerOppgave(nyPåbegyntSøknadUuid, testPersonIdent, "{}"))
+
+            settSlettet(gammelPåbegyntSøknadUuid)
+
+            assertAntallRader("soknad_v1", 3)
+            assertAntallRader("dokumentkrav_filer_v1", 1)
+            assertAntallRader("dokumentkrav_v1", 1)
+            assertAntallRader("aktivitetslogg_v1", 3)
+
+            vaktmesterRepository.slett()
+            assertAtViIkkeSletterForMye(antallGjenværendeSøknader = 2, søknadRepository, testPersonIdent)
+            assertCacheSlettet(gammelPåbegyntSøknadUuid, søknadCacheRepository)
+            assertFalse(aktivitetsloggFinnes(gammelPåbegyntSøknadUuid))
+
+            assertAntallRader("soknad_v1", 2)
+            assertAntallRader("dokumentkrav_filer_v1", 0)
+            assertAntallRader("dokumentkrav_v1", 0)
+            assertAntallRader("aktivitetslogg_v1", 2)
+        }
+
+    private fun assertAntallRader(
+        tabell: String,
+        antallRader: Int,
+    ) {
+        val faktiskeRader =
+            using(sessionOf(dataSource)) { session ->
+                session.run(
+                    queryOf("select count(1) from $tabell")
+                        .map { row ->
+                            row.int(1)
+                        }.asSingle,
+                )
+            }
         assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: $tabell")
     }
 
-    private fun settSistEndretAvBruker(antallDagerSiden: Int, uuid: UUID) {
+    private fun settSistEndretAvBruker(
+        antallDagerSiden: Int,
+        uuid: UUID,
+    ) {
         using(sessionOf(dataSource)) { session ->
             session.run(
                 //language=PostgreSQL
@@ -192,14 +209,15 @@ internal class VaktmesterRepositoryTest {
         }
     }
 
-    private fun settSlettet(uuid: UUID) = using(sessionOf(dataSource)) { session ->
-        session.run(
-            queryOf( //language=PostgreSQL
-                "UPDATE soknad_v1 SET tilstand = '${Tilstand.Type.Slettet}' WHERE uuid = ?",
-                uuid,
-            ).asUpdate,
-        )
-    }
+    private fun settSlettet(uuid: UUID) =
+        using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf( //language=PostgreSQL
+                    "UPDATE soknad_v1 SET tilstand = '${Tilstand.Type.Slettet}' WHERE uuid = ?",
+                    uuid,
+                ).asUpdate,
+            )
+        }
 
     private fun søknadMediator(
         søknadCacheRepository: SøknadDataPostgresRepository,
@@ -214,8 +232,7 @@ internal class VaktmesterRepositoryTest {
         dokumentkravRepository = mockk(),
     )
 
-    private fun assertSøknadSlettetEvent() =
-        assertEquals("søknad_slettet", testRapid.inspektør.field(0, "@event_name").asText())
+    private fun assertSøknadSlettetEvent() = assertEquals("søknad_slettet", testRapid.inspektør.field(0, "@event_name").asText())
 
     private fun assertAtViIkkeSletterForMye(
         antallGjenværendeSøknader: Int,
@@ -227,70 +244,81 @@ internal class VaktmesterRepositoryTest {
         }
     }
 
-    private fun assertCacheSlettet(søknadUuid: UUID, søknadCacheRepository: SøknadDataPostgresRepository) {
+    private fun assertCacheSlettet(
+        søknadUuid: UUID,
+        søknadCacheRepository: SøknadDataPostgresRepository,
+    ) {
         assertThrows<SøkerOppgaveNotFoundException> { søknadCacheRepository.hentSøkerOppgave(søknadUuid) }
     }
 
     private fun aktivitetsloggFinnes(søknadUuid: UUID): Boolean {
-        val antallRader = using(sessionOf(dataSource)) { session ->
-            session.run(
-                //language=PostgreSQL
-                queryOf(
-                    "SELECT COUNT(*) FROM aktivitetslogg_v1 WHERE soknad_uuid = ?",
-                    søknadUuid,
-                ).map { row ->
-                    row.int(1)
-                }.asSingle,
-            )
-        }
+        val antallRader =
+            using(sessionOf(dataSource)) { session ->
+                session.run(
+                    //language=PostgreSQL
+                    queryOf(
+                        "SELECT COUNT(*) FROM aktivitetslogg_v1 WHERE soknad_uuid = ?",
+                        søknadUuid,
+                    ).map { row ->
+                        row.int(1)
+                    }.asSingle,
+                )
+            }
 
         return antallRader == 1
     }
 
-    private fun innsendtSøknad(journalførtSøknadId: UUID, ident: String) =
-        Søknad.rehydrer(
-            søknadId = journalførtSøknadId,
-            ident = ident,
-            opprettet = ZonedDateTime.now(),
-            null,
-            språk = språk,
-            dokumentkrav = Dokumentkrav(),
-            sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.of(2022, 11, 2, 2, 2, 2, 2), ZoneId.of("Europe/Oslo")),
-            tilstandsType = Innsendt,
-            aktivitetslogg = Aktivitetslogg(),
-            prosessversjon = null,
-            data = FerdigSøknadData,
-        )
+    private fun innsendtSøknad(
+        journalførtSøknadId: UUID,
+        ident: String,
+    ) = Søknad.rehydrer(
+        søknadId = journalførtSøknadId,
+        ident = ident,
+        opprettet = ZonedDateTime.now(),
+        null,
+        språk = språk,
+        dokumentkrav = Dokumentkrav(),
+        sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.of(2022, 11, 2, 2, 2, 2, 2), ZoneId.of("Europe/Oslo")),
+        tilstandsType = Innsendt,
+        aktivitetslogg = Aktivitetslogg(),
+        prosessversjon = null,
+        data = FerdigSøknadData,
+    )
 
-    private fun gammelPåbegyntSøknad(gammelPåbegyntSøknadId: UUID, ident: String) =
-        Søknad.rehydrer(
-            søknadId = gammelPåbegyntSøknadId,
-            ident = ident,
-            opprettet = ZonedDateTime.now(),
-            null,
-            språk = språk,
-            dokumentkrav = Dokumentkrav.rehydrer(
-                setOf(krav),
-            ),
-            sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.of(2022, 11, 2, 2, 2, 2, 2), ZoneId.of("Europe/Oslo")),
-            tilstandsType = Påbegynt,
-            aktivitetslogg = Aktivitetslogg(),
-            prosessversjon = null,
-            data = FerdigSøknadData,
-        )
+    private fun gammelPåbegyntSøknad(
+        gammelPåbegyntSøknadId: UUID,
+        ident: String,
+    ) = Søknad.rehydrer(
+        søknadId = gammelPåbegyntSøknadId,
+        ident = ident,
+        opprettet = ZonedDateTime.now(),
+        null,
+        språk = språk,
+        dokumentkrav =
+        Dokumentkrav.rehydrer(
+            setOf(krav),
+        ),
+        sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.of(2022, 11, 2, 2, 2, 2, 2), ZoneId.of("Europe/Oslo")),
+        tilstandsType = Påbegynt,
+        aktivitetslogg = Aktivitetslogg(),
+        prosessversjon = null,
+        data = FerdigSøknadData,
+    )
 
-    private fun nyPåbegyntSøknad(nyPåbegyntSøknadId: UUID, ident: String) =
-        Søknad.rehydrer(
-            søknadId = nyPåbegyntSøknadId,
-            ident = ident,
-            opprettet = ZonedDateTime.now(),
-            null,
-            språk = språk,
-            dokumentkrav = Dokumentkrav(),
-            sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.of(2022, 11, 2, 2, 2, 2, 2), ZoneId.of("Europe/Oslo")),
-            tilstandsType = Påbegynt,
-            aktivitetslogg = Aktivitetslogg(),
-            prosessversjon = null,
-            data = FerdigSøknadData,
-        )
+    private fun nyPåbegyntSøknad(
+        nyPåbegyntSøknadId: UUID,
+        ident: String,
+    ) = Søknad.rehydrer(
+        søknadId = nyPåbegyntSøknadId,
+        ident = ident,
+        opprettet = ZonedDateTime.now(),
+        null,
+        språk = språk,
+        dokumentkrav = Dokumentkrav(),
+        sistEndretAvBruker = ZonedDateTime.of(LocalDateTime.of(2022, 11, 2, 2, 2, 2, 2), ZoneId.of("Europe/Oslo")),
+        tilstandsType = Påbegynt,
+        aktivitetslogg = Aktivitetslogg(),
+        prosessversjon = null,
+        data = FerdigSøknadData,
+    )
 }

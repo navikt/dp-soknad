@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad.arbeidsforhold
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
@@ -17,14 +18,12 @@ import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.utils.client.createHttpClient
-import no.nav.helse.rapids_rivers.asLocalDate
 
 internal class AaregClient(
     private val aaregUrl: String = Configuration.aaregUrl,
     private val tokenProvider: (String) -> String,
     engine: HttpClientEngine = CIO.create {},
 ) {
-
     private val client = createHttpClient(engine)
 
     suspend fun hentArbeidsforhold(
@@ -61,17 +60,16 @@ internal class AaregClient(
     }
 }
 
-private fun toArbeidsforhold(aaregArbeidsforhold: JsonNode): Arbeidsforhold {
-    return Arbeidsforhold(
+private fun toArbeidsforhold(aaregArbeidsforhold: JsonNode): Arbeidsforhold =
+    Arbeidsforhold(
         id = aaregArbeidsforhold["navArbeidsforholdId"].asText(),
         organisasjonsnummer = toOrganisasjonsnummer(aaregArbeidsforhold["arbeidssted"]),
         startdato = aaregArbeidsforhold["ansettelsesperiode"]["startdato"].asLocalDate(),
         sluttdato = aaregArbeidsforhold["ansettelsesperiode"]["sluttdato"]?.asLocalDate(),
     )
-}
 
-private fun toOrganisasjonsnummer(arbeidssted: JsonNode): String? {
-    return arbeidssted["identer"]
+private fun toOrganisasjonsnummer(arbeidssted: JsonNode): String? =
+    arbeidssted["identer"]
         .firstOrNull { it["type"].asText() == "ORGANISASJONSNUMMER" }
-        ?.get("ident")?.asText()
-}
+        ?.get("ident")
+        ?.asText()

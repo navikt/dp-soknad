@@ -1,8 +1,10 @@
 package no.nav.dagpenger.soknad.innsending.meldinger
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import no.nav.dagpenger.soknad.Innsending
-import no.nav.helse.rapids_rivers.JsonMessage
 
-class NyEttersendingMelding(packet: JsonMessage) : MeldingOmInnsending(packet) {
+class NyEttersendingMelding(
+    packet: JsonMessage,
+) : MeldingOmInnsending(packet) {
     override val innsending = Innsending.ettersending(innsendt, ident, søknadId, dokumentkrav)
 }

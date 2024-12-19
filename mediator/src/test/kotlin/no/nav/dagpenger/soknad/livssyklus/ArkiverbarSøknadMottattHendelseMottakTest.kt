@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.livssyklus
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -10,20 +11,21 @@ import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.hendelse.innsending.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
 import no.nav.dagpenger.soknad.innsending.tjenester.ArkiverbarSøknadMottattHendelseMottak
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 internal class ArkiverbarSøknadMottattHendelseMottakTest {
     private val slot = slot<ArkiverbarSøknadMottattHendelse>()
 
-    private val mediatorMock = mockk<InnsendingMediator>().also {
-        every { it.behandle(capture(slot)) } just Runs
-    }
+    private val mediatorMock =
+        mockk<InnsendingMediator>().also {
+            every { it.behandle(capture(slot)) } just Runs
+        }
 
-    private val testRapid = TestRapid().also { rapidsConnection ->
-        ArkiverbarSøknadMottattHendelseMottak(rapidsConnection, mediatorMock)
-    }
+    private val testRapid =
+        TestRapid().also { rapidsConnection ->
+            ArkiverbarSøknadMottattHendelseMottak(rapidsConnection, mediatorMock)
+        }
 
     @Test
     fun `skal lytte på arkiverbar søknad opprettet melding og oversette til ArkiverbarSøknadMottattHendelse`() {
@@ -49,7 +51,8 @@ internal class ArkiverbarSøknadMottattHendelseMottakTest {
     }
 
     //language=JSON
-    private val losning = """
+    private val losning =
+        """
        {
   "@event_name": "behov",
   "@behov": [
@@ -102,5 +105,5 @@ internal class ArkiverbarSøknadMottattHendelseMottakTest {
     ]
   }
 } 
-    """.trimIndent()
+        """.trimIndent()
 }

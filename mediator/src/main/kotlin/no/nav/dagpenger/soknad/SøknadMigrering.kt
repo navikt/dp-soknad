@@ -1,11 +1,11 @@
 package no.nav.dagpenger.soknad
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.mal.SøknadMal
 import no.nav.dagpenger.soknad.mal.SøknadMalRepository
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.RapidsConnection
 import java.util.UUID
 
 class SøknadMigrering constructor(
@@ -29,16 +29,20 @@ class SøknadMigrering constructor(
         }
     }
 
-    private data class MigreringsBehov(private val søknadUUID: UUID, private val ident: String) {
-        fun asMessage() = JsonMessage.newNeed(
-            listOf(
-                "MigrerProsess",
-            ),
-            mapOf(
-                "søknad_uuid" to søknadUUID.toString(),
-                "ident" to ident,
-            ),
-        )
+    private data class MigreringsBehov(
+        private val søknadUUID: UUID,
+        private val ident: String,
+    ) {
+        fun asMessage() =
+            JsonMessage.newNeed(
+                listOf(
+                    "MigrerProsess",
+                ),
+                mapOf(
+                    "søknad_uuid" to søknadUUID.toString(),
+                    "ident" to ident,
+                ),
+            )
     }
 
     private companion object {

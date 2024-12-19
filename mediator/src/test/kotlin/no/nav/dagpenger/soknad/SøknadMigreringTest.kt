@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import no.nav.dagpenger.soknad.db.Postgres
 import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.hendelse.SøknadOpprettetHendelse
@@ -8,7 +9,6 @@ import no.nav.dagpenger.soknad.mal.SøknadMal
 import no.nav.dagpenger.soknad.mal.SøknadMalPostgresRepository
 import no.nav.dagpenger.soknad.utils.asUUID
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -18,8 +18,8 @@ import java.util.UUID
 internal class SøknadMigreringTest {
     private val søknadMaler by lazy { SøknadMalPostgresRepository(PostgresDataSourceBuilder.dataSource) }
     private val søknader by lazy { SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource) }
-    private fun versjon(versjon: Int) =
-        SøknadMal(prosessversjon(versjon), jacksonObjectMapper().createObjectNode())
+
+    private fun versjon(versjon: Int) = SøknadMal(prosessversjon(versjon), jacksonObjectMapper().createObjectNode())
 
     private fun prosessversjon(versjon: Int) = Prosessversjon("prosessnavn", versjon)
 

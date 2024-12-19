@@ -1,6 +1,15 @@
 package no.nav.dagpenger.soknad.livssyklus.ferdigstilt
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers.River
+import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
+import com.github.navikt.tbd_libs.rapids_and_rivers.withMDC
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import de.slub.urn.URN
+import io.micrometer.core.instrument.MeterRegistry
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Prosessversjon
@@ -8,12 +17,6 @@ import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.SøknadVisitor
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
-import no.nav.helse.rapids_rivers.isMissingOrNull
-import no.nav.helse.rapids_rivers.withMDC
 import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -32,17 +35,27 @@ internal class SøknadInnsendtTidspunktTjeneste(
     init {
         River(rapidsConnection)
             .apply {
-                validate { it.demandAny("@event_name", listOf("faktum_svar", "behov")) }
-                validate { it.requireContains("@behov", behov) }
-                validate { it.rejectKey("@løsning") }
+                precondition {
+                    it.requireAny("@event_name", listOf("faktum_svar", "behov"))
+                    it.requireAllOrAny("@behov", listOf(behov))
+                    it.forbid("@løsning")
+                }
                 validate { it.interestedIn("InnsendtSøknadsId", "Søknadstidspunkt.søknad_uuid", "søknadId") }
                 validate { it.interestedIn("søknad_uuid", "@behovId") }
             }.register(this)
     }
 
+    override fun onPreconditionError(
+        error: MessageProblems,
+        context: MessageContext,
+        metadata: MessageMetadata,
+    ): Unit = throw IllegalStateException("Forventet ikke precondition error ${error.toExtendedReport()}")
+
     override fun onPacket(
         packet: JsonMessage,
         context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
     ) {
         withMDC(
             mapOf(

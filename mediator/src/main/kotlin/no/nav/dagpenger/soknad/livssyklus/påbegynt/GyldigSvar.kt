@@ -3,14 +3,15 @@ package no.nav.dagpenger.soknad.livssyklus.påbegynt
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
+import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
 import de.slub.urn.URN
 import mu.KotlinLogging
-import no.nav.helse.rapids_rivers.asLocalDate
-import no.nav.helse.rapids_rivers.isMissingOrNull
 import java.time.LocalDateTime
 
-class GyldigSvar(json: JsonNode) {
-
+class GyldigSvar(
+    json: JsonNode,
+) {
     val svarAsJson: JsonNode
     val type: String
 
@@ -26,16 +27,18 @@ class GyldigSvar(json: JsonNode) {
         if (svarAsJson.isNull) return
         when (type) {
             "boolean" -> require(svarAsJson.isBoolean, feilmelding())
-            "flervalg" -> require(
-                erValg() && svarAsJson.size() > 0,
-                feilmelding(),
-            )
+            "flervalg" ->
+                require(
+                    erValg() && svarAsJson.size() > 0,
+                    feilmelding(),
+                )
 
             "envalg" -> require((erTekst()), feilmelding())
-            "localdate" -> require(
-                svarAsJson.isTextual && kotlin.runCatching { svarAsJson.asLocalDate() }.isSuccess,
-                feilmelding(),
-            )
+            "localdate" ->
+                require(
+                    svarAsJson.isTextual && kotlin.runCatching { svarAsJson.asLocalDate() }.isSuccess,
+                    feilmelding(),
+                )
 
             "double" -> require(svarAsJson.isDouble || svarAsJson.isNumber, feilmelding())
             "int" -> require(svarAsJson.isInt, feilmelding())
@@ -54,13 +57,14 @@ class GyldigSvar(json: JsonNode) {
     }
 
     private fun validerDokument() {
-        kotlin.runCatching {
-            svarAsJson["urn"].asText().let { URN.rfc8141().parse(it) }
-            svarAsJson["lastOppTidsstempel"].asText().let { LocalDateTime.parse(it) }
-        }.onFailure {
-            sikkerlogg.error(it) { "Ikke gyldig '$type', feil i underliggende faktum ${it.message}, svar: $svarAsJson" }
-            throw IllegalArgumentException("Ikke gyldig '$type', feil i underliggende faktum. Se sikkerlogg for detaljer")
-        }
+        kotlin
+            .runCatching {
+                svarAsJson["urn"].asText().let { URN.rfc8141().parse(it) }
+                svarAsJson["lastOppTidsstempel"].asText().let { LocalDateTime.parse(it) }
+            }.onFailure {
+                sikkerlogg.error(it) { "Ikke gyldig '$type', feil i underliggende faktum ${it.message}, svar: $svarAsJson" }
+                throw IllegalArgumentException("Ikke gyldig '$type', feil i underliggende faktum. Se sikkerlogg for detaljer")
+            }
     }
 
     private fun erTekst() = svarAsJson.isTextual && svarAsJson.asText().isNotBlank()
@@ -71,39 +75,42 @@ class GyldigSvar(json: JsonNode) {
 
     private fun validerGenerator() {
         require(svarAsJson is ArrayNode) { feilmelding() }
-        kotlin.runCatching {
-            svarAsJson.forEach { indeks ->
-                indeks.forEach { faktum ->
-                    require(faktum.has("id")) { "id må alltid angis på generator svar, mangler i $faktum" }
-                    if (faktum["id"].asText().contains(".")) {
-                        val id = faktum["id"].asText()
-                        val idUtenIndeks = id.substring(0, id.indexOf("."))
-                        (faktum as ObjectNode).put("id", idUtenIndeks)
+        kotlin
+            .runCatching {
+                svarAsJson.forEach { indeks ->
+                    indeks.forEach { faktum ->
+                        require(faktum.has("id")) { "id må alltid angis på generator svar, mangler i $faktum" }
+                        if (faktum["id"].asText().contains(".")) {
+                            val id = faktum["id"].asText()
+                            val idUtenIndeks = id.substring(0, id.indexOf("."))
+                            (faktum as ObjectNode).put("id", idUtenIndeks)
+                        }
+                        GyldigSvar(faktum)
                     }
-                    GyldigSvar(faktum)
                 }
-            }
-        }.fold(
-            {},
-            {
-                sikkerlogg.error(it) { "Ikke gyldig '$type', feil i underliggende faktum ${it.message}, svar: $svarAsJson" }
-                throw IllegalArgumentException("Ikke gyldig '$type', feil i underliggende faktum. Se sikkerlogg for detaljer")
-            },
-        )
+            }.fold(
+                {},
+                {
+                    sikkerlogg.error(it) { "Ikke gyldig '$type', feil i underliggende faktum ${it.message}, svar: $svarAsJson" }
+                    throw IllegalArgumentException("Ikke gyldig '$type', feil i underliggende faktum. Se sikkerlogg for detaljer")
+                },
+            )
     }
 
     private fun validerPeriode() {
         require(
-            svarAsJson is ObjectNode && kotlin.runCatching {
-                val fom = svarAsJson["fom"].asLocalDate()
-                if (svarAsJson.has("tom")) {
-                    val tomJsonNode = svarAsJson["tom"]
-                    if (!tomJsonNode.isMissingOrNull()) {
-                        val tom = tomJsonNode.asLocalDate()
-                        require(fom <= tom) { "'fom' fra-og-med-dato må være før 'tom' til-og-med-dato " }
-                    }
-                }
-            }.isSuccess,
+            svarAsJson is ObjectNode &&
+                kotlin
+                    .runCatching {
+                        val fom = svarAsJson["fom"].asLocalDate()
+                        if (svarAsJson.has("tom")) {
+                            val tomJsonNode = svarAsJson["tom"]
+                            if (!tomJsonNode.isMissingOrNull()) {
+                                val tom = tomJsonNode.asLocalDate()
+                                require(fom <= tom) { "'fom' fra-og-med-dato må være før 'tom' til-og-med-dato " }
+                            }
+                        }
+                    }.isSuccess,
             feilmelding(),
         )
     }

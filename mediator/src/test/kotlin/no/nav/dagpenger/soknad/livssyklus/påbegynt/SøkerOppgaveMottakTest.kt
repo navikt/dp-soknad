@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -13,7 +14,6 @@ import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -34,16 +34,17 @@ class SøkerOppgaveMottakTest {
     @Test
     fun `lese svar fra kafka`() {
         Postgres.withMigratedDb {
-            val søknadMediator = SøknadMediator(
-                testRapid,
-                SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource),
-                mockk(),
-                mockk(),
-                SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource),
-                mockk(),
-            ).also {
-                SøkerOppgaveMottak(testRapid, it)
-            }
+            val søknadMediator =
+                SøknadMediator(
+                    testRapid,
+                    SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource),
+                    mockk(),
+                    mockk(),
+                    SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource),
+                    mockk(),
+                ).also {
+                    SøkerOppgaveMottak(testRapid, it)
+                }
             testRapid.reset()
             val søknadUuid = UUID.randomUUID()
             val ident = "01234567891"
@@ -80,9 +81,10 @@ class SøkerOppgaveMottakTest {
     @Test
     fun `søknader som ikke finnes skal ikke behandles`() {
         val uuidSomIkkeFinnes = UUID.randomUUID()
-        val søknadRepository = mockk<SøknadRepository>().also {
-            every { it.hent(uuidSomIkkeFinnes) } throws SøknadMediator.SøknadIkkeFunnet("ikke funnet")
-        }
+        val søknadRepository =
+            mockk<SøknadRepository>().also {
+                every { it.hent(uuidSomIkkeFinnes) } throws SøknadMediator.SøknadIkkeFunnet("ikke funnet")
+            }
         SøknadMediator(
             rapidsConnection = testRapid,
             søknadDataRepository = mockk(),
@@ -90,10 +92,9 @@ class SøkerOppgaveMottakTest {
             ferdigstiltSøknadRepository = mockk(),
             søknadRepository = søknadRepository,
             dokumentkravRepository = mockk(),
-        )
-            .also {
-                SøkerOppgaveMottak(testRapid, it)
-            }
+        ).also {
+            SøkerOppgaveMottak(testRapid, it)
+        }
 
         testRapid.sendTestMessage(nySøknad(uuidSomIkkeFinnes, "01234567891"))
 
@@ -102,7 +103,11 @@ class SøkerOppgaveMottakTest {
     }
 
     //language=JSON
-    private fun nySøknad(søknadUuid: UUID, ident: String) = """{
+    private fun nySøknad(
+        søknadUuid: UUID,
+        ident: String,
+    ) = """
+        {
   "@event_name": "søker_oppgave",
   "fødselsnummer": "$ident",
   "versjon_id": 0,

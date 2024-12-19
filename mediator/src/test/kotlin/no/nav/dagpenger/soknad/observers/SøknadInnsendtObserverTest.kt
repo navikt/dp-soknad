@@ -1,9 +1,9 @@
 package no.nav.dagpenger.soknad.observers
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import junit.framework.TestCase.assertEquals
 import no.nav.dagpenger.soknad.SøknadObserver
 import no.nav.dagpenger.soknad.utils.asUUID
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID

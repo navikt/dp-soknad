@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.BooleanNode
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
+import com.github.navikt.tbd_libs.rapids_and_rivers.toUUID
 import de.slub.urn.URN
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.DokumentkravSvar
@@ -32,9 +35,6 @@ import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak
 import no.nav.dagpenger.soknad.mal.SøknadMal
 import no.nav.dagpenger.soknad.mal.SøknadMalPostgresRepository
 import no.nav.dagpenger.soknad.utils.asZonedDateTime
-import no.nav.helse.rapids_rivers.asLocalDateTime
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helse.rapids_rivers.toUUID
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -57,30 +57,35 @@ internal class SøknadMediatorIntegrasjonTest {
     @BeforeEach
     fun setup() {
         val dataSource = Postgres.withMigratedDb()
-        søknadMediator = SøknadMediator(
-            rapidsConnection = testRapid,
-            søknadDataRepository = SøknadDataPostgresRepository(dataSource),
-            søknadMalRepository = SøknadMalPostgresRepository(dataSource).also {
-                it.lagre(
-                    søknadMal = SøknadMal(
-                        prosessversjon = Prosessversjon(
-                            navn = "Dagpenger",
-                            versjon = 123,
+        søknadMediator =
+            SøknadMediator(
+                rapidsConnection = testRapid,
+                søknadDataRepository = SøknadDataPostgresRepository(dataSource),
+                søknadMalRepository =
+                SøknadMalPostgresRepository(dataSource).also {
+                    it.lagre(
+                        søknadMal =
+                        SøknadMal(
+                            prosessversjon =
+                            Prosessversjon(
+                                navn = "Dagpenger",
+                                versjon = 123,
+                            ),
+                            mal = jacksonObjectMapper().createObjectNode(),
                         ),
-                        mal = jacksonObjectMapper().createObjectNode(),
-                    ),
-                )
-            },
-            ferdigstiltSøknadRepository = mockk(),
-            søknadRepository = SøknadPostgresRepository(dataSource),
-            dokumentkravRepository = PostgresDokumentkravRepository(dataSource),
-            søknadObservers = listOf(),
-        )
+                    )
+                },
+                ferdigstiltSøknadRepository = mockk(),
+                søknadRepository = SøknadPostgresRepository(dataSource),
+                dokumentkravRepository = PostgresDokumentkravRepository(dataSource),
+                søknadObservers = listOf(),
+            )
 
-        innsendingMediator = InnsendingMediator(
-            rapidsConnection = testRapid,
-            innsendingRepository = mockk(),
-        )
+        innsendingMediator =
+            InnsendingMediator(
+                rapidsConnection = testRapid,
+                innsendingRepository = mockk(),
+            )
 
         SøkerOppgaveMottak(testRapid, søknadMediator)
         SøknadOpprettetHendelseMottak(testRapid, søknadMediator)
@@ -202,7 +207,8 @@ internal class SøknadMediatorIntegrasjonTest {
                     uuid = UUID.randomUUID(),
                     kravId = "2",
                     skjemakode = "N6",
-                    varianter = listOf(
+                    varianter =
+                    listOf(
                         Innsending.Dokument.Dokumentvariant(
                             uuid = UUID.randomUUID(),
                             filnavn = "d2",
@@ -216,12 +222,16 @@ internal class SøknadMediatorIntegrasjonTest {
         )
     }
 
-    private fun assertBehovContains(behovtype: Aktivitetslogg.Aktivitet.Behov.Behovtype, block: (JsonNode) -> Unit) {
+    private fun assertBehovContains(
+        behovtype: Aktivitetslogg.Aktivitet.Behov.Behovtype,
+        block: (JsonNode) -> Unit,
+    ) {
         val behov: JsonNode = sisteBehov()
         assertTrue(
-            behov["@behov"].map {
-                it.asText()
-            }.contains(behovtype.name),
+            behov["@behov"]
+                .map {
+                    it.asText()
+                }.contains(behovtype.name),
         )
         block(behov)
     }
@@ -232,9 +242,10 @@ internal class SøknadMediatorIntegrasjonTest {
         val behov = sisteBehov()
         val jacksonObjectMapper = jacksonObjectMapper()
 
-        val dokumenter = behov["dokumentkrav"].let {
-            jacksonObjectMapper.convertValue<List<Innsending.Dokument>>(it)
-        }
+        val dokumenter =
+            behov["dokumentkrav"].let {
+                jacksonObjectMapper.convertValue<List<Innsending.Dokument>>(it)
+            }
 
         expected.forEachIndexed { index, dokument ->
             val actual = dokumenter[index]
@@ -257,7 +268,10 @@ internal class SøknadMediatorIntegrasjonTest {
         }
     }
 
-    private fun behandleDokumentkravSammenstilling(kravId: String, urn: String) {
+    private fun behandleDokumentkravSammenstilling(
+        kravId: String,
+        urn: String,
+    ) {
         søknadMediator.behandle(
             DokumentKravSammenstilling(
                 søknadID = søknadUuid,
@@ -268,7 +282,10 @@ internal class SøknadMediatorIntegrasjonTest {
         )
     }
 
-    private fun behandleDokumentasjonIkkeTilgjengelig(kravId: String, begrunnelse: String) {
+    private fun behandleDokumentasjonIkkeTilgjengelig(
+        kravId: String,
+        begrunnelse: String,
+    ) {
         søknadMediator.behandle(
             DokumentasjonIkkeTilgjengelig(
                 søknadID = søknadUuid,
@@ -302,13 +319,17 @@ internal class SøknadMediatorIntegrasjonTest {
         )
     }
 
-    private fun behandleLeggTilFil(kravId: String, urn: String) {
+    private fun behandleLeggTilFil(
+        kravId: String,
+        urn: String,
+    ) {
         søknadMediator.behandle(
             LeggTilFil(
                 søknadID = søknadUuid,
                 ident = testIdent,
                 kravId = kravId,
-                fil = Krav.Fil(
+                fil =
+                Krav.Fil(
                     filnavn = "test.jpg",
                     urn = URN.rfc8141().parse(urn),
                     storrelse = 0,
@@ -321,11 +342,15 @@ internal class SøknadMediatorIntegrasjonTest {
 
     private fun behov(indeks: Int) = testRapid.inspektør.message(indeks)["@behov"].map { it.asText() }
 
-    private fun oppdatertInspektør(ident: String = testIdent) =
-        TestSøknadhåndtererInspektør(søknadMediator.hentSøknader(ident).first())
+    private fun oppdatertInspektør(ident: String = testIdent) = TestSøknadhåndtererInspektør(søknadMediator.hentSøknader(ident).first())
 
     // language=JSON
-    private fun søkerOppgave(søknadUuid: UUID, ident: String, ferdig: Boolean) = """{
+    private fun søkerOppgave(
+        søknadUuid: UUID,
+        ident: String,
+        ferdig: Boolean,
+    ) = """
+        {
   "@event_name": "søker_oppgave",
   "fødselsnummer": $ident,
   "versjon_id": 0,
@@ -391,7 +416,10 @@ internal class SøknadMediatorIntegrasjonTest {
     """.trimIndent()
 
     // language=JSON
-    private fun nySøknadBehovsløsning(søknadUuid: String, ident: String = testIdent) = """
+    private fun nySøknadBehovsløsning(
+        søknadUuid: String,
+        ident: String = testIdent,
+    ) = """
     {
       "@event_name": "behov",
       "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",

@@ -23,14 +23,16 @@ dependencies {
     implementation(libs.kotlin.logging)
 
     implementation("com.github.navikt:pam-geography:2.21")
-    implementation(libs.dp.biblioteker.oauth2.klient)
-    implementation(libs.dp.biblioteker.pdl.klient)
+
+    implementation("no.nav.dagpenger:oauth2-klient:2024.12.10-14.29.b14a663ac6da")
+    implementation("no.nav.dagpenger:pdl-klient:2024.12.10-14.29.b14a663ac6da")
     implementation("io.prometheus:simpleclient_caffeine:0.16.0")
     implementation("com.fasterxml.jackson.module:jackson-module-blackbird:2.18.2")
 
     testImplementation(libs.ktor.client.mock)
     testImplementation("io.kotest:kotest-assertions-core-jvm:${libs.versions.kotest.get()}")
 
+    testImplementation(libs.rapids.and.rivers.test)
     testImplementation("io.mockk:mockk:${libs.versions.mockk.get()}")
     testImplementation(libs.mock.oauth2.server)
     testImplementation(libs.bundles.postgres.test)

@@ -1,24 +1,27 @@
 package no.nav.dagpenger.soknad.innsending.meldinger
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.utils.asUUID
 import no.nav.dagpenger.soknad.utils.asZonedDateTime
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.isMissingOrNull
 import java.time.ZonedDateTime
 
-abstract class MeldingOmInnsending(packet: JsonMessage) {
+abstract class MeldingOmInnsending(
+    packet: JsonMessage,
+) {
     protected val søknadId = packet["søknad_uuid"].asUUID()
     protected val innsendt: ZonedDateTime = packet["innsendtTidspunkt"].asZonedDateTime()
     protected val dokumentkrav: List<Innsending.Dokument> = packet.dokumentkrav()
     protected val ident = packet["ident"].asText()
 
     protected abstract val innsending: Innsending
+
     fun hendelse(): NyInnsendingHendelse = NyInnsendingHendelse(innsending, ident)
 
-    private fun JsonMessage.dokumentkrav(): List<Innsending.Dokument> {
-        return this["dokumentkrav"].map { jsonNode ->
+    private fun JsonMessage.dokumentkrav(): List<Innsending.Dokument> =
+        this["dokumentkrav"].map { jsonNode ->
             Innsending.Dokument(
                 uuid = jsonNode["uuid"].asUUID(),
                 kravId = jsonNode["kravId"].asNullableText(),
@@ -26,10 +29,9 @@ abstract class MeldingOmInnsending(packet: JsonMessage) {
                 varianter = jsonNode.varianter(),
             )
         }
-    }
 
-    private fun JsonNode.varianter(): List<Innsending.Dokument.Dokumentvariant> {
-        return this["varianter"].map { jsonNode ->
+    private fun JsonNode.varianter(): List<Innsending.Dokument.Dokumentvariant> =
+        this["varianter"].map { jsonNode ->
             Innsending.Dokument.Dokumentvariant(
                 uuid = jsonNode["uuid"].asUUID(),
                 filnavn = jsonNode["filnavn"].asText(),
@@ -38,13 +40,11 @@ abstract class MeldingOmInnsending(packet: JsonMessage) {
                 type = jsonNode["type"].asText(),
             )
         }
-    }
 
-    private fun JsonNode.asNullableText(): String? {
-        return if (this.isMissingOrNull()) {
+    private fun JsonNode.asNullableText(): String? =
+        if (this.isMissingOrNull()) {
             null
         } else {
             this.asText()
         }
-    }
 }

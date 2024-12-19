@@ -1,22 +1,22 @@
 package no.nav.dagpenger.soknad.mal
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class SøknadsMalMottakTest {
-
     private val søknadMalRepositoryMock = mockk<SøknadMalRepository>(relaxed = true)
 
-    private val testRapid = TestRapid().also { rapidsConnection ->
-        SøknadsMalMottak(rapidsConnection, søknadMalRepositoryMock)
-    }
+    private val testRapid =
+        TestRapid().also { rapidsConnection ->
+            SøknadsMalMottak(rapidsConnection, søknadMalRepositoryMock)
+        }
 
     @Test
     fun `Motta søknadsmal fra quiz og lagre den i databasen`() {
@@ -46,12 +46,12 @@ class SøknadsMalMottakTest {
 }
 
 //language=JSON
-fun testSøknadMalMelding() = """
+fun testSøknadMalMelding() =
+    """
     {
       "@event_name": "Søknadsmal",
       "versjon_id": 111,
       "versjon_navn": "test",
       "seksjoner": []
     }
-
-""".trimIndent()
+    """.trimIndent()
