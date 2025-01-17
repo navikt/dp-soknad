@@ -1,7 +1,7 @@
 package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
 import com.fasterxml.jackson.databind.JsonNode
-import no.nav.helse.rapids_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -18,23 +18,28 @@ internal class FaktumSvar(
     private val id = UUID.randomUUID()
 
     fun søknadUuid() = søknadUuid
+
     fun ident() = ident
+
     fun besvart() = besvart
 
-    fun toJson() = JsonMessage.newMessage(
-        mapOf(
-            "@event_name" to navn,
-            "@opprettet" to opprettet,
-            "@id" to id,
-            "besvart" to besvart,
-            "fakta" to listOf(
+    fun toJson() =
+        JsonMessage
+            .newMessage(
                 mapOf(
-                    "id" to faktumId,
-                    "type" to type,
-                    "svar" to svar,
+                    "@event_name" to navn,
+                    "@opprettet" to opprettet,
+                    "@id" to id,
+                    "besvart" to besvart,
+                    "fakta" to
+                        listOf(
+                            mapOf(
+                                "id" to faktumId,
+                                "type" to type,
+                                "svar" to svar,
+                            ),
+                        ),
+                    "søknad_uuid" to søknadUuid,
                 ),
-            ),
-            "søknad_uuid" to søknadUuid,
-        ),
-    ).toJson()
+            ).toJson()
 }

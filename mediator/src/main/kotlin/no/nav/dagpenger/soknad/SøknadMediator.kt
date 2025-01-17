@@ -1,5 +1,7 @@
 package no.nav.dagpenger.soknad
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.withMDC
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.db.DokumentkravRepository
 import no.nav.dagpenger.soknad.db.SøknadDataRepository
@@ -23,8 +25,6 @@ import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.FerdigstiltSøknadRepos
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.mal.SøknadMalRepository
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.withMDC
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -87,12 +87,13 @@ internal class SøknadMediator(
     }
 
     fun behandle(søkerOppgave: SøkerOppgave) {
-        val hendelse = søkerOppgave.hendelse().apply {
-            addObserver {
-                // Lagre oppgaven hver gang modellen har håndtert hendelsen
-                søknadDataRepository.lagre(søkerOppgave)
+        val hendelse =
+            søkerOppgave.hendelse().apply {
+                addObserver {
+                    // Lagre oppgaven hver gang modellen har håndtert hendelsen
+                    søknadDataRepository.lagre(søkerOppgave)
+                }
             }
-        }
         behandle(hendelse) { søknad ->
             søknad.håndter(hendelse)
         }
@@ -141,7 +142,10 @@ internal class SøknadMediator(
         }
     }
 
-    fun behandle(hendelse: MigrertProsessHendelse, søkerOppgave: SøkerOppgave) {
+    fun behandle(
+        hendelse: MigrertProsessHendelse,
+        søkerOppgave: SøkerOppgave,
+    ) {
         behandle(hendelse) { søknad ->
             søknad.håndter(hendelse)
             søknadDataRepository.lagre(søkerOppgave)
@@ -157,7 +161,10 @@ internal class SøknadMediator(
         behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident, språk, prosessnavn))
     }
 
-    private fun behandle(hendelse: SøknadHendelse, håndter: (Søknad) -> Unit) = try {
+    private fun behandle(
+        hendelse: SøknadHendelse,
+        håndter: (Søknad) -> Unit,
+    ) = try {
         val søknad = hentEllerOpprettSøknad(hendelse)
         søknadObservers.forEach { søknadObserver ->
             søknad.addObserver(søknadObserver)
@@ -181,11 +188,12 @@ internal class SøknadMediator(
     private fun hentEllerOpprettSøknad(hendelse: SøknadHendelse): Søknad {
         val søknad = hent(hendelse.søknadID())
         return when (hendelse) {
-            is ØnskeOmNySøknadHendelse -> søknad ?: søknadRepository.opprett(
-                hendelse.søknadID(),
-                hendelse.språk(),
-                hendelse.ident(),
-            )
+            is ØnskeOmNySøknadHendelse ->
+                søknad ?: søknadRepository.opprett(
+                    hendelse.søknadID(),
+                    hendelse.språk(),
+                    hendelse.ident(),
+                )
 
             else -> søknad ?: throw SøknadIkkeFunnet("Søknaden med id ${hendelse.søknadID()} finnes ikke")
         }
@@ -200,7 +208,11 @@ internal class SøknadMediator(
             }
         }
 
-    private fun errorHandler(err: Exception, message: String, context: Map<String, String> = emptyMap()) {
+    private fun errorHandler(
+        err: Exception,
+        message: String,
+        context: Map<String, String> = emptyMap(),
+    ) {
         logger.error("alvorlig feil: ${err.message} (se sikkerlogg for melding)", err)
         withMDC(context) { sikkerLogger.error("alvorlig feil: ${err.message}\n\t$message", err) }
     }
@@ -212,18 +224,24 @@ internal class SøknadMediator(
         behovMediator.håndter(hendelse)
     }
 
-    internal class SøknadIkkeFunnet(message: String) : RuntimeException(message)
+    internal class SøknadIkkeFunnet(
+        message: String,
+    ) : RuntimeException(message)
 }
 
 enum class Prosesstype {
-    Søknad, Innsending
+    Søknad,
+    Innsending,
 }
 
 internal sealed class Søknadsprosess {
     abstract fun getSøknadsId(): UUID
 
-    internal class NySøknadsProsess(søknadId: UUID) : Søknadsprosess() {
+    internal class NySøknadsProsess(
+        søknadId: UUID,
+    ) : Søknadsprosess() {
         private val søknadID = søknadId
+
         override fun getSøknadsId(): UUID = søknadID
     }
 }

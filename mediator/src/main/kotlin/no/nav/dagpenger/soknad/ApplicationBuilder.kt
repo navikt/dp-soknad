@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad
 
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.dagpenger.pdl.createPersonOppslag
 import no.nav.dagpenger.soknad.arbeidsforhold.AaregClient
 import no.nav.dagpenger.soknad.arbeidsforhold.ArbeidsforholdOppslag
@@ -40,88 +41,103 @@ import no.nav.dagpenger.soknad.status.BehandlingsstatusHttpClient
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.runMigration
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidsConnection
 
-internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnection.StatusListener {
-
-    private val rapidsConnection: RapidsConnection = RapidApplication.Builder(
-        RapidApplication.RapidApplicationConfig.fromEnv(config),
-    ).withKtorModule {
-        api(
-            personaliaRouteBuilder = personaliaRouteBuilder(
-                personOppslag = PersonOppslag(createPersonOppslag(Configuration.pdlUrl)),
-                kontonummerOppslag = KontonummerOppslag(
-                    kontoRegisterUrl = Configuration.kontoRegisterUrl,
-                    tokenProvider = Configuration.tokenXClient(Configuration.kontoRegisterScope),
-                ),
-            ),
-            arbeidsforholdRouteBuilder = arbeidsforholdRouteBuilder(
-                arbeidsforholdOppslag = ArbeidsforholdOppslag(
-                    aaregClient = AaregClient(
-                        aaregUrl = Configuration.aaregUrl,
-                        tokenProvider = Configuration.tokenXClient(Configuration.aaregAudience),
+internal class ApplicationBuilder(
+    config: Map<String, String>,
+) : RapidsConnection.StatusListener {
+    private val rapidsConnection: RapidsConnection =
+        RapidApplication
+            .create(
+                config,
+            ) { engine, _ ->
+                engine.application.api(
+                    personaliaRouteBuilder =
+                    personaliaRouteBuilder(
+                        personOppslag = PersonOppslag(createPersonOppslag(Configuration.pdlUrl)),
+                        kontonummerOppslag =
+                        KontonummerOppslag(
+                            kontoRegisterUrl = Configuration.kontoRegisterUrl,
+                            tokenProvider = Configuration.tokenXClient(Configuration.kontoRegisterScope),
+                        ),
                     ),
-                    eregClient = EregClient(
-                        eregUrl = Configuration.eregUrl,
+                    arbeidsforholdRouteBuilder =
+                    arbeidsforholdRouteBuilder(
+                        arbeidsforholdOppslag =
+                        ArbeidsforholdOppslag(
+                            aaregClient =
+                            AaregClient(
+                                aaregUrl = Configuration.aaregUrl,
+                                tokenProvider = Configuration.tokenXClient(Configuration.aaregAudience),
+                            ),
+                            eregClient =
+                            EregClient(
+                                eregUrl = Configuration.eregUrl,
+                            ),
+                        ),
                     ),
-                ),
-            ),
-            søknadRouteBuilder = søknadApiRouteBuilder(
-                søknadMediator(),
-                BehandlingsstatusHttpClient(),
-            ),
-            ferdigstiltRouteBuilder = ferdigStiltSøknadRouteBuilder(
-                ferdigstiltRepository,
-            ),
-            søknadDataRouteBuilder = søknadData(mediator = søknadMediator),
-
-        )
-    }.build()
+                    søknadRouteBuilder =
+                    søknadApiRouteBuilder(
+                        søknadMediator(),
+                        BehandlingsstatusHttpClient(),
+                    ),
+                    ferdigstiltRouteBuilder =
+                    ferdigStiltSøknadRouteBuilder(
+                        ferdigstiltRepository,
+                    ),
+                    søknadDataRouteBuilder = søknadData(mediator = søknadMediator),
+                )
+            }
 
     private val søknadMalRepository = SøknadMalPostgresRepository(PostgresDataSourceBuilder.dataSource)
-    private val ferdigstiltRepository = FerdigstiltSøknadPostgresRepository(
-        PostgresDataSourceBuilder.dataSource,
-    )
-    private val søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).also {
-        SøknadMigrering(it, søknadMalRepository, rapidsConnection)
-    }
+    private val ferdigstiltRepository =
+        FerdigstiltSøknadPostgresRepository(
+            PostgresDataSourceBuilder.dataSource,
+        )
+    private val søknadRepository =
+        SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).also {
+            SøknadMigrering(it, søknadMalRepository, rapidsConnection)
+        }
 
     private val dokumentkravRepository = PostgresDokumentkravRepository(PostgresDataSourceBuilder.dataSource)
 
-    private val søknadMediator = SøknadMediator(
-        rapidsConnection = rapidsConnection,
-        søknadDataRepository = SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource),
-        søknadMalRepository = søknadMalRepository,
-        ferdigstiltSøknadRepository = ferdigstiltRepository,
-        søknadRepository = søknadRepository,
-        dokumentkravRepository = dokumentkravRepository,
-        søknadObservers = listOf(
-            SøknadLoggerObserver,
-            SøknadMetrikkObserver,
-            SøknadTilstandObserver(rapidsConnection),
-            SøknadInnsendtObserver(rapidsConnection),
-        ),
-    ).also {
-        SøknadOpprettetHendelseMottak(rapidsConnection, it)
-        SøkerOppgaveMottak(rapidsConnection, it)
-        MigrertSøknadMottak(rapidsConnection, it)
-        SøknadInnsendtTidspunktTjeneste(rapidsConnection, it)
-    }
+    private val søknadMediator =
+        SøknadMediator(
+            rapidsConnection = rapidsConnection,
+            søknadDataRepository = SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource),
+            søknadMalRepository = søknadMalRepository,
+            ferdigstiltSøknadRepository = ferdigstiltRepository,
+            søknadRepository = søknadRepository,
+            dokumentkravRepository = dokumentkravRepository,
+            søknadObservers =
+            listOf(
+                SøknadLoggerObserver,
+                SøknadMetrikkObserver,
+                SøknadTilstandObserver(rapidsConnection),
+                SøknadInnsendtObserver(rapidsConnection),
+            ),
+        ).also {
+            SøknadOpprettetHendelseMottak(rapidsConnection, it)
+            SøkerOppgaveMottak(rapidsConnection, it)
+            MigrertSøknadMottak(rapidsConnection, it)
+            SøknadInnsendtTidspunktTjeneste(rapidsConnection, it)
+        }
 
-    private val innsendingMediator = InnsendingMediator(
-        rapidsConnection = rapidsConnection,
-        innsendingRepository = InnsendingPostgresRepository(PostgresDataSourceBuilder.dataSource),
-        innsendingObservers = listOf(
-            InnsendingMetrikkObserver,
-        ),
-    ).also {
-        ArkiverbarSøknadMottattHendelseMottak(rapidsConnection, it)
-        NyJournalpostMottak(rapidsConnection, it)
-        JournalførtMottak(rapidsConnection, it)
-        SkjemakodeMottak(rapidsConnection, it)
-        NyInnsendingBehovMottak(rapidsConnection, it)
-        NyEttersendingBehovMottak(rapidsConnection, it)
-    }
+    private val innsendingMediator =
+        InnsendingMediator(
+            rapidsConnection = rapidsConnection,
+            innsendingRepository = InnsendingPostgresRepository(PostgresDataSourceBuilder.dataSource),
+            innsendingObservers =
+            listOf(
+                InnsendingMetrikkObserver,
+            ),
+        ).also {
+            ArkiverbarSøknadMottattHendelseMottak(rapidsConnection, it)
+            NyJournalpostMottak(rapidsConnection, it)
+            JournalførtMottak(rapidsConnection, it)
+            SkjemakodeMottak(rapidsConnection, it)
+            NyInnsendingBehovMottak(rapidsConnection, it)
+            NyEttersendingBehovMottak(rapidsConnection, it)
+        }
 
     val påminnelseJobb = PåminnelseJobb(innsendingMediator, PostgresDataSourceBuilder.dataSource)
 

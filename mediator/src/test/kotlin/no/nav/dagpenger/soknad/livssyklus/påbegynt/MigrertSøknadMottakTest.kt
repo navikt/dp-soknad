@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -7,7 +8,6 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import no.nav.dagpenger.soknad.SøknadMediator
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -16,9 +16,10 @@ class MigrertSøknadMottakTest {
     private val søknadUUID = UUID.randomUUID()
     private val ident = "123"
     private val mediatorMock = mockk<SøknadMediator>()
-    private val testRapid = TestRapid().also { rapidsConnection ->
-        MigrertSøknadMottak(rapidsConnection, mediatorMock)
-    }
+    private val testRapid =
+        TestRapid().also { rapidsConnection ->
+            MigrertSøknadMottak(rapidsConnection, mediatorMock)
+        }
 
     @Test
     fun `skal lese migrert melding`() {
@@ -37,7 +38,8 @@ class MigrertSøknadMottakTest {
     }
 
     //language=JSON
-    private val melding = """
+    private val melding =
+        """
         {
         "@event_name": "behov",
         "@behov": ["MigrerProsess"],
@@ -52,5 +54,5 @@ class MigrertSøknadMottakTest {
                }
           }
         }
-    """.trimIndent()
+        """.trimIndent()
 }

@@ -1,5 +1,7 @@
 package no.nav.dagpenger.soknad.innsending
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.withMDC
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.BehovMediator
@@ -14,8 +16,6 @@ import no.nav.dagpenger.soknad.hendelse.innsending.InnsendingPåminnelseHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.innsending.meldinger.NyInnsendingHendelse
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.withMDC
 
 internal class InnsendingMediator(
     rapidsConnection: RapidsConnection,
@@ -65,7 +65,11 @@ internal class InnsendingMediator(
         }
     }
 
-    private fun behandle(hendelse: Hendelse, innsending: Innsending, håndter: (Innsending) -> Unit) = try {
+    private fun behandle(
+        hendelse: Hendelse,
+        innsending: Innsending,
+        håndter: (Innsending) -> Unit,
+    ) = try {
         håndter(innsending)
         innsendingRepository.lagre(innsending)
         finalize(hendelse)
@@ -82,17 +86,25 @@ internal class InnsendingMediator(
         throw e
     }
 
-    private fun behandle(hendelse: JournalførtHendelse, håndter: (Innsending) -> Unit) {
-        val innsending = innsendingRepository.hentInnsending(hendelse.journalpostId()).also { innsending ->
-            innsendingObservers.forEach { innsending.addObserver(it) }
-        }
+    private fun behandle(
+        hendelse: JournalførtHendelse,
+        håndter: (Innsending) -> Unit,
+    ) {
+        val innsending =
+            innsendingRepository.hentInnsending(hendelse.journalpostId()).also { innsending ->
+                innsendingObservers.forEach { innsending.addObserver(it) }
+            }
         behandle(hendelse, innsending, håndter)
     }
 
-    private fun behandle(hendelse: InnsendingHendelse, håndter: (Innsending) -> Unit) {
-        val innsending = hentEllerOpprettInnsending(hendelse).also { innsending ->
-            innsendingObservers.forEach { innsending.addObserver(it) }
-        }
+    private fun behandle(
+        hendelse: InnsendingHendelse,
+        håndter: (Innsending) -> Unit,
+    ) {
+        val innsending =
+            hentEllerOpprettInnsending(hendelse).also { innsending ->
+                innsendingObservers.forEach { innsending.addObserver(it) }
+            }
         behandle(hendelse, innsending, håndter)
     }
 
@@ -114,7 +126,11 @@ internal class InnsendingMediator(
             }
         }
 
-    private fun errorHandler(err: Exception, message: String, context: Map<String, String> = emptyMap()) {
+    private fun errorHandler(
+        err: Exception,
+        message: String,
+        context: Map<String, String> = emptyMap(),
+    ) {
         logger.error("alvorlig feil: ${err.message} (se sikkerlogg for melding)", err)
         withMDC(context) { sikkerLogger.error("alvorlig feil: ${err.message}\n\t$message", err) }
     }
@@ -126,5 +142,7 @@ internal class InnsendingMediator(
         behovMediator.håndter(hendelse)
     }
 
-    internal class SøknadIkkeFunnet(message: String) : RuntimeException(message)
+    internal class SøknadIkkeFunnet(
+        message: String,
+    ) : RuntimeException(message)
 }

@@ -1,5 +1,7 @@
 package no.nav.dagpenger.soknad.innsending.meldinger
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -13,8 +15,6 @@ import no.nav.dagpenger.soknad.Innsending.InnsendingType.NY_DIALOG
 import no.nav.dagpenger.soknad.InnsendingVisitor
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
 import no.nav.dagpenger.soknad.innsending.tjenester.NyInnsendingBehovMottak
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
