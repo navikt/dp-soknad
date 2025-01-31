@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad
 
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.dagpenger.pdl.createPersonOppslag
 import no.nav.dagpenger.soknad.arbeidsforhold.AaregClient
 import no.nav.dagpenger.soknad.arbeidsforhold.ArbeidsforholdOppslag
@@ -40,43 +41,45 @@ import no.nav.dagpenger.soknad.status.BehandlingsstatusHttpClient
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.runMigration
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidsConnection
 
 internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnection.StatusListener {
 
-    private val rapidsConnection: RapidsConnection = RapidApplication.Builder(
-        RapidApplication.RapidApplicationConfig.fromEnv(config),
-    ).withKtorModule {
-        api(
-            personaliaRouteBuilder = personaliaRouteBuilder(
-                personOppslag = PersonOppslag(createPersonOppslag(Configuration.pdlUrl)),
-                kontonummerOppslag = KontonummerOppslag(
-                    kontoRegisterUrl = Configuration.kontoRegisterUrl,
-                    tokenProvider = Configuration.tokenXClient(Configuration.kontoRegisterScope),
-                ),
-            ),
-            arbeidsforholdRouteBuilder = arbeidsforholdRouteBuilder(
-                arbeidsforholdOppslag = ArbeidsforholdOppslag(
-                    aaregClient = AaregClient(
-                        aaregUrl = Configuration.aaregUrl,
-                        tokenProvider = Configuration.tokenXClient(Configuration.aaregAudience),
+    private val rapidsConnection: RapidsConnection = RapidApplication.create(
+        config,
+        builder = {
+            withKtorModule {
+                api(
+                    personaliaRouteBuilder = personaliaRouteBuilder(
+                        personOppslag = PersonOppslag(createPersonOppslag(Configuration.pdlUrl)),
+                        kontonummerOppslag = KontonummerOppslag(
+                            kontoRegisterUrl = Configuration.kontoRegisterUrl,
+                            tokenProvider = Configuration.tokenXClient(Configuration.kontoRegisterScope),
+                        ),
                     ),
-                    eregClient = EregClient(
-                        eregUrl = Configuration.eregUrl,
+                    arbeidsforholdRouteBuilder = arbeidsforholdRouteBuilder(
+                        arbeidsforholdOppslag = ArbeidsforholdOppslag(
+                            aaregClient = AaregClient(
+                                aaregUrl = Configuration.aaregUrl,
+                                tokenProvider = Configuration.tokenXClient(Configuration.aaregAudience),
+                            ),
+                            eregClient = EregClient(
+                                eregUrl = Configuration.eregUrl,
+                            ),
+                        ),
                     ),
-                ),
-            ),
-            søknadRouteBuilder = søknadApiRouteBuilder(
-                søknadMediator(),
-                BehandlingsstatusHttpClient(),
-            ),
-            ferdigstiltRouteBuilder = ferdigStiltSøknadRouteBuilder(
-                ferdigstiltRepository,
-            ),
-            søknadDataRouteBuilder = søknadData(mediator = søknadMediator),
+                    søknadRouteBuilder = søknadApiRouteBuilder(
+                        søknadMediator(),
+                        BehandlingsstatusHttpClient(),
+                    ),
+                    ferdigstiltRouteBuilder = ferdigStiltSøknadRouteBuilder(
+                        ferdigstiltRepository,
+                    ),
+                    søknadDataRouteBuilder = søknadData(mediator = søknadMediator),
 
-        )
-    }.build()
+                )
+            }
+        },
+    )
 
     private val søknadMalRepository = SøknadMalPostgresRepository(PostgresDataSourceBuilder.dataSource)
     private val ferdigstiltRepository = FerdigstiltSøknadPostgresRepository(

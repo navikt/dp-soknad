@@ -12,7 +12,7 @@ private val logger = KotlinLogging.logger {}
 internal class PersonOppslag(
     private val personOppslag: PersonOppslag,
     private val tokenProvider: (token: String, audience: String) -> String = { s: String, a: String ->
-        tokenXClient.tokenExchange(s, a).accessToken ?: throw RuntimeException("Fant ikke token")
+        tokenXClient.tokenExchange(s, a).access_token ?: throw RuntimeException("Fant ikke token")
     },
     private val pdlAudience: String = Configuration.pdlAudience,
 ) {
