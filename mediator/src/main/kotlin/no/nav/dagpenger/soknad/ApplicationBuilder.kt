@@ -44,6 +44,21 @@ import no.nav.helse.rapids_rivers.RapidApplication
 
 internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnection.StatusListener {
 
+    private val søknadMediator = SøknadMediator(
+        søknadDataRepository = SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource),
+        søknadMalRepository = søknadMalRepository,
+        ferdigstiltSøknadRepository = ferdigstiltRepository,
+        søknadRepository = søknadRepository,
+        dokumentkravRepository = dokumentkravRepository,
+        søknadObservers = listOf(
+            SøknadLoggerObserver,
+            SøknadMetrikkObserver,
+            SøknadTilstandObserver(rapidsConnection),
+            SøknadInnsendtObserver(rapidsConnection),
+        ),
+    ).also {
+    }
+
     private val rapidsConnection: RapidsConnection = RapidApplication.create(
         config,
         builder = {
@@ -68,7 +83,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
                         ),
                     ),
                     søknadRouteBuilder = søknadApiRouteBuilder(
-                        søknadMediator(),
+                        søknadMediator,
                         BehandlingsstatusHttpClient(),
                     ),
                     ferdigstiltRouteBuilder = ferdigStiltSøknadRouteBuilder(
@@ -79,7 +94,13 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
                 )
             }
         },
-    )
+    ).also { rapidsConnection ->
+        søknadMediator.setRapidsConnection(rapidsConnection)
+        SøknadOpprettetHendelseMottak(rapidsConnection, søknadMediator)
+        SøkerOppgaveMottak(rapidsConnection, søknadMediator)
+        MigrertSøknadMottak(rapidsConnection, søknadMediator)
+        SøknadInnsendtTidspunktTjeneste(rapidsConnection, søknadMediator)
+    }
 
     private val søknadMalRepository = SøknadMalPostgresRepository(PostgresDataSourceBuilder.dataSource)
     private val ferdigstiltRepository = FerdigstiltSøknadPostgresRepository(
@@ -90,26 +111,6 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
     }
 
     private val dokumentkravRepository = PostgresDokumentkravRepository(PostgresDataSourceBuilder.dataSource)
-
-    private val søknadMediator = SøknadMediator(
-        rapidsConnection = rapidsConnection,
-        søknadDataRepository = SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource),
-        søknadMalRepository = søknadMalRepository,
-        ferdigstiltSøknadRepository = ferdigstiltRepository,
-        søknadRepository = søknadRepository,
-        dokumentkravRepository = dokumentkravRepository,
-        søknadObservers = listOf(
-            SøknadLoggerObserver,
-            SøknadMetrikkObserver,
-            SøknadTilstandObserver(rapidsConnection),
-            SøknadInnsendtObserver(rapidsConnection),
-        ),
-    ).also {
-        SøknadOpprettetHendelseMottak(rapidsConnection, it)
-        SøkerOppgaveMottak(rapidsConnection, it)
-        MigrertSøknadMottak(rapidsConnection, it)
-        SøknadInnsendtTidspunktTjeneste(rapidsConnection, it)
-    }
 
     private val innsendingMediator = InnsendingMediator(
         rapidsConnection = rapidsConnection,
@@ -145,6 +146,4 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         UtdaterteSøknaderJob.sletterutine(søknadMediator)
         SlettSøknaderJob.sletterutine(søknadMediator)
     }
-
-    private fun søknadMediator(): SøknadMediator = søknadMediator
 }

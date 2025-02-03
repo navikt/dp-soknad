@@ -29,7 +29,6 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 internal class SøknadMediator(
-    private val rapidsConnection: RapidsConnection,
     private val søknadDataRepository: SøknadDataRepository,
     private val søknadMalRepository: SøknadMalRepository,
     private val ferdigstiltSøknadRepository: FerdigstiltSøknadRepository,
@@ -43,6 +42,12 @@ internal class SøknadMediator(
     private companion object {
         val logger = KotlinLogging.logger { }
         val sikkerLogger = KotlinLogging.logger("tjenestekall")
+    }
+
+    private lateinit var rapidsConnection: RapidsConnection
+
+    fun setRapidsConnection(rapidsConnection: RapidsConnection) {
+        this.rapidsConnection = rapidsConnection
     }
 
     private val behovMediator = BehovMediator(rapidsConnection, sikkerLogger)
