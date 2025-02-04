@@ -1,11 +1,11 @@
 package no.nav.dagpenger.soknad.observers
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.dagpenger.soknad.DokumentkravObserver
 import no.nav.dagpenger.soknad.SøknadObserver
 import no.nav.dagpenger.soknad.SøknadObserver.SøknadEndretTilstandEvent
 import no.nav.dagpenger.soknad.SøknadObserver.SøknadSlettetEvent
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.RapidsConnection
 
 internal class SøknadTilstandObserver(private val rapidsConnection: RapidsConnection) : SøknadObserver {
     override fun søknadTilstandEndret(event: SøknadEndretTilstandEvent) =

@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.BooleanNode
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
+import com.github.navikt.tbd_libs.rapids_and_rivers.toUUID
 import de.slub.urn.URN
 import io.mockk.mockk
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype.DokumentkravSvar
@@ -32,9 +35,6 @@ import no.nav.dagpenger.soknad.livssyklus.start.SøknadOpprettetHendelseMottak
 import no.nav.dagpenger.soknad.mal.SøknadMal
 import no.nav.dagpenger.soknad.mal.SøknadMalPostgresRepository
 import no.nav.dagpenger.soknad.utils.asZonedDateTime
-import no.nav.helse.rapids_rivers.asLocalDateTime
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helse.rapids_rivers.toUUID
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -58,7 +58,6 @@ internal class SøknadMediatorIntegrasjonTest {
     fun setup() {
         val dataSource = Postgres.withMigratedDb()
         søknadMediator = SøknadMediator(
-            rapidsConnection = testRapid,
             søknadDataRepository = SøknadDataPostgresRepository(dataSource),
             søknadMalRepository = SøknadMalPostgresRepository(dataSource).also {
                 it.lagre(
@@ -74,8 +73,9 @@ internal class SøknadMediatorIntegrasjonTest {
             ferdigstiltSøknadRepository = mockk(),
             søknadRepository = SøknadPostgresRepository(dataSource),
             dokumentkravRepository = PostgresDokumentkravRepository(dataSource),
-            søknadObservers = listOf(),
-        )
+        ).also {
+            it.setRapidsConnection(testRapid)
+        }
 
         innsendingMediator = InnsendingMediator(
             rapidsConnection = testRapid,

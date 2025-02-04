@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.livssyklus
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -10,7 +11,6 @@ import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.hendelse.innsending.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
 import no.nav.dagpenger.soknad.innsending.tjenester.ArkiverbarSøknadMottattHendelseMottak
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

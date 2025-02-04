@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import de.slub.urn.URN
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
 import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.request.receive
