@@ -58,7 +58,6 @@ internal class SøknadMediatorIntegrasjonTest {
     fun setup() {
         val dataSource = Postgres.withMigratedDb()
         søknadMediator = SøknadMediator(
-            rapidsConnection = testRapid,
             søknadDataRepository = SøknadDataPostgresRepository(dataSource),
             søknadMalRepository = SøknadMalPostgresRepository(dataSource).also {
                 it.lagre(
@@ -74,8 +73,9 @@ internal class SøknadMediatorIntegrasjonTest {
             ferdigstiltSøknadRepository = mockk(),
             søknadRepository = SøknadPostgresRepository(dataSource),
             dokumentkravRepository = PostgresDokumentkravRepository(dataSource),
-            søknadObservers = listOf(),
-        )
+        ).also {
+            it.setRapidsConnection(testRapid)
+        }
 
         innsendingMediator = InnsendingMediator(
             rapidsConnection = testRapid,

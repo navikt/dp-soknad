@@ -34,7 +34,7 @@ internal class SøknadMediator(
     private val ferdigstiltSøknadRepository: FerdigstiltSøknadRepository,
     private val søknadRepository: SøknadRepository,
     private val dokumentkravRepository: DokumentkravRepository,
-    private val søknadObservers: List<SøknadObserver> = emptyList(),
+    private val søknadObservers: MutableList<SøknadObserver> = mutableListOf(),
 ) : SøknadDataRepository by søknadDataRepository,
     SøknadMalRepository by søknadMalRepository,
     FerdigstiltSøknadRepository by ferdigstiltSøknadRepository,
@@ -45,12 +45,17 @@ internal class SøknadMediator(
     }
 
     private lateinit var rapidsConnection: RapidsConnection
+    /// TODO: Dette er dårlig, men hvorfor har vi denne i utangspunktet?
+    private lateinit var behovMediator: BehovMediator
 
     fun setRapidsConnection(rapidsConnection: RapidsConnection) {
         this.rapidsConnection = rapidsConnection
+        this.behovMediator = BehovMediator(rapidsConnection, sikkerLogger)
     }
 
-    private val behovMediator = BehovMediator(rapidsConnection, sikkerLogger)
+    fun addObservers(observers: List<SøknadObserver>) {
+        søknadObservers.addAll(observers)
+    }
 
     fun behandle(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         behandle(ønskeOmNySøknadHendelse) { søknad ->

@@ -44,20 +44,25 @@ import no.nav.helse.rapids_rivers.RapidApplication
 
 internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnection.StatusListener {
 
+    private val søknadMalRepository = SøknadMalPostgresRepository(PostgresDataSourceBuilder.dataSource)
+
+    private val ferdigstiltRepository = FerdigstiltSøknadPostgresRepository(
+        PostgresDataSourceBuilder.dataSource,
+    )
+
+    private val søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).also {
+        SøknadMigrering(it, søknadMalRepository, rapidsConnection)
+    }
+
+    private val dokumentkravRepository = PostgresDokumentkravRepository(PostgresDataSourceBuilder.dataSource)
+
     private val søknadMediator = SøknadMediator(
         søknadDataRepository = SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource),
         søknadMalRepository = søknadMalRepository,
         ferdigstiltSøknadRepository = ferdigstiltRepository,
         søknadRepository = søknadRepository,
         dokumentkravRepository = dokumentkravRepository,
-        søknadObservers = listOf(
-            SøknadLoggerObserver,
-            SøknadMetrikkObserver,
-            SøknadTilstandObserver(rapidsConnection),
-            SøknadInnsendtObserver(rapidsConnection),
-        ),
-    ).also {
-    }
+    )
 
     private val rapidsConnection: RapidsConnection = RapidApplication.create(
         config,
@@ -96,21 +101,19 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         },
     ).also { rapidsConnection ->
         søknadMediator.setRapidsConnection(rapidsConnection)
+        søknadMediator.addObservers(
+            listOf(
+                SøknadLoggerObserver,
+                SøknadMetrikkObserver,
+                SøknadTilstandObserver(rapidsConnection),
+                SøknadInnsendtObserver(rapidsConnection),
+            ),
+        )
         SøknadOpprettetHendelseMottak(rapidsConnection, søknadMediator)
         SøkerOppgaveMottak(rapidsConnection, søknadMediator)
         MigrertSøknadMottak(rapidsConnection, søknadMediator)
         SøknadInnsendtTidspunktTjeneste(rapidsConnection, søknadMediator)
     }
-
-    private val søknadMalRepository = SøknadMalPostgresRepository(PostgresDataSourceBuilder.dataSource)
-    private val ferdigstiltRepository = FerdigstiltSøknadPostgresRepository(
-        PostgresDataSourceBuilder.dataSource,
-    )
-    private val søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).also {
-        SøknadMigrering(it, søknadMalRepository, rapidsConnection)
-    }
-
-    private val dokumentkravRepository = PostgresDokumentkravRepository(PostgresDataSourceBuilder.dataSource)
 
     private val innsendingMediator = InnsendingMediator(
         rapidsConnection = rapidsConnection,

@@ -35,13 +35,13 @@ class SøkerOppgaveMottakTest {
     fun `lese svar fra kafka`() {
         Postgres.withMigratedDb {
             val søknadMediator = SøknadMediator(
-                testRapid,
-                SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource),
-                mockk(),
-                mockk(),
-                SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource),
-                mockk(),
+                søknadDataRepository = SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource),
+                søknadMalRepository = mockk(),
+                ferdigstiltSøknadRepository = mockk(),
+                søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource),
+                dokumentkravRepository = mockk(),
             ).also {
+                it.setRapidsConnection(testRapid)
                 SøkerOppgaveMottak(testRapid, it)
             }
             testRapid.reset()
@@ -84,7 +84,6 @@ class SøkerOppgaveMottakTest {
             every { it.hent(uuidSomIkkeFinnes) } throws SøknadMediator.SøknadIkkeFunnet("ikke funnet")
         }
         SøknadMediator(
-            rapidsConnection = testRapid,
             søknadDataRepository = mockk(),
             søknadMalRepository = mockk(),
             ferdigstiltSøknadRepository = mockk(),
@@ -92,6 +91,7 @@ class SøkerOppgaveMottakTest {
             dokumentkravRepository = mockk(),
         )
             .also {
+                it.setRapidsConnection(testRapid)
                 SøkerOppgaveMottak(testRapid, it)
             }
 
