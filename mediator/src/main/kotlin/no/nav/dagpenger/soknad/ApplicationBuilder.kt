@@ -50,9 +50,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         PostgresDataSourceBuilder.dataSource,
     )
 
-    private val søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource).also {
-        SøknadMigrering(it, søknadMalRepository, rapidsConnection)
-    }
+    private val søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource)
 
     private val dokumentkravRepository = PostgresDokumentkravRepository(PostgresDataSourceBuilder.dataSource)
 
@@ -113,6 +111,7 @@ internal class ApplicationBuilder(config: Map<String, String>) : RapidsConnectio
         SøkerOppgaveMottak(rapidsConnection, søknadMediator)
         MigrertSøknadMottak(rapidsConnection, søknadMediator)
         SøknadInnsendtTidspunktTjeneste(rapidsConnection, søknadMediator)
+        SøknadMigrering(søknadRepository, søknadMalRepository, rapidsConnection)
     }
 
     private val innsendingMediator = InnsendingMediator(
