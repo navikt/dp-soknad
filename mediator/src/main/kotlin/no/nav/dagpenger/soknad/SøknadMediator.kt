@@ -45,7 +45,6 @@ internal class SøknadMediator(
     }
 
     private lateinit var rapidsConnection: RapidsConnection
-    /// TODO: Dette er dårlig, men hvorfor har vi denne i utangspunktet?
     private lateinit var behovMediator: BehovMediator
 
     fun setRapidsConnection(rapidsConnection: RapidsConnection) {
