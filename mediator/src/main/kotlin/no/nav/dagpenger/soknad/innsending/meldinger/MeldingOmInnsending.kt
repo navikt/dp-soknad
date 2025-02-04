@@ -1,11 +1,11 @@
 package no.nav.dagpenger.soknad.innsending.meldinger
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
 import no.nav.dagpenger.soknad.Innsending
 import no.nav.dagpenger.soknad.utils.asUUID
 import no.nav.dagpenger.soknad.utils.asZonedDateTime
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.isMissingOrNull
 import java.time.ZonedDateTime
 
 abstract class MeldingOmInnsending(packet: JsonMessage) {

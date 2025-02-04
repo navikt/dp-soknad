@@ -1,10 +1,14 @@
 package no.nav.dagpenger.soknad.innsending
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import no.nav.dagpenger.soknad.Aktivitetslogg.Aktivitet.Behov.Behovtype
 import no.nav.dagpenger.soknad.Innsending
+import no.nav.dagpenger.soknad.Innsending.Dokument
 import no.nav.dagpenger.soknad.Innsending.Dokument.Dokumentvariant
 import no.nav.dagpenger.soknad.Innsending.InnsendingType.NY_DIALOG
+import no.nav.dagpenger.soknad.Innsending.Metadata
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerArkiverbarSøknad
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerJournalføring
 import no.nav.dagpenger.soknad.Innsending.TilstandType.AvventerMetadata
@@ -14,16 +18,16 @@ import no.nav.dagpenger.soknad.InnsendingObserver
 import no.nav.dagpenger.soknad.InnsendingVisitor
 import no.nav.dagpenger.soknad.hendelse.innsending.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.InnsendingMetadataMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.innsending.InnsendingPåminnelseHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.innsending.meldinger.NyInnsendingHendelse
 import no.nav.dagpenger.soknad.utils.asZonedDateTime
-import no.nav.helse.rapids_rivers.isMissingOrNull
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -83,43 +87,47 @@ internal class InnsendingMediatorTest {
     fun `Håndterer ArkiverbarSøknadHendelse`() {
         val innsendt = ZonedDateTime.now()
         val skjemaKode = "04.04-04"
-        val dokumentKrav = listOf(
-            Innsending.Dokument(
-                uuid = UUID.randomUUID(),
-                kravId = "k1",
-                skjemakode = null,
-                varianter = listOf(
-                    Dokumentvariant(
-                        uuid = UUID.randomUUID(),
-                        filnavn = "k1",
-                        urn = "urn:vedlegg:k1",
-                        variant = "BRUTTO",
-                        type = "PDF",
+        val dokumentKrav =
+            listOf(
+                Dokument(
+                    uuid = UUID.randomUUID(),
+                    kravId = "k1",
+                    skjemakode = null,
+                    varianter =
+                    listOf(
+                        Dokumentvariant(
+                            uuid = UUID.randomUUID(),
+                            filnavn = "k1",
+                            urn = "urn:vedlegg:k1",
+                            variant = "BRUTTO",
+                            type = "PDF",
+                        ),
                     ),
                 ),
-            ),
-            Innsending.Dokument(
-                uuid = UUID.randomUUID(),
-                kravId = "k2",
-                skjemakode = null,
-                varianter = listOf(
-                    Dokumentvariant(
-                        uuid = UUID.randomUUID(),
-                        filnavn = "k2",
-                        urn = "urn:vedlegg:k2",
-                        variant = "BRUTTO",
-                        type = "PDF",
+                Dokument(
+                    uuid = UUID.randomUUID(),
+                    kravId = "k2",
+                    skjemakode = null,
+                    varianter =
+                    listOf(
+                        Dokumentvariant(
+                            uuid = UUID.randomUUID(),
+                            filnavn = "k2",
+                            urn = "urn:vedlegg:k2",
+                            variant = "BRUTTO",
+                            type = "PDF",
+                        ),
                     ),
                 ),
-            ),
-        )
+            )
 
-        val innsending = Innsending.ny(
-            innsendt = innsendt,
-            ident = ident,
-            søknadId = søknadId,
-            dokumentkrav = dokumentKrav,
-        )
+        val innsending =
+            Innsending.ny(
+                innsendt = innsendt,
+                ident = ident,
+                søknadId = søknadId,
+                dokumentkrav = dokumentKrav,
+            )
         innsending.addObserver(innsendingObserver)
 
         mediator.behandle(NyInnsendingHendelse(innsending, ident))
@@ -134,22 +142,23 @@ internal class InnsendingMediatorTest {
             assertEquals(listOf<String>("k1", "k2"), this["dokumentasjonKravId"].map { it.asText() })
         }
 
-        val hovedDokument = listOf(
-            Dokumentvariant(
-                uuid = UUID.randomUUID(),
-                filnavn = "f1",
-                urn = "urn:vedlegg:f1",
-                variant = "ARKIV",
-                type = "PDF",
-            ),
-            Dokumentvariant(
-                uuid = UUID.randomUUID(),
-                filnavn = "f2",
-                urn = "urn:vedlegg:f1",
-                variant = "FULLVERSJON",
-                type = "PDF",
-            ),
-        )
+        val hovedDokument =
+            listOf(
+                Dokumentvariant(
+                    uuid = UUID.randomUUID(),
+                    filnavn = "f1",
+                    urn = "urn:vedlegg:f1",
+                    variant = "ARKIV",
+                    type = "PDF",
+                ),
+                Dokumentvariant(
+                    uuid = UUID.randomUUID(),
+                    filnavn = "f2",
+                    urn = "urn:vedlegg:f1",
+                    variant = "FULLVERSJON",
+                    type = "PDF",
+                ),
+            )
 
         mediator.behandle(
             ArkiverbarSøknadMottattHendelse(
@@ -172,7 +181,10 @@ internal class InnsendingMediatorTest {
         }
     }
 
-    private fun assertDokumenter(dokumenterer: List<Innsending.Dokument>, jsonNode: JsonNode) {
+    private fun assertDokumenter(
+        dokumenterer: List<Dokument>,
+        jsonNode: JsonNode,
+    ) {
         assertFalse(jsonNode.isMissingOrNull(), "jsonNode finnes ikke eller er null")
         assertEquals(dokumenterer.size, jsonNode.size())
 
@@ -181,7 +193,10 @@ internal class InnsendingMediatorTest {
         }
     }
 
-    private fun assertVarianter(dokumentVarianter: List<Dokumentvariant>, jsonNode: JsonNode) {
+    private fun assertVarianter(
+        dokumentVarianter: List<Dokumentvariant>,
+        jsonNode: JsonNode,
+    ) {
         assertFalse(jsonNode.isMissingOrNull(), "jsonNode finnes ikke eller er null")
         assertEquals(dokumentVarianter.size, jsonNode.size())
         dokumentVarianter.forEachIndexed { index, dokumentvariant ->
@@ -268,6 +283,58 @@ internal class InnsendingMediatorTest {
         assertEquals(Journalført, innsendingObserver.gjeldendeTilstand)
         assertEquals(journalpostId, TestInnsendingVisitor(innsending).journalpostId)
     }
+
+    @Test
+    fun `Håndterer påminnelse om innsending hendelse for tilstand AvventerMidlertidigJournalføring`() {
+        val innsendingId = UUID.randomUUID()
+        val innsending =
+            Innsending.rehydrer(
+                innsendingId = innsendingId,
+                type = NY_DIALOG,
+                ident = ident,
+                søknadId = søknadId,
+                innsendt = ZonedDateTime.now(),
+                journalpostId = null,
+                tilstandsType = AvventerMidlertidligJournalføring,
+                hovedDokument = Dokument(kravId = "", skjemakode = "skjemakode", varianter = emptyList()),
+                dokumenter = emptyList(),
+                metadata = null,
+                sistEndretTilstand = LocalDateTime.now(),
+            )
+
+        val innsendingPåminnelseHendelse = InnsendingPåminnelseHendelse(innsendingId, ident)
+        repository.lagre(innsending)
+        mediator.behandle(innsendingPåminnelseHendelse)
+
+        assertEquals(1, innsendingPåminnelseHendelse.behov().size)
+        assertEquals(Behovtype.NyJournalpost, innsendingPåminnelseHendelse.behov().first().type)
+    }
+
+    @Test
+    fun `Håndterer påminnelse om innsending hendelse for tilstand AvventerArkiverbarSøknad`() {
+        val innsendingId = UUID.randomUUID()
+        val innsending =
+            Innsending.rehydrer(
+                innsendingId = innsendingId,
+                type = NY_DIALOG,
+                ident = ident,
+                søknadId = søknadId,
+                innsendt = ZonedDateTime.now(),
+                journalpostId = null,
+                tilstandsType = AvventerArkiverbarSøknad,
+                hovedDokument = Dokument(kravId = "", skjemakode = "skjemakode", varianter = emptyList()),
+                dokumenter = emptyList(),
+                metadata = Metadata(skjemakode = "skjemakode"),
+                sistEndretTilstand = LocalDateTime.now(),
+            )
+
+        val innsendingPåminnelseHendelse = InnsendingPåminnelseHendelse(innsendingId, ident)
+        repository.lagre(innsending)
+        mediator.behandle(innsendingPåminnelseHendelse)
+
+        assertEquals(1, innsendingPåminnelseHendelse.behov().size)
+        assertEquals(Behovtype.ArkiverbarSøknad, innsendingPåminnelseHendelse.behov().first().type)
+    }
 }
 
 class TestInnsendingObserver : InnsendingObserver {
@@ -277,7 +344,10 @@ class TestInnsendingObserver : InnsendingObserver {
         gjeldendeTilstand = event.gjeldendeTilstand
     }
 }
-private class TestInnsendingVisitor(innsending: Innsending) : InnsendingVisitor {
+
+private class TestInnsendingVisitor(
+    innsending: Innsending,
+) : InnsendingVisitor {
     var journalpostId: String? = null
 
     init {
@@ -290,11 +360,12 @@ private class TestInnsendingVisitor(innsending: Innsending) : InnsendingVisitor 
         ident: String,
         innsendingType: Innsending.InnsendingType,
         tilstand: Innsending.TilstandType,
+        sistEndretTilstand: LocalDateTime,
         innsendt: ZonedDateTime,
         journalpost: String?,
-        hovedDokument: Innsending.Dokument?,
-        dokumenter: List<Innsending.Dokument>,
-        metadata: Innsending.Metadata?,
+        hovedDokument: Dokument?,
+        dokumenter: List<Dokument>,
+        metadata: Metadata?,
     ) {
         this.journalpostId = journalpost
     }
@@ -309,9 +380,8 @@ private class InMemoryInnsendingRepository : InnsendingRepository {
         innsendinger[innsending.innsendingId] = innsending
     }
 
-    override fun hentInnsending(journalpostId: String): Innsending {
-        return innsendinger.values.single { innsending ->
+    override fun hentInnsending(journalpostId: String): Innsending =
+        innsendinger.values.single { innsending ->
             TestInnsendingVisitor(innsending).journalpostId == journalpostId
         }
-    }
 }

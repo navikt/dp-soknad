@@ -1,11 +1,11 @@
 package no.nav.dagpenger.soknad
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.mal.SøknadMal
 import no.nav.dagpenger.soknad.mal.SøknadMalRepository
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.RapidsConnection
 import java.util.UUID
 
 class SøknadMigrering constructor(

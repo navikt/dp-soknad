@@ -64,6 +64,6 @@ internal object Configuration {
         tokenXClient.tokenExchange(
             token = subjectToken,
             audience = audience,
-        ).accessToken ?: throw RuntimeException("Klarte ikke hente token")
+        ).access_token ?: throw RuntimeException("Klarte ikke hente token")
     }
 }

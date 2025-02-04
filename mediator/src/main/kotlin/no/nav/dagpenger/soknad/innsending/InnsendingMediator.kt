@@ -1,5 +1,7 @@
 package no.nav.dagpenger.soknad.innsending
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.withMDC
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.BehovMediator
@@ -10,11 +12,10 @@ import no.nav.dagpenger.soknad.hendelse.SøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.ArkiverbarSøknadMottattHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.InnsendingHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.InnsendingMetadataMottattHendelse
+import no.nav.dagpenger.soknad.hendelse.innsending.InnsendingPåminnelseHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.JournalførtHendelse
 import no.nav.dagpenger.soknad.hendelse.innsending.SøknadMidlertidigJournalførtHendelse
 import no.nav.dagpenger.soknad.innsending.meldinger.NyInnsendingHendelse
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.withMDC
 
 internal class InnsendingMediator(
     rapidsConnection: RapidsConnection,
@@ -55,6 +56,12 @@ internal class InnsendingMediator(
     fun behandle(journalførtHendelse: JournalførtHendelse) {
         behandle(journalførtHendelse) { innsending ->
             innsending.håndter(journalførtHendelse)
+        }
+    }
+
+    fun behandle(innsendingPåminnelseHendelse: InnsendingPåminnelseHendelse) {
+        behandle(innsendingPåminnelseHendelse) { innsending ->
+            innsending.håndter(innsendingPåminnelseHendelse)
         }
     }
 

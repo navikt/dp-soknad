@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.serder
 
 import no.nav.dagpenger.soknad.Innsending
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -16,9 +17,10 @@ data class InnsendingDTO(
     val dokumenter: List<Innsending.Dokument>,
     val metadata: MetadataDTO?,
     val ettersendinger: List<InnsendingDTO>,
+    val sistEndretTilstand: LocalDateTime,
 ) {
-    fun rehydrer(): Innsending {
-        return Innsending.rehydrer(
+    fun rehydrer(): Innsending =
+        Innsending.rehydrer(
             innsendingId = this.innsendingId,
             type = this.type.rehydrer(),
             ident = ident,
@@ -29,8 +31,8 @@ data class InnsendingDTO(
             hovedDokument = hovedDokument,
             dokumenter = dokumenter,
             metadata = metadata?.rehydrer(),
+            sistEndretTilstand = sistEndretTilstand,
         )
-    }
 
     enum class TilstandDTO {
         Opprettet,
@@ -41,8 +43,8 @@ data class InnsendingDTO(
         Journalført,
         ;
 
-        fun rehydrer(): Innsending.TilstandType {
-            return when (this) {
+        fun rehydrer(): Innsending.TilstandType =
+            when (this) {
                 Opprettet -> Innsending.TilstandType.Opprettet
                 AvventerMetadata -> Innsending.TilstandType.AvventerMetadata
                 AvventerArkiverbarSøknad -> Innsending.TilstandType.AvventerArkiverbarSøknad
@@ -50,7 +52,6 @@ data class InnsendingDTO(
                 AvventerJournalføring -> Innsending.TilstandType.AvventerJournalføring
                 Journalført -> Innsending.TilstandType.Journalført
             }
-        }
 
         companion object {
             fun rehydrer(tilstand: String) = valueOf(tilstand)
@@ -62,12 +63,11 @@ data class InnsendingDTO(
         ETTERSENDING_TIL_DIALOG,
         ;
 
-        fun rehydrer(): Innsending.InnsendingType {
-            return when (this) {
+        fun rehydrer(): Innsending.InnsendingType =
+            when (this) {
                 NY_DIALOG -> Innsending.InnsendingType.NY_DIALOG
                 ETTERSENDING_TIL_DIALOG -> Innsending.InnsendingType.ETTERSENDING_TIL_DIALOG
             }
-        }
 
         companion object {
             fun rehydrer(type: String): InnsendingTypeDTO = valueOf(type)
@@ -79,7 +79,9 @@ data class InnsendingDTO(
         val dokumenter: MutableList<Innsending.Dokument> = mutableListOf(),
     )
 
-    data class MetadataDTO(val skjemakode: String) {
+    data class MetadataDTO(
+        val skjemakode: String,
+    ) {
         fun rehydrer(): Innsending.Metadata = Innsending.Metadata(skjemakode)
     }
 }

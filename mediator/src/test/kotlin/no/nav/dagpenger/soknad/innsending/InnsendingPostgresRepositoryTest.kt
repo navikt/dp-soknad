@@ -24,7 +24,8 @@ internal class InnsendingPostgresRepositoryTest {
     private fun setup(test: () -> Unit) {
         withMigratedDb {
             SøknadPostgresRepository(dataSource = dataSource).lagre(
-                søknad = Søknad(
+                søknad =
+                Søknad(
                     søknadId = dialogId,
                     språk = Språk(verdi = "NO"),
                     ident = testPersonIdent,
@@ -36,85 +37,93 @@ internal class InnsendingPostgresRepositoryTest {
 
     private val now =
         ZonedDateTime.of(LocalDateTime.of(2022, 1, 1, 1, 1), ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.MINUTES)
-    private val hovedDokument = Innsending.Dokument(
-        uuid = UUID.randomUUID(),
-        kravId = "Hoveddokument",
-        skjemakode = "NAV-04",
-        varianter = listOf(
-            Innsending.Dokument.Dokumentvariant(
-                uuid = UUID.randomUUID(),
-                filnavn = "filnavn1",
-                urn = "urn:vedlegg:filnavn1",
-                variant = "NETTO",
-                type = "PDF",
+    private val hovedDokument =
+        Innsending.Dokument(
+            uuid = UUID.randomUUID(),
+            kravId = "Hoveddokument",
+            skjemakode = "NAV-04",
+            varianter =
+            listOf(
+                Innsending.Dokument.Dokumentvariant(
+                    uuid = UUID.randomUUID(),
+                    filnavn = "filnavn1",
+                    urn = "urn:vedlegg:filnavn1",
+                    variant = "NETTO",
+                    type = "PDF",
+                ),
+                Innsending.Dokument.Dokumentvariant(
+                    uuid = UUID.randomUUID(),
+                    filnavn = "filnavn2",
+                    urn = "urn:vedlegg:filnavn2",
+                    variant = "NETTO",
+                    type = "JSON",
+                ),
             ),
-            Innsending.Dokument.Dokumentvariant(
-                uuid = UUID.randomUUID(),
-                filnavn = "filnavn2",
-                urn = "urn:vedlegg:filnavn2",
-                variant = "NETTO",
-                type = "JSON",
+        )
+    private val dokument1 =
+        Innsending.Dokument(
+            uuid = UUID.randomUUID(),
+            kravId = "dokument1",
+            skjemakode = "NAV-04",
+            varianter =
+            listOf(
+                Innsending.Dokument.Dokumentvariant(
+                    uuid = UUID.randomUUID(),
+                    filnavn = "filnavn1",
+                    urn = "urn:vedlegg:filnavn1",
+                    variant = "NETTO",
+                    type = "PDF",
+                ),
+                Innsending.Dokument.Dokumentvariant(
+                    uuid = UUID.randomUUID(),
+                    filnavn = "filnavn2",
+                    urn = "urn:vedlegg:filnavn2",
+                    variant = "NETTO",
+                    type = "JSON",
+                ),
             ),
-        ),
-    )
-    private val dokument1 = Innsending.Dokument(
-        uuid = UUID.randomUUID(),
-        kravId = "dokument1",
-        skjemakode = "NAV-04",
-        varianter = listOf(
-            Innsending.Dokument.Dokumentvariant(
-                uuid = UUID.randomUUID(),
-                filnavn = "filnavn1",
-                urn = "urn:vedlegg:filnavn1",
-                variant = "NETTO",
-                type = "PDF",
-            ),
-            Innsending.Dokument.Dokumentvariant(
-                uuid = UUID.randomUUID(),
-                filnavn = "filnavn2",
-                urn = "urn:vedlegg:filnavn2",
-                variant = "NETTO",
-                type = "JSON",
-            ),
-        ),
-    )
+        )
 
-    private val dokument2 = Innsending.Dokument(
-        uuid = UUID.randomUUID(),
-        kravId = "dokument2",
-        skjemakode = "NAV-04",
-        varianter = listOf(
-            Innsending.Dokument.Dokumentvariant(
-                uuid = UUID.randomUUID(),
-                filnavn = "filnavn1",
-                urn = "urn:vedlegg:filnavn1",
-                variant = "NETTO",
-                type = "PDF",
+    private val dokument2 =
+        Innsending.Dokument(
+            uuid = UUID.randomUUID(),
+            kravId = "dokument2",
+            skjemakode = "NAV-04",
+            varianter =
+            listOf(
+                Innsending.Dokument.Dokumentvariant(
+                    uuid = UUID.randomUUID(),
+                    filnavn = "filnavn1",
+                    urn = "urn:vedlegg:filnavn1",
+                    variant = "NETTO",
+                    type = "PDF",
+                ),
+                Innsending.Dokument.Dokumentvariant(
+                    uuid = UUID.randomUUID(),
+                    filnavn = "filnavn2",
+                    urn = "urn:vedlegg:filnavn2",
+                    variant = "NETTO",
+                    type = "JSON",
+                ),
             ),
-            Innsending.Dokument.Dokumentvariant(
-                uuid = UUID.randomUUID(),
-                filnavn = "filnavn2",
-                urn = "urn:vedlegg:filnavn2",
-                variant = "NETTO",
-                type = "JSON",
-            ),
-        ),
-    )
+        )
 
     private val dokumenter = listOf(dokument1, dokument2)
 
-    private val originalInnsending = Innsending.rehydrer(
-        innsendingId = UUID.randomUUID(),
-        type = Innsending.InnsendingType.NY_DIALOG,
-        ident = testPersonIdent,
-        søknadId = dialogId,
-        innsendt = now,
-        journalpostId = journalpostId,
-        tilstandsType = Innsending.TilstandType.AvventerJournalføring,
-        hovedDokument = hovedDokument,
-        dokumenter = dokumenter,
-        metadata = Innsending.Metadata("NAV-04"),
-    )
+    private val originalInnsending =
+        Innsending.rehydrer(
+            innsendingId = UUID.randomUUID(),
+            type = Innsending.InnsendingType.NY_DIALOG,
+            ident = testPersonIdent,
+            søknadId = dialogId,
+            innsendt = now,
+            journalpostId = journalpostId,
+            tilstandsType = Innsending.TilstandType.AvventerJournalføring,
+            hovedDokument = hovedDokument,
+            dokumenter = dokumenter,
+            metadata = Innsending.Metadata("NAV-04"),
+            sistEndretTilstand = LocalDateTime.now(),
+        )
 
     @Test
     fun `CRUD operasjoner på innseniding`() {
@@ -139,7 +148,10 @@ internal class InnsendingPostgresRepositoryTest {
         }
     }
 
-    private fun assertInnsendingEquals(originalInnsending: Innsending, rehydrertInnsending: Innsending) {
+    private fun assertInnsendingEquals(
+        originalInnsending: Innsending,
+        rehydrertInnsending: Innsending,
+    ) {
         val expected = TestInnsendingVisitor(originalInnsending)
         val actual = TestInnsendingVisitor(rehydrertInnsending)
 
@@ -153,15 +165,22 @@ internal class InnsendingPostgresRepositoryTest {
         assertEquals(expected.dokumenter, actual.dokumenter)
         assertEquals(expected.hoveddokument, actual.hoveddokument)
         assertEquals(expected.metadata, actual.metadata)
+        assertEquals(
+            expected.sistEndretTilstand.truncatedTo(ChronoUnit.SECONDS),
+            actual.sistEndretTilstand.truncatedTo(ChronoUnit.SECONDS),
+        )
     }
 
-    private class TestInnsendingVisitor(innsending: Innsending) : InnsendingVisitor {
+    private class TestInnsendingVisitor(
+        innsending: Innsending,
+    ) : InnsendingVisitor {
         lateinit var ident: String
         lateinit var innsendingid: UUID
         lateinit var søknadid: UUID
         lateinit var innsendingtype: Innsending.InnsendingType
         lateinit var tilstand: Innsending.TilstandType
         lateinit var innsendt: ZonedDateTime
+        lateinit var sistEndretTilstand: LocalDateTime
         var journalpost: String? = null
         var hoveddokument: Innsending.Dokument? = null
         lateinit var dokumenter: List<Innsending.Dokument>
@@ -177,6 +196,7 @@ internal class InnsendingPostgresRepositoryTest {
             ident: String,
             innsendingType: Innsending.InnsendingType,
             tilstand: Innsending.TilstandType,
+            sistEndretTilstand: LocalDateTime,
             innsendt: ZonedDateTime,
             journalpost: String?,
             hovedDokument: Innsending.Dokument?,
@@ -193,6 +213,7 @@ internal class InnsendingPostgresRepositoryTest {
             this.hoveddokument = hovedDokument
             this.dokumenter = dokumenter
             this.metadata = metadata
+            this.sistEndretTilstand = sistEndretTilstand
         }
     }
 }

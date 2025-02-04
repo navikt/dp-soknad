@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad.arbeidsforhold
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
@@ -17,7 +18,6 @@ import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.utils.client.createHttpClient
-import no.nav.helse.rapids_rivers.asLocalDate
 
 internal class AaregClient(
     private val aaregUrl: String = Configuration.aaregUrl,

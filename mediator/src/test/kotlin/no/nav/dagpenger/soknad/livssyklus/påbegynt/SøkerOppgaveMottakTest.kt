@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -13,7 +14,6 @@ import no.nav.dagpenger.soknad.db.SøknadPostgresRepository
 import no.nav.dagpenger.soknad.hendelse.ØnskeOmNySøknadHendelse
 import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -35,13 +35,13 @@ class SøkerOppgaveMottakTest {
     fun `lese svar fra kafka`() {
         Postgres.withMigratedDb {
             val søknadMediator = SøknadMediator(
-                testRapid,
-                SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource),
-                mockk(),
-                mockk(),
-                SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource),
-                mockk(),
+                søknadDataRepository = SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource),
+                søknadMalRepository = mockk(),
+                ferdigstiltSøknadRepository = mockk(),
+                søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource),
+                dokumentkravRepository = mockk(),
             ).also {
+                it.setRapidsConnection(testRapid)
                 SøkerOppgaveMottak(testRapid, it)
             }
             testRapid.reset()
@@ -84,7 +84,6 @@ class SøkerOppgaveMottakTest {
             every { it.hent(uuidSomIkkeFinnes) } throws SøknadMediator.SøknadIkkeFunnet("ikke funnet")
         }
         SøknadMediator(
-            rapidsConnection = testRapid,
             søknadDataRepository = mockk(),
             søknadMalRepository = mockk(),
             ferdigstiltSøknadRepository = mockk(),
@@ -92,6 +91,7 @@ class SøkerOppgaveMottakTest {
             dokumentkravRepository = mockk(),
         )
             .also {
+                it.setRapidsConnection(testRapid)
                 SøkerOppgaveMottak(testRapid, it)
             }
 
