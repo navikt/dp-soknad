@@ -2,7 +2,6 @@ package no.nav.dagpenger.soknad.data
 
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -21,6 +20,7 @@ internal fun søknadData(mediator: SøknadMediator): Route.() -> Unit {
 internal fun Route.søknadData(søknadMediator: SøknadMediator) {
     get("${Configuration.basePath}/soknad/{søknad_uuid}/data") {
         val id = søknadUuid()
+
         withLoggingContext(
             "søknadId" to id.toString(),
         ) {

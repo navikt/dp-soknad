@@ -81,5 +81,5 @@ internal data class BehandlingsstatusDto(
 )
 
 private val exchangeToOboToken = { token: String, audience: String ->
-    tokenXClient.tokenExchange(token, audience).accessToken ?: throw RuntimeException("Fant ikke token")
+    tokenXClient.tokenExchange(token, audience).access_token ?: throw RuntimeException("Fant ikke token")
 }

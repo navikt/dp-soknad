@@ -1,10 +1,10 @@
 package no.nav.dagpenger.soknad
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import mu.KLogger
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.hendelse.Hendelse
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.RapidsConnection
 
 class BehovMediator(
     private val rapidsConnection: RapidsConnection,

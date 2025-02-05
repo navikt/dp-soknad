@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.sletterutine
 
 import FerdigSøknadData
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import de.slub.urn.URN
 import io.mockk.mockk
 import kotliquery.queryOf
@@ -29,7 +30,6 @@ import no.nav.dagpenger.soknad.livssyklus.SøknadRepository
 import no.nav.dagpenger.soknad.observers.SøknadTilstandObserver
 import no.nav.dagpenger.soknad.sletterutine.VaktmesterPostgresRepository.Companion.låseNøkkel
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -205,14 +205,15 @@ internal class VaktmesterRepositoryTest {
         søknadCacheRepository: SøknadDataPostgresRepository,
         søknadRepository: SøknadRepository,
     ) = SøknadMediator(
-        rapidsConnection = testRapid,
         søknadDataRepository = søknadCacheRepository,
         søknadMalRepository = mockk(),
         ferdigstiltSøknadRepository = mockk(),
         søknadRepository = søknadRepository,
-        søknadObservers = listOf(SøknadTilstandObserver(testRapid)),
         dokumentkravRepository = mockk(),
-    )
+    ).also {
+        it.setRapidsConnection(testRapid)
+        it.addObservers(listOf(SøknadTilstandObserver(testRapid)))
+    }
 
     private fun assertSøknadSlettetEvent() =
         assertEquals("søknad_slettet", testRapid.inspektør.field(0, "@event_name").asText())

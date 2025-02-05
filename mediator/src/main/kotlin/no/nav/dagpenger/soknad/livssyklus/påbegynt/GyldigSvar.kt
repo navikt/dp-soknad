@@ -3,10 +3,10 @@ package no.nav.dagpenger.soknad.livssyklus.påbegynt
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
+import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
 import de.slub.urn.URN
 import mu.KotlinLogging
-import no.nav.helse.rapids_rivers.asLocalDate
-import no.nav.helse.rapids_rivers.isMissingOrNull
 import java.time.LocalDateTime
 
 class GyldigSvar(json: JsonNode) {

@@ -1,5 +1,7 @@
 package no.nav.dagpenger.soknad
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.withMDC
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.db.DokumentkravRepository
 import no.nav.dagpenger.soknad.db.SøknadDataRepository
@@ -23,19 +25,16 @@ import no.nav.dagpenger.soknad.livssyklus.ferdigstilling.FerdigstiltSøknadRepos
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.FaktumSvar
 import no.nav.dagpenger.soknad.livssyklus.påbegynt.SøkerOppgave
 import no.nav.dagpenger.soknad.mal.SøknadMalRepository
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.withMDC
 import java.time.LocalDateTime
 import java.util.UUID
 
 internal class SøknadMediator(
-    private val rapidsConnection: RapidsConnection,
     private val søknadDataRepository: SøknadDataRepository,
     private val søknadMalRepository: SøknadMalRepository,
     private val ferdigstiltSøknadRepository: FerdigstiltSøknadRepository,
     private val søknadRepository: SøknadRepository,
     private val dokumentkravRepository: DokumentkravRepository,
-    private val søknadObservers: List<SøknadObserver> = emptyList(),
+    private val søknadObservers: MutableList<SøknadObserver> = mutableListOf(),
 ) : SøknadDataRepository by søknadDataRepository,
     SøknadMalRepository by søknadMalRepository,
     FerdigstiltSøknadRepository by ferdigstiltSøknadRepository,
@@ -45,7 +44,17 @@ internal class SøknadMediator(
         val sikkerLogger = KotlinLogging.logger("tjenestekall")
     }
 
-    private val behovMediator = BehovMediator(rapidsConnection, sikkerLogger)
+    private lateinit var rapidsConnection: RapidsConnection
+    private lateinit var behovMediator: BehovMediator
+
+    fun setRapidsConnection(rapidsConnection: RapidsConnection) {
+        this.rapidsConnection = rapidsConnection
+        this.behovMediator = BehovMediator(rapidsConnection, sikkerLogger)
+    }
+
+    fun addObservers(observers: List<SøknadObserver>) {
+        søknadObservers.addAll(observers)
+    }
 
     fun behandle(ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse) {
         behandle(ønskeOmNySøknadHendelse) { søknad ->
