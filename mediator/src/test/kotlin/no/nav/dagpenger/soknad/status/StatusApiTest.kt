@@ -46,10 +46,10 @@ class StatusApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator =
-                mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
-                    every { it.hent(søknadUuid) } returns søknadMed(tilstand = Påbegynt, opprettet)
-                },
+                    mockk<SøknadMediator>().also {
+                        every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
+                        every { it.hent(søknadUuid) } returns søknadMed(tilstand = Påbegynt, opprettet)
+                    },
             ),
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
@@ -66,10 +66,10 @@ class StatusApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator =
-                mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
-                    every { it.hent(søknadUuid) } returns søknadMed(tilstand = UnderOpprettelse)
-                },
+                    mockk<SøknadMediator>().also {
+                        every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
+                        every { it.hent(søknadUuid) } returns søknadMed(tilstand = UnderOpprettelse)
+                    },
             ),
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
@@ -86,19 +86,19 @@ class StatusApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator =
-                mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
-                    every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet, innsendt)
-                },
+                    mockk<SøknadMediator>().also {
+                        every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
+                        every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet, innsendt)
+                    },
                 behandlingsstatusClient =
-                mockk<BehandlingsstatusClient>().also {
-                    coEvery {
-                        it.hentBehandlingsstatus(
-                            any(),
-                            any(),
-                        )
-                    } returns BehandlingsstatusDto(behandlingsstatus = "UnderBehandling")
-                },
+                    mockk<BehandlingsstatusClient>().also {
+                        coEvery {
+                            it.hentBehandlingsstatus(
+                                any(),
+                                any(),
+                            )
+                        } returns BehandlingsstatusDto(behandlingsstatus = "UnderBehandling")
+                    },
             ),
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
@@ -118,19 +118,19 @@ class StatusApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator =
-                mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
-                    every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet, innsendt)
-                },
+                    mockk<SøknadMediator>().also {
+                        every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
+                        every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet, innsendt)
+                    },
                 behandlingsstatusClient =
-                mockk<BehandlingsstatusClient>().also {
-                    coEvery {
-                        it.hentBehandlingsstatus(
-                            any(),
-                            any(),
-                        )
-                    } returns BehandlingsstatusDto(behandlingsstatus = "Ukjent")
-                },
+                    mockk<BehandlingsstatusClient>().also {
+                        coEvery {
+                            it.hentBehandlingsstatus(
+                                any(),
+                                any(),
+                            )
+                        } returns BehandlingsstatusDto(behandlingsstatus = "Ukjent")
+                    },
             ),
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
@@ -161,10 +161,10 @@ class StatusApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator =
-                mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } returns defaultDummyFodselsnummer
-                    every { it.hent(søknadUuid) } returns null
-                },
+                    mockk<SøknadMediator>().also {
+                        every { it.hentEier(søknadUuid) } returns defaultDummyFodselsnummer
+                        every { it.hent(søknadUuid) } returns null
+                    },
             ),
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {

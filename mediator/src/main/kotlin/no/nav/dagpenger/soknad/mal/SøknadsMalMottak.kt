@@ -15,7 +15,6 @@ class SøknadsMalMottak(
     rapidsConnection: RapidsConnection,
     private val søknadMalRepository: SøknadMalRepository,
 ) : River.PacketListener {
-
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "Søknadsmal") }
@@ -36,13 +35,15 @@ class SøknadsMalMottak(
 
         if (søknadMalRepository.lagre(søknadMal) == 1) {
             logger.info("Mottatt søknadsmal med versjon_navn $versjonNavn og versjon_id $versjonId")
-            val nyMalMelding = JsonMessage.newMessage(
-                eventName = "ny_quiz_mal",
-                map = mapOf(
-                    "versjon_navn" to versjonNavn,
-                    "versjon_id" to versjonId,
-                ),
-            )
+            val nyMalMelding =
+                JsonMessage.newMessage(
+                    eventName = "ny_quiz_mal",
+                    map =
+                        mapOf(
+                            "versjon_navn" to versjonNavn,
+                            "versjon_id" to versjonId,
+                        ),
+                )
             context.publish(nyMalMelding.toJson())
         }
     }

@@ -9,11 +9,11 @@ internal data class Arbeidsforhold(
     val startdato: LocalDate,
     val sluttdato: LocalDate?,
 ) {
-
-    internal fun toResponse(organisasjonsnavn: String?) = ArbeidsforholdResponse(
-        id = id,
-        startdato = startdato,
-        sluttdato = sluttdato,
-        organisasjonsnavn = organisasjonsnavn,
-    )
+    internal fun toResponse(organisasjonsnavn: String?) =
+        ArbeidsforholdResponse(
+            id = id,
+            startdato = startdato,
+            sluttdato = sluttdato,
+            organisasjonsnavn = organisasjonsnavn,
+        )
 }

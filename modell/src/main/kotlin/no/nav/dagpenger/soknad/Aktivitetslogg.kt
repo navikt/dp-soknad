@@ -17,11 +17,9 @@ class Aktivitetslogg private constructor(
     constructor(forelder: Aktivitetslogg? = null) : this(forelder, mutableListOf())
 
     companion object {
-
         private val MODELL_KONTEKSTER = listOf("søknad")
-        fun rehyder(
-            aktiviteter: MutableList<Aktivitet>,
-        ) = Aktivitetslogg(null, aktiviteter)
+
+        fun rehyder(aktiviteter: MutableList<Aktivitet>) = Aktivitetslogg(null, aktiviteter)
     }
 
     internal fun accept(visitor: AktivitetsloggVisitor) {
@@ -30,23 +28,39 @@ class Aktivitetslogg private constructor(
         visitor.postVisitAktivitetslogg(this)
     }
 
-    override fun info(melding: String, vararg params: Any?) {
+    override fun info(
+        melding: String,
+        vararg params: Any?,
+    ) {
         add(Aktivitet.Info(kontekster.toSpesifikk(), String.format(melding, *params)))
     }
 
-    override fun warn(melding: String, vararg params: Any?) {
+    override fun warn(
+        melding: String,
+        vararg params: Any?,
+    ) {
         add(Aktivitet.Warn(kontekster.toSpesifikk(), String.format(melding, *params)))
     }
 
-    override fun behov(type: Behov.Behovtype, melding: String, detaljer: Map<String, Any>) {
+    override fun behov(
+        type: Behov.Behovtype,
+        melding: String,
+        detaljer: Map<String, Any>,
+    ) {
         add(Behov(type, kontekster.toSpesifikk(), melding, detaljer))
     }
 
-    override fun error(melding: String, vararg params: Any?) {
+    override fun error(
+        melding: String,
+        vararg params: Any?,
+    ) {
         add(Aktivitet.Error(kontekster.toSpesifikk(), String.format(melding, *params)))
     }
 
-    override fun severe(melding: String, vararg params: Any?): Nothing {
+    override fun severe(
+        melding: String,
+        vararg params: Any?,
+    ): Nothing {
         add(Aktivitet.Severe(kontekster.toSpesifikk(), String.format(melding, *params)))
 
         throw AktivitetException(this)
@@ -99,19 +113,24 @@ class Aktivitetslogg private constructor(
     }
 
     private fun info() = Aktivitet.Info.filter(aktiviteter)
+
     private fun warn() = Aktivitet.Warn.filter(aktiviteter)
+
     override fun behov() = Aktivitet.Behov.filter(aktiviteter)
+
     private fun error() = Aktivitet.Error.filter(aktiviteter)
+
     private fun severe() = Aktivitet.Severe.filter(aktiviteter)
 
     class AktivitetException internal constructor(private val aktivitetslogg: Aktivitetslogg) :
         RuntimeException(aktivitetslogg.toString()) {
-        fun kontekst() = aktivitetslogg.kontekster.fold(mutableMapOf<String, String>()) { result, kontekst ->
-            result.apply { putAll(kontekst.toSpesifikkKontekst().kontekstMap) }
-        }
+            fun kontekst() =
+                aktivitetslogg.kontekster.fold(mutableMapOf<String, String>()) { result, kontekst ->
+                    result.apply { putAll(kontekst.toSpesifikkKontekst().kontekstMap) }
+                }
 
-        fun aktivitetslogg() = aktivitetslogg
-    }
+            fun aktivitetslogg() = aktivitetslogg
+        }
 
     sealed class Aktivitet(
         private val alvorlighetsgrad: Int,
@@ -130,8 +149,10 @@ class Aktivitetslogg private constructor(
             kontekster
                 .let { kontekst -> if (typer.isEmpty()) kontekst else kontekst.filter { it.kontekstType in typer } }
                 .fold(mapOf()) { result, kontekst -> result + kontekst.kontekstMap }
-        override fun compareTo(other: Aktivitet) = this.tidsstempel.compareTo(other.tidsstempel)
-            .let { if (it == 0) other.alvorlighetsgrad.compareTo(this.alvorlighetsgrad) else it }
+
+        override fun compareTo(other: Aktivitet) =
+            this.tidsstempel.compareTo(other.tidsstempel)
+                .let { if (it == 0) other.alvorlighetsgrad.compareTo(this.alvorlighetsgrad) else it }
 
         internal fun inOrder() = label + "\t" + this.toString()
 
@@ -144,6 +165,7 @@ class Aktivitetslogg private constructor(
         internal abstract fun accept(visitor: AktivitetsloggVisitor)
 
         operator fun contains(kontekst: Aktivitetskontekst) = kontekst.toSpesifikkKontekst() in kontekster
+
         class Info(
             kontekster: List<SpesifikkKontekst>,
             private val melding: String,
@@ -247,26 +269,56 @@ class Aktivitetslogg private constructor(
 // fun Aktivitetslogg.toMap() = AktivitetsloggReflect(this).toMap()
 
 interface IAktivitetslogg {
-    fun info(melding: String, vararg params: Any?)
-    fun warn(melding: String, vararg params: Any?)
-    fun behov(type: Behov.Behovtype, melding: String, detaljer: Map<String, Any> = emptyMap())
-    fun error(melding: String, vararg params: Any?)
-    fun severe(melding: String, vararg params: Any?): Nothing
+    fun info(
+        melding: String,
+        vararg params: Any?,
+    )
+
+    fun warn(
+        melding: String,
+        vararg params: Any?,
+    )
+
+    fun behov(
+        type: Behov.Behovtype,
+        melding: String,
+        detaljer: Map<String, Any> = emptyMap(),
+    )
+
+    fun error(
+        melding: String,
+        vararg params: Any?,
+    )
+
+    fun severe(
+        melding: String,
+        vararg params: Any?,
+    ): Nothing
 
     fun hasMessages(): Boolean
+
     fun hasWarnings(): Boolean
+
     fun hasBehov(): Boolean
+
     fun hasErrors(): Boolean
+
     fun aktivitetsteller(): Int
+
     fun behov(): List<Behov>
+
     fun barn(): Aktivitetslogg
+
     fun kontekst(kontekst: Aktivitetskontekst)
+
     fun kontekst(søknad: Søknad)
+
     fun kontekster(): List<IAktivitetslogg>
 }
 
 interface AktivitetsloggVisitor {
     fun preVisitAktivitetslogg(aktivitetslogg: Aktivitetslogg) {}
+
     fun visitInfo(
         kontekster: List<SpesifikkKontekst>,
         aktivitet: Aktivitetslogg.Aktivitet.Info,
@@ -319,12 +371,9 @@ interface Aktivitetskontekst {
 }
 
 class SpesifikkKontekst(internal val kontekstType: String, internal val kontekstMap: Map<String, String> = mapOf()) {
+    internal fun melding() = kontekstType + kontekstMap.entries.joinToString(separator = ", ", prefix = " - ") { "${it.key}: ${it.value}" }
 
-    internal fun melding() =
-        kontekstType + kontekstMap.entries.joinToString(separator = ", ", prefix = " - ") { "${it.key}: ${it.value}" }
-
-    override fun equals(other: Any?) =
-        this === other || other is SpesifikkKontekst && this.kontekstMap == other.kontekstMap
+    override fun equals(other: Any?) = this === other || other is SpesifikkKontekst && this.kontekstMap == other.kontekstMap
 
     override fun hashCode() = kontekstMap.hashCode()
 }

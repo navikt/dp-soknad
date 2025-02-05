@@ -34,16 +34,17 @@ class SøkerOppgaveMottakTest {
     @Test
     fun `lese svar fra kafka`() {
         Postgres.withMigratedDb {
-            val søknadMediator = SøknadMediator(
-                søknadDataRepository = SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource),
-                søknadMalRepository = mockk(),
-                ferdigstiltSøknadRepository = mockk(),
-                søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource),
-                dokumentkravRepository = mockk(),
-            ).also {
-                it.setRapidsConnection(testRapid)
-                SøkerOppgaveMottak(testRapid, it)
-            }
+            val søknadMediator =
+                SøknadMediator(
+                    søknadDataRepository = SøknadDataPostgresRepository(PostgresDataSourceBuilder.dataSource),
+                    søknadMalRepository = mockk(),
+                    ferdigstiltSøknadRepository = mockk(),
+                    søknadRepository = SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource),
+                    dokumentkravRepository = mockk(),
+                ).also {
+                    it.setRapidsConnection(testRapid)
+                    SøkerOppgaveMottak(testRapid, it)
+                }
             testRapid.reset()
             val søknadUuid = UUID.randomUUID()
             val ident = "01234567891"
@@ -80,9 +81,10 @@ class SøkerOppgaveMottakTest {
     @Test
     fun `søknader som ikke finnes skal ikke behandles`() {
         val uuidSomIkkeFinnes = UUID.randomUUID()
-        val søknadRepository = mockk<SøknadRepository>().also {
-            every { it.hent(uuidSomIkkeFinnes) } throws SøknadMediator.SøknadIkkeFunnet("ikke funnet")
-        }
+        val søknadRepository =
+            mockk<SøknadRepository>().also {
+                every { it.hent(uuidSomIkkeFinnes) } throws SøknadMediator.SøknadIkkeFunnet("ikke funnet")
+            }
         SøknadMediator(
             søknadDataRepository = mockk(),
             søknadMalRepository = mockk(),
@@ -102,21 +104,25 @@ class SøkerOppgaveMottakTest {
     }
 
     //language=JSON
-    private fun nySøknad(søknadUuid: UUID, ident: String) = """{
-  "@event_name": "søker_oppgave",
-  "fødselsnummer": "$ident",
-  "versjon_id": 0,
-  "versjon_navn": "test",
-  "@opprettet": "${LocalDateTime.now().minusSeconds(3)}",
-  "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
-  "søknad_uuid": "$søknadUuid",
-  "ferdig": false,
-  "seksjoner": [
-    {
-      "beskrivendeId": "seksjon1",
-      "fakta": []
-    }
-  ]
-}
-    """.trimIndent()
+    private fun nySøknad(
+        søknadUuid: UUID,
+        ident: String,
+    ) = """
+        {
+          "@event_name": "søker_oppgave",
+          "fødselsnummer": "$ident",
+          "versjon_id": 0,
+          "versjon_navn": "test",
+          "@opprettet": "${LocalDateTime.now().minusSeconds(3)}",
+          "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
+          "søknad_uuid": "$søknadUuid",
+          "ferdig": false,
+          "seksjoner": [
+            {
+              "beskrivendeId": "seksjon1",
+              "fakta": []
+            }
+          ]
+        }
+        """.trimIndent()
 }

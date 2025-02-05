@@ -10,7 +10,6 @@ import no.nav.dagpenger.soknad.SpesifikkKontekst
 import java.io.InputStream
 
 class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
-
     enum class Alvorlighetsgrad {
         INFO,
         WARN,
@@ -32,9 +31,10 @@ class AktivitetsloggMapper(aktivitetslogg: Aktivitetslogg) {
 
     private val aktiviteter = Aktivitetslogginspektør(aktivitetslogg).aktiviteter
 
-    internal fun toMap() = mutableMapOf(
-        "aktiviteter" to aktiviteter,
-    )
+    internal fun toMap() =
+        mutableMapOf(
+            "aktiviteter" to aktiviteter,
+        )
 
     private inner class Aktivitetslogginspektør(aktivitetslogg: Aktivitetslogg) : AktivitetsloggVisitor {
         internal val aktiviteter = mutableListOf<Map<String, Any>>()

@@ -9,9 +9,9 @@ class SøknadMidlertidigJournalførtHendelse(
     private val journalpostId: String,
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : InnsendingHendelse(
-    innsendingId,
-    ident,
-    aktivitetslogg,
-) {
+        innsendingId,
+        ident,
+        aktivitetslogg,
+    ) {
     fun journalpostId() = journalpostId
 }

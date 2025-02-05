@@ -38,14 +38,16 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             session.run(
                 queryOf(
                     //language=PostgreSQL
-                    statement = """
-                    SELECT person_ident
-                    FROM  soknad_v1
-                    WHERE uuid = :uuid
-                    """.trimIndent(),
-                    paramMap = mapOf(
-                        "uuid" to søknadId,
-                    ),
+                    statement =
+                        """
+                        SELECT person_ident
+                        FROM  soknad_v1
+                        WHERE uuid = :uuid
+                        """.trimIndent(),
+                    paramMap =
+                        mapOf(
+                            "uuid" to søknadId,
+                        ),
                 ).map { it.stringOrNull("person_ident") }.asSingle,
             )
         }
@@ -56,34 +58,37 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
             session.run(
                 queryOf(
                     //language=PostgreSQL
-                    statement = """
-                    SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident, innsendt
-                    FROM  soknad_v1
-                    WHERE uuid = :uuid AND tilstand != 'Slettet'
-                    """.trimIndent(),
-                    paramMap = mapOf(
-                        "uuid" to søknadId,
-                    ),
+                    statement =
+                        """
+                        SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident, innsendt
+                        FROM  soknad_v1
+                        WHERE uuid = :uuid AND tilstand != 'Slettet'
+                        """.trimIndent(),
+                    paramMap =
+                        mapOf(
+                            "uuid" to søknadId,
+                        ),
                 ).map(rowToSøknadDTO(session)).asSingle,
             )?.rehydrer()
         }
     }
 
-    override fun hentSøknader(ident: String): Set<Søknad> = using(sessionOf(dataSource)) { session ->
-        session.run(
-            queryOf( //language=PostgreSQL
-                """
-                SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident, innsendt
-                FROM  soknad_v1
-                WHERE person_ident = :ident AND tilstand != 'Slettet' 
-                ORDER BY sist_endret_av_bruker DESC
-                """.trimIndent(),
-                mapOf(
-                    "ident" to ident,
-                ),
-            ).map(rowToSøknadDTO(session)).asList,
-        ).map { it.rehydrer() }.toSet()
-    }
+    override fun hentSøknader(ident: String): Set<Søknad> =
+        using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf( //language=PostgreSQL
+                    """
+                    SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident, innsendt
+                    FROM  soknad_v1
+                    WHERE person_ident = :ident AND tilstand != 'Slettet' 
+                    ORDER BY sist_endret_av_bruker DESC
+                    """.trimIndent(),
+                    mapOf(
+                        "ident" to ident,
+                    ),
+                ).map(rowToSøknadDTO(session)).asList,
+            ).map { it.rehydrer() }.toSet()
+        }
 
     private fun rowToSøknadDTO(session: Session): (Row) -> SøknadDTO {
         return { row: Row ->
@@ -99,9 +104,10 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 aktivitetslogg = session.hentAktivitetslogg(søknadsId),
                 innsendt = row.norskZonedDateTimeOrNull("innsendt"),
                 prosessversjon = session.hentProsessversjon(søknadsId),
-                data = lazy {
-                    SøknadDataPostgresRepository(dataSource).hentSøkerOppgave(søknadsId)
-                },
+                data =
+                    lazy {
+                        SøknadDataPostgresRepository(dataSource).hentSøkerOppgave(søknadsId)
+                    },
             )
         }
     }
@@ -127,7 +133,11 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
         }
     }
 
-    override fun opprett(søknadID: UUID, språk: Språk, ident: String) = Søknad(søknadID, språk, ident)
+    override fun opprett(
+        søknadID: UUID,
+        språk: Språk,
+        ident: String,
+    ) = Søknad(søknadID, språk, ident)
 
     override fun lagre(søknad: Søknad) {
         val visitor = SøknadPersistenceVisitor(søknad)
@@ -141,37 +151,39 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
     }
 }
 
-internal fun Session.hentAktivitetslogg(søknadId: UUID): AktivitetsloggDTO? = run(
-    queryOf(
-        //language=PostgreSQL
-        """
-        SELECT a.data AS aktivitetslogg
-        FROM aktivitetslogg_v1 AS a
-        WHERE a.soknad_uuid = :soknadId
-        """.trimIndent(),
-        mapOf(
-            "soknadId" to søknadId,
-        ),
-    ).map { row ->
-        row.binaryStream("aktivitetslogg").aktivitetslogg()
-    }.asSingle,
-)
+internal fun Session.hentAktivitetslogg(søknadId: UUID): AktivitetsloggDTO? =
+    run(
+        queryOf(
+            //language=PostgreSQL
+            """
+            SELECT a.data AS aktivitetslogg
+            FROM aktivitetslogg_v1 AS a
+            WHERE a.soknad_uuid = :soknadId
+            """.trimIndent(),
+            mapOf(
+                "soknadId" to søknadId,
+            ),
+        ).map { row ->
+            row.binaryStream("aktivitetslogg").aktivitetslogg()
+        }.asSingle,
+    )
 
-internal fun Session.hentProsessversjon(søknadId: UUID): ProsessversjonDTO? = run(
-    queryOf( //language=PostgreSQL
-        """
-                    SELECT prosessnavn, prosessversjon
-                    FROM  soknadmal
-                    JOIN soknad_v1 soknad ON soknad.soknadmal = soknadmal.id 
-                    WHERE soknad.uuid = :soknadId
-        """.trimIndent(),
-        mapOf(
-            "soknadId" to søknadId,
-        ),
-    ).map { row ->
-        ProsessversjonDTO(prosessnavn = row.string("prosessnavn"), versjon = row.int("prosessversjon"))
-    }.asSingle,
-)
+internal fun Session.hentProsessversjon(søknadId: UUID): ProsessversjonDTO? =
+    run(
+        queryOf( //language=PostgreSQL
+            """
+            SELECT prosessnavn, prosessversjon
+            FROM  soknadmal
+            JOIN soknad_v1 soknad ON soknad.soknadmal = soknadmal.id 
+            WHERE soknad.uuid = :soknadId
+            """.trimIndent(),
+            mapOf(
+                "soknadId" to søknadId,
+            ),
+        ).map { row ->
+            ProsessversjonDTO(prosessnavn = row.string("prosessnavn"), versjon = row.int("prosessversjon"))
+        }.asSingle,
+    )
 
 private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
     private lateinit var søknadId: UUID
@@ -206,13 +218,13 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queryOf(
                 // language=PostgreSQL
                 """
-                   INSERT INTO soknad_v1(uuid, person_ident, tilstand, spraak, opprettet, sist_endret_av_bruker, soknadmal, innsendt)
-                   VALUES (:uuid, :person_ident, :tilstand, :spraak, :opprettet, :sistEndretAvBruker,
-                        (SELECT id FROM soknadmal WHERE prosessnavn = :prosessnavn AND prosessversjon = :prosessversjon), :innsendt)
-                   ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
-                                                innsendt=:innsendt,
-                                                sist_endret_av_bruker = :sistEndretAvBruker, 
-                                                soknadmal=(SELECT id FROM soknadmal WHERE prosessnavn = :prosessnavn AND prosessversjon = :prosessversjon)
+                INSERT INTO soknad_v1(uuid, person_ident, tilstand, spraak, opprettet, sist_endret_av_bruker, soknadmal, innsendt)
+                VALUES (:uuid, :person_ident, :tilstand, :spraak, :opprettet, :sistEndretAvBruker,
+                     (SELECT id FROM soknadmal WHERE prosessnavn = :prosessnavn AND prosessversjon = :prosessversjon), :innsendt)
+                ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
+                                             innsendt=:innsendt,
+                                             sist_endret_av_bruker = :sistEndretAvBruker, 
+                                             soknadmal=(SELECT id FROM soknadmal WHERE prosessnavn = :prosessnavn AND prosessversjon = :prosessversjon)
                 """.trimIndent(),
                 mapOf(
                     "uuid" to søknadId,
@@ -242,16 +254,19 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
                     "faktum_id" to krav.id,
                     "soknad_uuid" to søknadId,
                     "beskrivende_id" to krav.beskrivendeId,
-                    "faktum" to PGobject().apply {
-                        type = "jsonb"
-                        value = objectMapper.writeValueAsString(krav.sannsynliggjøring.faktum().originalJson())
-                    },
-                    "sannsynliggjoer" to PGobject().apply {
-                        type = "jsonb"
-                        value = objectMapper.writeValueAsString(
-                            krav.sannsynliggjøring.sannsynliggjør().map { it.originalJson() },
-                        )
-                    },
+                    "faktum" to
+                        PGobject().apply {
+                            type = "jsonb"
+                            value = objectMapper.writeValueAsString(krav.sannsynliggjøring.faktum().originalJson())
+                        },
+                    "sannsynliggjoer" to
+                        PGobject().apply {
+                            type = "jsonb"
+                            value =
+                                objectMapper.writeValueAsString(
+                                    krav.sannsynliggjøring.sannsynliggjør().map { it.originalJson() },
+                                )
+                        },
                     "tilstand" to krav.tilstand.name,
                     "innsendt" to krav.svar.innsendt,
                 ),
@@ -264,13 +279,15 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queryOf(
                 //language=PostgreSQL
                 statement = "INSERT INTO aktivitetslogg_v1 (soknad_uuid, data) VALUES (:uuid, :data) ON CONFLICT (soknad_uuid) DO UPDATE SET data = :data",
-                paramMap = mapOf(
-                    "uuid" to søknadId,
-                    "data" to PGobject().apply {
-                        type = "jsonb"
-                        value = objectMapper.writeValueAsString(aktivitetslogg.toMap())
-                    },
-                ),
+                paramMap =
+                    mapOf(
+                        "uuid" to søknadId,
+                        "data" to
+                            PGobject().apply {
+                                type = "jsonb"
+                                value = objectMapper.writeValueAsString(aktivitetslogg.toMap())
+                            },
+                    ),
             ),
         )
     }

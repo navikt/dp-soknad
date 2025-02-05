@@ -26,13 +26,13 @@ internal class InnsendingPostgresRepository(
                     //language=PostgreSQL
                     queryOf(
                         statement =
-                        """
+                            """
                             SELECT innsending_uuid FROM innsending_v1 WHERE journalpost_id = :journalpost_id
-                        """.trimIndent(),
+                            """.trimIndent(),
                         paramMap =
-                        mapOf(
-                            "journalpost_id" to journalpostId,
-                        ),
+                            mapOf(
+                                "journalpost_id" to journalpostId,
+                            ),
                     ).map { row ->
                         row.uuid("innsending_uuid")
                     }.asSingle,
@@ -49,15 +49,15 @@ internal class InnsendingPostgresRepository(
                 queryOf(
                     //language=PostgreSQL
                     statement =
-                    """
+                        """
                         SELECT *
                         FROM innsending_v1
                         WHERE innsending_uuid = :innsending_uuid 
-                    """.trimIndent(),
+                        """.trimIndent(),
                     paramMap =
-                    mapOf(
-                        "innsending_uuid" to innsendingId,
-                    ),
+                        mapOf(
+                            "innsending_uuid" to innsendingId,
+                        ),
                 ).map { row: Row ->
                     val dialogId = row.uuid("soknad_uuid")
                     val dokumenter = session.hentDokumenter(innsendingId)
@@ -102,9 +102,9 @@ internal class InnsendingPostgresRepository(
             queryOf(
                 statement = """SELECT person_ident FROM soknad_v1 WHERE uuid = :uuid""",
                 paramMap =
-                mapOf(
-                    "uuid" to dialogId,
-                ),
+                    mapOf(
+                        "uuid" to dialogId,
+                    ),
             ).map { row -> row.string("person_ident") }.asSingle,
         ) ?: throw DataConstraintException("Fant ikke ident for dialogId: $dialogId")
 
@@ -211,7 +211,7 @@ private class InnsendingPersistenceVisitor(
             queryOf(
                 //language=PostgreSQL
                 statement =
-                """
+                    """
                 INSERT INTO innsending_v1(innsending_uuid, soknad_uuid, innsendt, journalpost_id, innsendingtype, tilstand, sist_endret_tilstand) 
                 VALUES(:innsending_uuid, :soknad_uuid, :innsendt, :journalpost_id, :innsendingtype, :tilstand, :sist_endret_tilstand)
                 ON CONFLICT (innsending_uuid) DO UPDATE SET innsendt = :innsendt, 
@@ -219,17 +219,17 @@ private class InnsendingPersistenceVisitor(
                                                             innsendingtype = :innsendingtype,
                                                             tilstand = :tilstand,
                                                             sist_endret_tilstand = :sist_endret_tilstand
-                """.trimMargin(),
+                    """.trimMargin(),
                 paramMap =
-                mutableMapOf(
-                    "innsending_uuid" to innsendingId,
-                    "soknad_uuid" to søknadId,
-                    "innsendt" to innsendt,
-                    "journalpost_id" to journalpost,
-                    "tilstand" to tilstand.name,
-                    "innsendingtype" to innsendingType.name,
-                    "sist_endret_tilstand" to sistEndretTilstand,
-                ),
+                    mutableMapOf(
+                        "innsending_uuid" to innsendingId,
+                        "soknad_uuid" to søknadId,
+                        "innsendt" to innsendt,
+                        "journalpost_id" to journalpost,
+                        "tilstand" to tilstand.name,
+                        "innsendingtype" to innsendingType.name,
+                        "sist_endret_tilstand" to sistEndretTilstand,
+                    ),
             )
 
         val dokumentParams: MutableList<Map<String, Any?>> = mutableListOf()
@@ -277,14 +277,14 @@ private class InnsendingPersistenceVisitor(
             BatchPreparedStatement(
                 //language=PostgreSQL
                 statement =
-                """
+                    """
                     INSERT INTO dokumentvariant_v1 (dokumentvariant_uuid, dokument_uuid, filnavn, urn, variant, type)
                         VALUES (:dokumentvariant_uuid, :dokument_uuid, :filnavn, :urn, :variant, :type)
                         ON CONFLICT (dokumentvariant_uuid) DO UPDATE SET filnavn = :filnavn, 
                                                                          urn = :urn,
                                                                          variant = :variant,
                                                                          type = :type
-                """.trimIndent(),
+                    """.trimIndent(),
                 params = dokumentvariantParams,
             ),
         )
@@ -294,16 +294,16 @@ private class InnsendingPersistenceVisitor(
                 queryOf(
                     //language=PostgreSQL
                     statement =
-                    """
+                        """
                         INSERT INTO hoveddokument_v1(innsending_uuid, dokument_uuid) 
                         VALUES (:innsending_uuid, :dokument_uuid)
                         ON CONFLICT (innsending_uuid) DO UPDATE SET dokument_uuid = :dokumentvariant_uuid
-                    """.trimIndent(),
+                        """.trimIndent(),
                     paramMap =
-                    mapOf(
-                        "innsending_uuid" to innsendingId,
-                        "dokument_uuid" to it.uuid,
-                    ),
+                        mapOf(
+                            "innsending_uuid" to innsendingId,
+                            "dokument_uuid" to it.uuid,
+                        ),
                 ),
             )
         }

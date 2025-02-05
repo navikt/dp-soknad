@@ -11,12 +11,12 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class SøknadsMalMottakTest {
-
     private val søknadMalRepositoryMock = mockk<SøknadMalRepository>(relaxed = true)
 
-    private val testRapid = TestRapid().also { rapidsConnection ->
-        SøknadsMalMottak(rapidsConnection, søknadMalRepositoryMock)
-    }
+    private val testRapid =
+        TestRapid().also { rapidsConnection ->
+            SøknadsMalMottak(rapidsConnection, søknadMalRepositoryMock)
+        }
 
     @Test
     fun `Motta søknadsmal fra quiz og lagre den i databasen`() {
@@ -46,7 +46,8 @@ class SøknadsMalMottakTest {
 }
 
 //language=JSON
-fun testSøknadMalMelding() = """
+fun testSøknadMalMelding() =
+    """
     {
       "@event_name": "Søknadsmal",
       "versjon_id": 111,
@@ -54,4 +55,4 @@ fun testSøknadMalMelding() = """
       "seksjoner": []
     }
 
-""".trimIndent()
+    """.trimIndent()

@@ -22,9 +22,10 @@ internal class SøknadOpprettetHendelseMottak(
     companion object {
         private val logger = KotlinLogging.logger {}
         private val sikkerLogger = KotlinLogging.logger("tjenestekall.SøknadOpprettetHendelseMottak")
-        private val skipBehov = listOf(
-            "e8c60283-006e-439e-90d2-ffdfd533072f",
-        ).map { UUID.fromString(it) }
+        private val skipBehov =
+            listOf(
+                "e8c60283-006e-439e-90d2-ffdfd533072f",
+            ).map { UUID.fromString(it) }
     }
 
     private val behov = NySøknad.name
@@ -54,16 +55,17 @@ internal class SøknadOpprettetHendelseMottak(
         withLoggingContext(
             "søknadId" to søknadID.toString(),
         ) {
-            val prosessversjon = try {
-                mediator.prosessversjon(
-                    packet["@løsning"][behov]["prosessversjon"]["prosessnavn"].asText(),
-                    packet["@løsning"][behov]["prosessversjon"]["versjon"].asInt(),
-                )
-            } catch (e: Exception) {
-                logger.warn(e) { "Kunne ikke finne prosessversjon i pakken (se sikkerlogg)" }
-                sikkerLogger.warn(e) { "Kunne ikke finne prosessversjon i pakken ${packet.toJson()} " }
-                throw e
-            }
+            val prosessversjon =
+                try {
+                    mediator.prosessversjon(
+                        packet["@løsning"][behov]["prosessversjon"]["prosessnavn"].asText(),
+                        packet["@løsning"][behov]["prosessversjon"]["versjon"].asInt(),
+                    )
+                } catch (e: Exception) {
+                    logger.warn(e) { "Kunne ikke finne prosessversjon i pakken (se sikkerlogg)" }
+                    sikkerLogger.warn(e) { "Kunne ikke finne prosessversjon i pakken ${packet.toJson()} " }
+                    throw e
+                }
             val søknadOpprettetHendelse =
                 SøknadOpprettetHendelse(prosessversjon, søknadID, packet["ident"].asText())
             logger.info { "Fått løsning for '$behov' for $søknadID" }

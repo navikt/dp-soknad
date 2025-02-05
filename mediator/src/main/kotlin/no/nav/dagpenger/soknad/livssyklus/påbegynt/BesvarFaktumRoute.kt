@@ -19,26 +19,28 @@ private val logger = KotlinLogging.logger {}
 internal fun Route.besvarFaktumRoute(søknadMediator: SøknadMediator) {
     val validator = SøknadEierValidator(søknadMediator)
     put("/{søknad_uuid}/faktum/{faktumid}") {
-        val tidBrukt = measureTimeMillis {
-            val søknadUuid = søknadUuid()
-            val ident = call.ident()
-            val faktumId = faktumId()
+        val tidBrukt =
+            measureTimeMillis {
+                val søknadUuid = søknadUuid()
+                val ident = call.ident()
+                val faktumId = faktumId()
 
-            withLoggingContext("søknadId" to søknadUuid.toString()) {
-                validator.valider(søknadUuid, ident)
-                val input = GyldigSvar(call.receive())
-                val faktumSvar = FaktumSvar(
-                    søknadUuid = søknadUuid,
-                    faktumId = faktumId,
-                    type = input.type,
-                    ident = ident,
-                    svar = input.svarAsJson,
-                )
-                val sistBesvart = søknadMediator.besvart(faktumSvar.søknadUuid())
-                søknadMediator.behandle(faktumSvar)
-                call.respond(BesvartFaktum("ok", sistBesvart))
+                withLoggingContext("søknadId" to søknadUuid.toString()) {
+                    validator.valider(søknadUuid, ident)
+                    val input = GyldigSvar(call.receive())
+                    val faktumSvar =
+                        FaktumSvar(
+                            søknadUuid = søknadUuid,
+                            faktumId = faktumId,
+                            type = input.type,
+                            ident = ident,
+                            svar = input.svarAsJson,
+                        )
+                    val sistBesvart = søknadMediator.besvart(faktumSvar.søknadUuid())
+                    søknadMediator.behandle(faktumSvar)
+                    call.respond(BesvartFaktum("ok", sistBesvart))
+                }
             }
-        }
 
         logger.info { "Brukte $tidBrukt ms på å håndtere faktumSvar" }
     }

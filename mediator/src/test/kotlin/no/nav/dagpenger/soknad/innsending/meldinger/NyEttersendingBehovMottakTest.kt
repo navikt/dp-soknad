@@ -38,9 +38,10 @@ internal class NyEttersendingBehovMottakTest {
 
     private val testRapid = TestRapid()
     private val slot = slot<NyInnsendingHendelse>()
-    private val mediator = mockk<InnsendingMediator>().also {
-        every { it.behandle(capture(slot)) } just Runs
-    }
+    private val mediator =
+        mockk<InnsendingMediator>().also {
+            every { it.behandle(capture(slot)) } just Runs
+        }
 
     @BeforeEach
     fun setup() = testRapid.reset()
@@ -86,11 +87,13 @@ internal class NyEttersendingBehovMottakTest {
         testRapid.sendTestMessage(
             lagTestJson(
                 testFixture.copy(
-                    løsning = mapOf(
-                        "@løsning" to mapOf(
-                            "innsendingId" to UUID.randomUUID().toString(),
+                    løsning =
+                        mapOf(
+                            "@løsning" to
+                                mapOf(
+                                    "innsendingId" to UUID.randomUUID().toString(),
+                                ),
                         ),
-                    ),
                 ),
             ),
         )

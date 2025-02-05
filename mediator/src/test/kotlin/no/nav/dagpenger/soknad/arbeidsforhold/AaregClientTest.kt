@@ -11,7 +11,10 @@ class AaregClientTest {
     private val subjectToken = "gylidg_token"
     private val fnr = "12345678903"
 
-    private fun aaregClient(responseBody: String, statusCode: Int) = AaregClient(
+    private fun aaregClient(
+        responseBody: String,
+        statusCode: Int,
+    ) = AaregClient(
         aaregUrl = baseUrl,
         tokenProvider = testTokenProvider,
         engine = createMockedClient(statusCode, responseBody),
@@ -71,57 +74,57 @@ class AaregClientTest {
     val mockAaregResponse =
         // language=JSON
         """
-            [
+        [
+          {
+            "navArbeidsforholdId": "123456",
+            "arbeidssted": {
+              "type": "Underenhet",
+              "identer": [
+                {
+                  "type": "ORGANISASJONSNUMMER",
+                  "ident": "910825518"
+                }
+              ]
+            },
+            "ansettelsesperiode": {
+              "startdato": "2014-01-01",
+              "sluttdato": "2015-01-01"
+            },
+            "ansettelsesdetaljer": [
               {
-                "navArbeidsforholdId": "123456",
-                "arbeidssted": {
-                  "type": "Underenhet",
-                  "identer": [
-                    {
-                      "type": "ORGANISASJONSNUMMER",
-                      "ident": "910825518"
-                    }
-                  ]
-                },
-                "ansettelsesperiode": {
-                  "startdato": "2014-01-01",
-                  "sluttdato": "2015-01-01"
-                },
-                "ansettelsesdetaljer": [
-                  {
-                    "avtaltStillingsprosent": 100.0
-                  }
-                ]
-              },
-              {
-                "navArbeidsforholdId": "123457",
-                "arbeidssted": {
-                  "type": "Underenhet",
-                  "identer": [
-                    {
-                      "type": "ORGANISASJONSNUMMER",
-                      "ident": "910825577"
-                    }
-                  ]
-                },
-                "ansettelsesperiode": {
-                  "startdato": "2016-01-01"
-                },
-                "ansettelsesdetaljer": [
-                  {
-                    "avtaltStillingsprosent": 70.0,
-                    "sisteStillingsprosentendring": "2022-01-01"
-                  },
-                  {
-                    "avtaltStillingsprosent": 80.5,
-                    "sisteStillingsprosentendring": "2024-01-01"
-                  },
-                  {
-                    "avtaltStillingsprosent": 90.0,
-                    "sisteStillingsprosentendring": "2023-01-01"
-                  }
-                ]
+                "avtaltStillingsprosent": 100.0
               }
             ]
+          },
+          {
+            "navArbeidsforholdId": "123457",
+            "arbeidssted": {
+              "type": "Underenhet",
+              "identer": [
+                {
+                  "type": "ORGANISASJONSNUMMER",
+                  "ident": "910825577"
+                }
+              ]
+            },
+            "ansettelsesperiode": {
+              "startdato": "2016-01-01"
+            },
+            "ansettelsesdetaljer": [
+              {
+                "avtaltStillingsprosent": 70.0,
+                "sisteStillingsprosentendring": "2022-01-01"
+              },
+              {
+                "avtaltStillingsprosent": 80.5,
+                "sisteStillingsprosentendring": "2024-01-01"
+              },
+              {
+                "avtaltStillingsprosent": 90.0,
+                "sisteStillingsprosentendring": "2023-01-01"
+              }
+            ]
+          }
+        ]
         """.trimIndent()
 }

@@ -57,30 +57,35 @@ internal class SøknadMediatorIntegrasjonTest {
     @BeforeEach
     fun setup() {
         val dataSource = Postgres.withMigratedDb()
-        søknadMediator = SøknadMediator(
-            søknadDataRepository = SøknadDataPostgresRepository(dataSource),
-            søknadMalRepository = SøknadMalPostgresRepository(dataSource).also {
-                it.lagre(
-                    søknadMal = SøknadMal(
-                        prosessversjon = Prosessversjon(
-                            navn = "Dagpenger",
-                            versjon = 123,
-                        ),
-                        mal = jacksonObjectMapper().createObjectNode(),
-                    ),
-                )
-            },
-            ferdigstiltSøknadRepository = mockk(),
-            søknadRepository = SøknadPostgresRepository(dataSource),
-            dokumentkravRepository = PostgresDokumentkravRepository(dataSource),
-        ).also {
-            it.setRapidsConnection(testRapid)
-        }
+        søknadMediator =
+            SøknadMediator(
+                søknadDataRepository = SøknadDataPostgresRepository(dataSource),
+                søknadMalRepository =
+                    SøknadMalPostgresRepository(dataSource).also {
+                        it.lagre(
+                            søknadMal =
+                                SøknadMal(
+                                    prosessversjon =
+                                        Prosessversjon(
+                                            navn = "Dagpenger",
+                                            versjon = 123,
+                                        ),
+                                    mal = jacksonObjectMapper().createObjectNode(),
+                                ),
+                        )
+                    },
+                ferdigstiltSøknadRepository = mockk(),
+                søknadRepository = SøknadPostgresRepository(dataSource),
+                dokumentkravRepository = PostgresDokumentkravRepository(dataSource),
+            ).also {
+                it.setRapidsConnection(testRapid)
+            }
 
-        innsendingMediator = InnsendingMediator(
-            rapidsConnection = testRapid,
-            innsendingRepository = mockk(),
-        )
+        innsendingMediator =
+            InnsendingMediator(
+                rapidsConnection = testRapid,
+                innsendingRepository = mockk(),
+            )
 
         SøkerOppgaveMottak(testRapid, søknadMediator)
         SøknadOpprettetHendelseMottak(testRapid, søknadMediator)
@@ -202,21 +207,25 @@ internal class SøknadMediatorIntegrasjonTest {
                     uuid = UUID.randomUUID(),
                     kravId = "2",
                     skjemakode = "N6",
-                    varianter = listOf(
-                        Innsending.Dokument.Dokumentvariant(
-                            uuid = UUID.randomUUID(),
-                            filnavn = "d2",
-                            urn = "urn:dokumentsammenstilling:f2",
-                            variant = "ARKIV",
-                            type = "PDF",
+                    varianter =
+                        listOf(
+                            Innsending.Dokument.Dokumentvariant(
+                                uuid = UUID.randomUUID(),
+                                filnavn = "d2",
+                                urn = "urn:dokumentsammenstilling:f2",
+                                variant = "ARKIV",
+                                type = "PDF",
+                            ),
                         ),
-                    ),
                 ),
             ),
         )
     }
 
-    private fun assertBehovContains(behovtype: Aktivitetslogg.Aktivitet.Behov.Behovtype, block: (JsonNode) -> Unit) {
+    private fun assertBehovContains(
+        behovtype: Aktivitetslogg.Aktivitet.Behov.Behovtype,
+        block: (JsonNode) -> Unit,
+    ) {
         val behov: JsonNode = sisteBehov()
         assertTrue(
             behov["@behov"].map {
@@ -232,9 +241,10 @@ internal class SøknadMediatorIntegrasjonTest {
         val behov = sisteBehov()
         val jacksonObjectMapper = jacksonObjectMapper()
 
-        val dokumenter = behov["dokumentkrav"].let {
-            jacksonObjectMapper.convertValue<List<Innsending.Dokument>>(it)
-        }
+        val dokumenter =
+            behov["dokumentkrav"].let {
+                jacksonObjectMapper.convertValue<List<Innsending.Dokument>>(it)
+            }
 
         expected.forEachIndexed { index, dokument ->
             val actual = dokumenter[index]
@@ -257,7 +267,10 @@ internal class SøknadMediatorIntegrasjonTest {
         }
     }
 
-    private fun behandleDokumentkravSammenstilling(kravId: String, urn: String) {
+    private fun behandleDokumentkravSammenstilling(
+        kravId: String,
+        urn: String,
+    ) {
         søknadMediator.behandle(
             DokumentKravSammenstilling(
                 søknadID = søknadUuid,
@@ -268,7 +281,10 @@ internal class SøknadMediatorIntegrasjonTest {
         )
     }
 
-    private fun behandleDokumentasjonIkkeTilgjengelig(kravId: String, begrunnelse: String) {
+    private fun behandleDokumentasjonIkkeTilgjengelig(
+        kravId: String,
+        begrunnelse: String,
+    ) {
         søknadMediator.behandle(
             DokumentasjonIkkeTilgjengelig(
                 søknadID = søknadUuid,
@@ -302,96 +318,107 @@ internal class SøknadMediatorIntegrasjonTest {
         )
     }
 
-    private fun behandleLeggTilFil(kravId: String, urn: String) {
+    private fun behandleLeggTilFil(
+        kravId: String,
+        urn: String,
+    ) {
         søknadMediator.behandle(
             LeggTilFil(
                 søknadID = søknadUuid,
                 ident = testIdent,
                 kravId = kravId,
-                fil = Krav.Fil(
-                    filnavn = "test.jpg",
-                    urn = URN.rfc8141().parse(urn),
-                    storrelse = 0,
-                    tidspunkt = ZonedDateTime.now(),
-                    bundlet = false,
-                ),
+                fil =
+                    Krav.Fil(
+                        filnavn = "test.jpg",
+                        urn = URN.rfc8141().parse(urn),
+                        storrelse = 0,
+                        tidspunkt = ZonedDateTime.now(),
+                        bundlet = false,
+                    ),
             ),
         )
     }
 
     private fun behov(indeks: Int) = testRapid.inspektør.message(indeks)["@behov"].map { it.asText() }
 
-    private fun oppdatertInspektør(ident: String = testIdent) =
-        TestSøknadhåndtererInspektør(søknadMediator.hentSøknader(ident).first())
+    private fun oppdatertInspektør(ident: String = testIdent) = TestSøknadhåndtererInspektør(søknadMediator.hentSøknader(ident).first())
 
     // language=JSON
-    private fun søkerOppgave(søknadUuid: UUID, ident: String, ferdig: Boolean) = """{
-  "@event_name": "søker_oppgave",
-  "fødselsnummer": $ident,
-  "versjon_id": 0,
-  "versjon_navn": "test",
-  "@opprettet": "2022-05-13T14:48:09.059643",
-  "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
-  "søknad_uuid": "$søknadUuid",
-  "ferdig": $ferdig,
-  "seksjoner": [
-    {
-      "beskrivendeId": "seksjon1",
-      "fakta": [
+    private fun søkerOppgave(
+        søknadUuid: UUID,
+        ident: String,
+        ferdig: Boolean,
+    ) = """
         {
-          "id": "1",
-          "type": "int",
-          "beskrivendeId": "f1",
-          "sannsynliggjoresAv": [
+          "@event_name": "søker_oppgave",
+          "fødselsnummer": $ident,
+          "versjon_id": 0,
+          "versjon_navn": "test",
+          "@opprettet": "2022-05-13T14:48:09.059643",
+          "@id": "76be48d5-bb43-45cf-8d08-98206d0b9bd1",
+          "søknad_uuid": "$søknadUuid",
+          "ferdig": $ferdig,
+          "seksjoner": [
             {
-              "id": "1",
-              "type": "dokument",
-              "beskrivendeId": "d1.1",
-              "roller": [
-                "saksbehandler"
-              ],
-              "sannsynliggjoresAv": []
+              "beskrivendeId": "seksjon1",
+              "fakta": [
+                {
+                  "id": "1",
+                  "type": "int",
+                  "beskrivendeId": "f1",
+                  "sannsynliggjoresAv": [
+                    {
+                      "id": "1",
+                      "type": "dokument",
+                      "beskrivendeId": "d1.1",
+                      "roller": [
+                        "saksbehandler"
+                      ],
+                      "sannsynliggjoresAv": []
+                    }
+                  ],
+                  "svar": 11
+                  
+                },
+                {
+                  "id": "2",
+                  "type": "generator",
+                  "beskrivendeId": "f2",
+                  "svar": [
+                    [
+                      {
+                        "id": "2",
+                        "type": "int",
+                        "beskrivendeId": "f2",
+                        "svar": 11,
+                        "roller": [
+                          "søker"
+                        ],
+                        "sannsynliggjoresAv": [
+                          {
+                            "id": "2",
+                            "type": "dokument",
+                            "beskrivendeId": "d2",
+                            "roller": [
+                              "saksbehandler"                    ],
+                            "sannsynliggjoresAv": []
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
             }
-          ],
-          "svar": 11
-          
-        },
-        {
-          "id": "2",
-          "type": "generator",
-          "beskrivendeId": "f2",
-          "svar": [
-            [
-              {
-                "id": "2",
-                "type": "int",
-                "beskrivendeId": "f2",
-                "svar": 11,
-                "roller": [
-                  "søker"
-                ],
-                "sannsynliggjoresAv": [
-                  {
-                    "id": "2",
-                    "type": "dokument",
-                    "beskrivendeId": "d2",
-                    "roller": [
-                      "saksbehandler"                    ],
-                    "sannsynliggjoresAv": []
-                  }
-                ]
-              }
-            ]
           ]
         }
-      ]
-    }
-  ]
-}
-    """.trimIndent()
+        """.trimIndent()
 
     // language=JSON
-    private fun nySøknadBehovsløsning(søknadUuid: String, ident: String = testIdent) = """
+    private fun nySøknadBehovsløsning(
+        søknadUuid: String,
+        ident: String = testIdent,
+    ) = """
     {
       "@event_name": "behov",
       "@behovId": "84a03b5b-7f5c-4153-b4dd-57df041aa30d",
@@ -420,5 +447,5 @@ internal class SøknadMediatorIntegrasjonTest {
         }
       }
     }
-    """.trimMargin()
+        """.trimMargin()
 }

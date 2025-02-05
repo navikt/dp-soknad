@@ -40,25 +40,26 @@ internal class SøknadApiTest {
         val egenvalgtSpråk = slot<String>()
         val defaultSpråk = slot<String>()
         val søknadId = UUID.randomUUID()
-        val søknadMediatorMock = mockk<SøknadMediator>().also {
-            every {
-                it.opprettSøknadsprosess(
-                    ident = defaultDummyFodselsnummer,
-                    språk = capture(egenvalgtSpråk),
-                    prosessnavn = Prosessnavn("Dagpenger"),
-                    søknadId = any(),
-                )
-            } returns NySøknadsProsess(søknadId)
-            every {
-                it.opprettSøknadsprosess(
-                    ident = "12345678910",
-                    språk = capture(defaultSpråk),
-                    prosessnavn = Prosessnavn("Dagpenger"),
-                    søknadId = any(),
-                )
-            } returns NySøknadsProsess(søknadId)
-            every { it.prosessnavn(any()) } returns Prosessnavn("Dagpenger")
-        }
+        val søknadMediatorMock =
+            mockk<SøknadMediator>().also {
+                every {
+                    it.opprettSøknadsprosess(
+                        ident = defaultDummyFodselsnummer,
+                        språk = capture(egenvalgtSpråk),
+                        prosessnavn = Prosessnavn("Dagpenger"),
+                        søknadId = any(),
+                    )
+                } returns NySøknadsProsess(søknadId)
+                every {
+                    it.opprettSøknadsprosess(
+                        ident = "12345678910",
+                        språk = capture(defaultSpråk),
+                        prosessnavn = Prosessnavn("Dagpenger"),
+                        søknadId = any(),
+                    )
+                } returns NySøknadsProsess(søknadId)
+                every { it.prosessnavn(any()) } returns Prosessnavn("Dagpenger")
+            }
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -90,17 +91,18 @@ internal class SøknadApiTest {
     fun `Kan sende med søknadId til soknad endepunkt`() {
         val søknadId = UUID.randomUUID()
 
-        val søknadMediatorMock = mockk<SøknadMediator>().also {
-            every {
-                it.opprettSøknadsprosess(
-                    ident = defaultDummyFodselsnummer,
-                    språk = "NB",
-                    prosessnavn = Prosessnavn("Dagpenger"),
-                    søknadId = søknadId,
-                )
-            } returns NySøknadsProsess(søknadId)
-            every { it.prosessnavn(any()) } returns Prosessnavn("Dagpenger")
-        }
+        val søknadMediatorMock =
+            mockk<SøknadMediator>().also {
+                every {
+                    it.opprettSøknadsprosess(
+                        ident = defaultDummyFodselsnummer,
+                        språk = "NB",
+                        prosessnavn = Prosessnavn("Dagpenger"),
+                        søknadId = søknadId,
+                    )
+                } returns NySøknadsProsess(søknadId)
+                every { it.prosessnavn(any()) } returns Prosessnavn("Dagpenger")
+            }
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -136,12 +138,13 @@ internal class SøknadApiTest {
     fun `Ettersending til søknad happy path`() {
         val testSøknadUuid = UUID.randomUUID()
         val slot = slot<SøknadInnsendtHendelse>()
-        val søknadMediatorMock = mockk<SøknadMediator>().also {
-            justRun {
-                it.behandle(capture(slot))
+        val søknadMediatorMock =
+            mockk<SøknadMediator>().also {
+                justRun {
+                    it.behandle(capture(slot))
+                }
+                every { it.hentEier(any()) } returns defaultDummyFodselsnummer
             }
-            every { it.hentEier(any()) } returns defaultDummyFodselsnummer
-        }
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -165,13 +168,14 @@ internal class SøknadApiTest {
     fun `Ferdigstill søknad`() {
         val testSøknadUuid = UUID.randomUUID()
         val slot = slot<SøknadInnsendtHendelse>()
-        val søknadMediatorMock = mockk<SøknadMediator>().also {
-            justRun {
-                it.behandle(capture(slot))
-                it.lagreSøknadsTekst(testSøknadUuid, any())
+        val søknadMediatorMock =
+            mockk<SøknadMediator>().also {
+                justRun {
+                    it.behandle(capture(slot))
+                    it.lagreSøknadsTekst(testSøknadUuid, any())
+                }
+                every { it.hentEier(any()) } returns defaultDummyFodselsnummer
             }
-            every { it.hentEier(any()) } returns defaultDummyFodselsnummer
-        }
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -195,9 +199,10 @@ internal class SøknadApiTest {
     @Test
     fun `Kan bare sende json`() {
         val testSøknadUuid = UUID.randomUUID()
-        val søknadMediatorMock = mockk<SøknadMediator>().also {
-            every { it.hentEier(any()) } returns defaultDummyFodselsnummer
-        }
+        val søknadMediatorMock =
+            mockk<SøknadMediator>().also {
+                every { it.hentEier(any()) } returns defaultDummyFodselsnummer
+            }
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -217,10 +222,11 @@ internal class SøknadApiTest {
     @Test
     fun `skal gi riktig HttpProblem dersom neste søker oppgave ikke finnes`() {
         val testSøknadUuid = UUID.randomUUID()
-        val mockSøknadMediator = mockk<SøknadMediator>().also { søknadMediator ->
-            every { søknadMediator.hentSøkerOppgave(testSøknadUuid) } throws SøkerOppgaveNotFoundException("test")
-            every { søknadMediator.hentEier(testSøknadUuid) } returns defaultDummyFodselsnummer
-        }
+        val mockSøknadMediator =
+            mockk<SøknadMediator>().also { søknadMediator ->
+                every { søknadMediator.hentSøkerOppgave(testSøknadUuid) } throws SøkerOppgaveNotFoundException("test")
+                every { søknadMediator.hentEier(testSøknadUuid) } returns defaultDummyFodselsnummer
+            }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockSøknadMediator,
@@ -245,13 +251,15 @@ internal class SøknadApiTest {
         val testSøknadUuid = UUID.randomUUID()
         // language=JSON
         val frontendformat = """{"id":"blabla"}"""
-        val søkerOppgave = mockk<SøkerOppgave>().also {
-            every { it.toJson() } returns frontendformat
-        }
-        val mockSøknadMediator = mockk<SøknadMediator>().also { søknadMediator ->
-            every { søknadMediator.hentSøkerOppgave(testSøknadUuid) } returns søkerOppgave
-            every { søknadMediator.hentEier(testSøknadUuid) } returns defaultDummyFodselsnummer
-        }
+        val søkerOppgave =
+            mockk<SøkerOppgave>().also {
+                every { it.toJson() } returns frontendformat
+            }
+        val mockSøknadMediator =
+            mockk<SøknadMediator>().also { søknadMediator ->
+                every { søknadMediator.hentSøkerOppgave(testSøknadUuid) } returns søkerOppgave
+                every { søknadMediator.hentEier(testSøknadUuid) } returns defaultDummyFodselsnummer
+            }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockSøknadMediator,
@@ -270,9 +278,10 @@ internal class SøknadApiTest {
     @Test
     fun `Skal avvise uautoriserte pga tokenx pid ikke eier søknad`() {
         val søknadId = UUID.randomUUID()
-        val mockSøknadMediator = mockk<SøknadMediator>().also { søknadMediator ->
-            every { søknadMediator.hentEier(søknadId) } returns "hubba"
-        }
+        val mockSøknadMediator =
+            mockk<SøknadMediator>().also { søknadMediator ->
+                every { søknadMediator.hentEier(søknadId) } returns "hubba"
+            }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = mockSøknadMediator,
@@ -334,15 +343,19 @@ internal class SøknadApiTest {
         "blabla  | 400",
         delimiter = '|',
     )
-    fun `Skal kunne lagre faktum`(id: String, status: Int) {
+    fun `Skal kunne lagre faktum`(
+        id: String,
+        status: Int,
+    ) {
         val søknadId = UUID.randomUUID()
-        val mockSøknadMediator = mockk<SøknadMediator>().also {
-            justRun {
-                it.behandle(any<FaktumSvar>())
+        val mockSøknadMediator =
+            mockk<SøknadMediator>().also {
+                justRun {
+                    it.behandle(any<FaktumSvar>())
+                }
+                every { it.hentEier(søknadId) } returns defaultDummyFodselsnummer
+                every { it.besvart(søknadId) } returns 2
             }
-            every { it.hentEier(søknadId) } returns defaultDummyFodselsnummer
-            every { it.besvart(søknadId) } returns 2
-        }
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(søknadMediator = mockSøknadMediator),
@@ -365,12 +378,13 @@ internal class SøknadApiTest {
     @Test
     fun `Skal kunne slette påbegynt søknad`() {
         val søknadUuid = UUID.randomUUID()
-        val mockSøknadMediator = mockk<SøknadMediator>().also {
-            justRun {
-                it.behandle(any<SlettSøknadHendelse>())
+        val mockSøknadMediator =
+            mockk<SøknadMediator>().also {
+                justRun {
+                    it.behandle(any<SlettSøknadHendelse>())
+                }
+                every { it.hentEier(søknadUuid) } returns defaultDummyFodselsnummer
             }
-            every { it.hentEier(søknadUuid) } returns defaultDummyFodselsnummer
-        }
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(søknadMediator = mockSøknadMediator),
@@ -407,14 +421,18 @@ internal class SøknadApiTest {
         """land | "NOR"""",
         delimiter = '|',
     )
-    fun `test faktum svar typer`(type: String, svar: String) {
+    fun `test faktum svar typer`(
+        type: String,
+        svar: String,
+    ) {
         val søknadId = UUID.randomUUID()
         val faktumSvar = slot<FaktumSvar>()
-        val mockSøknadMediator = mockk<SøknadMediator>().also {
-            justRun { it.behandle(capture(faktumSvar)) }
-            every { it.hentEier(søknadId) } returns defaultDummyFodselsnummer
-            every { it.besvart(søknadId) } returns 2
-        }
+        val mockSøknadMediator =
+            mockk<SøknadMediator>().also {
+                justRun { it.behandle(capture(faktumSvar)) }
+                every { it.hentEier(søknadId) } returns defaultDummyFodselsnummer
+                every { it.besvart(søknadId) } returns 2
+            }
         val jsonSvar = """{"type": "$type", "svar": $svar}"""
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -479,14 +497,15 @@ internal class SøknadApiTest {
 
     @Test
     fun `Skal kunne hente søknadmal`() {
-        val meditatorMock = mockk<SøknadMediator>().also {
-            every { it.prosessnavn("Dagpenger") } returns (Prosessnavn("Dagpenger"))
-            every { it.hentNyesteMal(Prosessnavn("Dagpenger")) } returns
-                SøknadMal(
-                    prosessversjon = Prosessversjon(Prosessnavn("Dagpenger"), 1),
-                    mal = objectMapper.readTree(testSøknadMalMelding()),
-                )
-        }
+        val meditatorMock =
+            mockk<SøknadMediator>().also {
+                every { it.prosessnavn("Dagpenger") } returns (Prosessnavn("Dagpenger"))
+                every { it.hentNyesteMal(Prosessnavn("Dagpenger")) } returns
+                    SøknadMal(
+                        prosessversjon = Prosessversjon(Prosessnavn("Dagpenger"), 1),
+                        mal = objectMapper.readTree(testSøknadMalMelding()),
+                    )
+            }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator = meditatorMock,

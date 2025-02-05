@@ -8,16 +8,16 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class PDLMatrikkelAdresseMapperTest {
-
     @Test
     fun `tom adresse for matrikkel adresse`() {
         PDLAdresseMapper.formatertAdresse(
             PDLAdresse.MatrikkelAdresse(
-                adresseMetadata = AdresseMetadata(
-                    adresseType = AdresseMetadata.AdresseType.BOSTEDSADRESSE,
-                    master = AdresseMetadata.MasterType.PDL,
-                    coAdresseNavn = null,
-                ),
+                adresseMetadata =
+                    AdresseMetadata(
+                        adresseType = AdresseMetadata.AdresseType.BOSTEDSADRESSE,
+                        master = AdresseMetadata.MasterType.PDL,
+                        coAdresseNavn = null,
+                    ),
                 bruksenhetsnummer = null,
                 kommunenummer = null,
                 matrikkelId = null,

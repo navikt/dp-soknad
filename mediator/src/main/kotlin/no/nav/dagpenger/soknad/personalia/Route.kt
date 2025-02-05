@@ -28,11 +28,12 @@ internal fun Route.personalia(
         get {
             val fnr = call.ident()
             val jwtToken = call.request.jwt()
-            val personalia = withContext(coroutineContext) {
-                val kontonummer = async { kontonummerOppslag.hentKontonummer(jwtToken) }
-                val person = async { personOppslag.hentPerson(fnr, jwtToken) }
-                Personalia(person.await(), kontonummer.await())
-            }
+            val personalia =
+                withContext(coroutineContext) {
+                    val kontonummer = async { kontonummerOppslag.hentKontonummer(jwtToken) }
+                    val person = async { personOppslag.hentPerson(fnr, jwtToken) }
+                    Personalia(person.await(), kontonummer.await())
+                }
             call.respond(personalia)
         }
     }

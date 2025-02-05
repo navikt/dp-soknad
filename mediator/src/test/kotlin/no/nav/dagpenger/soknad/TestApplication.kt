@@ -68,7 +68,9 @@ object TestApplication {
         søknadMediator: SøknadMediator = mockk(relaxed = true),
         behandlingsstatusClient: BehandlingsstatusClient = mockk(relaxed = true),
     ): Application.() -> Unit {
-        return fun Application.() {
+        return
+
+        fun Application.() {
             api(
                 søknadApiRouteBuilder(
                     søknadMediator = søknadMediator,

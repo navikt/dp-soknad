@@ -8,21 +8,25 @@ tasks.named("compileKotlin").configure {
     dependsOn("openApiGenerate")
 }
 
-tasks.named("spotlessKotlin").configure {
+tasks.named("runKtlintCheckOverMainSourceSet").configure {
+    dependsOn("openApiGenerate")
+}
+
+tasks.named("runKtlintFormatOverMainSourceSet").configure {
     dependsOn("openApiGenerate")
 }
 
 sourceSets {
     main {
         java {
-            setSrcDirs(listOf("src/main/kotlin", "$buildDir/generated/src/main/kotlin"))
+            setSrcDirs(listOf("src/main/kotlin", "${layout.buildDirectory.get()}/generated/src/main/kotlin"))
         }
     }
 }
 
-spotless {
-    kotlin {
-        targetExclude("**/generated/**")
+ktlint {
+    filter {
+        exclude { element -> element.file.path.contains("generated/") }
     }
 }
 
@@ -33,7 +37,7 @@ dependencies {
 openApiGenerate {
     generatorName.set("kotlin-server")
     inputSpec.set("$projectDir/src/main/resources/soknad-api.yaml")
-    outputDir.set("$buildDir/generated/")
+    outputDir.set("${layout.buildDirectory.get()}/generated/")
     packageName.set("no.nav.dagpenger.soknad.api")
     globalProperties.set(
         mapOf(

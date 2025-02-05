@@ -10,7 +10,6 @@ abstract class Hendelse protected constructor(
     private val ident: String,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : IAktivitetslogg by aktivitetslogg, Aktivitetskontekst {
-
     init {
         aktivitetslogg.kontekst(this)
     }

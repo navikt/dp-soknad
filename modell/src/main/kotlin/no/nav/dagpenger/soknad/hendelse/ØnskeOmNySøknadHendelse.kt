@@ -13,10 +13,10 @@ class ØnskeOmNySøknadHendelse(
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) :
     SøknadHendelse(
-        søknadID,
-        ident,
-        aktivitetslogg,
-    ) {
+            søknadID,
+            ident,
+            aktivitetslogg,
+        ) {
     fun språk(): Språk = Språk(språk)
 }
 

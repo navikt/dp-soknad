@@ -96,12 +96,13 @@ internal class SøknadMediator(
     }
 
     fun behandle(søkerOppgave: SøkerOppgave) {
-        val hendelse = søkerOppgave.hendelse().apply {
-            addObserver {
-                // Lagre oppgaven hver gang modellen har håndtert hendelsen
-                søknadDataRepository.lagre(søkerOppgave)
+        val hendelse =
+            søkerOppgave.hendelse().apply {
+                addObserver {
+                    // Lagre oppgaven hver gang modellen har håndtert hendelsen
+                    søknadDataRepository.lagre(søkerOppgave)
+                }
             }
-        }
         behandle(hendelse) { søknad ->
             søknad.håndter(hendelse)
         }
@@ -150,7 +151,10 @@ internal class SøknadMediator(
         }
     }
 
-    fun behandle(hendelse: MigrertProsessHendelse, søkerOppgave: SøkerOppgave) {
+    fun behandle(
+        hendelse: MigrertProsessHendelse,
+        søkerOppgave: SøkerOppgave,
+    ) {
         behandle(hendelse) { søknad ->
             søknad.håndter(hendelse)
             søknadDataRepository.lagre(søkerOppgave)
@@ -166,7 +170,10 @@ internal class SøknadMediator(
         behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident, språk, prosessnavn))
     }
 
-    private fun behandle(hendelse: SøknadHendelse, håndter: (Søknad) -> Unit) = try {
+    private fun behandle(
+        hendelse: SøknadHendelse,
+        håndter: (Søknad) -> Unit,
+    ) = try {
         val søknad = hentEllerOpprettSøknad(hendelse)
         søknadObservers.forEach { søknadObserver ->
             søknad.addObserver(søknadObserver)
@@ -190,11 +197,12 @@ internal class SøknadMediator(
     private fun hentEllerOpprettSøknad(hendelse: SøknadHendelse): Søknad {
         val søknad = hent(hendelse.søknadID())
         return when (hendelse) {
-            is ØnskeOmNySøknadHendelse -> søknad ?: søknadRepository.opprett(
-                hendelse.søknadID(),
-                hendelse.språk(),
-                hendelse.ident(),
-            )
+            is ØnskeOmNySøknadHendelse ->
+                søknad ?: søknadRepository.opprett(
+                    hendelse.søknadID(),
+                    hendelse.språk(),
+                    hendelse.ident(),
+                )
 
             else -> søknad ?: throw SøknadIkkeFunnet("Søknaden med id ${hendelse.søknadID()} finnes ikke")
         }
@@ -209,7 +217,11 @@ internal class SøknadMediator(
             }
         }
 
-    private fun errorHandler(err: Exception, message: String, context: Map<String, String> = emptyMap()) {
+    private fun errorHandler(
+        err: Exception,
+        message: String,
+        context: Map<String, String> = emptyMap(),
+    ) {
         logger.error("alvorlig feil: ${err.message} (se sikkerlogg for melding)", err)
         withMDC(context) { sikkerLogger.error("alvorlig feil: ${err.message}\n\t$message", err) }
     }
@@ -225,7 +237,8 @@ internal class SøknadMediator(
 }
 
 enum class Prosesstype {
-    Søknad, Innsending
+    Søknad,
+    Innsending,
 }
 
 internal sealed class Søknadsprosess {
@@ -233,6 +246,7 @@ internal sealed class Søknadsprosess {
 
     internal class NySøknadsProsess(søknadId: UUID) : Søknadsprosess() {
         private val søknadID = søknadId
+
         override fun getSøknadsId(): UUID = søknadID
     }
 }

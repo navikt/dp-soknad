@@ -17,6 +17,7 @@ class SøkeroppgaveHendelse(
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : SøknadHendelse(søknadUUID, eier, aktivitetslogg) {
     private val observers = mutableListOf<SøkeroppgaveHendelseObserver>()
+
     fun addObserver(block: SøkeroppgaveHendelseObserver) {
         observers.add(block)
     }

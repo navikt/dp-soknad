@@ -30,15 +30,16 @@ class SøknadMigrering constructor(
     }
 
     private data class MigreringsBehov(private val søknadUUID: UUID, private val ident: String) {
-        fun asMessage() = JsonMessage.newNeed(
-            listOf(
-                "MigrerProsess",
-            ),
-            mapOf(
-                "søknad_uuid" to søknadUUID.toString(),
-                "ident" to ident,
-            ),
-        )
+        fun asMessage() =
+            JsonMessage.newNeed(
+                listOf(
+                    "MigrerProsess",
+                ),
+                mapOf(
+                    "søknad_uuid" to søknadUUID.toString(),
+                    "ident" to ident,
+                ),
+            )
     }
 
     private companion object {

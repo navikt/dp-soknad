@@ -11,9 +11,9 @@ class SøknadOpprettetHendelse(
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) :
     SøknadHendelse(
-        søknadID,
-        ident,
-        aktivitetslogg,
-    ) {
+            søknadID,
+            ident,
+            aktivitetslogg,
+        ) {
     fun prosessversjon() = prosessversjon
 }

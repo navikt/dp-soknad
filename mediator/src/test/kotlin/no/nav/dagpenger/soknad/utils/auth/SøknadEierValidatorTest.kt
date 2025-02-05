@@ -20,11 +20,12 @@ internal class SøknadEierValidatorTest {
     private val eier1 = "eier1"
     private val eier2 = "eier2"
 
-    private val søknadMediatorMock: SøknadMediator = mockk<SøknadMediator>().also {
-        every { it.hentEier(søknadId1) } returns eier1
-        every { it.hentEier(søknadId2) } returns eier2
-        every { it.hentEier(ukjentSøknadId) } returns null
-    }
+    private val søknadMediatorMock: SøknadMediator =
+        mockk<SøknadMediator>().also {
+            every { it.hentEier(søknadId1) } returns eier1
+            every { it.hentEier(søknadId2) } returns eier2
+            every { it.hentEier(ukjentSøknadId) } returns null
+        }
 
     @Test
     fun `rikig eier gir ingen validerings feil`() {

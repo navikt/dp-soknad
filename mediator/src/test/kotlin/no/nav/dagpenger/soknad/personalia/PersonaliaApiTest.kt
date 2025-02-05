@@ -20,22 +20,23 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 internal class PersonaliaApiTest {
-
     @Test
     fun `Skal avvise uautentiserte kall`() {
-        TestApplication.withMockAuthServerAndTestApplication() {
+        TestApplication.withMockAuthServerAndTestApplication {
             assertEquals(HttpStatusCode.Unauthorized, client.get("${Configuration.basePath}/personalia").status)
         }
     }
 
     @Test
     fun `Hent personalia for autentiserte kall`() {
-        val mockPersonOppslag = mockk<PersonOppslag>().also {
-            coEvery { it.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) } returns testPerson
-        }
-        val mockKontonummerOppslag = mockk<KontonummerOppslag>().also {
-            coEvery { it.hentKontonummer(TestApplication.testTokenXToken) } returns testKontonummer
-        }
+        val mockPersonOppslag =
+            mockk<PersonOppslag>().also {
+                coEvery { it.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) } returns testPerson
+            }
+        val mockKontonummerOppslag =
+            mockk<KontonummerOppslag>().also {
+                coEvery { it.hentKontonummer(TestApplication.testTokenXToken) } returns testKontonummer
+            }
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -57,20 +58,24 @@ internal class PersonaliaApiTest {
 
     @Test
     fun `Propagerer feil`() {
-        val mockResponse = mockk<HttpResponse>(relaxed = true).also {
-            every { it.status } returns HttpStatusCode.BadGateway
-        }
+        val mockResponse =
+            mockk<HttpResponse>(relaxed = true).also {
+                every { it.status } returns HttpStatusCode.BadGateway
+            }
 
-        val mockPersonOppslag = mockk<PersonOppslag>().also {
-            coEvery { it.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) } throws ClientRequestException(
-                mockResponse,
-                "FEil",
-            )
-        }
+        val mockPersonOppslag =
+            mockk<PersonOppslag>().also {
+                coEvery { it.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) } throws
+                    ClientRequestException(
+                        mockResponse,
+                        "FEil",
+                    )
+            }
 
-        val mockKontonummerOppslag = mockk<KontonummerOppslag>().also {
-            coEvery { it.hentKontonummer(TestApplication.testTokenXToken) } returns testKontonummer
-        }
+        val mockKontonummerOppslag =
+            mockk<KontonummerOppslag>().also {
+                coEvery { it.hentKontonummer(TestApplication.testTokenXToken) } returns testKontonummer
+            }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 personOppslag = mockPersonOppslag,
@@ -98,15 +103,16 @@ internal class PersonaliaApiTest {
 
     private val testPerson: Person
         get() {
-            val adresse = Adresse(
-                adresselinje1 = "adresselinje1",
-                adresselinje2 = "adresselinje2",
-                adresselinje3 = "adresselinje3",
-                postnummer = "2013",
-                poststed = "Skjetten",
-                landkode = "NOR",
-                land = "NORGE",
-            )
+            val adresse =
+                Adresse(
+                    adresselinje1 = "adresselinje1",
+                    adresselinje2 = "adresselinje2",
+                    adresselinje3 = "adresselinje3",
+                    postnummer = "2013",
+                    poststed = "Skjetten",
+                    landkode = "NOR",
+                    land = "NORGE",
+                )
             return Person(
                 forNavn = "forNavn",
                 mellomNavn = "mellonNavn",

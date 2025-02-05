@@ -65,7 +65,11 @@ internal class InnsendingMediator(
         }
     }
 
-    private fun behandle(hendelse: Hendelse, innsending: Innsending, håndter: (Innsending) -> Unit) = try {
+    private fun behandle(
+        hendelse: Hendelse,
+        innsending: Innsending,
+        håndter: (Innsending) -> Unit,
+    ) = try {
         håndter(innsending)
         innsendingRepository.lagre(innsending)
         finalize(hendelse)
@@ -82,17 +86,25 @@ internal class InnsendingMediator(
         throw e
     }
 
-    private fun behandle(hendelse: JournalførtHendelse, håndter: (Innsending) -> Unit) {
-        val innsending = innsendingRepository.hentInnsending(hendelse.journalpostId()).also { innsending ->
-            innsendingObservers.forEach { innsending.addObserver(it) }
-        }
+    private fun behandle(
+        hendelse: JournalførtHendelse,
+        håndter: (Innsending) -> Unit,
+    ) {
+        val innsending =
+            innsendingRepository.hentInnsending(hendelse.journalpostId()).also { innsending ->
+                innsendingObservers.forEach { innsending.addObserver(it) }
+            }
         behandle(hendelse, innsending, håndter)
     }
 
-    private fun behandle(hendelse: InnsendingHendelse, håndter: (Innsending) -> Unit) {
-        val innsending = hentEllerOpprettInnsending(hendelse).also { innsending ->
-            innsendingObservers.forEach { innsending.addObserver(it) }
-        }
+    private fun behandle(
+        hendelse: InnsendingHendelse,
+        håndter: (Innsending) -> Unit,
+    ) {
+        val innsending =
+            hentEllerOpprettInnsending(hendelse).also { innsending ->
+                innsendingObservers.forEach { innsending.addObserver(it) }
+            }
         behandle(hendelse, innsending, håndter)
     }
 
@@ -114,7 +126,11 @@ internal class InnsendingMediator(
             }
         }
 
-    private fun errorHandler(err: Exception, message: String, context: Map<String, String> = emptyMap()) {
+    private fun errorHandler(
+        err: Exception,
+        message: String,
+        context: Map<String, String> = emptyMap(),
+    ) {
         logger.error("alvorlig feil: ${err.message} (se sikkerlogg for melding)", err)
         withMDC(context) { sikkerLogger.error("alvorlig feil: ${err.message}\n\t$message", err) }
     }

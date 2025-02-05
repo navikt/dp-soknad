@@ -58,39 +58,44 @@ internal class SøknadPostgresRepositoryTest {
         mutableSetOf(
             Faktum(faktumJson("4", "f4")),
         )
-    private val sannsynliggjøring = Sannsynliggjøring(
-        id = dokumentFaktum.id,
-        faktum = dokumentFaktum,
-        sannsynliggjør = faktaSomSannsynliggjøres,
-    )
-    private val sannsynliggjøring2 = Sannsynliggjøring(
-        id = dokumentFaktum2.id,
-        faktum = dokumentFaktum2,
-        sannsynliggjør = faktaSomSannsynliggjøres2,
-    )
-    private val krav = Krav(
-        sannsynliggjøring,
-    )
+    private val sannsynliggjøring =
+        Sannsynliggjøring(
+            id = dokumentFaktum.id,
+            faktum = dokumentFaktum,
+            sannsynliggjør = faktaSomSannsynliggjøres,
+        )
+    private val sannsynliggjøring2 =
+        Sannsynliggjøring(
+            id = dokumentFaktum2.id,
+            faktum = dokumentFaktum2,
+            sannsynliggjør = faktaSomSannsynliggjøres2,
+        )
+    private val krav =
+        Krav(
+            sannsynliggjøring,
+        )
     private val opprettet = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.SECONDS)
     private val now = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.SECONDS)
     val ident = "12345678910"
     private val prosessversjon = Prosessversjon("Dagpenger", 1)
     private val mal = SøknadMal(prosessversjon, objectMapper.createObjectNode())
-    val søknad = Søknad.rehydrer(
-        søknadId = søknadId,
-        ident = ident,
-        opprettet = opprettet,
-        innsendt = now,
-        språk = Språk("NO"),
-        dokumentkrav = Dokumentkrav.rehydrer(
-            krav = setOf(krav),
-        ),
-        sistEndretAvBruker = now,
-        tilstandsType = Påbegynt,
-        aktivitetslogg = Aktivitetslogg(),
-        prosessversjon = prosessversjon,
-        data = FerdigSøknadData,
-    )
+    val søknad =
+        Søknad.rehydrer(
+            søknadId = søknadId,
+            ident = ident,
+            opprettet = opprettet,
+            innsendt = now,
+            språk = Språk("NO"),
+            dokumentkrav =
+                Dokumentkrav.rehydrer(
+                    krav = setOf(krav),
+                ),
+            sistEndretAvBruker = now,
+            tilstandsType = Påbegynt,
+            aktivitetslogg = Aktivitetslogg(),
+            prosessversjon = prosessversjon,
+            data = FerdigSøknadData,
+        )
 
     @Test
     fun `Henting av eier til søknad`() {
@@ -119,21 +124,23 @@ internal class SøknadPostgresRepositoryTest {
 
     @Test
     fun `Skal ikke hente søknader som har tilstand slettet`() {
-        val søknad = Søknad.rehydrer(
-            søknadId = søknadId,
-            ident = ident,
-            opprettet = opprettet,
-            null,
-            språk = Språk("NO"),
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav),
-            ),
-            sistEndretAvBruker = now,
-            tilstandsType = Påbegynt,
-            aktivitetslogg = Aktivitetslogg(),
-            prosessversjon = prosessversjon,
-            data = FerdigSøknadData,
-        )
+        val søknad =
+            Søknad.rehydrer(
+                søknadId = søknadId,
+                ident = ident,
+                opprettet = opprettet,
+                null,
+                språk = Språk("NO"),
+                dokumentkrav =
+                    Dokumentkrav.rehydrer(
+                        krav = setOf(krav),
+                    ),
+                sistEndretAvBruker = now,
+                tilstandsType = Påbegynt,
+                aktivitetslogg = Aktivitetslogg(),
+                prosessversjon = prosessversjon,
+                data = FerdigSøknadData,
+            )
 
         withMigratedDb {
             SøknadPostgresRepository(dataSource).let { repository ->
@@ -155,21 +162,23 @@ internal class SøknadPostgresRepositoryTest {
     fun `Lagre og hente søknad med dokumentkrav og aktivitetslogg`() {
         val krav1 = Krav(sannsynliggjøring)
         val krav2 = Krav(sannsynliggjøring2)
-        val søknad = Søknad.rehydrer(
-            søknadId = søknadId,
-            ident = ident,
-            opprettet = opprettet,
-            null,
-            språk = språk,
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav1, krav2),
-            ),
-            sistEndretAvBruker = now.minusDays(1),
-            tilstandsType = Påbegynt,
-            aktivitetslogg = Aktivitetslogg(),
-            prosessversjon = prosessversjon,
-            data = FerdigSøknadData,
-        )
+        val søknad =
+            Søknad.rehydrer(
+                søknadId = søknadId,
+                ident = ident,
+                opprettet = opprettet,
+                null,
+                språk = språk,
+                dokumentkrav =
+                    Dokumentkrav.rehydrer(
+                        krav = setOf(krav1, krav2),
+                    ),
+                sistEndretAvBruker = now.minusDays(1),
+                tilstandsType = Påbegynt,
+                aktivitetslogg = Aktivitetslogg(),
+                prosessversjon = prosessversjon,
+                data = FerdigSøknadData,
+            )
 
         withMigratedDb {
             SøknadMalPostgresRepository(dataSource).lagre(mal)
@@ -205,29 +214,33 @@ internal class SøknadPostgresRepositoryTest {
             mutableSetOf(
                 Faktum(originalFaktumSomsannsynliggjøresFakta),
             )
-        val sannsynliggjøring = Sannsynliggjøring(
-            id = dokumentFaktum.id,
-            faktum = dokumentFaktum,
-            sannsynliggjør = faktaSomSannsynliggjøres,
-        )
-        val krav = Krav(
-            sannsynliggjøring,
-        )
-        val søknad = Søknad.rehydrer(
-            søknadId = søknadId,
-            ident = ident,
-            opprettet = opprettet,
-            null,
-            språk = språk,
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav),
-            ),
-            sistEndretAvBruker = now.minusDays(1),
-            tilstandsType = Påbegynt,
-            aktivitetslogg = Aktivitetslogg(),
-            prosessversjon = prosessversjon,
-            data = FerdigSøknadData,
-        )
+        val sannsynliggjøring =
+            Sannsynliggjøring(
+                id = dokumentFaktum.id,
+                faktum = dokumentFaktum,
+                sannsynliggjør = faktaSomSannsynliggjøres,
+            )
+        val krav =
+            Krav(
+                sannsynliggjøring,
+            )
+        val søknad =
+            Søknad.rehydrer(
+                søknadId = søknadId,
+                ident = ident,
+                opprettet = opprettet,
+                null,
+                språk = språk,
+                dokumentkrav =
+                    Dokumentkrav.rehydrer(
+                        krav = setOf(krav),
+                    ),
+                sistEndretAvBruker = now.minusDays(1),
+                tilstandsType = Påbegynt,
+                aktivitetslogg = Aktivitetslogg(),
+                prosessversjon = prosessversjon,
+                data = FerdigSøknadData,
+            )
 
         withMigratedDb {
             SøknadPostgresRepository(dataSource).let { søknadPostgresRepository ->
@@ -246,32 +259,35 @@ internal class SøknadPostgresRepositoryTest {
     @Test
     fun `Kan hente ut søknad med dokumentasjonskrav svar`() {
         val tidspunkt = now
-        val fil1 = Krav.Fil(
-            filnavn = "ja.jpg",
-            urn = URN.rfc8141().parse("urn:vedlegg:1111/12345"),
-            storrelse = 50000,
-            tidspunkt = tidspunkt,
-            bundlet = false,
-        )
-        val fil2 = Krav.Fil(
-            filnavn = "nei.jpg",
-            urn = URN.rfc8141().parse("urn:vedlegg:1111/45678"),
-            storrelse = 50000,
-            tidspunkt = tidspunkt,
-            bundlet = false,
-        )
+        val fil1 =
+            Krav.Fil(
+                filnavn = "ja.jpg",
+                urn = URN.rfc8141().parse("urn:vedlegg:1111/12345"),
+                storrelse = 50000,
+                tidspunkt = tidspunkt,
+                bundlet = false,
+            )
+        val fil2 =
+            Krav.Fil(
+                filnavn = "nei.jpg",
+                urn = URN.rfc8141().parse("urn:vedlegg:1111/45678"),
+                storrelse = 50000,
+                tidspunkt = tidspunkt,
+                bundlet = false,
+            )
         withMigratedDb {
             val søknadPostgresRepository = SøknadPostgresRepository(dataSource)
             søknadPostgresRepository.lagre(søknad)
-            val søknadMediator = SøknadMediator(
-                søknadDataRepository = mockk(),
-                søknadMalRepository = mockk(),
-                ferdigstiltSøknadRepository = mockk(),
-                søknadRepository = søknadPostgresRepository,
-                dokumentkravRepository = PostgresDokumentkravRepository(dataSource),
-            ).also {
-                it.setRapidsConnection(mockk(relaxed = true))
-            }
+            val søknadMediator =
+                SøknadMediator(
+                    søknadDataRepository = mockk(),
+                    søknadMalRepository = mockk(),
+                    ferdigstiltSøknadRepository = mockk(),
+                    søknadRepository = søknadPostgresRepository,
+                    dokumentkravRepository = PostgresDokumentkravRepository(dataSource),
+                ).also {
+                    it.setRapidsConnection(mockk(relaxed = true))
+                }
 
             hentDokumentKrav(søknadMediator.hent(søknadId)!!).let {
                 it.aktiveDokumentKrav().forEach { krav ->
@@ -398,16 +414,19 @@ internal class SøknadPostgresRepositoryTest {
         val ident2 = "1234567890n2"
         val dagpengerSøknad = søknadMedProssess("Dagpenger")
         val generellInnsending = søknadMedProssess("Innsending")
-        val søknadPostgresRepository = mockk<SøknadPostgresRepository>().also {
-            every { it.hentSøknader(ident) } returns setOf(
-                dagpengerSøknad,
-                generellInnsending,
-            )
-            every { it.hentSøknader(ident2) } returns setOf(
-                generellInnsending,
-            )
-            every { it.hentPåbegyntSøknad(any()) } answers { callOriginal() }
-        }
+        val søknadPostgresRepository =
+            mockk<SøknadPostgresRepository>().also {
+                every { it.hentSøknader(ident) } returns
+                    setOf(
+                        dagpengerSøknad,
+                        generellInnsending,
+                    )
+                every { it.hentSøknader(ident2) } returns
+                    setOf(
+                        generellInnsending,
+                    )
+                every { it.hentPåbegyntSøknad(any()) } answers { callOriginal() }
+            }
 
         assertNotNull(søknadPostgresRepository.hentPåbegyntSøknad(ident))
         assertEquals(søknadPostgresRepository.hentPåbegyntSøknad(ident)!!.søknadUUID(), søknadId)
@@ -422,9 +441,10 @@ internal class SøknadPostgresRepositoryTest {
             opprettet = ZonedDateTime.now(),
             null,
             språk = Språk("NO"),
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav),
-            ),
+            dokumentkrav =
+                Dokumentkrav.rehydrer(
+                    krav = setOf(krav),
+                ),
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),
@@ -435,21 +455,23 @@ internal class SøknadPostgresRepositoryTest {
     @Test
     fun `Skal kunne hente ut en påbegynt søknad`() {
         val søknadIdForInnsendt = UUID.randomUUID()
-        val innsendtSøknad = Søknad.rehydrer(
-            søknadId = søknadIdForInnsendt,
-            ident = ident,
-            opprettet = ZonedDateTime.now(),
-            null,
-            språk = Språk("NO"),
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav),
-            ),
-            sistEndretAvBruker = now,
-            tilstandsType = Innsendt,
-            aktivitetslogg = Aktivitetslogg(),
-            prosessversjon = prosessversjon,
-            data = FerdigSøknadData,
-        )
+        val innsendtSøknad =
+            Søknad.rehydrer(
+                søknadId = søknadIdForInnsendt,
+                ident = ident,
+                opprettet = ZonedDateTime.now(),
+                null,
+                språk = Språk("NO"),
+                dokumentkrav =
+                    Dokumentkrav.rehydrer(
+                        krav = setOf(krav),
+                    ),
+                sistEndretAvBruker = now,
+                tilstandsType = Innsendt,
+                aktivitetslogg = Aktivitetslogg(),
+                prosessversjon = prosessversjon,
+                data = FerdigSøknadData,
+            )
 
         withMigratedDb {
             SøknadMalPostgresRepository(dataSource).lagre(mal)
@@ -472,66 +494,74 @@ internal class SøknadPostgresRepositoryTest {
         val søknadIdForInnsendt = UUID.randomUUID()
         val prosessversjon2 = Prosessversjon("Dagpenger", 2)
         val nyMal = SøknadMal(prosessversjon2, objectMapper.createObjectNode())
-        val preMigrertSøknad = Søknad.rehydrer(
-            søknadId = søknadIdForPreMigrert,
-            ident = ident,
-            opprettet = ZonedDateTime.now(),
-            null,
-            språk = Språk("NO"),
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav),
-            ),
-            sistEndretAvBruker = now,
-            tilstandsType = Påbegynt,
-            aktivitetslogg = Aktivitetslogg(),
-            prosessversjon = null,
-            data = FerdigSøknadData,
-        )
-        val påbegyntSøknad = Søknad.rehydrer(
-            søknadId = søknadIdForPåbegynt,
-            ident = ident,
-            opprettet = ZonedDateTime.now(),
-            null,
-            språk = Språk("NO"),
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav),
-            ),
-            sistEndretAvBruker = now,
-            tilstandsType = Påbegynt,
-            aktivitetslogg = Aktivitetslogg(),
-            prosessversjon = prosessversjon,
-            data = FerdigSøknadData,
-        )
-        val nySøknad = Søknad.rehydrer(
-            søknadId = søknadIdForNy,
-            ident = ident,
-            opprettet = ZonedDateTime.now(),
-            null,
-            språk = Språk("NO"),
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav),
-            ),
-            sistEndretAvBruker = now,
-            tilstandsType = Påbegynt,
-            aktivitetslogg = Aktivitetslogg(),
-            prosessversjon = prosessversjon2,
-            data = FerdigSøknadData,
-        )
-        val innsendtSøknad = Søknad.rehydrer(
-            søknadId = søknadIdForInnsendt,
-            ident = ident,
-            opprettet = ZonedDateTime.now(),
-            null,
-            språk = Språk("NO"),
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = setOf(krav),
-            ),
-            sistEndretAvBruker = now,
-            tilstandsType = Innsendt,
-            aktivitetslogg = Aktivitetslogg(),
-            prosessversjon = prosessversjon,
-            data = FerdigSøknadData,
-        )
+        val preMigrertSøknad =
+            Søknad.rehydrer(
+                søknadId = søknadIdForPreMigrert,
+                ident = ident,
+                opprettet = ZonedDateTime.now(),
+                null,
+                språk = Språk("NO"),
+                dokumentkrav =
+                    Dokumentkrav.rehydrer(
+                        krav = setOf(krav),
+                    ),
+                sistEndretAvBruker = now,
+                tilstandsType = Påbegynt,
+                aktivitetslogg = Aktivitetslogg(),
+                prosessversjon = null,
+                data = FerdigSøknadData,
+            )
+        val påbegyntSøknad =
+            Søknad.rehydrer(
+                søknadId = søknadIdForPåbegynt,
+                ident = ident,
+                opprettet = ZonedDateTime.now(),
+                null,
+                språk = Språk("NO"),
+                dokumentkrav =
+                    Dokumentkrav.rehydrer(
+                        krav = setOf(krav),
+                    ),
+                sistEndretAvBruker = now,
+                tilstandsType = Påbegynt,
+                aktivitetslogg = Aktivitetslogg(),
+                prosessversjon = prosessversjon,
+                data = FerdigSøknadData,
+            )
+        val nySøknad =
+            Søknad.rehydrer(
+                søknadId = søknadIdForNy,
+                ident = ident,
+                opprettet = ZonedDateTime.now(),
+                null,
+                språk = Språk("NO"),
+                dokumentkrav =
+                    Dokumentkrav.rehydrer(
+                        krav = setOf(krav),
+                    ),
+                sistEndretAvBruker = now,
+                tilstandsType = Påbegynt,
+                aktivitetslogg = Aktivitetslogg(),
+                prosessversjon = prosessversjon2,
+                data = FerdigSøknadData,
+            )
+        val innsendtSøknad =
+            Søknad.rehydrer(
+                søknadId = søknadIdForInnsendt,
+                ident = ident,
+                opprettet = ZonedDateTime.now(),
+                null,
+                språk = Språk("NO"),
+                dokumentkrav =
+                    Dokumentkrav.rehydrer(
+                        krav = setOf(krav),
+                    ),
+                sistEndretAvBruker = now,
+                tilstandsType = Innsendt,
+                aktivitetslogg = Aktivitetslogg(),
+                prosessversjon = prosessversjon,
+                data = FerdigSøknadData,
+            )
 
         withMigratedDb {
             SøknadMalPostgresRepository(dataSource).let { søknadMalPostgresRepository ->
@@ -562,14 +592,18 @@ internal class SøknadPostgresRepositoryTest {
         return TestSøknadVisitor(søknad).dokumentKrav
     }
 
-    private fun assertAntallRader(tabell: String, antallRader: Int) {
-        val faktiskeRader = using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf("select count(1) from $tabell").map { row ->
-                    row.int(1)
-                }.asSingle,
-            )
-        }
+    private fun assertAntallRader(
+        tabell: String,
+        antallRader: Int,
+    ) {
+        val faktiskeRader =
+            using(sessionOf(dataSource)) { session ->
+                session.run(
+                    queryOf("select count(1) from $tabell").map { row ->
+                        row.int(1)
+                    }.asSingle,
+                )
+            }
         assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: $tabell")
     }
 }

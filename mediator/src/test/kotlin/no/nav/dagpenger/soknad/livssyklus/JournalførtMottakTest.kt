@@ -17,7 +17,6 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.util.UUID
 
 internal class JournalførtMottakTest {
-
     @ParameterizedTest
     @ValueSource(strings = ["NySøknad", "Ettersending", "Gjenopptak", "Generell"])
     fun `Skal behandle innsending_ferdigstilt event for type NySøknad, Gjenopptak, Ettersending og Generell`(type: String) {
@@ -56,42 +55,43 @@ internal class JournalførtMottakTest {
         ident: String,
     ): String {
         return """
-{
-  "journalpostId": "$journalpostId",
-  "type": "$type",
-  "fødselsnummer": "$ident",
-  "søknadsData": {
-    "søknad_uuid": "$søknadId"
-  },
-  "@event_name": "innsending_ferdigstilt"
-} 
-        """.trimIndent()
+            {
+              "journalpostId": "$journalpostId",
+              "type": "$type",
+              "fødselsnummer": "$ident",
+              "søknadsData": {
+                "søknad_uuid": "$søknadId"
+              },
+              "@event_name": "innsending_ferdigstilt"
+            } 
+            """.trimIndent()
     }
 }
 
 @Language("JSON")
-val lol = """
-{
-  "@id": "88edc131-ca7a-4698-b460-4bc52eeebf4b",
-  "@opprettet": "2023-01-05T19:30:49.892895037",
-  "journalpostId": "598734831",
-  "datoRegistrert": "2023-01-05T19:30:43",
-  "skjemaKode": "GENERELL_INNSENDING",
-  "tittel": "Generell innsending",
-  "type": "Generell",
-  "fødselsnummer": "27028327825",
-  "aktørId": "1000096570597",
-  "søknadsData": {},
-  "@event_name": "innsending_ferdigstilt",
-  "system_read_count": 0,
-  "system_participating_services": [
+val lol =
+    """
     {
-      "id": "88edc131-ca7a-4698-b460-4bc52eeebf4b",
-      "time": "2023-01-05T19:30:49.893140946",
-      "service": "dp-mottak",
-      "instance": "dp-mottak-5f57874678-nlblk",
-      "image": "ghcr.io/navikt/dp-mottak/dp-mottak:cfa50014c9c559ee1e211934ab040db054818642"
+      "@id": "88edc131-ca7a-4698-b460-4bc52eeebf4b",
+      "@opprettet": "2023-01-05T19:30:49.892895037",
+      "journalpostId": "598734831",
+      "datoRegistrert": "2023-01-05T19:30:43",
+      "skjemaKode": "GENERELL_INNSENDING",
+      "tittel": "Generell innsending",
+      "type": "Generell",
+      "fødselsnummer": "27028327825",
+      "aktørId": "1000096570597",
+      "søknadsData": {},
+      "@event_name": "innsending_ferdigstilt",
+      "system_read_count": 0,
+      "system_participating_services": [
+        {
+          "id": "88edc131-ca7a-4698-b460-4bc52eeebf4b",
+          "time": "2023-01-05T19:30:49.893140946",
+          "service": "dp-mottak",
+          "instance": "dp-mottak-5f57874678-nlblk",
+          "image": "ghcr.io/navikt/dp-mottak/dp-mottak:cfa50014c9c559ee1e211934ab040db054818642"
+        }
+      ]
     }
-  ]
-}
-""".trimIndent()
+    """.trimIndent()

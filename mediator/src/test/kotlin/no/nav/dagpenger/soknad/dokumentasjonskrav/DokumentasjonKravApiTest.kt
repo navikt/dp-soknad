@@ -55,72 +55,82 @@ internal class DokumentasjonKravApiTest {
     private val dokumentFaktum1 = Faktum(faktumJson(id = "1", beskrivendeId = "f1", generertAv = "foobar"))
     private val dokumentFaktum2 = Faktum(faktumJson(id = "2", beskrivendeId = "f2"))
     private val faktaSomSannsynliggjøres = mutableSetOf(Faktum(faktumJson(id = "2", beskrivendeId = "f2")))
-    private val sannsynliggjøring1 = Sannsynliggjøring(
-        id = dokumentFaktum1.id,
-        faktum = dokumentFaktum1,
-        sannsynliggjør = faktaSomSannsynliggjøres,
-    )
-    private val sannsynliggjøring2 = Sannsynliggjøring(
-        id = dokumentFaktum2.id,
-        faktum = dokumentFaktum2,
-        sannsynliggjør = faktaSomSannsynliggjøres,
-    )
+    private val sannsynliggjøring1 =
+        Sannsynliggjøring(
+            id = dokumentFaktum1.id,
+            faktum = dokumentFaktum1,
+            sannsynliggjør = faktaSomSannsynliggjøres,
+        )
+    private val sannsynliggjøring2 =
+        Sannsynliggjøring(
+            id = dokumentFaktum2.id,
+            faktum = dokumentFaktum2,
+            sannsynliggjør = faktaSomSannsynliggjøres,
+        )
 
-    private val fil = Krav.Fil(
-        "test.jpg",
-        URN.rfc8141().parse("urn:nav:1"),
-        89900,
-        ZonedDateTime.now(),
-        bundlet = false,
-    )
+    private val fil =
+        Krav.Fil(
+            "test.jpg",
+            URN.rfc8141().parse("urn:nav:1"),
+            89900,
+            ZonedDateTime.now(),
+            bundlet = false,
+        )
 
-    private val krav1 = Krav(
-        id = dokumentFaktum1.id,
-        svar = Krav.Svar(
-            filer = mutableSetOf(fil),
-            valg = SEND_NÅ,
-            begrunnelse = null,
-            bundle = URN.rfc8141().parse("urn:bundle:1"),
-            innsendt = true,
-        ),
-        sannsynliggjøring = sannsynliggjøring1,
-        tilstand = Krav.KravTilstand.AKTIV,
-    )
+    private val krav1 =
+        Krav(
+            id = dokumentFaktum1.id,
+            svar =
+                Krav.Svar(
+                    filer = mutableSetOf(fil),
+                    valg = SEND_NÅ,
+                    begrunnelse = null,
+                    bundle = URN.rfc8141().parse("urn:bundle:1"),
+                    innsendt = true,
+                ),
+            sannsynliggjøring = sannsynliggjøring1,
+            tilstand = Krav.KravTilstand.AKTIV,
+        )
 
-    private val krav2 = Krav(
-        id = dokumentFaktum2.id,
-        svar = Krav.Svar(
-            filer = mutableSetOf(),
-            valg = SENDER_IKKE,
-            begrunnelse = "Har ikke dokumentasjon tilgjengelig",
-            bundle = null,
-            innsendt = true,
-        ),
-        sannsynliggjøring = sannsynliggjøring2,
-        tilstand = Krav.KravTilstand.AKTIV,
-    )
+    private val krav2 =
+        Krav(
+            id = dokumentFaktum2.id,
+            svar =
+                Krav.Svar(
+                    filer = mutableSetOf(),
+                    valg = SENDER_IKKE,
+                    begrunnelse = "Har ikke dokumentasjon tilgjengelig",
+                    bundle = null,
+                    innsendt = true,
+                ),
+            sannsynliggjøring = sannsynliggjøring2,
+            tilstand = Krav.KravTilstand.AKTIV,
+        )
 
-    private val dokumentKrav = Dokumentkrav.rehydrer(
-        setOf(krav1, krav2),
-    )
+    private val dokumentKrav =
+        Dokumentkrav.rehydrer(
+            setOf(krav1, krav2),
+        )
 
-    private val søknad = Søknad.rehydrer(
-        søknadId = testSoknadId,
-        ident = defaultDummyFodselsnummer,
-        opprettet = ZonedDateTime.now(),
-        innsendt = null,
-        språk = Språk("NO"),
-        dokumentkrav = dokumentKrav,
-        sistEndretAvBruker = ZonedDateTime.now(),
-        tilstandsType = Søknad.Tilstand.Type.Påbegynt,
-        aktivitetslogg = Aktivitetslogg(),
-        prosessversjon = null,
-        data = FerdigSøknadData,
-    )
-    private val søknadMediatorMock = mockk<SøknadMediator>().also {
-        every { it.hent(testSoknadId) } returns søknad
-        every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
-    }
+    private val søknad =
+        Søknad.rehydrer(
+            søknadId = testSoknadId,
+            ident = defaultDummyFodselsnummer,
+            opprettet = ZonedDateTime.now(),
+            innsendt = null,
+            språk = Språk("NO"),
+            dokumentkrav = dokumentKrav,
+            sistEndretAvBruker = ZonedDateTime.now(),
+            tilstandsType = Søknad.Tilstand.Type.Påbegynt,
+            aktivitetslogg = Aktivitetslogg(),
+            prosessversjon = null,
+            data = FerdigSøknadData,
+        )
+    private val søknadMediatorMock =
+        mockk<SøknadMediator>().also {
+            every { it.hent(testSoknadId) } returns søknad
+            every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
+        }
 
     @Test
     fun `Skal avvise uautentiserte kall`() {
@@ -144,9 +154,10 @@ internal class DokumentasjonKravApiTest {
     @Test
     fun `Skal avvise autentiserte kall der pid på token ikke er eier av søknaden`() {
         val søknadId = UUID.randomUUID()
-        val mediatorMock = mockk<SøknadMediator>().also {
-            every { it.hentEier(søknadId) } returns "hubba"
-        }
+        val mediatorMock =
+            mockk<SøknadMediator>().also {
+                every { it.hentEier(søknadId) } returns "hubba"
+            }
 
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(søknadMediator = mediatorMock),
@@ -233,10 +244,11 @@ internal class DokumentasjonKravApiTest {
     @Test
     fun `Skal kunne sende inn svar uten fil`() {
         val slot = slot<DokumentasjonIkkeTilgjengelig>()
-        val mediatorMock = mockk<SøknadMediator>().also {
-            every { it.behandle(capture(slot)) } just Runs
-            every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
-        }
+        val mediatorMock =
+            mockk<SøknadMediator>().also {
+                every { it.behandle(capture(slot)) } just Runs
+                every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
+            }
 
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(
@@ -270,9 +282,10 @@ internal class DokumentasjonKravApiTest {
     @Test
     fun `Skal kunne slette en fil`() {
         val slot = slot<SlettFil>()
-        val mediatorMock = mockk<SøknadMediator>().also {
-            every { it.behandle(capture(slot)) } just Runs
-        }
+        val mediatorMock =
+            mockk<SøknadMediator>().also {
+                every { it.behandle(capture(slot)) } just Runs
+            }
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(
                 søknadMediator = mediatorMock,
@@ -296,10 +309,11 @@ internal class DokumentasjonKravApiTest {
     fun `Skal kunne besvare med fil`() {
         val slot = slot<LeggTilFil>()
         val tidspunkt = ZonedDateTime.now()
-        val mediatorMock = mockk<SøknadMediator>().also {
-            every { it.behandle(capture(slot)) } just Runs
-            every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
-        }
+        val mediatorMock =
+            mockk<SøknadMediator>().also {
+                every { it.behandle(capture(slot)) } just Runs
+                every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
+            }
 
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(
@@ -343,9 +357,10 @@ internal class DokumentasjonKravApiTest {
     @Test
     fun `skal kunne besvare dokumentkrav med bundle URN`() {
         val slot = slot<DokumentKravSammenstilling>()
-        val mediatorMock = mockk<SøknadMediator>().also {
-            every { it.behandle(capture(slot)) } just Runs
-        }
+        val mediatorMock =
+            mockk<SøknadMediator>().also {
+                every { it.behandle(capture(slot)) } just Runs
+            }
 
         TestApplication.withMockAuthServerAndTestApplication(
             mockedSøknadApi(

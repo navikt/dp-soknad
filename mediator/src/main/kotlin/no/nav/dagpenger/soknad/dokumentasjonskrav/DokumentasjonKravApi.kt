@@ -90,9 +90,10 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
             val søknadUuid = søknadUuid()
             withLoggingContext("søknadid" to søknadUuid.toString()) {
                 validator.valider(søknadUuid, ident)
-                val urn = URN.rfc8141().parse("urn:vedlegg:${call.nss()}").also {
-                    logger.info { "Delete: $it" }
-                }
+                val urn =
+                    URN.rfc8141().parse("urn:vedlegg:${call.nss()}").also {
+                        logger.info { "Delete: $it" }
+                    }
                 søknadMediator.behandle(SlettFil(søknadUuid, ident, kravId, urn))
                 call.respond(HttpStatusCode.NoContent)
             }
@@ -105,12 +106,13 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
             withLoggingContext("søknadid" to søknadUuid.toString()) {
                 validator.valider(søknadUuid, ident)
                 val bundleSvar = call.receive<BundleSvar>()
-                val dokumentkravSammenstilling = DokumentKravSammenstilling(
-                    søknadUuid,
-                    ident,
-                    kravId,
-                    bundleSvar.tilURN(),
-                )
+                val dokumentkravSammenstilling =
+                    DokumentKravSammenstilling(
+                        søknadUuid,
+                        ident,
+                        kravId,
+                        bundleSvar.tilURN(),
+                    )
                 søknadMediator.behandle(dokumentkravSammenstilling)
                 call.respond(HttpStatusCode.Created)
             }
@@ -118,8 +120,9 @@ internal fun Route.dokumentasjonkravRoute(søknadMediator: SøknadMediator) {
     }
 }
 
-private fun ApplicationCall.nss() = this.parameters.getAll("nss")?.joinToString("/")
-    ?: throw IllegalArgumentException("Fant ikke id for fil")
+private fun ApplicationCall.nss() =
+    this.parameters.getAll("nss")?.joinToString("/")
+        ?: throw IllegalArgumentException("Fant ikke id for fil")
 
 private fun ApplicationCall.kravId() = this.parameters["kravId"] ?: throw IllegalArgumentException("Mangler kravId")
 
@@ -135,13 +138,14 @@ internal data class ApiFil(
         _urn = URN.rfc8141().parse(urn)
     }
 
-    fun tilModell() = Krav.Fil(
-        filnavn = this.filnavn,
-        urn = this._urn,
-        storrelse = this.storrelse,
-        tidspunkt = this.tidspunkt,
-        bundlet = false,
-    )
+    fun tilModell() =
+        Krav.Fil(
+            filnavn = this.filnavn,
+            urn = this._urn,
+            storrelse = this.storrelse,
+            tidspunkt = this.tidspunkt,
+            bundlet = false,
+        )
 
     override fun toString(): String {
         return "ApiFil(filnavn='*', urn='$urn', storrelse=$storrelse, tidspunkt=$tidspunkt, _urn=$_urn)"
@@ -156,7 +160,6 @@ private data class Svar(
 private data class BundleSvar(
     val urn: String,
 ) {
-
     private val _urn: URN
 
     init {
@@ -192,29 +195,31 @@ private class ApiDokumentkravResponse(
     }
 
     companion object {
-        fun Set<Krav>.toApiKrav(): List<ApiDokumentKrav> = map {
-            it.innsendt()
-            ApiDokumentKrav(
-                id = it.id,
-                beskrivendeId = it.beskrivendeId,
-                beskrivelse = it.beskrivelse,
-                fakta = it.fakta.fold(objectMapper.createArrayNode()) { acc, faktum -> acc.add(faktum.originalJson()) },
-                filer = it.svar.filer.map { fil ->
-                    ApiDokumentKrav.ApiDokumentkravFiler(
-                        filnavn = fil.filnavn,
-                        filsti = fil.urn.namespaceSpecificString().toString(),
-                        urn = fil.urn.toString(),
-                        storrelse = fil.storrelse,
-                        tidspunkt = fil.tidspunkt,
-                        bundlet = fil.bundlet,
-                    )
-                },
-                bundle = it.svar.bundle?.toString(),
-                bundleFilsti = it.svar.bundle?.namespaceSpecificString()?.toString(),
-                svar = it.svar.valg.fraSvarValg(),
-                begrunnelse = it.svar.begrunnelse,
-            )
-        }.sortedBy { it.beskrivendeId }
+        fun Set<Krav>.toApiKrav(): List<ApiDokumentKrav> =
+            map {
+                it.innsendt()
+                ApiDokumentKrav(
+                    id = it.id,
+                    beskrivendeId = it.beskrivendeId,
+                    beskrivelse = it.beskrivelse,
+                    fakta = it.fakta.fold(objectMapper.createArrayNode()) { acc, faktum -> acc.add(faktum.originalJson()) },
+                    filer =
+                        it.svar.filer.map { fil ->
+                            ApiDokumentKrav.ApiDokumentkravFiler(
+                                filnavn = fil.filnavn,
+                                filsti = fil.urn.namespaceSpecificString().toString(),
+                                urn = fil.urn.toString(),
+                                storrelse = fil.storrelse,
+                                tidspunkt = fil.tidspunkt,
+                                bundlet = fil.bundlet,
+                            )
+                        },
+                    bundle = it.svar.bundle?.toString(),
+                    bundleFilsti = it.svar.bundle?.namespaceSpecificString()?.toString(),
+                    svar = it.svar.valg.fraSvarValg(),
+                    begrunnelse = it.svar.begrunnelse,
+                )
+            }.sortedBy { it.beskrivendeId }
     }
 }
 
@@ -258,20 +263,22 @@ enum class GyldigValg {
 
     ;
 
-    fun tilSvarValg(): Krav.Svar.SvarValg = when (this) {
-        SEND_NAA -> Krav.Svar.SvarValg.SEND_NÅ
-        SEND_SENERE -> Krav.Svar.SvarValg.SEND_SENERE
-        SENDT_TIDLIGERE -> Krav.Svar.SvarValg.SEND_TIDLIGERE
-        SENDER_IKKE -> Krav.Svar.SvarValg.SENDER_IKKE
-        ANDRE_SENDER -> Krav.Svar.SvarValg.ANDRE_SENDER
-    }
+    fun tilSvarValg(): Krav.Svar.SvarValg =
+        when (this) {
+            SEND_NAA -> Krav.Svar.SvarValg.SEND_NÅ
+            SEND_SENERE -> Krav.Svar.SvarValg.SEND_SENERE
+            SENDT_TIDLIGERE -> Krav.Svar.SvarValg.SEND_TIDLIGERE
+            SENDER_IKKE -> Krav.Svar.SvarValg.SENDER_IKKE
+            ANDRE_SENDER -> Krav.Svar.SvarValg.ANDRE_SENDER
+        }
 }
 
-private fun Krav.Svar.SvarValg.fraSvarValg(): GyldigValg? = when (this) {
-    Krav.Svar.SvarValg.IKKE_BESVART -> null
-    Krav.Svar.SvarValg.SEND_NÅ -> GyldigValg.SEND_NAA
-    Krav.Svar.SvarValg.SEND_SENERE -> GyldigValg.SEND_SENERE
-    Krav.Svar.SvarValg.ANDRE_SENDER -> GyldigValg.ANDRE_SENDER
-    Krav.Svar.SvarValg.SEND_TIDLIGERE -> GyldigValg.SENDT_TIDLIGERE
-    Krav.Svar.SvarValg.SENDER_IKKE -> GyldigValg.SENDER_IKKE
-}
+private fun Krav.Svar.SvarValg.fraSvarValg(): GyldigValg? =
+    when (this) {
+        Krav.Svar.SvarValg.IKKE_BESVART -> null
+        Krav.Svar.SvarValg.SEND_NÅ -> GyldigValg.SEND_NAA
+        Krav.Svar.SvarValg.SEND_SENERE -> GyldigValg.SEND_SENERE
+        Krav.Svar.SvarValg.ANDRE_SENDER -> GyldigValg.ANDRE_SENDER
+        Krav.Svar.SvarValg.SEND_TIDLIGERE -> GyldigValg.SENDT_TIDLIGERE
+        Krav.Svar.SvarValg.SENDER_IKKE -> GyldigValg.SENDER_IKKE
+    }

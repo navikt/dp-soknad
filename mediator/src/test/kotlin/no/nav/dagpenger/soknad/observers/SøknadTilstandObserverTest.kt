@@ -9,7 +9,6 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 internal class SøknadTilstandObserverTest {
-
     val testRapid = TestRapid()
     val søknadUuid = UUID.randomUUID()
     val personIdent = "12345678901"
