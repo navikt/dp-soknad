@@ -10,7 +10,7 @@ import no.nav.dagpenger.oauth2.CachedOauth2Client
 import no.nav.dagpenger.oauth2.OAuth2Config
 
 internal object Configuration {
-    const val appName = "dp-soknad"
+    const val APP_NAME = "dp-soknad"
     private val defaultProperties =
         ConfigurationMap(
             mapOf(

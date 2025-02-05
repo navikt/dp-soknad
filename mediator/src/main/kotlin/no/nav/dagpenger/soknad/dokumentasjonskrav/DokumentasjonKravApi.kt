@@ -132,23 +132,19 @@ internal data class ApiFil(
     val storrelse: Long,
     val tidspunkt: ZonedDateTime,
 ) {
-    private val _urn: URN
-
-    init {
-        _urn = URN.rfc8141().parse(urn)
-    }
+    private val parsedUrn: URN = URN.rfc8141().parse(urn)
 
     fun tilModell() =
         Krav.Fil(
             filnavn = this.filnavn,
-            urn = this._urn,
+            urn = this.parsedUrn,
             storrelse = this.storrelse,
             tidspunkt = this.tidspunkt,
             bundlet = false,
         )
 
     override fun toString(): String {
-        return "ApiFil(filnavn='*', urn='$urn', storrelse=$storrelse, tidspunkt=$tidspunkt, _urn=$_urn)"
+        return "ApiFil(filnavn='*', urn='$urn', storrelse=$storrelse, tidspunkt=$tidspunkt, _urn=$parsedUrn)"
     }
 }
 
@@ -160,15 +156,12 @@ private data class Svar(
 private data class BundleSvar(
     val urn: String,
 ) {
-    private val _urn: URN
+    private val parsedUrn: URN = URN.rfc8141().parse(urn)
 
-    init {
-        _urn = URN.rfc8141().parse(urn)
-    }
-
-    fun tilURN(): URN = _urn
+    fun tilURN(): URN = parsedUrn
 }
 
+@Suppress("PropertyName")
 private class ApiDokumentkravResponse(
     søknad: Søknad,
 ) : SøknadVisitor {

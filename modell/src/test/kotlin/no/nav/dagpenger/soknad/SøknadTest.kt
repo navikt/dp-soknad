@@ -23,9 +23,8 @@ import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.util.UUID
 
-private const val testIdent = "12345678912"
-
 internal class SøknadTest {
+    private val testIdent = "12345678912"
     private lateinit var søknad: Søknad
     private lateinit var testSøknadObserver: TestSøknadObserver
     private lateinit var plantUmlObservatør: PlantUmlObservatør

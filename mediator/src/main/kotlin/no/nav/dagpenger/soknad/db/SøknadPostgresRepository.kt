@@ -76,7 +76,8 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
     override fun hentSøknader(ident: String): Set<Søknad> =
         using(sessionOf(dataSource)) { session ->
             session.run(
-                queryOf( //language=PostgreSQL
+                queryOf(
+                    //language=PostgreSQL
                     """
                     SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident, innsendt
                     FROM  soknad_v1
@@ -115,7 +116,8 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
     override fun hentPåbegynteSøknader(prosessversjon: Prosessversjon): List<Søknad> {
         return using(sessionOf(dataSource)) { session ->
             session.run(
-                queryOf( //language=PostgreSQL
+                queryOf(
+                    //language=PostgreSQL
                     """
                     SELECT * 
                     FROM soknad_v1
@@ -170,7 +172,8 @@ internal fun Session.hentAktivitetslogg(søknadId: UUID): AktivitetsloggDTO? =
 
 internal fun Session.hentProsessversjon(søknadId: UUID): ProsessversjonDTO? =
     run(
-        queryOf( //language=PostgreSQL
+        queryOf(
+            //language=PostgreSQL
             """
             SELECT prosessnavn, prosessversjon
             FROM  soknadmal
@@ -278,7 +281,9 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
         queries.add(
             queryOf(
                 //language=PostgreSQL
-                statement = "INSERT INTO aktivitetslogg_v1 (soknad_uuid, data) VALUES (:uuid, :data) ON CONFLICT (soknad_uuid) DO UPDATE SET data = :data",
+                statement =
+                    "INSERT INTO aktivitetslogg_v1 (soknad_uuid, data) VALUES (:uuid, :data) " +
+                        "ON CONFLICT (soknad_uuid) DO UPDATE SET data = :data",
                 paramMap =
                     mapOf(
                         "uuid" to søknadId,

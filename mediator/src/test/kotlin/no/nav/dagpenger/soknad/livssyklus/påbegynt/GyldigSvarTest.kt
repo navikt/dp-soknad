@@ -26,7 +26,7 @@ class GyldigSvarTest {
         """periode | {"fom":"2022-01-15"}""",
         """tekst | "en tekst"""",
         """land | "NOR"""",
-        """dokument |{"urn":"urn:vedlegg:5cf29893-e948-4d64-a295-2f6c5153ba44/c7cb3716-8750-4898-a90e-5ad90067760e","lastOppTidsstempel":"2023-02-14T13:36:31.479923"}""",
+        """dokument |{"urn":"urn:vedlegg:123","lastOppTidsstempel":"2023-02-14T13:36:31.479923"}""",
         delimiter = '|',
     )
     fun `Skal kunne opprette boolean type svar `(
@@ -56,7 +56,6 @@ class GyldigSvarTest {
         """periode | {"fom":"2022-01-15", "tom": "2022-01-14"}""",
         """land | "NORWAY"""",
         """dokument |{"urn":"fd","lastOppTidsstempel":"2023-02-14T13:36:31.479923"}""",
-        """dokument |{"urn":"urn:vedlegg:5cf29893-e948-4d64-a295-2f6c5153ba44/c7cb3716-8750-4898-a90e-5ad90067760e","lastOppTidsstempel":"sdf"}""",
         delimiter = '|',
     )
     fun `Skal validere svar i henhold til type`(

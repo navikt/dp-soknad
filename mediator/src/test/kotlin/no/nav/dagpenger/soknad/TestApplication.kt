@@ -29,7 +29,7 @@ object TestApplication {
     private const val TOKENX_ISSUER_ID = "tokenx"
     private const val CLIENT_ID = "dp-soknad"
     private const val AZURE_ISSUER_ID = "azuread"
-    const val defaultDummyFodselsnummer = "12345"
+    const val DEAFULT_DUMMY_FNR = "12345"
 
     private val mockOAuth2Server: MockOAuth2Server by lazy {
         MockOAuth2Server().also { server ->
@@ -41,7 +41,7 @@ object TestApplication {
         mockOAuth2Server.issueToken(
             issuerId = TOKENX_ISSUER_ID,
             audience = CLIENT_ID,
-            claims = mapOf("pid" to defaultDummyFodselsnummer),
+            claims = mapOf("pid" to DEAFULT_DUMMY_FNR),
         ).serialize()
     }
 
@@ -60,6 +60,7 @@ object TestApplication {
         ).serialize()
     }
 
+    @Suppress("FunctionName")
     internal fun mockedSøknadApi(
         personOppslag: PersonOppslag = mockk(relaxed = true),
         kontonummerOppslag: KontonummerOppslag = mockk(relaxed = true),
@@ -67,29 +68,25 @@ object TestApplication {
         eregClient: EregClient = mockk(relaxed = true),
         søknadMediator: SøknadMediator = mockk(relaxed = true),
         behandlingsstatusClient: BehandlingsstatusClient = mockk(relaxed = true),
-    ): Application.() -> Unit {
-        return
-
-        fun Application.() {
-            api(
-                søknadApiRouteBuilder(
-                    søknadMediator = søknadMediator,
-                    behandlingsstatusClient = behandlingsstatusClient,
+    ) = fun Application.() {
+        api(
+            søknadApiRouteBuilder(
+                søknadMediator = søknadMediator,
+                behandlingsstatusClient = behandlingsstatusClient,
+            ),
+            personaliaRouteBuilder(
+                personOppslag,
+                kontonummerOppslag,
+            ),
+            arbeidsforholdRouteBuilder(
+                ArbeidsforholdOppslag(
+                    aaregClient = aaregClient,
+                    eregClient = eregClient,
                 ),
-                personaliaRouteBuilder(
-                    personOppslag,
-                    kontonummerOppslag,
-                ),
-                arbeidsforholdRouteBuilder(
-                    ArbeidsforholdOppslag(
-                        aaregClient = aaregClient,
-                        eregClient = eregClient,
-                    ),
-                ),
-                ferdigStiltSøknadRouteBuilder(mockk(relaxed = true)),
-                søknadDataRouteBuilder = søknadData(søknadMediator),
-            )
-        }
+            ),
+            ferdigStiltSøknadRouteBuilder(mockk(relaxed = true)),
+            søknadDataRouteBuilder = søknadData(søknadMediator),
+        )
     }
 
     internal fun withMockAuthServerAndTestApplication(

@@ -169,22 +169,22 @@ class Søknad private constructor(
         fun håndter(
             ønskeOmNySøknadHendelse: ØnskeOmNySøknadHendelse,
             søknad: Søknad,
-        ) = ønskeOmNySøknadHendelse.`kan ikke håndteres i denne tilstanden`()
+        ) = ønskeOmNySøknadHendelse.kanIkkeHåndteresIDenneTilstanden()
 
         fun håndter(
             harPåbegyntSøknadHendelse: HarPåbegyntSøknadHendelse,
             søknad: Søknad,
-        ) = harPåbegyntSøknadHendelse.`kan ikke håndteres i denne tilstanden`()
+        ) = harPåbegyntSøknadHendelse.kanIkkeHåndteresIDenneTilstanden()
 
         fun håndter(
             søknadOpprettetHendelse: SøknadOpprettetHendelse,
             søknad: Søknad,
-        ) = søknadOpprettetHendelse.`kan ikke håndteres i denne tilstanden`()
+        ) = søknadOpprettetHendelse.kanIkkeHåndteresIDenneTilstanden()
 
         fun håndter(
             søknadInnsendtHendelse: SøknadInnsendtHendelse,
             søknad: Søknad,
-        ) = søknadInnsendtHendelse.`kan ikke håndteres i denne tilstanden`()
+        ) = søknadInnsendtHendelse.kanIkkeHåndteresIDenneTilstanden()
 
         fun håndter(
             faktumOppdatertHendelse: FaktumOppdatertHendelse,
@@ -195,7 +195,7 @@ class Søknad private constructor(
             søkeroppgaveHendelse: SøkeroppgaveHendelse,
             søknad: Søknad,
         ) {
-            søkeroppgaveHendelse.`kan ikke håndteres i denne tilstanden`()
+            søkeroppgaveHendelse.kanIkkeHåndteresIDenneTilstanden()
         }
 
         fun håndter(
@@ -209,10 +209,10 @@ class Søknad private constructor(
             hendelse: MigrertProsessHendelse,
             søknad: Søknad,
         ) {
-            hendelse.`kan ikke håndteres i denne tilstanden`()
+            hendelse.kanIkkeHåndteresIDenneTilstanden()
         }
 
-        private fun Hendelse.`kan ikke håndteres i denne tilstanden`() =
+        private fun Hendelse.kanIkkeHåndteresIDenneTilstanden() =
             this.warn("Kan ikke håndtere ${this.javaClass.simpleName} i tilstand $tilstandType")
 
         override fun toSpesifikkKontekst(): SpesifikkKontekst {

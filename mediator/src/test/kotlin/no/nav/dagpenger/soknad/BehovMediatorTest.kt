@@ -17,7 +17,7 @@ import java.util.UUID
 
 internal class BehovMediatorTest {
     private companion object {
-        private const val testIdent = "12345678912"
+        private val testIdent = "12345678912"
         private val søknadID = UUID.randomUUID()
         private lateinit var behovMediator: BehovMediator
     }

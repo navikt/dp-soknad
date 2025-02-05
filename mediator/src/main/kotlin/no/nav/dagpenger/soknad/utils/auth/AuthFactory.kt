@@ -39,7 +39,7 @@ object TokenXFactory {
         verifier(jwkProvider, issuer) {
             withAudience(tokenXclientId)
         }
-        realm = Configuration.appName
+        realm = Configuration.APP_NAME
         validate { credentials ->
             validator(credentials)
         }
@@ -78,7 +78,7 @@ object AzureAdFactory {
         validate { credentials ->
             JWTPrincipal(credentials.payload)
         }
-        realm = Configuration.appName
+        realm = Configuration.APP_NAME
     }
 
     val azureClientId: String = Configuration.properties[azure_app.client_id]

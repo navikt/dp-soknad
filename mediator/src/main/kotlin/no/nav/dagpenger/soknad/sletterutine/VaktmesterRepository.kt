@@ -59,8 +59,10 @@ internal class VaktmesterPostgresRepository(
     private fun hentPåbegynteSøknaderUendretSiden(
         antallDager: Int,
         transactionalSession: TransactionalSession,
-    ) = transactionalSession.run( // TODO: Spørringen fører til en full sequential scan, få på noe indeks
-        queryOf( //language=PostgreSQL
+        // TODO: Spørringen fører til en full sequential scan, få på noe indeks
+    ) = transactionalSession.run(
+        queryOf(
+            //language=PostgreSQL
             """
             SELECT uuid, person_ident
             FROM soknad_v1
@@ -72,7 +74,8 @@ internal class VaktmesterPostgresRepository(
 
     private fun hentSlettede(transactionalSession: TransactionalSession) =
         transactionalSession.run(
-            queryOf( //language=PostgreSQL
+            queryOf(
+                //language=PostgreSQL
                 """
                 SELECT uuid, person_ident
                 FROM soknad_v1
@@ -114,7 +117,8 @@ internal class VaktmesterPostgresRepository(
 
 fun Session.lås(nøkkel: Int) =
     run(
-        queryOf( //language=PostgreSQL
+        queryOf(
+            //language=PostgreSQL
             "SELECT PG_TRY_ADVISORY_LOCK(:key)",
             mapOf("key" to nøkkel),
         ).map { res ->
@@ -124,7 +128,8 @@ fun Session.lås(nøkkel: Int) =
 
 fun Session.låsOpp(nøkkel: Int) =
     run(
-        queryOf( //language=PostgreSQL
+        queryOf(
+            //language=PostgreSQL
             "SELECT PG_ADVISORY_UNLOCK(:key)",
             mapOf("key" to nøkkel),
         ).map { res ->

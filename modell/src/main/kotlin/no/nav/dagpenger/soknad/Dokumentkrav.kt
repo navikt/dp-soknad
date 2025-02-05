@@ -71,8 +71,10 @@ class Dokumentkrav private constructor(
                             Dokument.Dokumentvariant(
                                 filnavn = krav.beskrivendeId,
                                 urn = krav.svar.bundle.toString(),
-                                variant = "ARKIV", // TODO: hent filtype fra bundle
-                                type = "PDF", // TODO: Hva setter vi her?
+                                // TODO: hent filtype fra bundle
+                                variant = "ARKIV",
+                                // TODO: Hva setter vi her?
+                                type = "PDF",
                             ),
                         ),
                 )
@@ -152,8 +154,10 @@ data class Krav(
             "faktum.dokument-utdanning-sluttdato" -> Skjemakode.DOKUMENTASJON_AV_SLUTTDATO
             "faktum.dokument-bekreftelse-fra-lege-eller-annen-behandler" -> Skjemakode.DOKUMENTASJON_AV_HELSE_OG_FUNKSJONSNIVÅ
             "faktum.dokument-fulltid-bekreftelse-fra-relevant-fagpersonell" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
-            "faktum.dokument-hele-norge-bekreftelse-fra-relevant-fagpersonell" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
-            "faktum.dokument-alle-typer-bekreftelse-fra-relevant-fagpersonell" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
+            "faktum.dokument-hele-norge-bekreftelse-fra-relevant-fagpersonell" ->
+                Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
+            "faktum.dokument-alle-typer-bekreftelse-fra-relevant-fagpersonell" ->
+                Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
             "faktum.dokument-foedselsattest-bostedsbevis-for-barn-under-18aar" -> Skjemakode.FODSELSATTEST_BOSTEDSBEVIS_BARN_UNDER_18
             else -> Skjemakode.ANNET
         }.verdi()
@@ -188,7 +192,8 @@ data class Krav(
         var valg: SvarValg,
         var begrunnelse: String?,
         var bundle: URN?,
-        var innsendt: Boolean, // todo slå sammen med bundle?
+        // todo slå sammen med bundle?
+        var innsendt: Boolean,
     ) {
         constructor() : this(
             filer = mutableSetOf(),

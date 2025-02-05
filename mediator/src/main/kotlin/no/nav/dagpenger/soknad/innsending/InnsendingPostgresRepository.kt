@@ -111,7 +111,8 @@ internal class InnsendingPostgresRepository(
     private fun Session.hentDokumenter(innsendingId: UUID): Dokumenter =
         this
             .run(
-                queryOf( //language=PostgreSQL
+                queryOf(
+                    //language=PostgreSQL
                     "SELECT * FROM dokument_v1 WHERE innsending_uuid = :innsendingId",
                     mapOf("innsendingId" to innsendingId),
                 ).map { row ->
@@ -129,7 +130,8 @@ internal class InnsendingPostgresRepository(
 
     private fun Session.getHovedDokumentUUID(innsendingId: UUID): UUID? =
         this.run(
-            queryOf( //language=PostgreSQL
+            queryOf(
+                //language=PostgreSQL
                 "SELECT dokument_uuid FROM hoveddokument_v1 WHERE innsending_uuid = :innsendingId",
                 mapOf("innsendingId" to innsendingId),
             ).map { row ->
@@ -139,7 +141,8 @@ internal class InnsendingPostgresRepository(
 
     private fun Session.hentVarianter(dokumentUuid: UUID) =
         run(
-            queryOf( //language=PostgreSQL
+            queryOf(
+                //language=PostgreSQL
                 "SELECT * FROM dokumentvariant_v1 WHERE dokument_uuid = :dokument_uuid",
                 mapOf("dokument_uuid" to dokumentUuid),
             ).map { row ->
@@ -155,7 +158,8 @@ internal class InnsendingPostgresRepository(
 
     private fun Session.hentMetadata(innsendingId: UUID): Innsending.Metadata? =
         run(
-            queryOf( //language=PostgreSQL
+            queryOf(
+                //language=PostgreSQL
                 "SELECT * FROM metadata WHERE innsending_uuid = :innsending_uuid",
                 mapOf("innsending_uuid" to innsendingId),
             ).map { row ->
@@ -308,9 +312,10 @@ private class InnsendingPersistenceVisitor(
             )
         }
 
-        metadata?.let { it ->
+        metadata?.let {
             queries.add(
-                queryOf( //language=PostgreSQL
+                queryOf(
+                    //language=PostgreSQL
                     """
                     INSERT INTO metadata (innsending_uuid, skjemakode)
                     VALUES (:innsending_uuid, :skjemakode)

@@ -164,7 +164,8 @@ internal object PDLAdresseMapper : no.nav.dagpenger.pdl.adresse.AdresseMapper<Ad
             adresselinje2 = adresseLinjer.getOrNull(1) ?: "",
             postnummer = pdlAdresse.postnummer ?: "",
             poststed = finnPoststed(pdlAdresse.postnummer) ?: "",
-            landkode = "NO", // vegadresse er alltid en norsk adresse
+            // vegadresse er alltid en norsk adresse
+            landkode = "NO",
             land = "NORGE",
         )
     }

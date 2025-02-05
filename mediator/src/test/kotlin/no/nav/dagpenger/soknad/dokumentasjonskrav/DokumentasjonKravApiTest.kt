@@ -24,14 +24,13 @@ import no.nav.dagpenger.soknad.Faktum
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SENDER_IKKE
 import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SEND_NÅ
-import no.nav.dagpenger.soknad.Krav.Svar.SvarValg.SEND_SENERE
 import no.nav.dagpenger.soknad.Sannsynliggjøring
 import no.nav.dagpenger.soknad.Språk
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestApplication
+import no.nav.dagpenger.soknad.TestApplication.DEAFULT_DUMMY_FNR
 import no.nav.dagpenger.soknad.TestApplication.autentisert
-import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.soknad.TestApplication.mockedSøknadApi
 import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.hendelse.DokumentKravSammenstilling
@@ -115,7 +114,7 @@ internal class DokumentasjonKravApiTest {
     private val søknad =
         Søknad.rehydrer(
             søknadId = testSoknadId,
-            ident = defaultDummyFodselsnummer,
+            ident = DEAFULT_DUMMY_FNR,
             opprettet = ZonedDateTime.now(),
             innsendt = null,
             språk = Språk("NO"),
@@ -129,7 +128,7 @@ internal class DokumentasjonKravApiTest {
     private val søknadMediatorMock =
         mockk<SøknadMediator>().also {
             every { it.hent(testSoknadId) } returns søknad
-            every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
+            every { it.hentEier(testSoknadId) } returns DEAFULT_DUMMY_FNR
         }
 
     @Test
@@ -247,7 +246,7 @@ internal class DokumentasjonKravApiTest {
         val mediatorMock =
             mockk<SøknadMediator>().also {
                 every { it.behandle(capture(slot)) } just Runs
-                every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
+                every { it.hentEier(testSoknadId) } returns DEAFULT_DUMMY_FNR
             }
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -298,7 +297,7 @@ internal class DokumentasjonKravApiTest {
                 with(slot.captured) {
                     assertEquals("451", this.kravId)
                     assertEquals(testSoknadId, this.søknadID)
-                    assertEquals(defaultDummyFodselsnummer, this.ident())
+                    assertEquals(DEAFULT_DUMMY_FNR, this.ident())
                     assertEquals("urn:vedlegg:soknadid/filid", this.urn.toString())
                 }
             }
@@ -312,7 +311,7 @@ internal class DokumentasjonKravApiTest {
         val mediatorMock =
             mockk<SøknadMediator>().also {
                 every { it.behandle(capture(slot)) } just Runs
-                every { it.hentEier(testSoknadId) } returns defaultDummyFodselsnummer
+                every { it.hentEier(testSoknadId) } returns DEAFULT_DUMMY_FNR
             }
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -325,14 +324,16 @@ internal class DokumentasjonKravApiTest {
                 header(HttpHeaders.ContentType, "application/json")
                 // language=JSON
                 setBody(
-                    """{
-  "filnavn": "ja.jpg",
-  "filsti": "1111/123234",
-  "storrelse": 50000,
-  "ikkeibruk": "ikkeibruk",
-  "urn": "urn:vedlegg:1111/123234",
-  "tidspunkt": "${tidspunkt.format(DateTimeFormatter.ISO_ZONED_DATE_TIME)}"
-}""",
+                    """
+                    {
+                      "filnavn": "ja.jpg",
+                      "filsti": "1111/123234",
+                      "storrelse": 50000,
+                      "ikkeibruk": "ikkeibruk",
+                      "urn": "urn:vedlegg:1111/123234",
+                      "tidspunkt": "${tidspunkt.format(DateTimeFormatter.ISO_ZONED_DATE_TIME)}"
+                    }
+                    """.trimIndent(),
                 )
             }.let { response ->
                 assertEquals(HttpStatusCode.Created, response.status)
@@ -383,7 +384,7 @@ internal class DokumentasjonKravApiTest {
                 with(slot.captured) {
                     assertEquals("451", this.kravId)
                     assertEquals(testSoknadId, this.søknadID)
-                    assertEquals(defaultDummyFodselsnummer, this.ident())
+                    assertEquals(DEAFULT_DUMMY_FNR, this.ident())
                     assertEquals("urn:bundle:1", this.urn().toString())
                 }
             }

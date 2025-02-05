@@ -22,8 +22,8 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestApplication
+import no.nav.dagpenger.soknad.TestApplication.DEAFULT_DUMMY_FNR
 import no.nav.dagpenger.soknad.TestApplication.autentisert
-import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -111,7 +111,7 @@ class MineSøknaderApiTest {
             TestApplication.mockedSøknadApi(
                 søknadMediator =
                     mockk<SøknadMediator>().also {
-                        every { it.hentSøknader(defaultDummyFodselsnummer) } returns
+                        every { it.hentSøknader(DEAFULT_DUMMY_FNR) } returns
                             setOf(
                                 søknadMed(tilstand = Påbegynt),
                                 søknadMed(tilstand = Innsendt),
@@ -140,7 +140,7 @@ class MineSøknaderApiTest {
             TestApplication.mockedSøknadApi(
                 søknadMediator =
                     mockk<SøknadMediator>().also {
-                        every { it.hentSøknader(defaultDummyFodselsnummer) } returns
+                        every { it.hentSøknader(DEAFULT_DUMMY_FNR) } returns
                             setOf(
                                 søknadMed(
                                     tilstand = Påbegynt,
@@ -170,7 +170,7 @@ class MineSøknaderApiTest {
             TestApplication.mockedSøknadApi(
                 søknadMediator =
                     mockk<SøknadMediator>().also {
-                        every { it.hentSøknader(defaultDummyFodselsnummer) } returns emptySet()
+                        every { it.hentSøknader(DEAFULT_DUMMY_FNR) } returns emptySet()
                     },
             ),
         ) {
@@ -190,7 +190,7 @@ class MineSøknaderApiTest {
             TestApplication.mockedSøknadApi(
                 søknadMediator =
                     mockk<SøknadMediator>().also {
-                        every { it.hentSøknader(defaultDummyFodselsnummer) } returns
+                        every { it.hentSøknader(DEAFULT_DUMMY_FNR) } returns
                             setOf(
                                 søknadMed(tilstand = Innsendt),
                             )
@@ -223,7 +223,7 @@ class MineSøknaderApiTest {
             TestApplication.mockedSøknadApi(
                 søknadMediator =
                     mockk<SøknadMediator>().also {
-                        every { it.hentSøknader(defaultDummyFodselsnummer) } returns
+                        every { it.hentSøknader(DEAFULT_DUMMY_FNR) } returns
                             setOf(
                                 søknadMed(tilstand = Innsendt),
                                 gammelInnsendtSøknad,
@@ -261,7 +261,7 @@ class MineSøknaderApiTest {
             TestApplication.mockedSøknadApi(
                 søknadMediator =
                     mockk<SøknadMediator>().also {
-                        every { it.hentSøknader(defaultDummyFodselsnummer) } returns
+                        every { it.hentSøknader(DEAFULT_DUMMY_FNR) } returns
                             setOf(
                                 søknadMed(
                                     tilstand = Innsendt,
@@ -328,7 +328,7 @@ class MineSøknaderApiTest {
         prosessversjon: Prosessversjon? = Prosessversjon(Prosessnavn("Dagpenger"), 1),
     ) = Søknad.rehydrer(
         søknadId = søknadUuid,
-        ident = defaultDummyFodselsnummer,
+        ident = DEAFULT_DUMMY_FNR,
         opprettet = ZonedDateTime.of(opprettet, ZoneId.of("Europe/Oslo")),
         innsendt = innsendt,
         språk = Språk("NO"),

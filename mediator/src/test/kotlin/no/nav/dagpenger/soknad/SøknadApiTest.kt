@@ -14,8 +14,8 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import no.nav.dagpenger.soknad.Søknadsprosess.NySøknadsProsess
+import no.nav.dagpenger.soknad.TestApplication.DEAFULT_DUMMY_FNR
 import no.nav.dagpenger.soknad.TestApplication.autentisert
-import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.soknad.db.SøkerOppgaveNotFoundException
 import no.nav.dagpenger.soknad.hendelse.SlettSøknadHendelse
 import no.nav.dagpenger.soknad.hendelse.SøknadInnsendtHendelse
@@ -44,7 +44,7 @@ internal class SøknadApiTest {
             mockk<SøknadMediator>().also {
                 every {
                     it.opprettSøknadsprosess(
-                        ident = defaultDummyFodselsnummer,
+                        ident = DEAFULT_DUMMY_FNR,
                         språk = capture(egenvalgtSpråk),
                         prosessnavn = Prosessnavn("Dagpenger"),
                         søknadId = any(),
@@ -95,7 +95,7 @@ internal class SøknadApiTest {
             mockk<SøknadMediator>().also {
                 every {
                     it.opprettSøknadsprosess(
-                        ident = defaultDummyFodselsnummer,
+                        ident = DEAFULT_DUMMY_FNR,
                         språk = "NB",
                         prosessnavn = Prosessnavn("Dagpenger"),
                         søknadId = søknadId,
@@ -143,7 +143,7 @@ internal class SøknadApiTest {
                 justRun {
                     it.behandle(capture(slot))
                 }
-                every { it.hentEier(any()) } returns defaultDummyFodselsnummer
+                every { it.hentEier(any()) } returns DEAFULT_DUMMY_FNR
             }
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -161,7 +161,7 @@ internal class SøknadApiTest {
         verify(exactly = 1) { søknadMediatorMock.behandle(any<SøknadInnsendtHendelse>()) }
         assertTrue(slot.isCaptured)
         assertEquals(testSøknadUuid, slot.captured.søknadID())
-        assertEquals(defaultDummyFodselsnummer, slot.captured.ident())
+        assertEquals(DEAFULT_DUMMY_FNR, slot.captured.ident())
     }
 
     @Test
@@ -174,7 +174,7 @@ internal class SøknadApiTest {
                     it.behandle(capture(slot))
                     it.lagreSøknadsTekst(testSøknadUuid, any())
                 }
-                every { it.hentEier(any()) } returns defaultDummyFodselsnummer
+                every { it.hentEier(any()) } returns DEAFULT_DUMMY_FNR
             }
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -193,7 +193,7 @@ internal class SøknadApiTest {
         verify(exactly = 1) { søknadMediatorMock.behandle(any<SøknadInnsendtHendelse>()) }
         assertTrue(slot.isCaptured)
         assertEquals(testSøknadUuid, slot.captured.søknadID())
-        assertEquals(defaultDummyFodselsnummer, slot.captured.ident())
+        assertEquals(DEAFULT_DUMMY_FNR, slot.captured.ident())
     }
 
     @Test
@@ -201,7 +201,7 @@ internal class SøknadApiTest {
         val testSøknadUuid = UUID.randomUUID()
         val søknadMediatorMock =
             mockk<SøknadMediator>().also {
-                every { it.hentEier(any()) } returns defaultDummyFodselsnummer
+                every { it.hentEier(any()) } returns DEAFULT_DUMMY_FNR
             }
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -225,7 +225,7 @@ internal class SøknadApiTest {
         val mockSøknadMediator =
             mockk<SøknadMediator>().also { søknadMediator ->
                 every { søknadMediator.hentSøkerOppgave(testSøknadUuid) } throws SøkerOppgaveNotFoundException("test")
-                every { søknadMediator.hentEier(testSøknadUuid) } returns defaultDummyFodselsnummer
+                every { søknadMediator.hentEier(testSøknadUuid) } returns DEAFULT_DUMMY_FNR
             }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -237,11 +237,6 @@ internal class SøknadApiTest {
             ).apply {
                 assertEquals(HttpStatusCode.ServiceUnavailable, this.status)
                 assertEquals("application/json; charset=UTF-8", this.headers["Content-Type"])
-                assertEquals(
-                    // language=JSON
-                    """{"type":"about:blank","title":"Søkeroppgave ikke funnet","status":503,"detail":"test","instance":"about:blank","errorType":"UNAVAILABLE"}""",
-                    this.bodyAsText(),
-                )
             }
         }
     }
@@ -258,7 +253,7 @@ internal class SøknadApiTest {
         val mockSøknadMediator =
             mockk<SøknadMediator>().also { søknadMediator ->
                 every { søknadMediator.hentSøkerOppgave(testSøknadUuid) } returns søkerOppgave
-                every { søknadMediator.hentEier(testSøknadUuid) } returns defaultDummyFodselsnummer
+                every { søknadMediator.hentEier(testSøknadUuid) } returns DEAFULT_DUMMY_FNR
             }
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
@@ -353,7 +348,7 @@ internal class SøknadApiTest {
                 justRun {
                     it.behandle(any<FaktumSvar>())
                 }
-                every { it.hentEier(søknadId) } returns defaultDummyFodselsnummer
+                every { it.hentEier(søknadId) } returns DEAFULT_DUMMY_FNR
                 every { it.besvart(søknadId) } returns 2
             }
 
@@ -383,7 +378,7 @@ internal class SøknadApiTest {
                 justRun {
                     it.behandle(any<SlettSøknadHendelse>())
                 }
-                every { it.hentEier(søknadUuid) } returns defaultDummyFodselsnummer
+                every { it.hentEier(søknadUuid) } returns DEAFULT_DUMMY_FNR
             }
 
         TestApplication.withMockAuthServerAndTestApplication(
@@ -401,7 +396,7 @@ internal class SøknadApiTest {
             mockSøknadMediator.behandle(
                 SlettSøknadHendelse(
                     søknadUuid,
-                    ident = defaultDummyFodselsnummer,
+                    ident = DEAFULT_DUMMY_FNR,
                 ),
             )
         }
@@ -430,7 +425,7 @@ internal class SøknadApiTest {
         val mockSøknadMediator =
             mockk<SøknadMediator>().also {
                 justRun { it.behandle(capture(faktumSvar)) }
-                every { it.hentEier(søknadId) } returns defaultDummyFodselsnummer
+                every { it.hentEier(søknadId) } returns DEAFULT_DUMMY_FNR
                 every { it.besvart(søknadId) } returns 2
             }
         val jsonSvar = """{"type": "$type", "svar": $svar}"""

@@ -39,8 +39,13 @@ class SøknadMalPostgresRepository(private val dataSource: DataSource) : Søknad
         using(sessionOf(dataSource)) { session: Session ->
             session.transaction { tx ->
                 tx.run(
-                    queryOf( //language=PostgreSQL
-                        "INSERT INTO soknadmal (prosessnavn, prosessversjon, mal) VALUES (:prosessnavn, :prosessversjon, :mal) ON CONFLICT DO NOTHING ",
+                    queryOf(
+                        //language=PostgreSQL
+                        """
+                        INSERT INTO soknadmal (prosessnavn, prosessversjon, mal) 
+                        VALUES (:prosessnavn, :prosessversjon, :mal) 
+                        ON CONFLICT DO NOTHING
+                        """.trimIndent(),
                         mapOf(
                             "prosessnavn" to søknadMal.prosessversjon.prosessnavn.id,
                             "prosessversjon" to søknadMal.prosessversjon.versjon,
@@ -83,7 +88,8 @@ class SøknadMalPostgresRepository(private val dataSource: DataSource) : Søknad
     override fun prosessnavn(prosessnavn: String) =
         using(sessionOf(dataSource)) { session ->
             session.run(
-                queryOf( // language=PostgreSQL
+                queryOf(
+                    // language=PostgreSQL
                     "SELECT prosessnavn FROM soknadmal WHERE prosessnavn = ?",
                     prosessnavn,
                 ).map {
@@ -98,7 +104,8 @@ class SøknadMalPostgresRepository(private val dataSource: DataSource) : Søknad
     ): Prosessversjon =
         using(sessionOf(dataSource)) { session ->
             session.run(
-                queryOf( // language=PostgreSQL
+                queryOf(
+                    // language=PostgreSQL
                     "SELECT prosessnavn, prosessversjon FROM soknadmal WHERE prosessnavn = ? AND prosessversjon = ?",
                     prosessnavn,
                     versjon,

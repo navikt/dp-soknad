@@ -31,7 +31,7 @@ internal class PersonaliaApiTest {
     fun `Hent personalia for autentiserte kall`() {
         val mockPersonOppslag =
             mockk<PersonOppslag>().also {
-                coEvery { it.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) } returns testPerson
+                coEvery { it.hentPerson(TestApplication.DEAFULT_DUMMY_FNR, any()) } returns testPerson
             }
         val mockKontonummerOppslag =
             mockk<KontonummerOppslag>().also {
@@ -51,7 +51,7 @@ internal class PersonaliaApiTest {
                 assertEquals(HttpStatusCode.OK, response.status)
                 assertEquals("application/json; charset=UTF-8", response.headers["Content-Type"])
                 assertEquals(forventetPersonalia, response.bodyAsText())
-                coVerify(exactly = 1) { mockPersonOppslag.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) }
+                coVerify(exactly = 1) { mockPersonOppslag.hentPerson(TestApplication.DEAFULT_DUMMY_FNR, any()) }
             }
         }
     }
@@ -65,7 +65,7 @@ internal class PersonaliaApiTest {
 
         val mockPersonOppslag =
             mockk<PersonOppslag>().also {
-                coEvery { it.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) } throws
+                coEvery { it.hentPerson(TestApplication.DEAFULT_DUMMY_FNR, any()) } throws
                     ClientRequestException(
                         mockResponse,
                         "FEil",
@@ -91,7 +91,7 @@ internal class PersonaliaApiTest {
                 val problem = objectMapper.readValue(response.bodyAsText(), HttpProblem::class.java)
                 assertEquals(HttpStatusCode.BadGateway.value, problem.status)
                 assertEquals("urn:oppslag:personalia", problem.type.toASCIIString())
-                coVerify(exactly = 1) { mockPersonOppslag.hentPerson(TestApplication.defaultDummyFodselsnummer, any()) }
+                coVerify(exactly = 1) { mockPersonOppslag.hentPerson(TestApplication.DEAFULT_DUMMY_FNR, any()) }
             }
         }
     }
@@ -118,7 +118,7 @@ internal class PersonaliaApiTest {
                 mellomNavn = "mellonNavn",
                 etterNavn = "etterNavn",
                 fødselsDato = LocalDate.of(2000, 5, 1),
-                ident = TestApplication.defaultDummyFodselsnummer,
+                ident = TestApplication.DEAFULT_DUMMY_FNR,
                 postAdresse = adresse,
                 folkeregistrertAdresse = adresse,
             )

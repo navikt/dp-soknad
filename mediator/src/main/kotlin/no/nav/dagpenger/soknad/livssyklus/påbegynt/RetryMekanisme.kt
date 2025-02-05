@@ -13,8 +13,10 @@ private val logger = KotlinLogging.logger {}
 
 suspend fun <T> retryIO(
     times: Int,
-    initialDelay: Long = 100, // 0.1 second
-    maxDelay: Long = 1000, // 1 second
+    // 0.1 second
+    initialDelay: Long = 100,
+    // 1 second
+    maxDelay: Long = 1000,
     factor: Double = 2.0,
     block: suspend () -> T,
 ): T {

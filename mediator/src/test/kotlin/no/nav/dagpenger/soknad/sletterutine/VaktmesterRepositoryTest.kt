@@ -211,7 +211,8 @@ internal class VaktmesterRepositoryTest {
     private fun settSlettet(uuid: UUID) =
         using(sessionOf(dataSource)) { session ->
             session.run(
-                queryOf( //language=PostgreSQL
+                queryOf(
+                    //language=PostgreSQL
                     "UPDATE soknad_v1 SET tilstand = '${Tilstand.Type.Slettet}' WHERE uuid = ?",
                     uuid,
                 ).asUpdate,
