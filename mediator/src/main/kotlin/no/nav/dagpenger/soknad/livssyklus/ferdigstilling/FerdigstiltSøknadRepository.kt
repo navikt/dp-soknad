@@ -11,15 +11,23 @@ import java.util.UUID
 import javax.sql.DataSource
 
 interface FerdigstiltSøknadRepository {
-    fun lagreSøknadsTekst(søknadUuid: UUID, søknadsTekst: String)
+    fun lagreSøknadsTekst(
+        søknadUuid: UUID,
+        søknadsTekst: String,
+    )
+
     fun hentTekst(søknadId: UUID): String
+
     fun hentFakta(søknadId: UUID): String
 }
 
 private val logger = KotlinLogging.logger {}
 
 internal class FerdigstiltSøknadPostgresRepository(private val dataSource: DataSource) : FerdigstiltSøknadRepository {
-    override fun lagreSøknadsTekst(søknadUuid: UUID, søknadsTekst: String) {
+    override fun lagreSøknadsTekst(
+        søknadUuid: UUID,
+        søknadsTekst: String,
+    ) {
         try {
             using(sessionOf(dataSource)) { session ->
                 session.run(
@@ -27,13 +35,15 @@ internal class FerdigstiltSøknadPostgresRepository(private val dataSource: Data
                         //language=PostgreSQL
                         statement = """INSERT INTO soknad_tekst_v1(uuid,tekst) VALUES(:uuid,:tekst)
 ON CONFLICT (uuid) DO NOTHING """,
-                        paramMap = mapOf(
-                            "uuid" to søknadUuid,
-                            "tekst" to PGobject().also {
-                                it.type = "jsonb"
-                                it.value = søknadsTekst
-                            },
-                        ),
+                        paramMap =
+                            mapOf(
+                                "uuid" to søknadUuid,
+                                "tekst" to
+                                    PGobject().also {
+                                        it.type = "jsonb"
+                                        it.value = søknadsTekst
+                                    },
+                            ),
                     ).asUpdate,
                 )
             }
@@ -49,9 +59,10 @@ ON CONFLICT (uuid) DO NOTHING """,
                 queryOf(
                     //language=PostgreSQL
                     statement = "SELECT tekst FROM soknad_tekst_v1 WHERE uuid = :uuid",
-                    paramMap = mapOf(
-                        "uuid" to søknadId,
-                    ),
+                    paramMap =
+                        mapOf(
+                            "uuid" to søknadId,
+                        ),
                 ).map { row -> row.string("tekst") }.asSingle,
             ) ?: throw NotFoundException().also {
                 logger.error { "Fant ikke søknad tekst med id: $søknadId" }
@@ -65,9 +76,10 @@ ON CONFLICT (uuid) DO NOTHING """,
                 queryOf(
                     //language=PostgreSQL
                     statement = "SELECT soknad_data FROM soknad_data WHERE uuid = :uuid",
-                    paramMap = mapOf(
-                        "uuid" to søknadId,
-                    ),
+                    paramMap =
+                        mapOf(
+                            "uuid" to søknadId,
+                        ),
                 ).map { row -> row.string("soknad_data") }.asSingle,
             ) ?: throw NotFoundException().also {
                 logger.error { "Fant ikke søknad data med id: $søknadId" }

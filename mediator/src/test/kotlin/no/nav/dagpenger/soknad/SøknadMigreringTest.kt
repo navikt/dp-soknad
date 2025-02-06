@@ -18,8 +18,8 @@ import java.util.UUID
 internal class SøknadMigreringTest {
     private val søknadMaler by lazy { SøknadMalPostgresRepository(PostgresDataSourceBuilder.dataSource) }
     private val søknader by lazy { SøknadPostgresRepository(PostgresDataSourceBuilder.dataSource) }
-    private fun versjon(versjon: Int) =
-        SøknadMal(prosessversjon(versjon), jacksonObjectMapper().createObjectNode())
+
+    private fun versjon(versjon: Int) = SøknadMal(prosessversjon(versjon), jacksonObjectMapper().createObjectNode())
 
     private fun prosessversjon(versjon: Int) = Prosessversjon("prosessnavn", versjon)
 

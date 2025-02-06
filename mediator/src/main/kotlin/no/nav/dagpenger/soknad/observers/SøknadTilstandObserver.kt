@@ -11,27 +11,29 @@ internal class SøknadTilstandObserver(private val rapidsConnection: RapidsConne
     override fun søknadTilstandEndret(event: SøknadEndretTilstandEvent) =
         rapidsConnection.publish(event.ident, søknadTilstandEndretEvent(event))
 
-    private fun søknadTilstandEndretEvent(event: SøknadEndretTilstandEvent) = JsonMessage.newMessage(
-        "søknad_endret_tilstand",
-        listOfNotNull(
-            "søknad_uuid" to event.søknadId,
-            "ident" to event.ident,
-            "forrigeTilstand" to event.forrigeTilstand,
-            "gjeldendeTilstand" to event.gjeldendeTilstand,
-            event.prosessversjon?.prosessnavn?.let { "prosessnavn" to it.id },
-        ).toMap(),
-    ).toJson()
+    private fun søknadTilstandEndretEvent(event: SøknadEndretTilstandEvent) =
+        JsonMessage.newMessage(
+            "søknad_endret_tilstand",
+            listOfNotNull(
+                "søknad_uuid" to event.søknadId,
+                "ident" to event.ident,
+                "forrigeTilstand" to event.forrigeTilstand,
+                "gjeldendeTilstand" to event.gjeldendeTilstand,
+                event.prosessversjon?.prosessnavn?.let { "prosessnavn" to it.id },
+            ).toMap(),
+        ).toJson()
 
-    override fun søknadSlettet(event: SøknadSlettetEvent) =
-        rapidsConnection.publish(event.ident, søknadSlettetEvent(event))
+    override fun søknadSlettet(event: SøknadSlettetEvent) = rapidsConnection.publish(event.ident, søknadSlettetEvent(event))
 
-    private fun søknadSlettetEvent(event: SøknadSlettetEvent) = JsonMessage.newMessage(
-        eventName = "søknad_slettet",
-        map = mapOf(
-            "søknad_uuid" to event.søknadId,
-            "ident" to event.ident,
-        ),
-    ).toJson()
+    private fun søknadSlettetEvent(event: SøknadSlettetEvent) =
+        JsonMessage.newMessage(
+            eventName = "søknad_slettet",
+            map =
+                mapOf(
+                    "søknad_uuid" to event.søknadId,
+                    "ident" to event.ident,
+                ),
+        ).toJson()
 
     override fun dokumentkravInnsendt(event: DokumentkravObserver.DokumentkravInnsendtEvent) =
         rapidsConnection.publish(event.ident, dokumentkravInnsendtEvent(event))
@@ -39,21 +41,23 @@ internal class SøknadTilstandObserver(private val rapidsConnection: RapidsConne
     private fun dokumentkravInnsendtEvent(event: DokumentkravObserver.DokumentkravInnsendtEvent) =
         JsonMessage.newMessage(
             eventName = "dokumentkrav_innsendt",
-            map = mapOf(
-                "søknad_uuid" to event.søknadId,
-                "ident" to event.ident,
-                "søknadType" to event.søknadType!!,
-                "innsendingsType" to event.innsendingstype!!,
-                "innsendttidspunkt" to event.innsendttidspunkt,
-                "ferdigBesvart" to event.ferdigBesvart,
-                "hendelseId" to event.hendelseId,
-                "dokumentkrav" to event.dokumentkrav.map {
-                    mapOf(
-                        "dokumentnavn" to it.dokumentnavn,
-                        "skjemakode" to it.skjemakode,
-                        "valg" to it.valg,
-                    )
-                },
-            ),
+            map =
+                mapOf(
+                    "søknad_uuid" to event.søknadId,
+                    "ident" to event.ident,
+                    "søknadType" to event.søknadType!!,
+                    "innsendingsType" to event.innsendingstype!!,
+                    "innsendttidspunkt" to event.innsendttidspunkt,
+                    "ferdigBesvart" to event.ferdigBesvart,
+                    "hendelseId" to event.hendelseId,
+                    "dokumentkrav" to
+                        event.dokumentkrav.map {
+                            mapOf(
+                                "dokumentnavn" to it.dokumentnavn,
+                                "skjemakode" to it.skjemakode,
+                                "valg" to it.valg,
+                            )
+                        },
+                ),
         ).toJson()
 }

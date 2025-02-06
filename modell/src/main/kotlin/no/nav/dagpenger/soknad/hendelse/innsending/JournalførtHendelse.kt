@@ -8,8 +8,8 @@ class JournalførtHendelse(
     private val journalpostId: String,
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : Hendelse(
-    ident,
-    aktivitetslogg,
-) {
+        ident,
+        aktivitetslogg,
+    ) {
     fun journalpostId() = journalpostId
 }

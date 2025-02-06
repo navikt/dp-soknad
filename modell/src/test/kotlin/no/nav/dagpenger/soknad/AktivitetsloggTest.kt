@@ -11,7 +11,6 @@ import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 
 internal class AktivitetsloggTest {
-
     private lateinit var aktivitetslogg: Aktivitetslogg
     private lateinit var person: TestKontekst
 
@@ -62,10 +61,11 @@ internal class AktivitetsloggTest {
 
     @Test
     fun `Melding sendt til forelder`() {
-        val hendelse = TestHendelse(
-            "Hendelse",
-            aktivitetslogg.barn(),
-        )
+        val hendelse =
+            TestHendelse(
+                "Hendelse",
+                aktivitetslogg.barn(),
+            )
         "info message".also {
             hendelse.info(it)
             assertInfo(it, hendelse.logg)
@@ -80,10 +80,11 @@ internal class AktivitetsloggTest {
 
     @Test
     fun `Melding sendt fra barnebarn til forelder`() {
-        val hendelse = TestHendelse(
-            "Hendelse",
-            aktivitetslogg.barn(),
-        )
+        val hendelse =
+            TestHendelse(
+                "Hendelse",
+                aktivitetslogg.barn(),
+            )
         hendelse.kontekst(person)
         val arbeidsgiver =
             TestKontekst("Melding")
@@ -109,10 +110,11 @@ internal class AktivitetsloggTest {
 
     @Test
     fun `Vis bare arbeidsgiveraktivitet`() {
-        val hendelse1 = TestHendelse(
-            "Hendelse1",
-            aktivitetslogg.barn(),
-        )
+        val hendelse1 =
+            TestHendelse(
+                "Hendelse1",
+                aktivitetslogg.barn(),
+            )
         hendelse1.kontekst(person)
         val arbeidsgiver1 =
             TestKontekst("Arbeidsgiver 1")
@@ -123,10 +125,11 @@ internal class AktivitetsloggTest {
         hendelse1.info("info message")
         hendelse1.warn("warn message")
         hendelse1.error("error message")
-        val hendelse2 = TestHendelse(
-            "Hendelse2",
-            aktivitetslogg.barn(),
-        )
+        val hendelse2 =
+            TestHendelse(
+                "Hendelse2",
+                aktivitetslogg.barn(),
+            )
         hendelse2.kontekst(person)
         val arbeidsgiver2 =
             TestKontekst("Arbeidsgiver 2")
@@ -143,10 +146,11 @@ internal class AktivitetsloggTest {
 
     @Test
     fun `Behov kan ha detaljer`() {
-        val hendelse1 = TestHendelse(
-            "Hendelse1",
-            aktivitetslogg.barn(),
-        )
+        val hendelse1 =
+            TestHendelse(
+                "Hendelse1",
+                aktivitetslogg.barn(),
+            )
         hendelse1.kontekst(person)
         val param1 = "value"
         val param2 = LocalDate.now()
@@ -181,7 +185,10 @@ internal class AktivitetsloggTest {
         assertDoesNotThrow { Behovtype.valueOf("OppgaveOmEttersending") } // Har kun vært i bruk i dev
     }
 
-    private fun assertInfo(message: String, aktivitetslogg: Aktivitetslogg = this.aktivitetslogg) {
+    private fun assertInfo(
+        message: String,
+        aktivitetslogg: Aktivitetslogg = this.aktivitetslogg,
+    ) {
         var visitorCalled = false
         aktivitetslogg.accept(
             object : AktivitetsloggVisitor {
@@ -199,7 +206,10 @@ internal class AktivitetsloggTest {
         assertTrue(visitorCalled)
     }
 
-    private fun assertWarn(message: String, aktivitetslogg: Aktivitetslogg = this.aktivitetslogg) {
+    private fun assertWarn(
+        message: String,
+        aktivitetslogg: Aktivitetslogg = this.aktivitetslogg,
+    ) {
         var visitorCalled = false
         aktivitetslogg.accept(
             object : AktivitetsloggVisitor {
@@ -217,7 +227,10 @@ internal class AktivitetsloggTest {
         assertTrue(visitorCalled)
     }
 
-    private fun assertError(message: String, aktivitetslogg: Aktivitetslogg = this.aktivitetslogg) {
+    private fun assertError(
+        message: String,
+        aktivitetslogg: Aktivitetslogg = this.aktivitetslogg,
+    ) {
         var visitorCalled = false
         aktivitetslogg.accept(
             object : AktivitetsloggVisitor {
@@ -235,7 +248,10 @@ internal class AktivitetsloggTest {
         assertTrue(visitorCalled)
     }
 
-    private fun assertSevere(message: String, aktivitetslogg: Aktivitetslogg = this.aktivitetslogg) {
+    private fun assertSevere(
+        message: String,
+        aktivitetslogg: Aktivitetslogg = this.aktivitetslogg,
+    ) {
         var visitorCalled = false
         aktivitetslogg.accept(
             object : AktivitetsloggVisitor {
@@ -268,6 +284,7 @@ internal class AktivitetsloggTest {
         }
 
         override fun toSpesifikkKontekst() = SpesifikkKontekst("TestHendelse")
+
         override fun kontekst(kontekst: Aktivitetskontekst) {
             logg.kontekst(kontekst)
         }

@@ -27,9 +27,10 @@ internal class AdresseMapper(pdlAdresser: List<PDLAdresse>) {
 
     init {
         val sortert = pdlAdresser.sortedWith(PostAdresseOrder.comparator)
-        folkeregistertAdresse = sortert
-            .firstOrNull { it.adresseMetadata.adresseType == AdresseMetadata.AdresseType.BOSTEDSADRESSE }
-            ?.let(::formatertAdresse)
+        folkeregistertAdresse =
+            sortert
+                .firstOrNull { it.adresseMetadata.adresseType == AdresseMetadata.AdresseType.BOSTEDSADRESSE }
+                ?.let(::formatertAdresse)
 
         postAdresse = sortert.firstOrNull()?.let(::formatertAdresse)
     }
@@ -39,11 +40,12 @@ internal object PDLAdresseMapper : no.nav.dagpenger.pdl.adresse.AdresseMapper<Ad
     private class GeografiOppslagInitException(e: Exception) : RuntimeException(e)
 
     private object PostDataOppslag {
-        private val dao: PostDataDAO = try {
-            PostDataDAO()
-        } catch (e: IOException) {
-            throw GeografiOppslagInitException(e)
-        }
+        private val dao: PostDataDAO =
+            try {
+                PostDataDAO()
+            } catch (e: IOException) {
+                throw GeografiOppslagInitException(e)
+            }
 
         fun finnPoststed(postNummer: String?): String? {
             return postNummer?.let {
@@ -53,11 +55,12 @@ internal object PDLAdresseMapper : no.nav.dagpenger.pdl.adresse.AdresseMapper<Ad
     }
 
     private object LandDataOppslag {
-        private val dao: CountryDAO = try {
-            CountryDAO()
-        } catch (e: IOException) {
-            throw GeografiOppslagInitException(e)
-        }
+        private val dao: CountryDAO =
+            try {
+                CountryDAO()
+            } catch (e: IOException) {
+                throw GeografiOppslagInitException(e)
+            }
 
         fun finnLand(landKode: String?): Country? {
             return landKode?.let { dao.findCountryByCode(it).orElse(null) }
@@ -68,8 +71,9 @@ internal object PDLAdresseMapper : no.nav.dagpenger.pdl.adresse.AdresseMapper<Ad
 
     override fun formatertAdresse(pdlAdresse: PDLAdresse.PostAdresseIFrittFormat): Adresse {
         with(pdlAdresse) {
-            val adresseLinjer = listOf(adresseLinje1, adresseLinje2, adresseLinje3)
-                .filterNot(String?::isNullOrBlank)
+            val adresseLinjer =
+                listOf(adresseLinje1, adresseLinje2, adresseLinje3)
+                    .filterNot(String?::isNullOrBlank)
 
             return Adresse(
                 adresselinje1 = adresseLinjer.getOrNull(0) ?: "",
@@ -85,8 +89,9 @@ internal object PDLAdresseMapper : no.nav.dagpenger.pdl.adresse.AdresseMapper<Ad
 
     override fun formatertAdresse(pdlAdresse: PDLAdresse.PostboksAdresse): Adresse {
         with(pdlAdresse) {
-            val adresseLinjer = listOf(postbokseier, postboks)
-                .filterNot(String?::isNullOrBlank)
+            val adresseLinjer =
+                listOf(postbokseier, postboks)
+                    .filterNot(String?::isNullOrBlank)
             return Adresse(
                 adresselinje1 = adresseLinjer.getOrNull(0) ?: "",
                 adresselinje2 = adresseLinjer.getOrNull(1) ?: "",
@@ -103,8 +108,9 @@ internal object PDLAdresseMapper : no.nav.dagpenger.pdl.adresse.AdresseMapper<Ad
 
     override fun formatertAdresse(pdlAdresse: PDLAdresse.UtenlandsAdresseIFrittFormat): Adresse {
         with(pdlAdresse) {
-            val adresseLinjer = listOf(adresseLinje1, adresseLinje2, adresseLinje3)
-                .filterNot(String?::isNullOrBlank)
+            val adresseLinjer =
+                listOf(adresseLinje1, adresseLinje2, adresseLinje3)
+                    .filterNot(String?::isNullOrBlank)
 
             val land = finnLand(landKode)
             return Adresse(
@@ -121,8 +127,9 @@ internal object PDLAdresseMapper : no.nav.dagpenger.pdl.adresse.AdresseMapper<Ad
 
     override fun formatertAdresse(pdlAdresse: PDLAdresse.UtenlandskAdresse): Adresse {
         with(pdlAdresse) {
-            val adresseLinjer = listOf(adressenavnNummer, bygningEtasjeLeilighet, postboksNummerNavn)
-                .filterNot(String?::isNullOrBlank)
+            val adresseLinjer =
+                listOf(adressenavnNummer, bygningEtasjeLeilighet, postboksNummerNavn)
+                    .filterNot(String?::isNullOrBlank)
 
             val land = finnLand(landKode)
             return Adresse(
@@ -138,23 +145,27 @@ internal object PDLAdresseMapper : no.nav.dagpenger.pdl.adresse.AdresseMapper<Ad
     }
 
     override fun formatertAdresse(pdlAdresse: PDLAdresse.VegAdresse): Adresse {
-        val husNummerBokstav = listOf(pdlAdresse.husnummer, pdlAdresse.husbokstav)
-            .filterNot(String?::isNullOrBlank)
-            .joinToString("")
+        val husNummerBokstav =
+            listOf(pdlAdresse.husnummer, pdlAdresse.husbokstav)
+                .filterNot(String?::isNullOrBlank)
+                .joinToString("")
 
-        val l1 = listOf(pdlAdresse.adressenavn, husNummerBokstav)
-            .filterNot(String?::isNullOrBlank)
-            .joinToString(separator = " ")
+        val l1 =
+            listOf(pdlAdresse.adressenavn, husNummerBokstav)
+                .filterNot(String?::isNullOrBlank)
+                .joinToString(separator = " ")
 
-        val adresseLinjer = listOf(pdlAdresse.adresseMetadata.coAdresseNavn, l1)
-            .filterNot(String?::isNullOrBlank)
+        val adresseLinjer =
+            listOf(pdlAdresse.adresseMetadata.coAdresseNavn, l1)
+                .filterNot(String?::isNullOrBlank)
 
         return Adresse(
             adresselinje1 = adresseLinjer.getOrNull(0) ?: "",
             adresselinje2 = adresseLinjer.getOrNull(1) ?: "",
             postnummer = pdlAdresse.postnummer ?: "",
             poststed = finnPoststed(pdlAdresse.postnummer) ?: "",
-            landkode = "NO", // vegadresse er alltid en norsk adresse
+            // vegadresse er alltid en norsk adresse
+            landkode = "NO",
             land = "NORGE",
         )
     }

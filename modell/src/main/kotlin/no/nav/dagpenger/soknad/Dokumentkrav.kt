@@ -38,19 +38,21 @@ class Dokumentkrav private constructor(
         aktiveDokumentKrav.forEach {
             it.svar.håndter(hendelse)
         }
-        val event = DokumentkravInnsendtEvent(
-            søknadId = hendelse.søknadID(),
-            ident = hendelse.ident(),
-            innsendttidspunkt = hendelse.innsendtidspunkt().toLocalDateTime(),
-            ferdigBesvart = ferdigBesvart(),
-            dokumentkrav = aktiveDokumentKrav.map {
-                DokumentkravInnsendt(
-                    dokumentnavn = it.beskrivendeId,
-                    skjemakode = it.tilSkjemakode(),
-                    valg = it.svar.valg.name,
-                )
-            },
-        )
+        val event =
+            DokumentkravInnsendtEvent(
+                søknadId = hendelse.søknadID(),
+                ident = hendelse.ident(),
+                innsendttidspunkt = hendelse.innsendtidspunkt().toLocalDateTime(),
+                ferdigBesvart = ferdigBesvart(),
+                dokumentkrav =
+                    aktiveDokumentKrav.map {
+                        DokumentkravInnsendt(
+                            dokumentnavn = it.beskrivendeId,
+                            skjemakode = it.tilSkjemakode(),
+                            valg = it.svar.valg.name,
+                        )
+                    },
+            )
         observers.forEach { it.dokumentkravInnsendt(event) }
     }
 
@@ -64,14 +66,17 @@ class Dokumentkrav private constructor(
                 Dokument(
                     kravId = krav.id,
                     skjemakode = krav.tilSkjemakode(),
-                    varianter = listOf(
-                        Dokument.Dokumentvariant(
-                            filnavn = krav.beskrivendeId,
-                            urn = krav.svar.bundle.toString(),
-                            variant = "ARKIV", // TODO: hent filtype fra bundle
-                            type = "PDF", // TODO: Hva setter vi her?
+                    varianter =
+                        listOf(
+                            Dokument.Dokumentvariant(
+                                filnavn = krav.beskrivendeId,
+                                urn = krav.svar.bundle.toString(),
+                                // TODO: hent filtype fra bundle
+                                variant = "ARKIV",
+                                // TODO: Hva setter vi her?
+                                type = "PDF",
+                            ),
                         ),
-                    ),
                 )
             }
 
@@ -79,14 +84,14 @@ class Dokumentkrav private constructor(
 
     fun inAktiveDokumentKrav() = krav.filterNot(aktive()).toSet()
 
-    override fun equals(other: Any?) =
-        other is Dokumentkrav && this.krav == other.krav
+    override fun equals(other: Any?) = other is Dokumentkrav && this.krav == other.krav
 
     override fun hashCode(): Int = 31 * krav.hashCode()
 
     fun accept(dokumentkravVisitor: DokumentkravVisitor) = krav.forEach { it.accept(dokumentkravVisitor) }
 
     fun ferdigBesvart() = aktiveDokumentKrav().all { it.besvart() }
+
     fun ingen() = krav.isEmpty()
 }
 
@@ -113,10 +118,11 @@ data class Krav(
 
     fun håndter(nySannsynliggjøringer: Set<Sannsynliggjøring>): Boolean =
         nySannsynliggjøringer.contains(this.sannsynliggjøring).also {
-            this.tilstand = when (it) {
-                true -> KravTilstand.AKTIV
-                false -> KravTilstand.INAKTIV
-            }
+            this.tilstand =
+                when (it) {
+                    true -> KravTilstand.AKTIV
+                    false -> KravTilstand.INAKTIV
+                }
         }
 
     fun accept(dokumentkravVisitor: DokumentkravVisitor) {
@@ -124,6 +130,7 @@ data class Krav(
     }
 
     fun besvart() = this.svar.besvart()
+
     fun innsendt() = this.svar.innsendt
 
     internal fun tilSkjemakode(): String {
@@ -147,8 +154,10 @@ data class Krav(
             "faktum.dokument-utdanning-sluttdato" -> Skjemakode.DOKUMENTASJON_AV_SLUTTDATO
             "faktum.dokument-bekreftelse-fra-lege-eller-annen-behandler" -> Skjemakode.DOKUMENTASJON_AV_HELSE_OG_FUNKSJONSNIVÅ
             "faktum.dokument-fulltid-bekreftelse-fra-relevant-fagpersonell" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
-            "faktum.dokument-hele-norge-bekreftelse-fra-relevant-fagpersonell" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
-            "faktum.dokument-alle-typer-bekreftelse-fra-relevant-fagpersonell" -> Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
+            "faktum.dokument-hele-norge-bekreftelse-fra-relevant-fagpersonell" ->
+                Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
+            "faktum.dokument-alle-typer-bekreftelse-fra-relevant-fagpersonell" ->
+                Skjemakode.UTTALSE_ELLER_VURDERING_FRA_KOMPETENT_FAGPERSONELL
             "faktum.dokument-foedselsattest-bostedsbevis-for-barn-under-18aar" -> Skjemakode.FODSELSATTEST_BOSTEDSBEVIS_BARN_UNDER_18
             else -> Skjemakode.ANNET
         }.verdi()
@@ -183,7 +192,8 @@ data class Krav(
         var valg: SvarValg,
         var begrunnelse: String?,
         var bundle: URN?,
-        var innsendt: Boolean, // todo slå sammen med bundle?
+        // todo slå sammen med bundle?
+        var innsendt: Boolean,
     ) {
         constructor() : this(
             filer = mutableSetOf(),
@@ -196,6 +206,7 @@ data class Krav(
         fun håndter(hendelse: SøknadInnsendtHendelse) {
             innsendt = true
         }
+
         fun besvart() = TilstandStrategy.strategy(this).besvart(this)
 
         private sealed interface TilstandStrategy {

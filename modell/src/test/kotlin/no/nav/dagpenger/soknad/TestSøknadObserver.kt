@@ -7,13 +7,15 @@ class TestSøknadObserver : SøknadObserver {
     internal var dokumentkrav: DokumentkravObserver.DokumentkravInnsendtEvent? = null
     internal var slettet: Boolean = false
     internal var sisteVersjon: Prosessversjon? = null
-    internal val tilstander = mutableListOf<Søknad.Tilstand.Type>().also {
-        it.add(Søknad.Tilstand.Type.UnderOpprettelse)
-    }
+    internal val tilstander =
+        mutableListOf<Søknad.Tilstand.Type>().also {
+            it.add(Søknad.Tilstand.Type.UnderOpprettelse)
+        }
     internal var innsendt: ZonedDateTime? = null
-    internal val innsendTilstander = mutableListOf<Innsending.TilstandType>().also {
-        it.add(Innsending.TilstandType.Opprettet)
-    }
+    internal val innsendTilstander =
+        mutableListOf<Innsending.TilstandType>().also {
+            it.add(Innsending.TilstandType.Opprettet)
+        }
 
     override fun søknadTilstandEndret(event: SøknadEndretTilstandEvent) {
         tilstander.add(event.gjeldendeTilstand)

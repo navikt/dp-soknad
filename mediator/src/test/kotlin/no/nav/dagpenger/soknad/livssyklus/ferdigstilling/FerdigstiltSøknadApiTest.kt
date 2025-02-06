@@ -23,7 +23,7 @@ internal class FerdigstiltSøknadApiTest {
 
     @Test
     fun `Skal avvise uautentiserte kall`() {
-        TestApplication.withMockAuthServerAndTestApplication() {
+        TestApplication.withMockAuthServerAndTestApplication {
             assertEquals(
                 HttpStatusCode.Unauthorized,
                 client.get("${Configuration.basePath}/${UUID.randomUUID()}/ferdigstilt/tekst").status,
@@ -45,7 +45,7 @@ internal class FerdigstiltSøknadApiTest {
 
     @Test
     fun `autentiserte kall`() {
-        TestApplication.withMockAuthServerAndTestApplication() {
+        TestApplication.withMockAuthServerAndTestApplication {
             assertEquals(
                 HttpStatusCode.OK,
                 autentisert(
@@ -147,7 +147,10 @@ internal class FerdigstiltSøknadApiTest {
         }
     }
 
-    private fun assertJsonEquals(expected: String, actual: String) {
+    private fun assertJsonEquals(
+        expected: String,
+        actual: String,
+    ) {
         fun String.removeWhitespace(): String = this.replace("\\s".toRegex(), "")
         assertEquals(expected.removeWhitespace(), actual.removeWhitespace())
     }

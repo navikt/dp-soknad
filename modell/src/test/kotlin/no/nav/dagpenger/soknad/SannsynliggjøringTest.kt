@@ -9,13 +9,15 @@ internal class SannsynliggjøringTest {
         Faktum(faktumJson("1", "f1"))
     private val faktumSomSannsynliggjøres =
         Faktum(faktumJson("2", "f2"))
-    private val sannsynliggjøring = Sannsynliggjøring(
-        "1",
-        dokfaktum,
-        sannsynliggjør = mutableSetOf(
-            faktumSomSannsynliggjøres,
-        ),
-    )
+    private val sannsynliggjøring =
+        Sannsynliggjøring(
+            "1",
+            dokfaktum,
+            sannsynliggjør =
+                mutableSetOf(
+                    faktumSomSannsynliggjøres,
+                ),
+        )
 
     @Test
     fun `likhet test`() {
@@ -24,9 +26,10 @@ internal class SannsynliggjøringTest {
             Sannsynliggjøring(
                 "1",
                 dokfaktum,
-                sannsynliggjør = mutableSetOf(
-                    faktumSomSannsynliggjøres,
-                ),
+                sannsynliggjør =
+                    mutableSetOf(
+                        faktumSomSannsynliggjøres,
+                    ),
             ),
             sannsynliggjøring,
         )
@@ -35,9 +38,10 @@ internal class SannsynliggjøringTest {
             Sannsynliggjøring(
                 "2",
                 dokfaktum,
-                sannsynliggjør = mutableSetOf(
-                    faktumSomSannsynliggjøres,
-                ),
+                sannsynliggjør =
+                    mutableSetOf(
+                        faktumSomSannsynliggjøres,
+                    ),
             ),
             sannsynliggjøring,
         )
@@ -52,9 +56,10 @@ internal class SannsynliggjøringTest {
             Sannsynliggjøring(
                 "1",
                 dokfaktum,
-                sannsynliggjør = mutableSetOf(
-                    faktumSomSannsynliggjøres,
-                ),
+                sannsynliggjør =
+                    mutableSetOf(
+                        faktumSomSannsynliggjøres,
+                    ),
             ).hashCode(),
             sannsynliggjøring.hashCode(),
         )

@@ -94,12 +94,12 @@ internal class NyInnsendingBehovMottakTest {
             lagTestJson(
                 testFixture.copy(
                     løsning =
-                    mapOf(
-                        "@løsning" to
-                            mapOf(
-                                "innsendingId" to UUID.randomUUID().toString(),
-                            ),
-                    ),
+                        mapOf(
+                            "@løsning" to
+                                mapOf(
+                                    "innsendingId" to UUID.randomUUID().toString(),
+                                ),
+                        ),
                 ),
             ),
         )
@@ -188,22 +188,22 @@ internal data class TestFixture(
                 kravId = "k1",
                 skjemakode = "s1",
                 varianter =
-                listOf(
-                    Innsending.Dokument.Dokumentvariant(
-                        uuid = UUID.randomUUID(),
-                        filnavn = "f1",
-                        urn = "urn:vedlegg:f1",
-                        variant = "n1",
-                        type = "t1",
+                    listOf(
+                        Innsending.Dokument.Dokumentvariant(
+                            uuid = UUID.randomUUID(),
+                            filnavn = "f1",
+                            urn = "urn:vedlegg:f1",
+                            variant = "n1",
+                            type = "t1",
+                        ),
+                        Innsending.Dokument.Dokumentvariant(
+                            uuid = UUID.randomUUID(),
+                            filnavn = "f2",
+                            urn = "urn:vedlegg:f2",
+                            variant = "n2",
+                            type = "t2",
+                        ),
                     ),
-                    Innsending.Dokument.Dokumentvariant(
-                        uuid = UUID.randomUUID(),
-                        filnavn = "f2",
-                        urn = "urn:vedlegg:f2",
-                        variant = "n2",
-                        type = "t2",
-                    ),
-                ),
             ),
             Innsending.Dokument(
                 uuid = UUID.randomUUID(),

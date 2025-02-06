@@ -46,11 +46,13 @@ internal class NyInnsendingBehovMottak(rapidsConnection: RapidsConnection, priva
             val hendelse = NyInnsendingMelding(packet).hendelse()
             mediator.behandle(hendelse)
 
-            packet["@løsning"] = mapOf(
-                behov to mapOf(
-                    "innsendingId" to hendelse.innsendingId,
-                ),
-            )
+            packet["@løsning"] =
+                mapOf(
+                    behov to
+                        mapOf(
+                            "innsendingId" to hendelse.innsendingId,
+                        ),
+                )
             context.publish(packet.toJson())
         }
     }

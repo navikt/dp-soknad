@@ -13,9 +13,10 @@ class PlantUmlObservatør() : SøknadObserver {
         val path = "${
             Paths.get("").toAbsolutePath().toString().substringBeforeLast("/")
         }/docs/arkitektur/"
-        val options = Options()
-            .forFile()
-            .withExtension(".puml")
+        val options =
+            Options()
+                .forFile()
+                .withExtension(".puml")
     }
 
     override fun søknadTilstandEndret(event: SøknadObserver.SøknadEndretTilstandEvent) {
@@ -48,4 +49,5 @@ class PlantUmlObservatør() : SøknadObserver {
 }
 
 private fun MutableList<String>.førsteTilstand(): String = this.first().substringBefore("--> ")
+
 private fun MutableList<String>.sisteTilstand(): String = this.last().substringAfter("--> ")

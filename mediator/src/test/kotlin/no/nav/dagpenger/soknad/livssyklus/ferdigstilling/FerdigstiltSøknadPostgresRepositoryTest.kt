@@ -119,7 +119,10 @@ internal class FerdigstiltSøknadPostgresRepositoryTest {
         return søknadId
     }
 
-    private fun assertJsonEquals(expected: String, actual: String) {
+    private fun assertJsonEquals(
+        expected: String,
+        actual: String,
+    ) {
         fun String.removeWhitespace(): String = this.replace("\\s".toRegex(), "")
         assertEquals(expected.removeWhitespace(), actual.removeWhitespace())
     }

@@ -17,11 +17,11 @@ internal class SøknadInnsendtObserver(
             .newMessage(
                 eventName = "søknad_innsendt_varsel",
                 map =
-                mapOf(
-                    "søknadId" to event.søknadId,
-                    "søknadstidspunkt" to event.søknadTidspunkt,
-                    "søknadData" to if (event.søknadData.isNotEmpty()) objectMapper.readTree(event.søknadData) else "",
-                    "ident" to event.ident,
-                ),
+                    mapOf(
+                        "søknadId" to event.søknadId,
+                        "søknadstidspunkt" to event.søknadTidspunkt,
+                        "søknadData" to if (event.søknadData.isNotEmpty()) objectMapper.readTree(event.søknadData) else "",
+                        "ident" to event.ident,
+                    ),
             ).toJson()
 }

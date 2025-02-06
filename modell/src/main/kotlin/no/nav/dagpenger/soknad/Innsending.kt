@@ -102,7 +102,7 @@ class Innsending private constructor(
     }
 
     fun håndter(hendelse: InnsendingMetadataMottattHendelse) {
-        innsendinger.forEach { it._håndter(hendelse) }
+        innsendinger.forEach { it.håndterInnsendingMetadataMottatt(hendelse) }
     }
 
     fun håndter(hendelse: ArkiverbarSøknadMottattHendelse) {
@@ -112,52 +112,52 @@ class Innsending private constructor(
             hendelse.warn("Ikke gyldig dokumentlokasjon")
             return
         }
-        innsendinger.forEach { it._håndter(hendelse) }
+        innsendinger.forEach { it.håndterArkiverbarSøknadMottatt(hendelse) }
     }
 
     fun håndter(hendelse: SøknadMidlertidigJournalførtHendelse) {
         kontekst(hendelse)
         hendelse.info("Søknad midlertidig journalført")
-        innsendinger.forEach { it._håndter(hendelse) }
+        innsendinger.forEach { it.håndterSøknadMidlertidigJournalført(hendelse) }
     }
 
     fun håndter(hendelse: JournalførtHendelse) {
         kontekst(hendelse)
         hendelse.info("Søknad journalført")
-        innsendinger.forEach { it._håndter(hendelse) }
+        innsendinger.forEach { it.håndterJournalført(hendelse) }
     }
 
     fun håndter(hendelse: InnsendingPåminnelseHendelse) {
         kontekst(hendelse)
         hendelse.info("Påminnelse om innsending")
-        innsendinger.forEach { it._håndter(hendelse) }
+        innsendinger.forEach { it.håndterInnsendingPåminnelse(hendelse) }
     }
 
-    private fun _håndter(hendelse: InnsendingMetadataMottattHendelse) {
+    private fun håndterInnsendingMetadataMottatt(hendelse: InnsendingMetadataMottattHendelse) {
         if (hendelse.innsendingId != this.innsendingId) return
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
     }
 
-    private fun _håndter(hendelse: ArkiverbarSøknadMottattHendelse) {
+    private fun håndterArkiverbarSøknadMottatt(hendelse: ArkiverbarSøknadMottattHendelse) {
         if (hendelse.innsendingId != this.innsendingId) return
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
     }
 
-    private fun _håndter(hendelse: SøknadMidlertidigJournalførtHendelse) {
+    private fun håndterSøknadMidlertidigJournalført(hendelse: SøknadMidlertidigJournalførtHendelse) {
         if (hendelse.innsendingId != this.innsendingId) return
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
     }
 
-    private fun _håndter(hendelse: JournalførtHendelse) {
+    private fun håndterJournalført(hendelse: JournalførtHendelse) {
         if (hendelse.journalpostId() != this.journalpostId) return
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
     }
 
-    private fun _håndter(hendelse: InnsendingPåminnelseHendelse) {
+    private fun håndterInnsendingPåminnelse(hendelse: InnsendingPåminnelseHendelse) {
         if (hendelse.innsendingId != this.innsendingId) return
         kontekst(hendelse)
         tilstand.håndter(hendelse, this)
@@ -219,36 +219,36 @@ class Innsending private constructor(
         fun håndter(
             hendelse: NyInnsendingHendelse,
             innsending: Innsending,
-        ) = hendelse.`kan ikke håndteres i denne tilstanden`()
+        ) = hendelse.kanIkkeHåndteresIDenneTilstanden()
 
         fun håndter(
             hendelse: InnsendingMetadataMottattHendelse,
             innsending: Innsending,
-        ) = hendelse.`kan ikke håndteres i denne tilstanden`()
+        ) = hendelse.kanIkkeHåndteresIDenneTilstanden()
 
         fun håndter(
             hendelse: ArkiverbarSøknadMottattHendelse,
             innsending: Innsending,
-        ) = hendelse.`kan ikke håndteres i denne tilstanden`()
+        ) = hendelse.kanIkkeHåndteresIDenneTilstanden()
 
         fun håndter(
             hendelse: SøknadMidlertidigJournalførtHendelse,
             innsending: Innsending,
-        ) = hendelse.`kan ikke håndteres i denne tilstanden`()
+        ) = hendelse.kanIkkeHåndteresIDenneTilstanden()
 
         fun håndter(
             hendelse: JournalførtHendelse,
             innsending: Innsending,
-        ) = hendelse.`kan ikke håndteres i denne tilstanden`()
+        ) = hendelse.kanIkkeHåndteresIDenneTilstanden()
 
         fun håndter(
             hendelse: InnsendingPåminnelseHendelse,
             innsending: Innsending,
         ) {
-            hendelse.`kan ikke håndteres i denne tilstanden`()
+            hendelse.kanIkkeHåndteresIDenneTilstanden()
         }
 
-        private fun Hendelse.`kan ikke håndteres i denne tilstanden`() =
+        private fun Hendelse.kanIkkeHåndteresIDenneTilstanden() =
             this.warn("Kan ikke håndtere ${this.javaClass.simpleName} i tilstand $tilstandType")
 
         override fun toSpesifikkKontekst() =
@@ -365,7 +365,8 @@ class Innsending private constructor(
                 Aktivitetslogg.Aktivitet.Behov.Behovtype.NyJournalpost,
                 "Trenger å journalføre søknad",
                 mapOf(
-                    "hovedDokument" to hovedDokument.toMap(), // urn til netto/brutto
+                    // urn til netto/brutto
+                    "hovedDokument" to hovedDokument.toMap(),
                     "dokumenter" to dokumenter.map { it.toMap() },
                 ),
             )

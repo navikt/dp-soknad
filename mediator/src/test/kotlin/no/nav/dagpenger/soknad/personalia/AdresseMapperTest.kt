@@ -10,14 +10,14 @@ import org.junit.jupiter.api.Test
 import kotlin.random.Random
 
 internal class AdresseMapperTest {
-
     @Test
     fun `henter ut folkeregistrert adresse`() {
-        val pdlAdresses = listOf(
-            createPdlAdresse(AdresseType.OPPHOLDSADRESSE, "2000"),
-            createPdlAdresse(AdresseType.BOSTEDSADRESSE, "2001"),
-            createPdlAdresse(AdresseType.KONTAKTADRESSE, "2002"),
-        )
+        val pdlAdresses =
+            listOf(
+                createPdlAdresse(AdresseType.OPPHOLDSADRESSE, "2000"),
+                createPdlAdresse(AdresseType.BOSTEDSADRESSE, "2001"),
+                createPdlAdresse(AdresseType.KONTAKTADRESSE, "2002"),
+            )
 
         (1..5).onEach {
             pdlAdresses.shuffled(Random(it)).let { randomizedList ->
@@ -44,10 +44,11 @@ internal class AdresseMapperTest {
         postnummer: String,
     ): PDLAdresse {
         return PDLAdresse.PostboksAdresse(
-            adresseMetadata = AdresseMetadata(
-                adresseType = adresseType,
-                master = MasterType.PDL,
-            ),
+            adresseMetadata =
+                AdresseMetadata(
+                    adresseType = adresseType,
+                    master = MasterType.PDL,
+                ),
             postnummer = postnummer,
         )
     }

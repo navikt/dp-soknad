@@ -6,6 +6,7 @@ import java.util.UUID
 
 interface DokumentkravObserver {
     fun dokumentkravInnsendt(event: DokumentkravInnsendtEvent) {}
+
     data class DokumentkravInnsendtEvent(
         val søknadId: UUID,
         val ident: String,
@@ -27,9 +28,11 @@ interface DokumentkravObserver {
 
 interface SøknadObserver : DokumentkravObserver {
     fun søknadTilstandEndret(event: SøknadEndretTilstandEvent) {}
+
     fun innsendingTilstandEndret(event: SøknadInnsendingEndretTilstandEvent) {}
 
     fun søknadSlettet(event: SøknadSlettetEvent) {}
+
     fun søknadMigrert(event: SøknadMigrertEvent) {}
 
     fun søknadInnsendt(event: SøknadInnsendtEvent) {}

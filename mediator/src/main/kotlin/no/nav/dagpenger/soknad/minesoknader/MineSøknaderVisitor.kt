@@ -11,7 +11,6 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 class MineSøknaderVisitor(søknad: Søknad) : SøknadVisitor {
-
     private var søknadInnsendt: ZonedDateTime? = null
     private lateinit var søknadOpprettet: LocalDateTime
     private var søknadSistEndretAvBruker: LocalDateTime? = null
@@ -23,9 +22,13 @@ class MineSøknaderVisitor(søknad: Søknad) : SøknadVisitor {
     }
 
     internal fun søknadInnsendt(): LocalDateTime = requireNotNull(søknadInnsendt).toLocalDateTime()
+
     internal fun sistEndretAvBruker() = søknadSistEndretAvBruker
+
     internal fun søknadOpprettet() = søknadOpprettet
+
     internal fun søknadTilstand() = søknadTilstand
+
     internal fun dokumentkrav() = dokumentkrav
 
     override fun visitSøknad(

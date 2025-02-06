@@ -16,9 +16,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 class SøknadMalRepositoryTest {
-    private val malJson = objectMapper.createObjectNode().also {
-        it.put("test", "test")
-    }
+    private val malJson =
+        objectMapper.createObjectNode().also {
+            it.put("test", "test")
+        }
 
     @Test
     fun `søknadmal skal lagres`() {
@@ -64,10 +65,11 @@ class SøknadMalRepositoryTest {
     fun `Hente ut søknadsmal fra basen`() {
         withMigratedDb {
             SøknadMalPostgresRepository(PostgresDataSourceBuilder.dataSource).let { repo ->
-                val prosessversjon = Prosessversjon(
-                    Prosessnavn("Dagpenger"),
-                    123,
-                )
+                val prosessversjon =
+                    Prosessversjon(
+                        Prosessnavn("Dagpenger"),
+                        123,
+                    )
                 val førsteMal = SøknadMal(prosessversjon, jacksonObjectMapper().createObjectNode())
 
                 assertThrows<IngenMalFunnetException> { repo.hentNyesteMal(prosessversjon.prosessnavn) }

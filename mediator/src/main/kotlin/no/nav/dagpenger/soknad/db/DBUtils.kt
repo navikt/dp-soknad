@@ -6,8 +6,8 @@ import java.time.ZonedDateTime
 
 object DBUtils {
     internal val tidssone = ZoneId.of("Europe/Oslo")
-    internal fun Row.norskZonedDateTime(columnLabel: String): ZonedDateTime =
-        this.zonedDateTime(columnLabel).withZoneSameInstant(tidssone)
+
+    internal fun Row.norskZonedDateTime(columnLabel: String): ZonedDateTime = this.zonedDateTime(columnLabel).withZoneSameInstant(tidssone)
 
     internal fun Row.norskZonedDateTimeOrNull(columnLabel: String): ZonedDateTime? =
         this.zonedDateTimeOrNull(columnLabel)?.withZoneSameInstant(tidssone)

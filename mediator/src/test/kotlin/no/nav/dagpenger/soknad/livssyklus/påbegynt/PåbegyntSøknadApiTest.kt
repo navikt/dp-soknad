@@ -25,32 +25,34 @@ class PåbegyntSøknadApiTest {
     fun `Skal hente påbegynt søknad`() {
         val expectedIdent = "12345678901"
         val søknadId = UUID.fromString("258b2f1b-bdda-4bed-974c-c4ddb206e4f4")
-        val expectedSoknad = Søknad(
-            søknadId,
-            Språk("NO"),
-            expectedIdent,
-        ).also {
-            it.håndter(
-                SøknadOpprettetHendelse(
-                    Prosessversjon("test", 1),
-                    søknadId,
-                    expectedIdent,
-                ),
-            )
-            it.håndter(
-                FaktumOppdatertHendelse(
-                    søknadId,
-                    expectedIdent,
-                ),
-            )
-        }
+        val expectedSoknad =
+            Søknad(
+                søknadId,
+                Språk("NO"),
+                expectedIdent,
+            ).also {
+                it.håndter(
+                    SøknadOpprettetHendelse(
+                        Prosessversjon("test", 1),
+                        søknadId,
+                        expectedIdent,
+                    ),
+                )
+                it.håndter(
+                    FaktumOppdatertHendelse(
+                        søknadId,
+                        expectedIdent,
+                    ),
+                )
+            }
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentPåbegyntSøknad("ingensoknad") } returns null
-                    every { it.hentPåbegyntSøknad("harsoknad") } returns expectedSoknad
-                },
+                søknadMediator =
+                    mockk<SøknadMediator>().also {
+                        every { it.hentPåbegyntSøknad("ingensoknad") } returns null
+                        every { it.hentPåbegyntSøknad("harsoknad") } returns expectedSoknad
+                    },
             ),
         ) {
             autentisert(
@@ -72,9 +74,10 @@ class PåbegyntSøknadApiTest {
     fun `Returnerer 404 når søker ikke har en påbegynt søknad`() {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentPåbegyntSøknad("ingensoknad") } returns null
-                },
+                søknadMediator =
+                    mockk<SøknadMediator>().also {
+                        every { it.hentPåbegyntSøknad("ingensoknad") } returns null
+                    },
             ),
         ) {
             autentisert(

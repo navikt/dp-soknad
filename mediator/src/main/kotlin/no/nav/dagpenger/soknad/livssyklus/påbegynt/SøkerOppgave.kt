@@ -11,7 +11,9 @@ import java.util.UUID
 
 interface SøkerOppgave : SøknadData {
     fun søknadUUID(): UUID
+
     fun eier(): String
+
     fun sannsynliggjøringer(): Set<Sannsynliggjøring>
 
     object Keys {
@@ -29,27 +31,32 @@ internal open class SøkerOppgaveMelding(private val jsonMessage: JsonNode) : S�
     constructor(message: InputStream) : this(objectMapper.readTree(message))
 
     override fun søknadUUID(): UUID = UUID.fromString(jsonMessage[SøkerOppgave.Keys.SØKNAD_UUID].asText())
+
     override fun eier(): String = jsonMessage[SøkerOppgave.Keys.FØDSELSNUMMER].asText()
+
     override fun toJson(): String = jsonMessage.toString()
+
     override fun sannsynliggjøringer(): Set<Sannsynliggjøring> {
         val seksjoner = jsonMessage[SøkerOppgave.Keys.SEKSJONER]
         val sannsynliggjøringer = mutableMapOf<String, Sannsynliggjøring>()
-        val fakta: List<Faktum> = seksjoner.findValues("fakta").flatMap<JsonNode, Faktum> { fakta ->
-            fakta.fold(mutableListOf()) { acc, faktum ->
-                when (faktum["type"].asText()) {
-                    "generator" -> faktum["svar"]?.forEach { svarliste ->
-                        svarliste.forEach { generertFaktum ->
-                            acc.add(grunnleggendeFaktum(generertFaktum))
-                        }
-                    }
+        val fakta: List<Faktum> =
+            seksjoner.findValues("fakta").flatMap<JsonNode, Faktum> { fakta ->
+                fakta.fold(mutableListOf()) { acc, faktum ->
+                    when (faktum["type"].asText()) {
+                        "generator" ->
+                            faktum["svar"]?.forEach { svarliste ->
+                                svarliste.forEach { generertFaktum ->
+                                    acc.add(grunnleggendeFaktum(generertFaktum))
+                                }
+                            }
 
-                    else -> acc.add(grunnleggendeFaktum(faktum))
+                        else -> acc.add(grunnleggendeFaktum(faktum))
+                    }
+                    acc
                 }
-                acc
+            }.filter {
+                it.sannsynliggjøresAv.isNotEmpty()
             }
-        }.filter {
-            it.sannsynliggjøresAv.isNotEmpty()
-        }
 
         fakta.forEach { faktum ->
             faktum.sannsynliggjøresAv.forEach { sannsynliggjøring ->

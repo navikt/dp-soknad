@@ -51,29 +51,32 @@ internal class ArkiverbarSøknadMottattHendelseMottak(
             "søknadId" to søknadID.toString(),
             "innsendingId" to innsendingId.toString(),
         ) {
-            val arkiverbarSøknadMottattHendelse = ArkiverbarSøknadMottattHendelse(
-                innsendingId = innsendingId,
-                ident = packet["ident"].asText(),
-                dokumentvarianter = packet["@løsning"][behov].dokumentVarianter(),
-            )
+            val arkiverbarSøknadMottattHendelse =
+                ArkiverbarSøknadMottattHendelse(
+                    innsendingId = innsendingId,
+                    ident = packet["ident"].asText(),
+                    dokumentvarianter = packet["@løsning"][behov].dokumentVarianter(),
+                )
             logger.info { "Fått løsning for $behov for $innsendingId" }
             mediator.behandle(arkiverbarSøknadMottattHendelse)
         }
     }
 
-    private fun JsonNode.dokumentVarianter(): List<Dokumentvariant> = this.toList().map { node ->
-        val format = when (node["metainfo"]["variant"].asText()) {
-            "NETTO" -> "ARKIV"
-            "BRUTTO" -> "FULLVERSJON"
-            else -> {
-                throw IllegalArgumentException("Ukjent joarkvariant, se https://confluence.adeo.no/display/BOA/Variantformat")
-            }
+    private fun JsonNode.dokumentVarianter(): List<Dokumentvariant> =
+        this.toList().map { node ->
+            val format =
+                when (node["metainfo"]["variant"].asText()) {
+                    "NETTO" -> "ARKIV"
+                    "BRUTTO" -> "FULLVERSJON"
+                    else -> {
+                        throw IllegalArgumentException("Ukjent joarkvariant, se https://confluence.adeo.no/display/BOA/Variantformat")
+                    }
+                }
+            Dokumentvariant(
+                filnavn = node["metainfo"]["innhold"].asText(),
+                urn = node["urn"].asText(),
+                variant = format,
+                type = node["metainfo"]["filtype"].asText(),
+            )
         }
-        Dokumentvariant(
-            filnavn = node["metainfo"]["innhold"].asText(),
-            urn = node["urn"].asText(),
-            variant = format,
-            type = node["metainfo"]["filtype"].asText(),
-        )
-    }
 }

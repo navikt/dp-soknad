@@ -10,11 +10,12 @@ class ArkiverbarSøknadMottattHendelse(
     private val dokumentvarianter: List<Dokumentvariant>,
     aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : InnsendingHendelse(
-    innsendingId,
-    ident,
-    aktivitetslogg,
-) {
+        innsendingId,
+        ident,
+        aktivitetslogg,
+    ) {
     fun dokumentvarianter() = dokumentvarianter
+
     fun valider(): Boolean {
         return true
         // TODO: Husk å validere

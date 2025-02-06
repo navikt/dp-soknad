@@ -94,30 +94,30 @@ internal class InnsendingMediatorTest {
                     kravId = "k1",
                     skjemakode = null,
                     varianter =
-                    listOf(
-                        Dokumentvariant(
-                            uuid = UUID.randomUUID(),
-                            filnavn = "k1",
-                            urn = "urn:vedlegg:k1",
-                            variant = "BRUTTO",
-                            type = "PDF",
+                        listOf(
+                            Dokumentvariant(
+                                uuid = UUID.randomUUID(),
+                                filnavn = "k1",
+                                urn = "urn:vedlegg:k1",
+                                variant = "BRUTTO",
+                                type = "PDF",
+                            ),
                         ),
-                    ),
                 ),
                 Dokument(
                     uuid = UUID.randomUUID(),
                     kravId = "k2",
                     skjemakode = null,
                     varianter =
-                    listOf(
-                        Dokumentvariant(
-                            uuid = UUID.randomUUID(),
-                            filnavn = "k2",
-                            urn = "urn:vedlegg:k2",
-                            variant = "BRUTTO",
-                            type = "PDF",
+                        listOf(
+                            Dokumentvariant(
+                                uuid = UUID.randomUUID(),
+                                filnavn = "k2",
+                                urn = "urn:vedlegg:k2",
+                                variant = "BRUTTO",
+                                type = "PDF",
+                            ),
                         ),
-                    ),
                 ),
             )
 

@@ -3,7 +3,6 @@ package no.nav.dagpenger.soknad.monitoring
 import no.nav.dagpenger.soknad.SøknadObserver
 
 object SøknadMetrikkObserver : SøknadObserver {
-
     override fun søknadTilstandEndret(event: SøknadObserver.SøknadEndretTilstandEvent) {
         Metrics.søknadTilstandTeller.labels(event.gjeldendeTilstand.name, event.forrigeTilstand.name).inc()
     }

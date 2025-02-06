@@ -25,11 +25,11 @@ internal class InnsendingPostgresRepositoryTest {
         withMigratedDb {
             SøknadPostgresRepository(dataSource = dataSource).lagre(
                 søknad =
-                Søknad(
-                    søknadId = dialogId,
-                    språk = Språk(verdi = "NO"),
-                    ident = testPersonIdent,
-                ),
+                    Søknad(
+                        søknadId = dialogId,
+                        språk = Språk(verdi = "NO"),
+                        ident = testPersonIdent,
+                    ),
             )
             test()
         }
@@ -43,22 +43,22 @@ internal class InnsendingPostgresRepositoryTest {
             kravId = "Hoveddokument",
             skjemakode = "NAV-04",
             varianter =
-            listOf(
-                Innsending.Dokument.Dokumentvariant(
-                    uuid = UUID.randomUUID(),
-                    filnavn = "filnavn1",
-                    urn = "urn:vedlegg:filnavn1",
-                    variant = "NETTO",
-                    type = "PDF",
+                listOf(
+                    Innsending.Dokument.Dokumentvariant(
+                        uuid = UUID.randomUUID(),
+                        filnavn = "filnavn1",
+                        urn = "urn:vedlegg:filnavn1",
+                        variant = "NETTO",
+                        type = "PDF",
+                    ),
+                    Innsending.Dokument.Dokumentvariant(
+                        uuid = UUID.randomUUID(),
+                        filnavn = "filnavn2",
+                        urn = "urn:vedlegg:filnavn2",
+                        variant = "NETTO",
+                        type = "JSON",
+                    ),
                 ),
-                Innsending.Dokument.Dokumentvariant(
-                    uuid = UUID.randomUUID(),
-                    filnavn = "filnavn2",
-                    urn = "urn:vedlegg:filnavn2",
-                    variant = "NETTO",
-                    type = "JSON",
-                ),
-            ),
         )
     private val dokument1 =
         Innsending.Dokument(
@@ -66,22 +66,22 @@ internal class InnsendingPostgresRepositoryTest {
             kravId = "dokument1",
             skjemakode = "NAV-04",
             varianter =
-            listOf(
-                Innsending.Dokument.Dokumentvariant(
-                    uuid = UUID.randomUUID(),
-                    filnavn = "filnavn1",
-                    urn = "urn:vedlegg:filnavn1",
-                    variant = "NETTO",
-                    type = "PDF",
+                listOf(
+                    Innsending.Dokument.Dokumentvariant(
+                        uuid = UUID.randomUUID(),
+                        filnavn = "filnavn1",
+                        urn = "urn:vedlegg:filnavn1",
+                        variant = "NETTO",
+                        type = "PDF",
+                    ),
+                    Innsending.Dokument.Dokumentvariant(
+                        uuid = UUID.randomUUID(),
+                        filnavn = "filnavn2",
+                        urn = "urn:vedlegg:filnavn2",
+                        variant = "NETTO",
+                        type = "JSON",
+                    ),
                 ),
-                Innsending.Dokument.Dokumentvariant(
-                    uuid = UUID.randomUUID(),
-                    filnavn = "filnavn2",
-                    urn = "urn:vedlegg:filnavn2",
-                    variant = "NETTO",
-                    type = "JSON",
-                ),
-            ),
         )
 
     private val dokument2 =
@@ -90,22 +90,22 @@ internal class InnsendingPostgresRepositoryTest {
             kravId = "dokument2",
             skjemakode = "NAV-04",
             varianter =
-            listOf(
-                Innsending.Dokument.Dokumentvariant(
-                    uuid = UUID.randomUUID(),
-                    filnavn = "filnavn1",
-                    urn = "urn:vedlegg:filnavn1",
-                    variant = "NETTO",
-                    type = "PDF",
+                listOf(
+                    Innsending.Dokument.Dokumentvariant(
+                        uuid = UUID.randomUUID(),
+                        filnavn = "filnavn1",
+                        urn = "urn:vedlegg:filnavn1",
+                        variant = "NETTO",
+                        type = "PDF",
+                    ),
+                    Innsending.Dokument.Dokumentvariant(
+                        uuid = UUID.randomUUID(),
+                        filnavn = "filnavn2",
+                        urn = "urn:vedlegg:filnavn2",
+                        variant = "NETTO",
+                        type = "JSON",
+                    ),
                 ),
-                Innsending.Dokument.Dokumentvariant(
-                    uuid = UUID.randomUUID(),
-                    filnavn = "filnavn2",
-                    urn = "urn:vedlegg:filnavn2",
-                    variant = "NETTO",
-                    type = "JSON",
-                ),
-            ),
         )
 
     private val dokumenter = listOf(dokument1, dokument2)

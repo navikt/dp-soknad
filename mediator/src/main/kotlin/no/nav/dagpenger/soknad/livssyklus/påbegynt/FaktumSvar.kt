@@ -18,23 +18,27 @@ internal class FaktumSvar(
     private val id = UUID.randomUUID()
 
     fun søknadUuid() = søknadUuid
+
     fun ident() = ident
+
     fun besvart() = besvart
 
-    fun toJson() = JsonMessage.newMessage(
-        mapOf(
-            "@event_name" to navn,
-            "@opprettet" to opprettet,
-            "@id" to id,
-            "besvart" to besvart,
-            "fakta" to listOf(
-                mapOf(
-                    "id" to faktumId,
-                    "type" to type,
-                    "svar" to svar,
-                ),
+    fun toJson() =
+        JsonMessage.newMessage(
+            mapOf(
+                "@event_name" to navn,
+                "@opprettet" to opprettet,
+                "@id" to id,
+                "besvart" to besvart,
+                "fakta" to
+                    listOf(
+                        mapOf(
+                            "id" to faktumId,
+                            "type" to type,
+                            "svar" to svar,
+                        ),
+                    ),
+                "søknad_uuid" to søknadUuid,
             ),
-            "søknad_uuid" to søknadUuid,
-        ),
-    ).toJson()
+        ).toJson()
 }

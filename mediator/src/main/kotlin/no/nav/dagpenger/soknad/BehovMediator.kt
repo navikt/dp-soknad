@@ -10,7 +10,6 @@ class BehovMediator(
     private val rapidsConnection: RapidsConnection,
     private val sikkerLogg: KLogger,
 ) {
-
     private companion object {
         val logger = KotlinLogging.logger { }
     }
@@ -27,8 +26,9 @@ class BehovMediator(
             .groupBy { it.kontekst() }
             .onEach { (_, behovMap) ->
                 require(
-                    behovMap.size == behovMap.map { it.type.name }
-                        .toSet().size,
+                    behovMap.size ==
+                        behovMap.map { it.type.name }
+                            .toSet().size,
                 ) { "Kan ikke produsere samme behov på samme kontekst" }
             }
             .forEach { (kontekst, behov) ->

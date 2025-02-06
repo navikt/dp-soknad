@@ -26,9 +26,10 @@ internal fun Route.arbeidsforhold(
             val fnr = call.ident()
             val jwtToken = call.request.jwt()
 
-            val arbeidsforhold = withContext(coroutineContext) {
-                arbeidsforholdOppslag.hentArbeidsforhold(fnr, jwtToken)
-            }
+            val arbeidsforhold =
+                withContext(coroutineContext) {
+                    arbeidsforholdOppslag.hentArbeidsforhold(fnr, jwtToken)
+                }
 
             call.respond(arbeidsforhold)
         }

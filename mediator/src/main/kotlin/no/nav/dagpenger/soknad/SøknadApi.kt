@@ -21,7 +21,10 @@ internal fun søknadApiRouteBuilder(
     behandlingsstatusClient: BehandlingsstatusClient,
 ): Route.() -> Unit = { søknadApi(søknadMediator, behandlingsstatusClient) }
 
-internal fun Route.søknadApi(søknadMediator: SøknadMediator, behandlingsstatusClient: BehandlingsstatusClient) {
+internal fun Route.søknadApi(
+    søknadMediator: SøknadMediator,
+    behandlingsstatusClient: BehandlingsstatusClient,
+) {
     route("${Configuration.basePath}/soknad") {
         startSøknadRoute(søknadMediator)
         påbegyntSøknadRoute(søknadMediator)
