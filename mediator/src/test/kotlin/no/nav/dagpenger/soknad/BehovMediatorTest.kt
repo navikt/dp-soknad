@@ -17,7 +17,7 @@ import java.util.UUID
 
 internal class BehovMediatorTest {
     private companion object {
-        private const val testIdent = "12345678912"
+        private val testIdent = "12345678912"
         private val søknadID = UUID.randomUUID()
         private lateinit var behovMediator: BehovMediator
     }
@@ -30,10 +30,11 @@ internal class BehovMediatorTest {
     fun setup() {
         aktivitetslogg = Aktivitetslogg()
         testSøknadKontekst = TestSøknadKontekst(søknadID, testIdent)
-        behovMediator = BehovMediator(
-            rapidsConnection = testRapid,
-            sikkerLogg = mockk(relaxed = true),
-        )
+        behovMediator =
+            BehovMediator(
+                rapidsConnection = testRapid,
+                sikkerLogg = mockk(relaxed = true),
+            )
         testRapid.reset()
     }
 
@@ -169,6 +170,7 @@ internal class BehovMediatorTest {
         }
 
         override fun toSpesifikkKontekst() = SpesifikkKontekst("TestHendelse")
+
         override fun kontekst(kontekst: Aktivitetskontekst) {
             logg.kontekst(kontekst)
         }

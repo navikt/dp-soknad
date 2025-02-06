@@ -10,7 +10,6 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 class SøknadStatusVisitor(søknad: Søknad) : SøknadVisitor {
-
     private var søknadInnsendt: ZonedDateTime? = null
     private lateinit var søknadOpprettet: LocalDateTime
     private lateinit var søknadTilstand: Søknad.Tilstand.Type
@@ -20,7 +19,9 @@ class SøknadStatusVisitor(søknad: Søknad) : SøknadVisitor {
     }
 
     fun søknadInnsendt() = requireNotNull(søknadInnsendt)
+
     fun søknadOpprettet() = søknadOpprettet
+
     fun søknadTilstand() = søknadTilstand
 
     override fun visitSøknad(

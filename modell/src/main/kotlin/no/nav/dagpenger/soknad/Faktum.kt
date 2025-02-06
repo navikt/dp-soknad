@@ -12,5 +12,6 @@ class Faktum(private val json: JsonNode) {
     override fun equals(other: Any?): Boolean = other is Faktum && id == other.id
 
     override fun hashCode() = id.hashCode()
+
     fun originalJson() = json
 }

@@ -37,13 +37,14 @@ internal class PostgresDokumentkravRepositoryTest {
         val id = UUID.randomUUID()
 
         setup(lagSøknad(søknadId = id, ident = "123", "1")) { dokumentKravRepository ->
-            val fil1 = Krav.Fil(
-                filnavn = "fil1",
-                urn = URN.rfc8141().parse("urn:vedlegg:$id/fil1"),
-                storrelse = 0,
-                tidspunkt = now,
-                bundlet = false,
-            )
+            val fil1 =
+                Krav.Fil(
+                    filnavn = "fil1",
+                    urn = URN.rfc8141().parse("urn:vedlegg:$id/fil1"),
+                    storrelse = 0,
+                    tidspunkt = now,
+                    bundlet = false,
+                )
             val fil2 = fil1.copy(urn = URN.rfc8141().parse("urn:vedlegg:$id/fil2"))
             dokumentKravRepository.håndter(
                 LeggTilFil(
@@ -113,21 +114,23 @@ internal class PostgresDokumentkravRepositoryTest {
         val id = UUID.randomUUID()
 
         setup(lagSøknad(søknadId = id, ident = "123", "1")) { dokumentKravRepository ->
-            val fil1 = Krav.Fil(
-                filnavn = "fil1",
-                urn = URN.rfc8141().parse("urn:vedlegg:$id/fil1"),
-                storrelse = 0,
-                tidspunkt = now,
-                bundlet = false,
-            )
+            val fil1 =
+                Krav.Fil(
+                    filnavn = "fil1",
+                    urn = URN.rfc8141().parse("urn:vedlegg:$id/fil1"),
+                    storrelse = 0,
+                    tidspunkt = now,
+                    bundlet = false,
+                )
 
-            val fil2 = Krav.Fil(
-                filnavn = "fil1",
-                urn = URN.rfc8141().parse("urn:vedlegg:$id/fil2"),
-                storrelse = 0,
-                tidspunkt = now,
-                bundlet = false,
-            )
+            val fil2 =
+                Krav.Fil(
+                    filnavn = "fil1",
+                    urn = URN.rfc8141().parse("urn:vedlegg:$id/fil2"),
+                    storrelse = 0,
+                    tidspunkt = now,
+                    bundlet = false,
+                )
 
             dokumentKravRepository.håndter(
                 LeggTilFil(
@@ -189,7 +192,10 @@ internal class PostgresDokumentkravRepositoryTest {
         }
     }
 
-    private fun setup(søknad: Søknad, block: (repository: PostgresDokumentkravRepository) -> Unit) {
+    private fun setup(
+        søknad: Søknad,
+        block: (repository: PostgresDokumentkravRepository) -> Unit,
+    ) {
         withMigratedDb {
             SøknadPostgresRepository(dataSource = PostgresDataSourceBuilder.dataSource).lagre(søknad)
             block(PostgresDokumentkravRepository(PostgresDataSourceBuilder.dataSource))
@@ -207,21 +213,25 @@ internal class PostgresDokumentkravRepositoryTest {
             opprettet = now,
             innsendt = now,
             språk = Språk(verdi = "NO"),
-            dokumentkrav = Dokumentkrav.rehydrer(
-                krav = kravId.map {
-                    Sannsynliggjøring(
-                        id = it,
-                        faktum = Faktum(
-                            json = faktumJson(
+            dokumentkrav =
+                Dokumentkrav.rehydrer(
+                    krav =
+                        kravId.map {
+                            Sannsynliggjøring(
                                 id = it,
-                                beskrivendeId = "f$it",
-                            ),
-                        ),
-                    )
-                }.map {
-                    Krav(it)
-                }.toSet(),
-            ),
+                                faktum =
+                                    Faktum(
+                                        json =
+                                            faktumJson(
+                                                id = it,
+                                                beskrivendeId = "f$it",
+                                            ),
+                                    ),
+                            )
+                        }.map {
+                            Krav(it)
+                        }.toSet(),
+                ),
             sistEndretAvBruker = now,
             tilstandsType = Påbegynt,
             aktivitetslogg = Aktivitetslogg(),

@@ -10,22 +10,24 @@ import no.nav.dagpenger.oauth2.CachedOauth2Client
 import no.nav.dagpenger.oauth2.OAuth2Config
 
 internal object Configuration {
-    const val appName = "dp-soknad"
-    private val defaultProperties = ConfigurationMap(
-        mapOf(
-            "RAPID_APP_NAME" to "dp-soknad",
-            "KAFKA_CONSUMER_GROUP_ID" to "dp-soknad-v1",
-            "KAFKA_RAPID_TOPIC" to "teamdagpenger.rapid.v1",
-            "KAFKA_EXTRA_TOPIC" to "teamdagpenger.journalforing.v1",
-            "KAFKA_RESET_POLICY" to "latest",
-            "PERSON_KONTO_REGISTER_URL" to "http://sokos-kontoregister-person.okonomi/api/borger/v1/hent-aktiv-konto",
-        ),
-    )
+    const val APP_NAME = "dp-soknad"
+    private val defaultProperties =
+        ConfigurationMap(
+            mapOf(
+                "RAPID_APP_NAME" to "dp-soknad",
+                "KAFKA_CONSUMER_GROUP_ID" to "dp-soknad-v1",
+                "KAFKA_RAPID_TOPIC" to "teamdagpenger.rapid.v1",
+                "KAFKA_EXTRA_TOPIC" to "teamdagpenger.journalforing.v1",
+                "KAFKA_RESET_POLICY" to "latest",
+                "PERSON_KONTO_REGISTER_URL" to "http://sokos-kontoregister-person.okonomi/api/borger/v1/hent-aktiv-konto",
+            ),
+        )
     val properties =
         ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding defaultProperties
-    val config: Map<String, String> = properties.list().reversed().fold(emptyMap()) { map, pair ->
-        map + pair.second
-    }
+    val config: Map<String, String> =
+        properties.list().reversed().fold(emptyMap()) { map, pair ->
+            map + pair.second
+        }
     val basePath = "/arbeid/dagpenger/soknadapi"
     val kontoRegisterUrl by lazy { properties[Key("PERSON_KONTO_REGISTER_URL", stringType)] }
     val kontoRegisterScope by lazy { properties[Key("PERSON_KONTO_REGISTER_SCOPE", stringType)] }
@@ -60,10 +62,11 @@ internal object Configuration {
         )
     }
 
-    fun tokenXClient(audience: String) = { subjectToken: String ->
-        tokenXClient.tokenExchange(
-            token = subjectToken,
-            audience = audience,
-        ).access_token ?: throw RuntimeException("Klarte ikke hente token")
-    }
+    fun tokenXClient(audience: String) =
+        { subjectToken: String ->
+            tokenXClient.tokenExchange(
+                token = subjectToken,
+                audience = audience,
+            ).access_token ?: throw RuntimeException("Klarte ikke hente token")
+        }
 }

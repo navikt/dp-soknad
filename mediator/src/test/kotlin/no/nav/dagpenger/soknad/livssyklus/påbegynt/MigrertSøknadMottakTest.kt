@@ -16,9 +16,10 @@ class MigrertSøknadMottakTest {
     private val søknadUUID = UUID.randomUUID()
     private val ident = "123"
     private val mediatorMock = mockk<SøknadMediator>()
-    private val testRapid = TestRapid().also { rapidsConnection ->
-        MigrertSøknadMottak(rapidsConnection, mediatorMock)
-    }
+    private val testRapid =
+        TestRapid().also { rapidsConnection ->
+            MigrertSøknadMottak(rapidsConnection, mediatorMock)
+        }
 
     @Test
     fun `skal lese migrert melding`() {
@@ -37,7 +38,8 @@ class MigrertSøknadMottakTest {
     }
 
     //language=JSON
-    private val melding = """
+    private val melding =
+        """
         {
         "@event_name": "behov",
         "@behov": ["MigrerProsess"],
@@ -52,5 +54,5 @@ class MigrertSøknadMottakTest {
                }
           }
         }
-    """.trimIndent()
+        """.trimIndent()
 }

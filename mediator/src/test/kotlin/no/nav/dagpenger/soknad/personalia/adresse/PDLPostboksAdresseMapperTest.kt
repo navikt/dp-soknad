@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 internal class PDLPostboksAdresseMapperTest {
-
     @Test
     fun `Alle felter utfylt`() {
         PDLAdresseMapper.formatertAdresse(

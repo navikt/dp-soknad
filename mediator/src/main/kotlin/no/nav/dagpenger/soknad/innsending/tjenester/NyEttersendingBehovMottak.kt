@@ -46,11 +46,13 @@ internal class NyEttersendingBehovMottak(rapidsConnection: RapidsConnection, pri
             val hendelse = NyEttersendingMelding(packet).hendelse()
             mediator.behandle(hendelse)
 
-            packet["@løsning"] = mapOf(
-                behov to mapOf(
-                    "innsendingId" to hendelse.innsendingId,
-                ),
-            )
+            packet["@løsning"] =
+                mapOf(
+                    behov to
+                        mapOf(
+                            "innsendingId" to hendelse.innsendingId,
+                        ),
+                )
             context.publish(packet.toJson())
         }
     }

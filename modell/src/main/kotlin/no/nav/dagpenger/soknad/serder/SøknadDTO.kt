@@ -30,19 +30,20 @@ class SøknadDTO(
     val prosessversjon: ProsessversjonDTO?,
     val data: Lazy<SøknadData>,
 ) {
-    fun rehydrer(): Søknad = Søknad.rehydrer(
-        søknadId = this.søknadsId,
-        ident = this.ident,
-        opprettet = opprettet,
-        innsendt = innsendt,
-        språk = this.språkDTO.rehydrer(),
-        dokumentkrav = this.dokumentkrav.rehydrer(),
-        sistEndretAvBruker = this.sistEndretAvBruker,
-        tilstandsType = this.tilstandType.rehydrer(),
-        aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
-        prosessversjon = this.prosessversjon?.rehydrer(),
-        data = data,
-    )
+    fun rehydrer(): Søknad =
+        Søknad.rehydrer(
+            søknadId = this.søknadsId,
+            ident = this.ident,
+            opprettet = opprettet,
+            innsendt = innsendt,
+            språk = this.språkDTO.rehydrer(),
+            dokumentkrav = this.dokumentkrav.rehydrer(),
+            sistEndretAvBruker = this.sistEndretAvBruker,
+            tilstandsType = this.tilstandType.rehydrer(),
+            aktivitetslogg = aktivitetslogg?.konverterTilAktivitetslogg() ?: Aktivitetslogg(),
+            prosessversjon = this.prosessversjon?.rehydrer(),
+            data = data,
+        )
 
     class SpråkDTO(val verdi: String) {
         constructor(språk: Locale) : this(språk.toLanguageTag())
@@ -54,29 +55,32 @@ class SøknadDTO(
         val prosessnavn: String,
         val versjon: Int,
     ) {
-        fun rehydrer() = Prosessversjon(
-            prosessnavn = Prosessnavn(this.prosessnavn),
-            versjon = this.versjon,
-        )
+        fun rehydrer() =
+            Prosessversjon(
+                prosessnavn = Prosessnavn(this.prosessnavn),
+                versjon = this.versjon,
+            )
     }
 
     data class DokumentkravDTO(
         val kravData: Set<KravDTO>,
     ) {
-        fun rehydrer(): Dokumentkrav = Dokumentkrav.rehydrer(
-            krav = kravData.map { it.rehydrer() }.toSet(),
-        )
+        fun rehydrer(): Dokumentkrav =
+            Dokumentkrav.rehydrer(
+                krav = kravData.map { it.rehydrer() }.toSet(),
+            )
 
         data class SannsynliggjøringDTO(
             val id: String,
             val faktum: JsonNode,
             val sannsynliggjør: Set<JsonNode>,
         ) {
-            fun rehydrer() = Sannsynliggjøring(
-                id = this.id,
-                faktum = Faktum(this.faktum),
-                sannsynliggjør = this.sannsynliggjør.map { Faktum(it) }.toMutableSet(),
-            )
+            fun rehydrer() =
+                Sannsynliggjøring(
+                    id = this.id,
+                    faktum = Faktum(this.faktum),
+                    sannsynliggjør = this.sannsynliggjør.map { Faktum(it) }.toMutableSet(),
+                )
         }
 
         data class SvarDTO(
@@ -86,20 +90,22 @@ class SøknadDTO(
             val bundle: URN?,
             val innsendt: Boolean,
         ) {
-            fun rehydrer() = Svar(
-                filer = this.filer.map { it.rehydrer() }.toMutableSet(),
-                valg = when (this.valg) {
-                    SvarValgDTO.IKKE_BESVART -> Svar.SvarValg.IKKE_BESVART
-                    SvarValgDTO.SEND_NÅ -> Svar.SvarValg.SEND_NÅ
-                    SvarValgDTO.SEND_SENERE -> Svar.SvarValg.SEND_SENERE
-                    SvarValgDTO.ANDRE_SENDER -> Svar.SvarValg.ANDRE_SENDER
-                    SvarValgDTO.SEND_TIDLIGERE -> Svar.SvarValg.SEND_TIDLIGERE
-                    SvarValgDTO.SENDER_IKKE -> Svar.SvarValg.SENDER_IKKE
-                },
-                begrunnelse = this.begrunnelse,
-                bundle = bundle,
-                innsendt = innsendt,
-            )
+            fun rehydrer() =
+                Svar(
+                    filer = this.filer.map { it.rehydrer() }.toMutableSet(),
+                    valg =
+                        when (this.valg) {
+                            SvarValgDTO.IKKE_BESVART -> Svar.SvarValg.IKKE_BESVART
+                            SvarValgDTO.SEND_NÅ -> Svar.SvarValg.SEND_NÅ
+                            SvarValgDTO.SEND_SENERE -> Svar.SvarValg.SEND_SENERE
+                            SvarValgDTO.ANDRE_SENDER -> Svar.SvarValg.ANDRE_SENDER
+                            SvarValgDTO.SEND_TIDLIGERE -> Svar.SvarValg.SEND_TIDLIGERE
+                            SvarValgDTO.SENDER_IKKE -> Svar.SvarValg.SENDER_IKKE
+                        },
+                    begrunnelse = this.begrunnelse,
+                    bundle = bundle,
+                    innsendt = innsendt,
+                )
 
             enum class SvarValgDTO {
                 IKKE_BESVART,
@@ -118,15 +124,17 @@ class SøknadDTO(
             val tilstand: KravTilstandDTO,
             val svar: SvarDTO,
         ) {
-            fun rehydrer() = Krav(
-                id = this.id,
-                svar = this.svar.rehydrer(),
-                sannsynliggjøring = this.sannsynliggjøring.rehydrer(),
-                tilstand = when (this.tilstand) {
-                    KravTilstandDTO.AKTIV -> Krav.KravTilstand.AKTIV
-                    KravTilstandDTO.INAKTIV -> Krav.KravTilstand.INAKTIV
-                },
-            )
+            fun rehydrer() =
+                Krav(
+                    id = this.id,
+                    svar = this.svar.rehydrer(),
+                    sannsynliggjøring = this.sannsynliggjøring.rehydrer(),
+                    tilstand =
+                        when (this.tilstand) {
+                            KravTilstandDTO.AKTIV -> Krav.KravTilstand.AKTIV
+                            KravTilstandDTO.INAKTIV -> Krav.KravTilstand.INAKTIV
+                        },
+                )
 
             enum class KravTilstandDTO {
                 AKTIV,
@@ -140,13 +148,14 @@ class SøknadDTO(
                 val tidspunkt: ZonedDateTime,
                 val bundlet: Boolean,
             ) {
-                fun rehydrer() = Krav.Fil(
-                    filnavn = this.filnavn,
-                    urn = this.urn,
-                    storrelse = this.storrelse,
-                    tidspunkt = this.tidspunkt,
-                    bundlet = this.bundlet,
-                )
+                fun rehydrer() =
+                    Krav.Fil(
+                        filnavn = this.filnavn,
+                        urn = this.urn,
+                        storrelse = this.storrelse,
+                        tidspunkt = this.tidspunkt,
+                        bundlet = this.bundlet,
+                    )
             }
         }
     }
@@ -158,12 +167,13 @@ class SøknadDTO(
         Slettet,
         ;
 
-        fun rehydrer(): Søknad.Tilstand.Type = when (this) {
-            UnderOpprettelse -> Søknad.Tilstand.Type.UnderOpprettelse
-            Påbegynt -> Søknad.Tilstand.Type.Påbegynt
-            Innsendt -> Søknad.Tilstand.Type.Innsendt
-            Slettet -> Søknad.Tilstand.Type.Slettet
-        }
+        fun rehydrer(): Søknad.Tilstand.Type =
+            when (this) {
+                UnderOpprettelse -> Søknad.Tilstand.Type.UnderOpprettelse
+                Påbegynt -> Søknad.Tilstand.Type.Påbegynt
+                Innsendt -> Søknad.Tilstand.Type.Innsendt
+                Slettet -> Søknad.Tilstand.Type.Slettet
+            }
 
         companion object {
             fun rehydrer(dbTilstand: String): TilstandDTO {

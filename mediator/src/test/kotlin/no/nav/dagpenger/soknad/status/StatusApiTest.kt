@@ -23,8 +23,8 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.UnderOpprettelse
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestApplication
+import no.nav.dagpenger.soknad.TestApplication.DEAFULT_DUMMY_FNR
 import no.nav.dagpenger.soknad.TestApplication.autentisert
-import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.soknad.status.SøknadStatus.Paabegynt
 import no.nav.dagpenger.soknad.status.SøknadStatus.Ukjent
 import no.nav.dagpenger.soknad.status.SøknadStatus.UnderBehandling
@@ -46,10 +46,10 @@ class StatusApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator =
-                mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
-                    every { it.hent(søknadUuid) } returns søknadMed(tilstand = Påbegynt, opprettet)
-                },
+                    mockk<SøknadMediator>().also {
+                        every { it.hentEier(søknadUuid) } returns DEAFULT_DUMMY_FNR
+                        every { it.hent(søknadUuid) } returns søknadMed(tilstand = Påbegynt, opprettet)
+                    },
             ),
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
@@ -66,10 +66,10 @@ class StatusApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator =
-                mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
-                    every { it.hent(søknadUuid) } returns søknadMed(tilstand = UnderOpprettelse)
-                },
+                    mockk<SøknadMediator>().also {
+                        every { it.hentEier(søknadUuid) } returns DEAFULT_DUMMY_FNR
+                        every { it.hent(søknadUuid) } returns søknadMed(tilstand = UnderOpprettelse)
+                    },
             ),
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
@@ -86,19 +86,19 @@ class StatusApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator =
-                mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
-                    every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet, innsendt)
-                },
+                    mockk<SøknadMediator>().also {
+                        every { it.hentEier(søknadUuid) } returns DEAFULT_DUMMY_FNR
+                        every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet, innsendt)
+                    },
                 behandlingsstatusClient =
-                mockk<BehandlingsstatusClient>().also {
-                    coEvery {
-                        it.hentBehandlingsstatus(
-                            any(),
-                            any(),
-                        )
-                    } returns BehandlingsstatusDto(behandlingsstatus = "UnderBehandling")
-                },
+                    mockk<BehandlingsstatusClient>().also {
+                        coEvery {
+                            it.hentBehandlingsstatus(
+                                any(),
+                                any(),
+                            )
+                        } returns BehandlingsstatusDto(behandlingsstatus = "UnderBehandling")
+                    },
             ),
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
@@ -113,24 +113,26 @@ class StatusApiTest {
     @Test
     fun `Søknad med tilstand Innsendt og status null gir Ukjent`() {
         val opprettet = LocalDateTime.MAX
-        val innsendt = LocalDateTime.of(2022, 1, 1, 12, 15, 30).atZone(ZoneId.of("Europe/Oslo"))
+        val innsendt =
+            LocalDateTime.of(2022, 1, 1, 12, 15, 30)
+                .atZone(ZoneId.of("Europe/Oslo"))
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator =
-                mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } returns TestApplication.defaultDummyFodselsnummer
-                    every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet, innsendt)
-                },
+                    mockk<SøknadMediator>().also {
+                        every { it.hentEier(søknadUuid) } returns DEAFULT_DUMMY_FNR
+                        every { it.hent(søknadUuid) } returns søknadMed(tilstand = Innsendt, opprettet, innsendt)
+                    },
                 behandlingsstatusClient =
-                mockk<BehandlingsstatusClient>().also {
-                    coEvery {
-                        it.hentBehandlingsstatus(
-                            any(),
-                            any(),
-                        )
-                    } returns BehandlingsstatusDto(behandlingsstatus = "Ukjent")
-                },
+                    mockk<BehandlingsstatusClient>().also {
+                        coEvery {
+                            it.hentBehandlingsstatus(
+                                any(),
+                                any(),
+                            )
+                        } returns BehandlingsstatusDto(behandlingsstatus = "Ukjent")
+                    },
             ),
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
@@ -161,10 +163,10 @@ class StatusApiTest {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
                 søknadMediator =
-                mockk<SøknadMediator>().also {
-                    every { it.hentEier(søknadUuid) } returns defaultDummyFodselsnummer
-                    every { it.hent(søknadUuid) } returns null
-                },
+                    mockk<SøknadMediator>().also {
+                        every { it.hentEier(søknadUuid) } returns DEAFULT_DUMMY_FNR
+                        every { it.hent(søknadUuid) } returns null
+                    },
             ),
         ) {
             autentisert(endepunkt, httpMethod = HttpMethod.Get).apply {
@@ -181,7 +183,7 @@ class StatusApiTest {
         innsendt: ZonedDateTime? = null,
     ) = Søknad.rehydrer(
         søknadId = søknadUuid,
-        ident = TestApplication.defaultDummyFodselsnummer,
+        ident = DEAFULT_DUMMY_FNR,
         opprettet = ZonedDateTime.of(opprettet, ZoneId.of("Europe/Oslo")),
         innsendt = innsendt,
         språk = Språk("NO"),

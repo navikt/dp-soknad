@@ -10,7 +10,6 @@ import mu.KotlinLogging
 import java.time.LocalDateTime
 
 class GyldigSvar(json: JsonNode) {
-
     val svarAsJson: JsonNode
     val type: String
 
@@ -26,16 +25,18 @@ class GyldigSvar(json: JsonNode) {
         if (svarAsJson.isNull) return
         when (type) {
             "boolean" -> require(svarAsJson.isBoolean, feilmelding())
-            "flervalg" -> require(
-                erValg() && svarAsJson.size() > 0,
-                feilmelding(),
-            )
+            "flervalg" ->
+                require(
+                    erValg() && svarAsJson.size() > 0,
+                    feilmelding(),
+                )
 
             "envalg" -> require((erTekst()), feilmelding())
-            "localdate" -> require(
-                svarAsJson.isTextual && kotlin.runCatching { svarAsJson.asLocalDate() }.isSuccess,
-                feilmelding(),
-            )
+            "localdate" ->
+                require(
+                    svarAsJson.isTextual && kotlin.runCatching { svarAsJson.asLocalDate() }.isSuccess,
+                    feilmelding(),
+                )
 
             "double" -> require(svarAsJson.isDouble || svarAsJson.isNumber, feilmelding())
             "int" -> require(svarAsJson.isInt, feilmelding())
@@ -94,16 +95,17 @@ class GyldigSvar(json: JsonNode) {
 
     private fun validerPeriode() {
         require(
-            svarAsJson is ObjectNode && kotlin.runCatching {
-                val fom = svarAsJson["fom"].asLocalDate()
-                if (svarAsJson.has("tom")) {
-                    val tomJsonNode = svarAsJson["tom"]
-                    if (!tomJsonNode.isMissingOrNull()) {
-                        val tom = tomJsonNode.asLocalDate()
-                        require(fom <= tom) { "'fom' fra-og-med-dato må være før 'tom' til-og-med-dato " }
+            svarAsJson is ObjectNode &&
+                kotlin.runCatching {
+                    val fom = svarAsJson["fom"].asLocalDate()
+                    if (svarAsJson.has("tom")) {
+                        val tomJsonNode = svarAsJson["tom"]
+                        if (!tomJsonNode.isMissingOrNull()) {
+                            val tom = tomJsonNode.asLocalDate()
+                            require(fom <= tom) { "'fom' fra-og-med-dato må være før 'tom' til-og-med-dato " }
+                        }
                     }
-                }
-            }.isSuccess,
+                }.isSuccess,
             feilmelding(),
         )
     }

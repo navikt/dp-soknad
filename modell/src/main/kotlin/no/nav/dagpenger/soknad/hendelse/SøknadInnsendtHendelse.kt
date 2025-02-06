@@ -13,5 +13,6 @@ class SøknadInnsendtHendelse(søknadID: UUID, ident: String, aktivitetslogg: Ak
         aktivitetslogg,
     ) {
     private val innsendtTidspunkt = ZonedDateTime.now(ZoneId.of("Europe/Oslo")).truncatedTo(ChronoUnit.SECONDS)
+
     fun innsendtidspunkt(): ZonedDateTime = innsendtTidspunkt
 }

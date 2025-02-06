@@ -13,6 +13,7 @@ import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator
 import no.nav.dagpenger.soknad.utils.auth.ident
 
 private val logger = KotlinLogging.logger { }
+
 internal fun Route.slettSøknadRoute(søknadMediator: SøknadMediator) {
     val validator = SøknadEierValidator(søknadMediator)
     delete("/{søknad_uuid}") {

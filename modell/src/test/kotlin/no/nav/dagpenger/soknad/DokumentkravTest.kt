@@ -7,7 +7,10 @@ import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-internal fun faktumJson(id: String, beskrivendeId: String) = jacksonObjectMapper().readTree(
+internal fun faktumJson(
+    id: String,
+    beskrivendeId: String,
+) = jacksonObjectMapper().readTree(
     """{
     |  "id": "$id",
     |  "type": "boolean",
@@ -29,11 +32,12 @@ internal fun faktumJson(id: String, beskrivendeId: String) = jacksonObjectMapper
 internal class DokumentkravTest {
     private val dokumentFaktum = Faktum(faktumJson(id = "1", beskrivendeId = "f1"))
     private val faktaSomSannsynliggjøres = mutableSetOf(Faktum(faktumJson(id = "2", beskrivendeId = "f2")))
-    private val sannsynliggjøring = Sannsynliggjøring(
-        id = dokumentFaktum.id,
-        faktum = dokumentFaktum,
-        sannsynliggjør = faktaSomSannsynliggjøres,
-    )
+    private val sannsynliggjøring =
+        Sannsynliggjøring(
+            id = dokumentFaktum.id,
+            faktum = dokumentFaktum,
+            sannsynliggjør = faktaSomSannsynliggjøres,
+        )
 
     @Test
     fun `håndtere dokumentkrav som et speil fra sannsynliggjøringer`() {

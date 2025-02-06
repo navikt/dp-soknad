@@ -25,20 +25,20 @@ internal class KontonummerOppslag(
     private val tokenProvider: (subjektToken: String) -> String,
     httpClientEngine: HttpClientEngine = CIO.create(),
 ) {
-
-    private val kontoNummberClient = HttpClient(httpClientEngine) {
-        expectSuccess = true
-        install(Logging) {
-            level = LogLevel.INFO
-        }
-        install(ContentNegotiation) {
-            jackson {
-                registerModule(JavaTimeModule())
-                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    private val kontoNummberClient =
+        HttpClient(httpClientEngine) {
+            expectSuccess = true
+            install(Logging) {
+                level = LogLevel.INFO
+            }
+            install(ContentNegotiation) {
+                jackson {
+                    registerModule(JavaTimeModule())
+                    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                    disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                }
             }
         }
-    }
 
     suspend fun hentKontonummer(subjektToken: String): Kontonummer {
         return try {

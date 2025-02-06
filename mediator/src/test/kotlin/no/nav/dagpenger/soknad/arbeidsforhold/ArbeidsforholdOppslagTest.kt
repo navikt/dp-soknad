@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class ArbeidsforholdOppslagTest {
-
     private lateinit var arbeidsforholdOppslag: ArbeidsforholdOppslag
     private lateinit var aaregClient: AaregClient
     private lateinit var eregClient: EregClient
@@ -23,10 +22,11 @@ class ArbeidsforholdOppslagTest {
     fun setup() {
         aaregClient = mockk()
         eregClient = mockk()
-        arbeidsforholdOppslag = ArbeidsforholdOppslag(
-            aaregClient = aaregClient,
-            eregClient = eregClient,
-        )
+        arbeidsforholdOppslag =
+            ArbeidsforholdOppslag(
+                aaregClient = aaregClient,
+                eregClient = eregClient,
+            )
         fnr = "12345678903"
         subjectToken = "gylidg_token"
     }
@@ -47,10 +47,11 @@ class ArbeidsforholdOppslagTest {
     @Test
     fun `oppslaget returnerer en tom liste dersom vi får minst ett arbeidsforhold fra aareg uten orgnummer`() {
         runBlocking {
-            val arbeidsforholdHvorEttManglerOrgnummer = listOf(
-                arbeidsforhold(orgnummer = null),
-                arbeidsforhold(),
-            )
+            val arbeidsforholdHvorEttManglerOrgnummer =
+                listOf(
+                    arbeidsforhold(orgnummer = null),
+                    arbeidsforhold(),
+                )
             coEvery { aaregClient.hentArbeidsforhold(fnr, subjectToken) } returns arbeidsforholdHvorEttManglerOrgnummer
             coEvery { eregClient.hentOganisasjonsnavn(any()) } returns null andThen "TEST AS"
 
@@ -65,10 +66,11 @@ class ArbeidsforholdOppslagTest {
     @Test
     fun `oppslaget returnerer en tom liste dersom minst et arbeidsforhold har ugyldig organisasjonsnummer`() {
         runBlocking {
-            val arbeidsforholdMedUgyldigeOrgnr = listOf(
-                arbeidsforhold(orgnummer = "ugyldig_orgnummer"),
-                arbeidsforhold(),
-            )
+            val arbeidsforholdMedUgyldigeOrgnr =
+                listOf(
+                    arbeidsforhold(orgnummer = "ugyldig_orgnummer"),
+                    arbeidsforhold(),
+                )
             coEvery { aaregClient.hentArbeidsforhold(fnr, subjectToken) } returns arbeidsforholdMedUgyldigeOrgnr
             coEvery { eregClient.hentOganisasjonsnavn(any()) } returns null andThen "TEST AS"
 
@@ -99,10 +101,11 @@ class ArbeidsforholdOppslagTest {
         }
     }
 
-    private fun arbeidsforhold(orgnummer: String? = this.orgnummer) = Arbeidsforhold(
-        id = "H911050676R16054L0001",
-        organisasjonsnummer = orgnummer,
-        startdato = LocalDate.of(2014, 1, 1),
-        sluttdato = LocalDate.of(2015, 1, 1),
-    )
+    private fun arbeidsforhold(orgnummer: String? = this.orgnummer) =
+        Arbeidsforhold(
+            id = "H911050676R16054L0001",
+            organisasjonsnummer = orgnummer,
+            startdato = LocalDate.of(2014, 1, 1),
+            sluttdato = LocalDate.of(2015, 1, 1),
+        )
 }

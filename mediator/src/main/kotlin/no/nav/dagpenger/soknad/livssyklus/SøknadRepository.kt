@@ -9,9 +9,13 @@ import java.util.UUID
 
 interface SøknadRepository {
     fun hentEier(søknadId: UUID): String?
+
     fun hent(søknadId: UUID): Søknad?
+
     fun hentSøknader(ident: String): Set<Søknad>
+
     fun lagre(søknad: Søknad)
+
     fun hentPåbegyntSøknad(personIdent: String): Søknad? {
         val søknader = hentSøknader(personIdent)
         return søknader.firstOrNull { søknad ->
@@ -20,5 +24,10 @@ interface SøknadRepository {
     }
 
     fun hentPåbegynteSøknader(prosessversjon: Prosessversjon): List<Søknad>
-    fun opprett(søknadID: UUID, språk: Språk, ident: String): Søknad
+
+    fun opprett(
+        søknadID: UUID,
+        språk: Språk,
+        ident: String,
+    ): Søknad
 }

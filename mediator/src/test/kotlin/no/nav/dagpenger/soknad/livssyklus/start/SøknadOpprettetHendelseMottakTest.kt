@@ -16,13 +16,15 @@ import java.util.UUID
 import kotlin.random.Random
 
 internal class SøknadOpprettetHendelseMottakTest {
-    private val mediatorMock = mockk<SøknadMediator>().also {
-        every { it.prosessversjon(any(), any()) } returns Prosessversjon(prosessnavn, prosessversjon)
-        every { it.behandle(any() as SøknadOpprettetHendelse) } just Runs
-    }
-    private val testRapid = TestRapid().also { rapidsConnection ->
-        SøknadOpprettetHendelseMottak(rapidsConnection, mediatorMock)
-    }
+    private val mediatorMock =
+        mockk<SøknadMediator>().also {
+            every { it.prosessversjon(any(), any()) } returns Prosessversjon(prosessnavn, prosessversjon)
+            every { it.behandle(any() as SøknadOpprettetHendelse) } just Runs
+        }
+    private val testRapid =
+        TestRapid().also { rapidsConnection ->
+            SøknadOpprettetHendelseMottak(rapidsConnection, mediatorMock)
+        }
 
     @Test
     fun `skal lytte på søknad opprettet melding og oversette til SøknadOpprettetHendelse`() {
@@ -46,7 +48,8 @@ internal class SøknadOpprettetHendelseMottakTest {
         private val prosessnavn = "Dagpenger"
         private val prosessversjon = Random.nextInt(0, Int.MAX_VALUE)
 
-        fun nySøknadBehovsløsning(søknadUuid: String) = // language=JSON
+        fun nySøknadBehovsløsning(søknadUuid: String) =
+            // language=JSON
             """
             {
               "@event_name": "behov",
@@ -113,7 +116,8 @@ internal class SøknadOpprettetHendelseMottakTest {
             } 
             """.trimMargin()
 
-        fun nySøknadBehovUtenLøsning(søknadUuid: String) = // language=JSON
+        fun nySøknadBehovUtenLøsning(søknadUuid: String) =
+            // language=JSON
             """
             {
               "@event_name": "behov",

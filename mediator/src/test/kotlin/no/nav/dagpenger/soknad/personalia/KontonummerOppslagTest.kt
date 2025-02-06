@@ -20,7 +20,7 @@ internal class KontonummerOppslagTest {
             KontonummerOppslag(
                 kontoRegisterUrl = "http://localhost",
                 tokenProvider = { "token" },
-                MockEngine() {
+                MockEngine {
                     respondError(HttpStatusCode.NotFound)
                 },
             )
@@ -35,25 +35,26 @@ internal class KontonummerOppslagTest {
             KontonummerOppslag(
                 kontoRegisterUrl = "http://localhost",
                 tokenProvider = { subjektToken -> "token $subjektToken" },
-                httpClientEngine = MockEngine() { request ->
-                    when (request.headers["Authorization"]?.split(" ")?.last()) {
-                        "norskkonto" -> {
-                            respond(
-                                content = testNorskKontoResponse,
-                                status = HttpStatusCode.OK,
-                                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-                            )
+                httpClientEngine =
+                    MockEngine { request ->
+                        when (request.headers["Authorization"]?.split(" ")?.last()) {
+                            "norskkonto" -> {
+                                respond(
+                                    content = testNorskKontoResponse,
+                                    status = HttpStatusCode.OK,
+                                    headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                                )
+                            }
+                            "utenlandskkonto" -> {
+                                respond(
+                                    content = utenlandskKontoResponse,
+                                    status = HttpStatusCode.OK,
+                                    headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                                )
+                            }
+                            else -> fail()
                         }
-                        "utenlandskkonto" -> {
-                            respond(
-                                content = utenlandskKontoResponse,
-                                status = HttpStatusCode.OK,
-                                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-                            )
-                        }
-                        else -> fail()
-                    }
-                },
+                    },
             )
         runBlocking {
             assertEquals(kontonummerOppslag.hentKontonummer("norskkonto"), Kontonummer(kontonummer = "123"))
@@ -69,25 +70,27 @@ internal class KontonummerOppslagTest {
     }
 
     @Language("JSON")
-    private val utenlandskKontoResponse = """
-          {
-            "utenlandskKontoInfo": {
-              "banknavn": "banknavn",
-              "bankkode": "456",
-              "bankLandkode": "SE",
-              "valutakode": "SEK",
-              "swiftBicKode": "SHEDNO22",
-              "bankadresse1": "string",
-              "bankadresse2": "string",
-              "bankadresse3": "string"
-            }
+    private val utenlandskKontoResponse =
+        """
+        {
+          "utenlandskKontoInfo": {
+            "banknavn": "banknavn",
+            "bankkode": "456",
+            "bankLandkode": "SE",
+            "valutakode": "SEK",
+            "swiftBicKode": "SHEDNO22",
+            "bankadresse1": "string",
+            "bankadresse2": "string",
+            "bankadresse3": "string"
           }
-    """.trimIndent()
+        }
+        """.trimIndent()
 
     @Language("JSON")
-    private val testNorskKontoResponse = """
+    private val testNorskKontoResponse =
+        """
         {
           "kontonummer": "123"
         }
-    """.trimIndent()
+        """.trimIndent()
 }

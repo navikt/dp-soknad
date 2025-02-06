@@ -22,8 +22,8 @@ import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Innsendt
 import no.nav.dagpenger.soknad.Søknad.Tilstand.Type.Påbegynt
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.TestApplication
+import no.nav.dagpenger.soknad.TestApplication.DEAFULT_DUMMY_FNR
 import no.nav.dagpenger.soknad.TestApplication.autentisert
-import no.nav.dagpenger.soknad.TestApplication.defaultDummyFodselsnummer
 import no.nav.dagpenger.soknad.faktumJson
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -47,67 +47,77 @@ class MineSøknaderApiTest {
     private val dokumentfaktum2 = Faktum(faktumJson(id = "2", beskrivendeId = "f2", generertAv = "foo"))
     private val faktaSomSannsynliggjøres = mutableSetOf(Faktum(faktumJson(id = "2", beskrivendeId = "f2")))
 
-    private val sannsynliggjøring1 = Sannsynliggjøring(
-        id = dokumentfaktum1.id,
-        faktum = dokumentfaktum1,
-        sannsynliggjør = faktaSomSannsynliggjøres,
-    )
+    private val sannsynliggjøring1 =
+        Sannsynliggjøring(
+            id = dokumentfaktum1.id,
+            faktum = dokumentfaktum1,
+            sannsynliggjør = faktaSomSannsynliggjøres,
+        )
 
-    private val sannsynliggjøring2 = Sannsynliggjøring(
-        id = dokumentfaktum2.id,
-        faktum = dokumentfaktum2,
-        sannsynliggjør = faktaSomSannsynliggjøres,
-    )
+    private val sannsynliggjøring2 =
+        Sannsynliggjøring(
+            id = dokumentfaktum2.id,
+            faktum = dokumentfaktum2,
+            sannsynliggjør = faktaSomSannsynliggjøres,
+        )
 
-    private val fil = Krav.Fil(
-        filnavn = "testfil.jpg",
-        urn = URN.rfc8141().parse("urn:nav:1"),
-        storrelse = 89900,
-        tidspunkt = ZonedDateTime.now(),
-        bundlet = false,
-    )
+    private val fil =
+        Krav.Fil(
+            filnavn = "testfil.jpg",
+            urn = URN.rfc8141().parse("urn:nav:1"),
+            storrelse = 89900,
+            tidspunkt = ZonedDateTime.now(),
+            bundlet = false,
+        )
 
-    private val krav1 = Krav(
-        id = dokumentfaktum1.id,
-        svar = Krav.Svar(
-            filer = mutableSetOf(fil),
-            valg = Krav.Svar.SvarValg.SEND_NÅ,
-            begrunnelse = null,
-            bundle = URN.rfc8141().parse("urn:bundle:1"),
-            innsendt = true,
-        ),
-        sannsynliggjøring = sannsynliggjøring1,
-        tilstand = Krav.KravTilstand.AKTIV,
-    )
+    private val krav1 =
+        Krav(
+            id = dokumentfaktum1.id,
+            svar =
+                Krav.Svar(
+                    filer = mutableSetOf(fil),
+                    valg = Krav.Svar.SvarValg.SEND_NÅ,
+                    begrunnelse = null,
+                    bundle = URN.rfc8141().parse("urn:bundle:1"),
+                    innsendt = true,
+                ),
+            sannsynliggjøring = sannsynliggjøring1,
+            tilstand = Krav.KravTilstand.AKTIV,
+        )
 
-    private val krav2 = Krav(
-        id = dokumentfaktum2.id,
-        svar = Krav.Svar(
-            filer = mutableSetOf(),
-            valg = Krav.Svar.SvarValg.SENDER_IKKE,
-            begrunnelse = "Har ikke dokumentet tilgjengelig",
-            bundle = null,
-            innsendt = true,
-        ),
-        sannsynliggjøring = sannsynliggjøring2,
-        tilstand = Krav.KravTilstand.AKTIV,
-    )
+    private val krav2 =
+        Krav(
+            id = dokumentfaktum2.id,
+            svar =
+                Krav.Svar(
+                    filer = mutableSetOf(),
+                    valg = Krav.Svar.SvarValg.SENDER_IKKE,
+                    begrunnelse = "Har ikke dokumentet tilgjengelig",
+                    bundle = null,
+                    innsendt = true,
+                ),
+            sannsynliggjøring = sannsynliggjøring2,
+            tilstand = Krav.KravTilstand.AKTIV,
+        )
 
-    private val dokumentkrav = Dokumentkrav.rehydrer(
-        setOf(krav1, krav2),
-    )
+    private val dokumentkrav =
+        Dokumentkrav.rehydrer(
+            setOf(krav1, krav2),
+        )
 
     @Test
     fun `én påbegynt og to innsendte søknader`() {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentSøknader(defaultDummyFodselsnummer) } returns setOf(
-                        søknadMed(tilstand = Påbegynt),
-                        søknadMed(tilstand = Innsendt),
-                        søknadMed(tilstand = Innsendt),
-                    )
-                },
+                søknadMediator =
+                    mockk<SøknadMediator>().also {
+                        every { it.hentSøknader(DEAFULT_DUMMY_FNR) } returns
+                            setOf(
+                                søknadMed(tilstand = Påbegynt),
+                                søknadMed(tilstand = Innsendt),
+                                søknadMed(tilstand = Innsendt),
+                            )
+                    },
             ),
         ) {
             autentisert("$endepunkt?fom=$nå", httpMethod = HttpMethod.Get).also { response ->
@@ -128,18 +138,20 @@ class MineSøknaderApiTest {
     fun `Skal ikke hente ut generelle innsendinger`() {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentSøknader(defaultDummyFodselsnummer) } returns setOf(
-                        søknadMed(
-                            tilstand = Påbegynt,
-                            prosessversjon = Prosessversjon(Prosessnavn("Innsending"), 1),
-                        ),
-                        søknadMed(
-                            tilstand = Innsendt,
-                            prosessversjon = Prosessversjon(Prosessnavn("Innsending"), 1),
-                        ),
-                    )
-                },
+                søknadMediator =
+                    mockk<SøknadMediator>().also {
+                        every { it.hentSøknader(DEAFULT_DUMMY_FNR) } returns
+                            setOf(
+                                søknadMed(
+                                    tilstand = Påbegynt,
+                                    prosessversjon = Prosessversjon(Prosessnavn("Innsending"), 1),
+                                ),
+                                søknadMed(
+                                    tilstand = Innsendt,
+                                    prosessversjon = Prosessversjon(Prosessnavn("Innsending"), 1),
+                                ),
+                            )
+                    },
             ),
         ) {
             autentisert("$endepunkt?fom=$nå", httpMethod = HttpMethod.Get).also { response ->
@@ -156,9 +168,10 @@ class MineSøknaderApiTest {
     fun `ingen søknader`() {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentSøknader(defaultDummyFodselsnummer) } returns emptySet()
-                },
+                søknadMediator =
+                    mockk<SøknadMediator>().also {
+                        every { it.hentSøknader(DEAFULT_DUMMY_FNR) } returns emptySet()
+                    },
             ),
         ) {
             autentisert("$endepunkt?fom=$nå", httpMethod = HttpMethod.Get).also { response ->
@@ -175,11 +188,13 @@ class MineSøknaderApiTest {
     fun `én innsendt og ingen påbegynte søknader`() {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentSøknader(defaultDummyFodselsnummer) } returns setOf(
-                        søknadMed(tilstand = Innsendt),
-                    )
-                },
+                søknadMediator =
+                    mockk<SøknadMediator>().also {
+                        every { it.hentSøknader(DEAFULT_DUMMY_FNR) } returns
+                            setOf(
+                                søknadMed(tilstand = Innsendt),
+                            )
+                    },
             ),
         ) {
             autentisert("$endepunkt?fom=$nå", httpMethod = HttpMethod.Get).also { response ->
@@ -198,19 +213,22 @@ class MineSøknaderApiTest {
 
     @Test
     fun `tar ikke med søknader som er innsendt før fom queryparam`() {
-        val gammelInnsendtSøknad = søknadMed(
-            tilstand = Innsendt,
-            innsendt = nå.atStartOfDay().minusDays(2).atZone(ZoneId.of("Europe/Oslo")),
-        )
+        val gammelInnsendtSøknad =
+            søknadMed(
+                tilstand = Innsendt,
+                innsendt = nå.atStartOfDay().minusDays(2).atZone(ZoneId.of("Europe/Oslo")),
+            )
 
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentSøknader(defaultDummyFodselsnummer) } returns setOf(
-                        søknadMed(tilstand = Innsendt),
-                        gammelInnsendtSøknad,
-                    )
-                },
+                søknadMediator =
+                    mockk<SøknadMediator>().also {
+                        every { it.hentSøknader(DEAFULT_DUMMY_FNR) } returns
+                            setOf(
+                                søknadMed(tilstand = Innsendt),
+                                gammelInnsendtSøknad,
+                            )
+                    },
             ),
         ) {
             autentisert("$endepunkt?fom=$nå", httpMethod = HttpMethod.Get).also { response ->
@@ -241,14 +259,16 @@ class MineSøknaderApiTest {
     fun `henter bare ut dokumentkrav hvis queryparam include=dokumentkrav`() {
         TestApplication.withMockAuthServerAndTestApplication(
             TestApplication.mockedSøknadApi(
-                søknadMediator = mockk<SøknadMediator>().also {
-                    every { it.hentSøknader(defaultDummyFodselsnummer) } returns setOf(
-                        søknadMed(
-                            tilstand = Innsendt,
-                            dokumentkrav = dokumentkrav,
-                        ),
-                    )
-                },
+                søknadMediator =
+                    mockk<SøknadMediator>().also {
+                        every { it.hentSøknader(DEAFULT_DUMMY_FNR) } returns
+                            setOf(
+                                søknadMed(
+                                    tilstand = Innsendt,
+                                    dokumentkrav = dokumentkrav,
+                                ),
+                            )
+                    },
             ),
         ) {
             autentisert("$endepunktIncludeDokumentkrav&fom=$nå", httpMethod = HttpMethod.Get).let { response ->
@@ -308,7 +328,7 @@ class MineSøknaderApiTest {
         prosessversjon: Prosessversjon? = Prosessversjon(Prosessnavn("Dagpenger"), 1),
     ) = Søknad.rehydrer(
         søknadId = søknadUuid,
-        ident = defaultDummyFodselsnummer,
+        ident = DEAFULT_DUMMY_FNR,
         opprettet = ZonedDateTime.of(opprettet, ZoneId.of("Europe/Oslo")),
         innsendt = innsendt,
         språk = Språk("NO"),

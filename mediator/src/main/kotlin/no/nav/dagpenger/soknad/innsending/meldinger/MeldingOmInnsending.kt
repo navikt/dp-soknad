@@ -15,6 +15,7 @@ abstract class MeldingOmInnsending(packet: JsonMessage) {
     protected val ident = packet["ident"].asText()
 
     protected abstract val innsending: Innsending
+
     fun hendelse(): NyInnsendingHendelse = NyInnsendingHendelse(innsending, ident)
 
     private fun JsonMessage.dokumentkrav(): List<Innsending.Dokument> {

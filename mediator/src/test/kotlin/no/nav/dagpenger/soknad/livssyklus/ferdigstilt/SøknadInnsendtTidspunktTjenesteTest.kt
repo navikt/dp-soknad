@@ -29,31 +29,31 @@ class SøknadInnsendtTidspunktTjenesteTest {
         SøknadInnsendtTidspunktTjeneste(
             rapidsConnection = testRapid,
             mediator =
-            mockk<SøknadMediator>().also {
-                every { it.hent(okSoknadId) } returns
-                    Søknad.rehydrer(
-                        søknadId = okSoknadId,
-                        ident = "",
-                        opprettet = now,
-                        innsendt = innsendtTidspunkt,
-                        språk = Språk(verdi = "NN"),
-                        dokumentkrav = Dokumentkrav(),
-                        sistEndretAvBruker = now,
-                        tilstandsType = Søknad.Tilstand.Type.Innsendt,
-                        aktivitetslogg = Aktivitetslogg(forelder = null),
-                        prosessversjon = null,
-                        data =
-                        lazy<SøknadData> {
-                            object : SøknadData {
-                                override fun erFerdig() = true
+                mockk<SøknadMediator>().also {
+                    every { it.hent(okSoknadId) } returns
+                        Søknad.rehydrer(
+                            søknadId = okSoknadId,
+                            ident = "",
+                            opprettet = now,
+                            innsendt = innsendtTidspunkt,
+                            språk = Språk(verdi = "NN"),
+                            dokumentkrav = Dokumentkrav(),
+                            sistEndretAvBruker = now,
+                            tilstandsType = Søknad.Tilstand.Type.Innsendt,
+                            aktivitetslogg = Aktivitetslogg(forelder = null),
+                            prosessversjon = null,
+                            data =
+                                lazy<SøknadData> {
+                                    object : SøknadData {
+                                        override fun erFerdig() = true
 
-                                override fun toJson() = ""
-                            }
-                        },
-                    )
-                every { it.hent(finnesIkkeSoknadId) } returns null
-                every { it.hent(kasterFeilSoknadId) } throws RuntimeException("test")
-            },
+                                        override fun toJson() = ""
+                                    }
+                                },
+                        )
+                    every { it.hent(finnesIkkeSoknadId) } returns null
+                    every { it.hent(kasterFeilSoknadId) } throws RuntimeException("test")
+                },
         )
     }
 

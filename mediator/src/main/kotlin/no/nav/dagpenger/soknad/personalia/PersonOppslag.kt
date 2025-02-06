@@ -16,15 +16,19 @@ internal class PersonOppslag(
     },
     private val pdlAudience: String = Configuration.pdlAudience,
 ) {
-
-    suspend fun hentPerson(fnr: String, subjectToken: String): Person {
-        val person = personOppslag.hentPerson(
-            fnr,
-            mapOf(
-                HttpHeaders.Authorization to "Bearer ${tokenProvider.invoke(subjectToken, pdlAudience)}",
-                "behandlingsnummer" to "B286", // https://behandlingskatalog.intern.nav.no/process/purpose/DAGPENGER/486f1672-52ed-46fb-8d64-bda906ec1bc9
-            ),
-        )
+    suspend fun hentPerson(
+        fnr: String,
+        subjectToken: String,
+    ): Person {
+        val person =
+            personOppslag.hentPerson(
+                fnr,
+                mapOf(
+                    HttpHeaders.Authorization to "Bearer ${tokenProvider.invoke(subjectToken, pdlAudience)}",
+                    // https://behandlingskatalog.intern.nav.no/process/purpose/DAGPENGER/486f1672-52ed-46fb-8d64-bda906ec1bc9
+                    "behandlingsnummer" to "B286",
+                ),
+            )
 
         val adresseMapper = AdresseMapper(AdresseVisitor(person).adresser)
 

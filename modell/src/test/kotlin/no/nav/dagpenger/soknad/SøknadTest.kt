@@ -23,9 +23,8 @@ import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.util.UUID
 
-private const val testIdent = "12345678912"
-
 internal class SøknadTest {
+    private val testIdent = "12345678912"
     private lateinit var søknad: Søknad
     private lateinit var testSøknadObserver: TestSøknadObserver
     private lateinit var plantUmlObservatør: PlantUmlObservatør
@@ -48,12 +47,13 @@ internal class SøknadTest {
 
     @BeforeEach
     internal fun setUp() {
-        søknad = Søknad(
-            søknadId,
-            Språk(språk),
-            testIdent,
-            FerdigSøknadData,
-        )
+        søknad =
+            Søknad(
+                søknadId,
+                Språk(språk),
+                testIdent,
+                FerdigSøknadData,
+            )
         testSøknadObserver = TestSøknadObserver().also { søknad.addObserver(it) }
         plantUmlObservatør = PlantUmlObservatør().also { søknad.addObserver(it) }
     }
@@ -199,10 +199,14 @@ internal class SøknadTest {
         assertEquals(tilstander.asList(), testSøknadObserver.tilstander)
     }
 
-    private fun assertBehov(behovtype: Behovtype, forventetDetaljer: Map<String, Any> = emptyMap()) {
-        val behov = inspektør.aktivitetslogg.behov().findLast {
-            it.type == behovtype
-        } ?: throw AssertionError("Fant ikke behov $behovtype")
+    private fun assertBehov(
+        behovtype: Behovtype,
+        forventetDetaljer: Map<String, Any> = emptyMap(),
+    ) {
+        val behov =
+            inspektør.aktivitetslogg.behov().findLast {
+                it.type == behovtype
+            } ?: throw AssertionError("Fant ikke behov $behovtype")
 
         assertEquals(
             forventetDetaljer,

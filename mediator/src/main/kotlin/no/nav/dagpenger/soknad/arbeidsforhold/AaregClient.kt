@@ -24,7 +24,6 @@ internal class AaregClient(
     private val tokenProvider: (String) -> String,
     engine: HttpClientEngine = CIO.create {},
 ) {
-
     private val client = createHttpClient(engine)
 
     suspend fun hentArbeidsforhold(

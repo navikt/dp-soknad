@@ -108,19 +108,23 @@ class SøknadDataRepositoryTest {
     }
 
     private fun assertAntallRader(antallRader: Int) {
-        val faktiskeRader = using(sessionOf(PostgresDataSourceBuilder.dataSource)) { session ->
-            session.run(
-                queryOf("select count(1) from soknad_data").map { row ->
-                    row.int(1)
-                }.asSingle,
-            )
-        }
+        val faktiskeRader =
+            using(sessionOf(PostgresDataSourceBuilder.dataSource)) { session ->
+                session.run(
+                    queryOf("select count(1) from soknad_data").map { row ->
+                        row.int(1)
+                    }.asSingle,
+                )
+            }
         assertEquals(antallRader, faktiskeRader, "Feil antall rader for tabell: soknad_data")
     }
 
-    private fun søknad(søknadUuid: UUID, seksjoner: String = "seksjoner", fødselsnummer: String = "12345678910") =
-        objectMapper.readTree(
-            """{
+    private fun søknad(
+        søknadUuid: UUID,
+        seksjoner: String = "seksjoner",
+        fødselsnummer: String = "12345678910",
+    ) = objectMapper.readTree(
+        """{
           "@event_name": "søker_oppgave",
           "fødselsnummer": $fødselsnummer,
           "versjon_id": 0,
@@ -130,9 +134,12 @@ class SøknadDataRepositoryTest {
           "søknad_uuid": "$søknadUuid",
           "ferdig": false,
           "seksjoner": "$seksjoner"}""",
-        )
+    )
 
-    private fun lagrePersonMedSøknad(søknadUuid: UUID, ident: String = "01234567891") {
+    private fun lagrePersonMedSøknad(
+        søknadUuid: UUID,
+        ident: String = "01234567891",
+    ) {
         val søknadRepository = SøknadPostgresRepository(dataSource)
         søknadRepository.lagre(Søknad(søknadUuid, Språk("NO"), ident))
     }

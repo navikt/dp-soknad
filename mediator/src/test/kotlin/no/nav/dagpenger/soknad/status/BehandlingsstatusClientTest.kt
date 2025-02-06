@@ -26,24 +26,26 @@ class BehandlingsstatusClientTest {
         val callId = UUID.randomUUID().toString()
         MDC.put("call-id", callId)
         runBlocking {
-            val behandlingsstatusClient = BehandlingsstatusHttpClient(
-                baseUrl,
-                innsynAudience,
-                testTokenProvider,
-                engine = MockEngine { request ->
-                    assertEquals("$baseUrl/behandlingsstatus?fom=$fom", request.url.toString())
-                    assertEquals(HttpMethod.Get, request.method)
-                    assertEquals(
-                        "Bearer ${testTokenProvider.invoke(subjectToken, innsynAudience)}",
-                        request.headers[HttpHeaders.Authorization],
-                    )
-                    assertEquals(callId, request.headers[HttpHeaders.XRequestId])
-                    respond(
-                        content = """{"behandlingsstatus":"UnderBehandling"}""".trimMargin(),
-                        headers = headersOf(HttpHeaders.ContentType, "application/json"),
-                    )
-                },
-            )
+            val behandlingsstatusClient =
+                BehandlingsstatusHttpClient(
+                    baseUrl,
+                    innsynAudience,
+                    testTokenProvider,
+                    engine =
+                        MockEngine { request ->
+                            assertEquals("$baseUrl/behandlingsstatus?fom=$fom", request.url.toString())
+                            assertEquals(HttpMethod.Get, request.method)
+                            assertEquals(
+                                "Bearer ${testTokenProvider.invoke(subjectToken, innsynAudience)}",
+                                request.headers[HttpHeaders.Authorization],
+                            )
+                            assertEquals(callId, request.headers[HttpHeaders.XRequestId])
+                            respond(
+                                content = """{"behandlingsstatus":"UnderBehandling"}""".trimMargin(),
+                                headers = headersOf(HttpHeaders.ContentType, "application/json"),
+                            )
+                        },
+                )
 
             assertEquals(
                 BehandlingsstatusDto("UnderBehandling"),
@@ -55,14 +57,16 @@ class BehandlingsstatusClientTest {
     @Test
     fun `InternalServerError resulterer i ukjent behandlingsstatus`() {
         runBlocking {
-            val behandlingsstatusClient = BehandlingsstatusHttpClient(
-                baseUrl,
-                innsynAudience,
-                testTokenProvider,
-                engine = MockEngine {
-                    this.respondError(status = HttpStatusCode.InternalServerError)
-                },
-            )
+            val behandlingsstatusClient =
+                BehandlingsstatusHttpClient(
+                    baseUrl,
+                    innsynAudience,
+                    testTokenProvider,
+                    engine =
+                        MockEngine {
+                            this.respondError(status = HttpStatusCode.InternalServerError)
+                        },
+                )
 
             assertEquals(
                 BehandlingsstatusDto("Ukjent"),
@@ -74,17 +78,19 @@ class BehandlingsstatusClientTest {
     @Test
     fun `Håndterer null som status`() {
         runBlocking {
-            val behandlingsstatusClient = BehandlingsstatusHttpClient(
-                baseUrl,
-                innsynAudience,
-                testTokenProvider,
-                engine = MockEngine {
-                    respond(
-                        content = """{"behandlingsstatus":null}""".trimMargin(),
-                        headers = headersOf(HttpHeaders.ContentType, "application/json"),
-                    )
-                },
-            )
+            val behandlingsstatusClient =
+                BehandlingsstatusHttpClient(
+                    baseUrl,
+                    innsynAudience,
+                    testTokenProvider,
+                    engine =
+                        MockEngine {
+                            respond(
+                                content = """{"behandlingsstatus":null}""".trimMargin(),
+                                headers = headersOf(HttpHeaders.ContentType, "application/json"),
+                            )
+                        },
+                )
 
             assertEquals(
                 BehandlingsstatusDto("Ukjent"),

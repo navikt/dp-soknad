@@ -23,7 +23,10 @@ import org.slf4j.MDC
 import java.time.LocalDate
 
 internal interface BehandlingsstatusClient {
-    suspend fun hentBehandlingsstatus(fom: LocalDate, subjectToken: String): BehandlingsstatusDto
+    suspend fun hentBehandlingsstatus(
+        fom: LocalDate,
+        subjectToken: String,
+    ): BehandlingsstatusDto
 }
 
 internal class BehandlingsstatusHttpClient(
@@ -37,21 +40,25 @@ internal class BehandlingsstatusHttpClient(
         val sikkerlogg = KotlinLogging.logger("tjenestekall.BehandlingsstatusClient")
     }
 
-    private val httpClient = HttpClient(engine) {
-        expectSuccess = true
-        install(ContentNegotiation) {
-            jackson {
-                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                registerModule(
-                    KotlinModule.Builder()
-                        .configure(KotlinFeature.NullIsSameAsDefault, enabled = true)
-                        .build(),
-                )
+    private val httpClient =
+        HttpClient(engine) {
+            expectSuccess = true
+            install(ContentNegotiation) {
+                jackson {
+                    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                    registerModule(
+                        KotlinModule.Builder()
+                            .configure(KotlinFeature.NullIsSameAsDefault, enabled = true)
+                            .build(),
+                    )
+                }
             }
         }
-    }
 
-    override suspend fun hentBehandlingsstatus(fom: LocalDate, subjectToken: String): BehandlingsstatusDto {
+    override suspend fun hentBehandlingsstatus(
+        fom: LocalDate,
+        subjectToken: String,
+    ): BehandlingsstatusDto {
         var rawBody: String? = null
         val url = "$baseUrl/behandlingsstatus?fom=$fom"
         logger.info { "Henter behandlingsstatus med fom=$fom" }

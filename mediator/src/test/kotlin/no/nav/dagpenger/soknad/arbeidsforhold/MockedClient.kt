@@ -8,7 +8,10 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 
-internal fun createMockedClient(statusCode: Int, responseBody: String): HttpClientEngine {
+internal fun createMockedClient(
+    statusCode: Int,
+    responseBody: String,
+): HttpClientEngine {
     val mockEngine =
         MockEngine {
             respond(

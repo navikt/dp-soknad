@@ -33,25 +33,31 @@ internal fun Route.mineSoknaderRoute(søknadMediator: SøknadMediator) {
     }
 }
 
-private fun lagMineSøknaderDto(søknader: List<Søknad>, fom: LocalDate, includeDokumentkrav: Boolean): MineSoknaderDto {
+private fun lagMineSøknaderDto(
+    søknader: List<Søknad>,
+    fom: LocalDate,
+    includeDokumentkrav: Boolean,
+): MineSoknaderDto {
     var påbegyntSøknad: PåbegyntSøknadDto? = null
     val innsendteSøknader = mutableListOf<InnsendtSøknadDto>()
 
     søknader.map { søknad ->
         val mineSøknaderVisitor = MineSøknaderVisitor(søknad)
-        val dokumentkrav = if (includeDokumentkrav) {
-            mineSøknaderVisitor.dokumentkrav().toMineSoknaderDokumentkravDTO()
-        } else {
-            null
-        }
+        val dokumentkrav =
+            if (includeDokumentkrav) {
+                mineSøknaderVisitor.dokumentkrav().toMineSoknaderDokumentkravDTO()
+            } else {
+                null
+            }
 
         when {
             mineSøknaderVisitor.søknadTilstand() == Påbegynt ->
-                påbegyntSøknad = PåbegyntSøknadDto(
-                    søknad.søknadUUID(),
-                    mineSøknaderVisitor.søknadOpprettet(),
-                    mineSøknaderVisitor.sistEndretAvBruker(),
-                )
+                påbegyntSøknad =
+                    PåbegyntSøknadDto(
+                        søknad.søknadUUID(),
+                        mineSøknaderVisitor.søknadOpprettet(),
+                        mineSøknaderVisitor.sistEndretAvBruker(),
+                    )
 
             mineSøknaderVisitor.søknadTilstand() == Innsendt -> {
                 if (mineSøknaderVisitor.søknadInnsendt().toLocalDate() > fom) {
@@ -71,16 +77,17 @@ private fun lagMineSøknaderDto(søknader: List<Søknad>, fom: LocalDate, includ
     return MineSoknaderDto(påbegyntSøknad, innsendteSøknader.ifEmpty { null })
 }
 
-internal fun Set<Krav>.toMineSoknaderDokumentkravDTO(): List<MineSoknaderDokumentkravDTO> = map { krav ->
-    MineSoknaderDokumentkravDTO(
-        id = krav.id,
-        beskrivendeId = krav.beskrivendeId,
-        begrunnelse = krav.svar.begrunnelse,
-        filer = krav.svar.filer.map { it.filnavn },
-        valg = krav.svar.valg.name,
-        bundleFilsti = krav.svar.bundle?.namespaceSpecificString()?.toString(),
-    )
-}
+internal fun Set<Krav>.toMineSoknaderDokumentkravDTO(): List<MineSoknaderDokumentkravDTO> =
+    map { krav ->
+        MineSoknaderDokumentkravDTO(
+            id = krav.id,
+            beskrivendeId = krav.beskrivendeId,
+            begrunnelse = krav.svar.begrunnelse,
+            filer = krav.svar.filer.map { it.filnavn },
+            valg = krav.svar.valg.name,
+            bundleFilsti = krav.svar.bundle?.namespaceSpecificString()?.toString(),
+        )
+    }
 
 internal data class MineSoknaderDto(val paabegynt: PåbegyntSøknadDto?, val innsendte: List<InnsendtSøknadDto>?)
 
