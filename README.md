@@ -1,6 +1,6 @@
 # dp-soknad
 
-1. Eier livsylus på søknad fra Påbegynt til Journalført.
+1. Eier livssyklus på søknad fra Påbegynt til Journalført.
 2. Eier dokumentasjonkrav for søknader
 3. Status for søknader og liste gitt bruker 
 
