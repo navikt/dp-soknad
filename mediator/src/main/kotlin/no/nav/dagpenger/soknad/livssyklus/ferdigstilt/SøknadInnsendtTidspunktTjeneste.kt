@@ -34,11 +34,15 @@ internal class SøknadInnsendtTidspunktTjeneste(
     init {
         River(rapidsConnection)
             .apply {
-                validate { it.demandAny("@event_name", listOf("faktum_svar", "behov")) }
-                validate { it.requireContains("@behov", behov) }
-                validate { it.rejectKey("@løsning") }
-                validate { it.interestedIn("InnsendtSøknadsId", "Søknadstidspunkt.søknad_uuid", "søknadId") }
-                validate { it.interestedIn("søknad_uuid", "@behovId") }
+                precondition {
+                    it.requireAny("@event_name", listOf("faktum_svar", "behov"))
+                    it.requireContains("@behov", behov)
+                    it.forbid("@løsning")
+                }
+                validate {
+                    it.interestedIn("InnsendtSøknadsId", "Søknadstidspunkt.søknad_uuid", "søknadId")
+                    it.interestedIn("søknad_uuid", "@behovId")
+                }
             }.register(this)
     }
 

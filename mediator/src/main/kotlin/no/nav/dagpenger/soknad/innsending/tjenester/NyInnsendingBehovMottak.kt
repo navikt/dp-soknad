@@ -21,11 +21,15 @@ internal class NyInnsendingBehovMottak(rapidsConnection: RapidsConnection, priva
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "behov") }
-            validate { it.demandAllOrAny("@behov", listOf(NyInnsending.name)) }
-            validate { it.requireKey("søknad_uuid", "ident", "innsendtTidspunkt") }
-            validate { it.interestedIn("dokumentkrav") }
-            validate { it.rejectKey("@løsning") }
+            precondition {
+                it.requireValue("@event_name", "behov")
+                it.requireAllOrAny("@behov", listOf(NyInnsending.name))
+                it.forbid("@løsning")
+            }
+            validate {
+                it.requireKey("søknad_uuid", "ident", "innsendtTidspunkt")
+                it.interestedIn("dokumentkrav")
+            }
         }.register(this)
     }
 
