@@ -17,8 +17,12 @@ class SøknadsMalMottak(
 ) : River.PacketListener {
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "Søknadsmal") }
-            validate { it.requireKey("versjon_id", "versjon_navn", "seksjoner") }
+            precondition {
+                it.requireValue("@event_name", "Søknadsmal")
+            }
+            validate {
+                it.requireKey("versjon_id", "versjon_navn", "seksjoner")
+            }
         }.register(this)
     }
 

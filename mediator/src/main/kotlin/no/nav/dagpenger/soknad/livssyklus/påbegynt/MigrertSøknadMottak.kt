@@ -23,10 +23,12 @@ internal class MigrertSøknadMottak(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "behov") }
-            validate { it.demandAllOrAny("@behov", listOf(behov)) }
-            validate { it.requireKey("søknad_uuid", "ident", "@løsning") }
+            precondition {
+                it.requireValue("@event_name", "behov")
+                it.requireAllOrAny("@behov", listOf(behov))
+            }
             validate {
+                it.requireKey("søknad_uuid", "ident", "@løsning")
                 it.require("@løsning") { løsning ->
                     løsning.required(behov)
                 }

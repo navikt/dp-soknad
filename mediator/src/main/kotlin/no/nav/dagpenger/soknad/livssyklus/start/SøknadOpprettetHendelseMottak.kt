@@ -32,11 +32,15 @@ internal class SøknadOpprettetHendelseMottak(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "behov") }
-            validate { it.demandAllOrAny("@behov", listOf(behov)) }
-            validate { it.requireKey("@behovId", "søknad_uuid", "ident", "@løsning") }
-            validate { it.requireKey("@løsning") }
-            validate { it.requireValue("@final", true) }
+            precondition {
+                it.requireValue("@event_name", "behov")
+                it.requireAllOrAny("@behov", listOf(behov))
+                it.requireValue("@final", true)
+            }
+            validate {
+                it.requireKey("@behovId", "søknad_uuid", "ident")
+                it.requireKey("@løsning")
+            }
         }.register(this)
     }
 

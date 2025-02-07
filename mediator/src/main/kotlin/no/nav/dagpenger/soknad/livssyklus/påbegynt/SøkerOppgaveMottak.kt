@@ -21,8 +21,10 @@ internal class SøkerOppgaveMottak(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "søker_oppgave") }
-            validate { it.rejectKey("@løsning") }
+            precondition {
+                it.requireValue("@event_name", "søker_oppgave")
+                it.forbid("@løsning")
+            }
             validate {
                 it.requireKey(
                     SøkerOppgave.Keys.SEKSJONER,

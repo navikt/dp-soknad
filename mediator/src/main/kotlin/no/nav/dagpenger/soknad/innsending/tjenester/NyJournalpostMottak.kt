@@ -25,15 +25,17 @@ internal class NyJournalpostMottak(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "behov") }
-            validate { it.demandAllOrAny("@behov", listOf(behov)) }
-            validate { it.requireKey("søknad_uuid", "ident", "innsendingId", "@løsning") }
+            precondition {
+                it.requireValue("@event_name", "behov")
+                it.requireAllOrAny("@behov", listOf(behov))
+                it.requireValue("@final", true)
+            }
             validate {
+                it.requireKey("søknad_uuid", "ident", "innsendingId", "@løsning")
                 it.require("@løsning") { løsning ->
                     løsning.required(behov)
                 }
             }
-            validate { it.requireValue("@final", true) }
         }.register(this)
     }
 

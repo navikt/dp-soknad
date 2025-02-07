@@ -21,11 +21,15 @@ internal class NyEttersendingBehovMottak(rapidsConnection: RapidsConnection, pri
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "behov") }
-            validate { it.demandAllOrAny("@behov", listOf(NyEttersending.name)) }
-            validate { it.requireKey("søknad_uuid", "ident", "innsendtTidspunkt") }
-            validate { it.interestedIn("dokumentkrav") }
-            validate { it.rejectKey("@løsning") }
+            precondition {
+                it.requireValue("@event_name", "behov")
+                it.requireAllOrAny("@behov", listOf(NyEttersending.name))
+                it.forbid("@løsning")
+            }
+            validate {
+                it.requireKey("søknad_uuid", "ident", "innsendtTidspunkt")
+                it.interestedIn("dokumentkrav")
+            }
         }.register(this)
     }
 
@@ -47,12 +51,8 @@ internal class NyEttersendingBehovMottak(rapidsConnection: RapidsConnection, pri
             mediator.behandle(hendelse)
 
             packet["@løsning"] =
-                mapOf(
-                    behov to
-                        mapOf(
-                            "innsendingId" to hendelse.innsendingId,
-                        ),
-                )
+                mapOf(behov to mapOf("innsendingId" to hendelse.innsendingId))
+
             context.publish(packet.toJson())
         }
     }
