@@ -1,5 +1,5 @@
 plugins {
-    id("org.openapi.generator") version "7.10.0"
+    id("org.openapi.generator") version "7.11.0"
     id("common")
     `java-library`
 }
@@ -35,7 +35,7 @@ dependencies {
 }
 
 openApiGenerate {
-    generatorName.set("kotlin-server")
+    generatorName.set("kotlin")
     inputSpec.set("$projectDir/src/main/resources/soknad-api.yaml")
     outputDir.set("${layout.buildDirectory.get()}/generated/")
     packageName.set("no.nav.dagpenger.soknad.api")
