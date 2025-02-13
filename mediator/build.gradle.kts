@@ -23,8 +23,8 @@ dependencies {
     implementation(libs.kotlin.logging)
 
     implementation("com.github.navikt:pam-geography:2.21")
-    implementation("no.nav.dagpenger:pdl-klient:2025.02.12-15.03.b6caff49b640")
-    implementation("no.nav.dagpenger:oauth2-klient:2025.02.12-15.03.b6caff49b640")
+    implementation("no.nav.dagpenger:pdl-klient:2025.02.13-18.02.052b7c34baab")
+    implementation("no.nav.dagpenger:oauth2-klient:2025.02.13-18.02.052b7c34baab")
     implementation("io.prometheus:simpleclient_caffeine:0.16.0")
     implementation("com.fasterxml.jackson.module:jackson-module-blackbird:2.18.2")
 
