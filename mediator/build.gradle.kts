@@ -24,7 +24,7 @@ dependencies {
 
     implementation("com.github.navikt:pam-geography:2.21")
     implementation("no.nav.dagpenger:pdl-klient:2025.02.12-15.03.b6caff49b640")
-    implementation("no.nav.dagpenger:oauth2-klient:2024.12.19-12.57.9d42f60a1165")
+    implementation("no.nav.dagpenger:oauth2-klient:2025.02.12-15.03.b6caff49b640")
     implementation("io.prometheus:simpleclient_caffeine:0.16.0")
     implementation("com.fasterxml.jackson.module:jackson-module-blackbird:2.18.2")
 
