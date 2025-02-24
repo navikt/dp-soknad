@@ -38,7 +38,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.12.0")
     testImplementation(libs.ktor.client.mock)
     testImplementation(libs.rapids.and.rivers.test)
-    testImplementation("com.github.navikt.tbd-libs:naisful-test-app:2025.01.16-08.15-d17f6062")
+    testImplementation("com.github.navikt.tbd-libs:naisful-test-app:2025.02.14-08.59-4f6db7fb")
 }
 
 application {
