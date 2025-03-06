@@ -165,8 +165,7 @@ internal class SøknadMediator(
         ident: String,
         språk: String,
         prosessnavn: Prosessnavn,
-        søknadId: UUID,
-    ) = Søknadsprosess.NySøknadsProsess(søknadId).also {
+    ) = Søknadsprosess.NySøknadsProsess().also {
         behandle(ØnskeOmNySøknadHendelse(it.getSøknadsId(), ident, språk, prosessnavn))
     }
 
@@ -244,8 +243,8 @@ enum class Prosesstype {
 internal sealed class Søknadsprosess {
     abstract fun getSøknadsId(): UUID
 
-    internal class NySøknadsProsess(søknadId: UUID) : Søknadsprosess() {
-        private val søknadID = søknadId
+    internal class NySøknadsProsess : Søknadsprosess() {
+        private val søknadID = UUID.randomUUID()
 
         override fun getSøknadsId(): UUID = søknadID
     }

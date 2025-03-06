@@ -39,7 +39,6 @@ internal class SøknadApiTest {
     fun `Skal starte utfylling av søknad`() {
         val egenvalgtSpråk = slot<String>()
         val defaultSpråk = slot<String>()
-        val søknadId = UUID.randomUUID()
         val søknadMediatorMock =
             mockk<SøknadMediator>().also {
                 every {
@@ -47,17 +46,15 @@ internal class SøknadApiTest {
                         ident = DEAFULT_DUMMY_FNR,
                         språk = capture(egenvalgtSpråk),
                         prosessnavn = Prosessnavn("Dagpenger"),
-                        søknadId = any(),
                     )
-                } returns NySøknadsProsess(søknadId)
+                } returns NySøknadsProsess()
                 every {
                     it.opprettSøknadsprosess(
                         ident = "12345678910",
                         språk = capture(defaultSpråk),
                         prosessnavn = Prosessnavn("Dagpenger"),
-                        søknadId = any(),
                     )
-                } returns NySøknadsProsess(søknadId)
+                } returns NySøknadsProsess()
                 every { it.prosessnavn(any()) } returns Prosessnavn("Dagpenger")
             }
 
@@ -83,38 +80,6 @@ internal class SøknadApiTest {
                 assertEquals(HttpStatusCode.Created, this.status)
                 assertNotNull(this.headers[HttpHeaders.Location])
                 assertEquals("NB", defaultSpråk.captured)
-            }
-        }
-    }
-
-    @Test
-    fun `Kan sende med søknadId til soknad endepunkt`() {
-        val søknadId = UUID.randomUUID()
-
-        val søknadMediatorMock =
-            mockk<SøknadMediator>().also {
-                every {
-                    it.opprettSøknadsprosess(
-                        ident = DEAFULT_DUMMY_FNR,
-                        språk = "NB",
-                        prosessnavn = Prosessnavn("Dagpenger"),
-                        søknadId = søknadId,
-                    )
-                } returns NySøknadsProsess(søknadId)
-                every { it.prosessnavn(any()) } returns Prosessnavn("Dagpenger")
-            }
-
-        TestApplication.withMockAuthServerAndTestApplication(
-            TestApplication.mockedSøknadApi(
-                søknadMediator = søknadMediatorMock,
-            ),
-        ) {
-            autentisert(
-                endepunkt = "${Configuration.basePath}/soknad?søknadId=$søknadId",
-                httpMethod = HttpMethod.Post,
-            ).apply {
-                assertEquals(HttpStatusCode.Created, this.status)
-                assertEquals(søknadId.toString(), this.bodyAsText())
             }
         }
     }
