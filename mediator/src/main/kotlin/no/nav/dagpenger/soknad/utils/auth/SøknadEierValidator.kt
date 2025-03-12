@@ -28,11 +28,17 @@ internal class SøknadEierValidator(private val mediator: SøknadMediator) {
         søknadId: UUID,
         forventetEier: String,
     ): Boolean {
-        val faktiskEier =
-            cache.get(søknadId, mediator::hentEier)
-                ?: throw NotFoundException("Finner ikke søknad med uuid: $søknadId")
+        val cachedEier = cache.getIfPresent(søknadId)
+        if (cachedEier != null) {
+            return sjekkEier(cachedEier, forventetEier)
+        }
 
-        return sjekkEier(faktiskEier, forventetEier)
+        val hentEierFraMediator = mediator.hentEier(søknadId)
+        if (hentEierFraMediator != null) {
+            cache.put(søknadId, hentEierFraMediator)
+            return sjekkEier(hentEierFraMediator, forventetEier)
+        }
+        throw NotFoundException("Finner ikke søknad med uuid: $søknadId")
     }
 
     fun valider(
