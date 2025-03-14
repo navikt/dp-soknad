@@ -58,7 +58,7 @@ spec:
         - application: dp-soknad-frontend
         {{#if wonderwalled}}
         - application: tokenx-token-generator
-          namespace: aura
+          namespace: nais
         {{/if}}
     outbound:
       rules:
