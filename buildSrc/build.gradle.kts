@@ -1,6 +1,6 @@
 plugins {
     `kotlin-dsl`
-    kotlin("jvm") version "2.1.20"
+    kotlin("jvm") version "2.1.21"
     id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
 }
 
