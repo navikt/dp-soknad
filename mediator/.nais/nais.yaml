@@ -1,13 +1,13 @@
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
-  name: {{app}}
-  namespace: {{namespace}}
+  name: "{{app}}"
+  namespace: "{{namespace}}"
   labels:
-    team: {{team}}
-    app: {{app}}
+    team: "{{team}}"
+    app: "{{app}}"
 spec:
-  image: {{image}}
+  image: "{{image}}"
   port: 8080
   strategy:
     rollingUpdate: # Bruk kun Recreate når vi deployer store/ukompatible migreringer
@@ -29,7 +29,7 @@ spec:
     min: 4
     max: 4
   kafka:
-    pool: {{ kafka_pool }}
+    pool: "{{ kafka_pool }}"
   resources:
     limits:
       memory: 1024Mi
@@ -66,41 +66,41 @@ spec:
         - application: sokos-kontoregister-person
           namespace: okonomi
       external:
-        - host: {{ PDL_API_HOST }}
-        - host: {{ AAREG_API_HOST }}
-        - host: {{ EREG_API_HOST }}
+        - host: "{{ PDL_API_HOST }}"
+        - host: "{{ AAREG_API_HOST }}"
+        - host: "{{ EREG_API_HOST }}"
 
   env:
     - name: JDK_JAVA_OPTIONS # Bytter GC og lar JVMen se at det er flere CPU kjerner
       value: -XX:+UseParallelGC -XX:ActiveProcessorCount=4
     - name: PERSON_KONTO_REGISTER_SCOPE
-      value: {{PERSON_KONTO_REGISTER_SCOPE}}
+      value: "{{PERSON_KONTO_REGISTER_SCOPE}}"
     - name: PDL_API_HOST
-      value: {{PDL_API_HOST}}
+      value: "{{PDL_API_HOST}}"
     - name: PDL_AUDIENCE
-      value: {{PDL_AUDIENCE}}
+      value: "{{PDL_AUDIENCE}}"
     - name: DP_INNSYN_AUDIENCE
-      value: {{DP_INNSYN_AUDIENCE}}
+      value: "{{DP_INNSYN_AUDIENCE}}"
     - name: DP_INNSYN_URL
       value: http://dp-innsyn
     - name: AAREG_API_HOST
-      value: {{AAREG_API_HOST}}
+      value: "{{AAREG_API_HOST}}"
     - name: AAREG_AUDIENCE
-      value: {{AAREG_AUDIENCE}}
+      value: "{{AAREG_AUDIENCE}}"
     - name: EREG_API_HOST
-      value: {{EREG_API_HOST}}
+      value: "{{EREG_API_HOST}}"
     - name: JAVA_OPTS
       value: -XX:ActiveProcessorCount=2
   gcp:
     sqlInstances:
       - name: dp-soknad-v1
         type: POSTGRES_14
-        tier: {{db_tier}}
+        tier: "{{db_tier}}"
         diskType: SSD
         highAvailability: true
         pointInTimeRecovery: true
-        retainedBackups: {{ point_in_time_recovery_days }}
-        diskSize: {{db_size}}
+        retainedBackups: "{{ point_in_time_recovery_days }}"
+        diskSize: "{{db_size}}"
         diskAutoresize: true
         autoBackupHour: 3
         maintenance:
