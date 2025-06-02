@@ -120,3 +120,11 @@ spec:
           apiVersion: resourcemanager.cnrm.cloud.google.com/v1beta1
           kind: Project
         role: roles/cloudprofiler.agent
+  observability:
+    logging:
+      destinations:
+        - id: loki
+        - id: elastic
+    autoInstrumentation:
+      enabled: true
+      runtime: java
