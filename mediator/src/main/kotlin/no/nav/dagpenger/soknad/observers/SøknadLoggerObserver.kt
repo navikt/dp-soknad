@@ -1,6 +1,6 @@
 package no.nav.dagpenger.soknad.observers
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.dagpenger.soknad.SøknadObserver
 
 object SøknadLoggerObserver : SøknadObserver {

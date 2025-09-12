@@ -1,8 +1,8 @@
 package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.prometheus.client.Histogram
 import kotlinx.coroutines.delay
-import mu.KotlinLogging
 import no.nav.dagpenger.soknad.db.SøkerOppgaveNotFoundException
 import no.nav.dagpenger.soknad.monitoring.Metrics
 import no.nav.dagpenger.soknad.monitoring.Metrics.søknadDataRequests
