@@ -1,10 +1,10 @@
 package no.nav.dagpenger.soknad.livssyklus.ferdigstilling
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.plugins.NotFoundException
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import mu.KotlinLogging
 import org.postgresql.util.PGobject
 import org.postgresql.util.PSQLException
 import java.util.UUID

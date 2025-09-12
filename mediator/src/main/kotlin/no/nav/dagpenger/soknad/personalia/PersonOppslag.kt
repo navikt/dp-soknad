@@ -1,7 +1,7 @@
 package no.nav.dagpenger.soknad.personalia
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpHeaders
-import mu.KotlinLogging
 import no.nav.dagpenger.pdl.PersonOppslag
 import no.nav.dagpenger.pdl.adresse.AdresseVisitor
 import no.nav.dagpenger.soknad.Configuration

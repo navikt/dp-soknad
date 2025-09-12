@@ -1,12 +1,11 @@
 package no.nav.dagpenger.soknad.livssyklus.påbegynt
 
+import io.github.oshai.kotlinlogging.withLoggingContext
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import mu.withLoggingContext
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.søknadUuid
 import no.nav.dagpenger.soknad.utils.auth.SøknadEierValidator

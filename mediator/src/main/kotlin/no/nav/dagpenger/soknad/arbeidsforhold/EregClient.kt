@@ -1,6 +1,7 @@
 package no.nav.dagpenger.soknad.arbeidsforhold
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
@@ -8,7 +9,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendEncodedPathSegments
 import kotlinx.coroutines.runBlocking
-import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.utils.client.createHttpClient
 

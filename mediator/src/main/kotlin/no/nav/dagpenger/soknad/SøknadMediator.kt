@@ -2,7 +2,7 @@ package no.nav.dagpenger.soknad
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.withMDC
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.dagpenger.soknad.db.DokumentkravRepository
 import no.nav.dagpenger.soknad.db.SøknadDataRepository
 import no.nav.dagpenger.soknad.hendelse.DokumentKravHendelse

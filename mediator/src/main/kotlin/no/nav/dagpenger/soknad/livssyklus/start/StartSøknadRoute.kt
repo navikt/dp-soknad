@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad.livssyklus.start
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -8,7 +9,6 @@ import io.ktor.server.response.header
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import mu.KotlinLogging
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.utils.auth.ident
 

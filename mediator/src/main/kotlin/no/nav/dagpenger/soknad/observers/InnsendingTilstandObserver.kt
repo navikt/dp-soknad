@@ -2,6 +2,7 @@ package no.nav.dagpenger.soknad.observers
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.dagpenger.soknad.InnsendingObserver
 
 class InnsendingTilstandObserver(
@@ -31,6 +32,6 @@ class InnsendingTilstandObserver(
     }
 
     private companion object {
-        private val logger = mu.KotlinLogging.logger { }
+        private val logger = KotlinLogging.logger { }
     }
 }

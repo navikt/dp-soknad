@@ -1,5 +1,6 @@
 package no.nav.dagpenger.soknad
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.plugins.ResponseException
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -29,7 +30,6 @@ import io.ktor.server.request.uri
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
-import mu.KotlinLogging
 import no.nav.dagpenger.soknad.db.SøkerOppgaveNotFoundException
 import no.nav.dagpenger.soknad.utils.auth.AzureAdFactory.azure
 import no.nav.dagpenger.soknad.utils.auth.TokenXFactory.tokenX
