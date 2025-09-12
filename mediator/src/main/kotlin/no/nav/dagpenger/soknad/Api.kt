@@ -29,13 +29,13 @@ import io.ktor.server.request.uri
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
-import java.net.URI
 import mu.KotlinLogging
 import no.nav.dagpenger.soknad.db.SøkerOppgaveNotFoundException
 import no.nav.dagpenger.soknad.utils.auth.AzureAdFactory.azure
 import no.nav.dagpenger.soknad.utils.auth.TokenXFactory.tokenX
 import no.nav.dagpenger.soknad.utils.serder.objectMapper
 import org.slf4j.event.Level
+import java.net.URI
 
 private val logger = KotlinLogging.logger {}
 
