@@ -5,7 +5,7 @@ plugins {
 dependencies {
 
     implementation(libs.bundles.jackson)
-    api("de.slub-dresden:urnlib:2.0.1")
+    api("de.slub-dresden:urnlib:3.0.0")
 
     testImplementation("io.kotest:kotest-assertions-core-jvm:${libs.versions.kotest.get()}")
 
