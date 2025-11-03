@@ -36,11 +36,11 @@ spec:
     requests:
       cpu: 50m
       memory: 512Mi
-  { { #if ingresses}}
-    ingresses:
-      { { #each ingresses as |url|}}
-          - {{url } }
-        {{/each } }
+  {{#if ingresses}}
+  ingresses:
+    {{#each ingresses as |url|}}
+     - {{url}}
+    {{/each}}
   {{/if}}
   tokenx:
     enabled: true
@@ -56,10 +56,10 @@ spec:
         - application: dp-innsyn
         - application: dp-dagpenger
         - application: dp-soknad-frontend
-        { { #if wonderwalled}}
-            - application: tokenx-token-generator
-                namespace: nais
-                {{/if } }
+        {{#if wonderwalled}}
+        - application: tokenx-token-generator
+          namespace: nais
+        {{/if}}
     outbound:
       rules:
         - application: dp-innsyn
@@ -99,7 +99,7 @@ spec:
         diskType: SSD
         highAvailability: true
         pointInTimeRecovery: true
-        retainedBackups: { { point_in_time_recovery_days } }
+        retainedBackups: {{ point_in_time_recovery_days }}
         diskSize: {{db_size}}
         diskAutoresize: true
         autoBackupHour: 3
