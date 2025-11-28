@@ -43,12 +43,15 @@ jobs:
     needs: [ build ]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      actions: read
     environment: dev-gcp
     steps:
       - uses: actions/checkout@v6
       - uses: nais/deploy/actions/deploy@v2
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           RESOURCE: mediator/.nais/nais.yaml
           VAR: image=${{ needs.build.outputs.image }}
@@ -59,12 +62,15 @@ jobs:
     needs: [ build, deploy-dev ]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      actions: read
     environment: prod-gcp
     steps:
       - uses: actions/checkout@v6
       - uses: nais/deploy/actions/deploy@v2
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-gcp
           RESOURCE: mediator/.nais/nais.yaml
           VAR: image=${{ needs.build.outputs.image }}
