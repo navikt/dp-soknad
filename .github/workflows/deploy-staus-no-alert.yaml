@@ -13,9 +13,7 @@ jobs:
     name: Deploy to prod
     runs-on: ubuntu-latest
     permissions:
-      contents: read
       id-token: write
-      actions: read
     strategy:
       matrix:
         cluster: [ dev-gcp, prod-gcp, dev-fss, prod-fss ]

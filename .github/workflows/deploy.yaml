@@ -44,9 +44,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
       id-token: write
-      actions: read
     environment: dev-gcp
     steps:
       - uses: actions/checkout@v6
@@ -63,9 +61,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
       id-token: write
-      actions: read
     environment: prod-gcp
     steps:
       - uses: actions/checkout@v6
