@@ -25,5 +25,5 @@ jobs:
       - uses: nais/deploy/actions/deploy@v2
         env:
           CLUSTER: ${{ matrix.cluster }}
-          RESOURCE: alerts/felles-alerts.yaml
+          RESOURCE: alerts/status-nav-no-alerts.yaml
           PRINT_PAYLOAD: true
