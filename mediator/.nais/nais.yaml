@@ -54,8 +54,6 @@ spec:
         - application: dp-innsyn
         - application: dp-dagpenger
         - application: dp-soknad-frontend
-        - application: logging
-          namespace: nais-system
         {{#if wonderwalled}}
         - application: tokenx-token-generator
           namespace: nais
@@ -65,6 +63,8 @@ spec:
         - application: dp-innsyn
         - application: sokos-kontoregister-person
           namespace: okonomi
+        - application: logging
+          namespace: nais-system
       external:
         - host: "{{ PDL_API_HOST }}"
         - host: "{{ AAREG_API_HOST }}"
