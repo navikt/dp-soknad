@@ -23,8 +23,6 @@ spec:
     timeout: 1
   prometheus:
     enabled: true
-  secureLogs:
-    enabled: true
   replicas:
     min: 4
     max: 4
@@ -56,6 +54,8 @@ spec:
         - application: dp-innsyn
         - application: dp-dagpenger
         - application: dp-soknad-frontend
+        - application: logging
+          namespace: nais-system
         {{#if wonderwalled}}
         - application: tokenx-token-generator
           namespace: nais
