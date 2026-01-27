@@ -24,7 +24,7 @@ dependencies {
     implementation("no.nav.dagpenger:pdl-klient:2025.11.27-14.20.4aa9aa3d3d14")
     implementation("no.nav.dagpenger:oauth2-klient:2025.11.27-14.20.4aa9aa3d3d14")
     implementation("io.prometheus:simpleclient_caffeine:0.16.0")
-    implementation("com.fasterxml.jackson.module:jackson-module-blackbird:2.20.1")
+    implementation("com.fasterxml.jackson.module:jackson-module-blackbird:2.21.0")
 
     testImplementation(libs.ktor.client.mock)
     testImplementation("io.kotest:kotest-assertions-core-jvm:${libs.versions.kotest.get()}")
