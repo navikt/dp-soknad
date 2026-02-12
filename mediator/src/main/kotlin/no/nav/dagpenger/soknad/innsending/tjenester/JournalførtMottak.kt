@@ -30,6 +30,7 @@ internal class JournalførtMottak(
                 it.requireKey("fødselsnummer", "journalpostId")
                 it.require("søknadsData") { data ->
                     data["søknad_uuid"].asUUID()
+                    data["versjon_navn"].asText()
                 }
             }
         }.register(this)
@@ -60,9 +61,15 @@ internal class JournalførtMottak(
             "søknadId" to søknadID.toString(),
             "journalpostId" to journalpostId,
         ) {
-            val journalførtHendelse = JournalførtHendelse(ident, journalpostId)
-            logger.info { "Fått løsning for innsending_ferdigstilt for $journalpostId" }
-            mediator.behandle(journalførtHendelse)
+            val versjonnavn = packet["søknadsData"]["versjon_navn"].asText()
+
+            if (versjonnavn != "Dagpenger") {
+                logger.info { "Fikk innsending_ferdigstilt-melding fra dp-mottak, men den er for en orkestrator-søknad" }
+            } else {
+                val journalførtHendelse = JournalførtHendelse(ident, journalpostId)
+                logger.info { "Fått løsning for innsending_ferdigstilt for $journalpostId" }
+                mediator.behandle(journalførtHendelse)
+            }
         }
     }
 }
