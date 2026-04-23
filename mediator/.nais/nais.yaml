@@ -49,11 +49,11 @@ spec:
     inbound:
       rules:
         - application: dp-soknadsdialog
+        - application: dp-brukerdialog-frontend
         - application: dp-behov-soknad-pdf
         - application: dp-behov-journalforing
         - application: dp-innsyn
         - application: dp-dagpenger
-        - application: dp-soknad-frontend
         {{#if wonderwalled}}
         - application: tokenx-token-generator
           namespace: nais
