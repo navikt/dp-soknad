@@ -2,7 +2,7 @@ package no.nav.dagpenger.soknad.innsending
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.withMDC
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.dagpenger.soknad.Aktivitetslogg
 import no.nav.dagpenger.soknad.BehovMediator
 import no.nav.dagpenger.soknad.Innsending

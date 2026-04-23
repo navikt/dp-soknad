@@ -3,6 +3,7 @@ package no.nav.dagpenger.soknad.status
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
@@ -16,7 +17,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.serialization.jackson.jackson
-import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Configuration
 import no.nav.dagpenger.soknad.Configuration.tokenXClient
 import org.slf4j.MDC

@@ -29,12 +29,13 @@ import java.util.UUID
 import javax.sql.DataSource
 
 @Suppress("FunctionName")
-class SøknadPostgresRepository(private val dataSource: DataSource) :
-    SøknadRepository {
+class SøknadPostgresRepository(
+    private val dataSource: DataSource,
+) : SøknadRepository {
     private val dokumentkravRepository = PostgresDokumentkravRepository(dataSource)
 
-    override fun hentEier(søknadId: UUID): String? {
-        return using(sessionOf(dataSource)) { session ->
+    override fun hentEier(søknadId: UUID): String? =
+        using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf(
                     //language=PostgreSQL
@@ -51,48 +52,49 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                 ).map { it.stringOrNull("person_ident") }.asSingle,
             )
         }
-    }
 
-    override fun hent(søknadId: UUID): Søknad? {
-        return using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf(
-                    //language=PostgreSQL
-                    statement =
-                        """
-                        SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident, innsendt
-                        FROM  soknad_v1
-                        WHERE uuid = :uuid AND tilstand != 'Slettet'
-                        """.trimIndent(),
-                    paramMap =
-                        mapOf(
-                            "uuid" to søknadId,
-                        ),
-                ).map(rowToSøknadDTO(session)).asSingle,
-            )?.rehydrer()
+    override fun hent(søknadId: UUID): Søknad? =
+        using(sessionOf(dataSource)) { session ->
+            session
+                .run(
+                    queryOf(
+                        //language=PostgreSQL
+                        statement =
+                            """
+                            SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident, innsendt
+                            FROM  soknad_v1
+                            WHERE uuid = :uuid AND tilstand != 'Slettet'
+                            """.trimIndent(),
+                        paramMap =
+                            mapOf(
+                                "uuid" to søknadId,
+                            ),
+                    ).map(rowToSøknadDTO(session)).asSingle,
+                )?.rehydrer()
         }
-    }
 
     override fun hentSøknader(ident: String): Set<Søknad> =
         using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf(
-                    //language=PostgreSQL
-                    """
-                    SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident, innsendt
-                    FROM  soknad_v1
-                    WHERE person_ident = :ident AND tilstand != 'Slettet' 
-                    ORDER BY sist_endret_av_bruker DESC
-                    """.trimIndent(),
-                    mapOf(
-                        "ident" to ident,
-                    ),
-                ).map(rowToSøknadDTO(session)).asList,
-            ).map { it.rehydrer() }.toSet()
+            session
+                .run(
+                    queryOf(
+                        //language=PostgreSQL
+                        """
+                        SELECT uuid, tilstand, spraak, sist_endret_av_bruker, opprettet, person_ident, innsendt
+                        FROM  soknad_v1
+                        WHERE person_ident = :ident AND tilstand != 'Slettet' 
+                        ORDER BY sist_endret_av_bruker DESC
+                        """.trimIndent(),
+                        mapOf(
+                            "ident" to ident,
+                        ),
+                    ).map(rowToSøknadDTO(session)).asList,
+                ).map { it.rehydrer() }
+                .toSet()
         }
 
-    private fun rowToSøknadDTO(session: Session): (Row) -> SøknadDTO {
-        return { row: Row ->
+    private fun rowToSøknadDTO(session: Session): (Row) -> SøknadDTO =
+        { row: Row ->
             val søknadsId = UUID.fromString(row.string("uuid"))
             SøknadDTO(
                 søknadsId = søknadsId,
@@ -111,29 +113,28 @@ class SøknadPostgresRepository(private val dataSource: DataSource) :
                     },
             )
         }
-    }
 
-    override fun hentPåbegynteSøknader(prosessversjon: Prosessversjon): List<Søknad> {
-        return using(sessionOf(dataSource)) { session ->
-            session.run(
-                queryOf(
-                    //language=PostgreSQL
-                    """
-                    SELECT * 
-                    FROM soknad_v1
-                             LEFT JOIN soknadmal mal ON soknad_v1.soknadmal = mal.id
-                    WHERE tilstand = :tilstand
-                      AND ((mal.prosessnavn = :prosessnavn AND :prosessversjon > mal.prosessversjon) OR mal IS NULL) 
-                    """.trimIndent(),
-                    mapOf(
-                        "tilstand" to Tilstand.Type.Påbegynt.toString(),
-                        "prosessnavn" to prosessversjon.prosessnavn.id,
-                        "prosessversjon" to prosessversjon.versjon,
-                    ),
-                ).map(rowToSøknadDTO(session)).asList,
-            ).map { it.rehydrer() }
+    override fun hentPåbegynteSøknader(prosessversjon: Prosessversjon): List<Søknad> =
+        using(sessionOf(dataSource)) { session ->
+            session
+                .run(
+                    queryOf(
+                        //language=PostgreSQL
+                        """
+                        SELECT * 
+                        FROM soknad_v1
+                                 LEFT JOIN soknadmal mal ON soknad_v1.soknadmal = mal.id
+                        WHERE tilstand = :tilstand
+                          AND ((mal.prosessnavn = :prosessnavn AND :prosessversjon > mal.prosessversjon) OR mal IS NULL) 
+                        """.trimIndent(),
+                        mapOf(
+                            "tilstand" to Tilstand.Type.Påbegynt.toString(),
+                            "prosessnavn" to prosessversjon.prosessnavn.id,
+                            "prosessversjon" to prosessversjon.versjon,
+                        ),
+                    ).map(rowToSøknadDTO(session)).asList,
+                ).map { it.rehydrer() }
         }
-    }
 
     override fun opprett(
         søknadID: UUID,
@@ -188,7 +189,9 @@ internal fun Session.hentProsessversjon(søknadId: UUID): ProsessversjonDTO? =
         }.asSingle,
     )
 
-private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
+private class SøknadPersistenceVisitor(
+    søknad: Søknad,
+) : SøknadVisitor {
     private lateinit var søknadId: UUID
     private val queries = mutableListOf<Query>()
 
@@ -221,13 +224,14 @@ private class SøknadPersistenceVisitor(søknad: Søknad) : SøknadVisitor {
             queryOf(
                 // language=PostgreSQL
                 """
+                WITH soknadmal_id AS (SELECT id FROM soknadmal WHERE prosessnavn = :prosessnavn AND prosessversjon = :prosessversjon)
                 INSERT INTO soknad_v1(uuid, person_ident, tilstand, spraak, opprettet, sist_endret_av_bruker, soknadmal, innsendt)
-                VALUES (:uuid, :person_ident, :tilstand, :spraak, :opprettet, :sistEndretAvBruker,
-                     (SELECT id FROM soknadmal WHERE prosessnavn = :prosessnavn AND prosessversjon = :prosessversjon), :innsendt)
+                VALUES (:uuid, :person_ident, :tilstand, :spraak, :opprettet, :sistEndretAvBruker, (SELECT id FROM soknadmal_id),
+                        :innsendt)
                 ON CONFLICT(uuid) DO UPDATE SET tilstand=:tilstand,
-                                             innsendt=:innsendt,
-                                             sist_endret_av_bruker = :sistEndretAvBruker, 
-                                             soknadmal=(SELECT id FROM soknadmal WHERE prosessnavn = :prosessnavn AND prosessversjon = :prosessversjon)
+                                                innsendt=:innsendt,
+                                                sist_endret_av_bruker = :sistEndretAvBruker,
+                                                soknadmal=(SELECT id FROM soknadmal_id)
                 """.trimIndent(),
                 mapOf(
                     "uuid" to søknadId,

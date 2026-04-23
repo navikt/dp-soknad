@@ -1,9 +1,9 @@
 package no.nav.dagpenger.soknad.innsending.tjenester
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import mu.KotlinLogging
 import no.nav.dagpenger.soknad.hendelse.innsending.InnsendingPåminnelseHendelse
 import no.nav.dagpenger.soknad.innsending.InnsendingMediator
 import no.nav.dagpenger.soknad.sletterutine.medLås

@@ -1,6 +1,6 @@
 package no.nav.dagpenger.soknad.sletterutine
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.dagpenger.soknad.SøknadMediator
 import no.nav.dagpenger.soknad.utils.db.PostgresDataSourceBuilder.dataSource
 import kotlin.concurrent.fixedRateTimer

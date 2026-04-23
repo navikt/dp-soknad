@@ -1,11 +1,11 @@
 package no.nav.dagpenger.soknad.db
 
 import de.slub.urn.URN
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Dokumentkrav
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.db.DBUtils.norskZonedDateTime

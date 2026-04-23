@@ -1,12 +1,11 @@
 package no.nav.dagpenger.soknad.minesoknader
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import mu.KotlinLogging
 import no.nav.dagpenger.soknad.Krav
 import no.nav.dagpenger.soknad.Søknad
 import no.nav.dagpenger.soknad.Søknad.Companion.erDagpenger

@@ -11,10 +11,12 @@ import no.nav.dagpenger.soknad.innsending.InnsendingMediator
 import no.nav.dagpenger.soknad.innsending.tjenester.JournalførtMottak
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import java.util.UUID
+import kotlin.test.Test
 
 internal class JournalførtMottakTest {
     @ParameterizedTest
@@ -48,11 +50,40 @@ internal class JournalførtMottakTest {
         }
     }
 
+    @Test
+    fun `Skal kun logge og avslutte prosessering hvis versjon_navn er noe annet enn Dagpenger`() {
+        val søknadId = UUID.randomUUID()
+        val journalpostId = "jp1"
+        val ident = "ident1"
+
+        TestRapid().let { testRapid ->
+            val slot = slot<JournalførtHendelse>()
+            JournalførtMottak(
+                testRapid,
+                mockk<InnsendingMediator>().also {
+                    every { it.behandle(capture(slot)) } just Runs
+                },
+            )
+
+            testRapid.sendTestMessage(
+                `innsending ferdigstilt hendelse`(
+                    søknadId = søknadId,
+                    journalpostId = journalpostId,
+                    type = "NySøknad",
+                    ident = ident,
+                    versjonNavn = "OrkestratorSøknad",
+                ),
+            )
+            assertFalse(slot.isCaptured)
+        }
+    }
+
     private fun `innsending ferdigstilt hendelse`(
         søknadId: UUID,
         journalpostId: String,
         type: String,
         ident: String,
+        versjonNavn: String = "Dagpenger",
     ): String {
         return """
             {
@@ -60,7 +91,8 @@ internal class JournalførtMottakTest {
               "type": "$type",
               "fødselsnummer": "$ident",
               "søknadsData": {
-                "søknad_uuid": "$søknadId"
+                "søknad_uuid": "$søknadId",
+                "versjon_navn": "$versjonNavn"
               },
               "@event_name": "innsending_ferdigstilt"
             } 
