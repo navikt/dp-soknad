@@ -1,3 +1,6 @@
+## Denne applikasjonen er arkivert
+**Den var en del av en gammel flyt for dagpengesøknader. Ny backend for søknad er [dp-soknad-orkestrator](https://github.com/navikt/dp-soknad-orkestrator)**  
+
 # dp-soknad
 
 1. Eier livssyklus på søknad fra Påbegynt til Journalført.
